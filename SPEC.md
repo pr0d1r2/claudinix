@@ -125,7 +125,7 @@ T66|.|EXP E11 cost per session: usage page before/after E1-E5; confirms credit c
 T67|x|ARCHIVED to SPEC-ARCHIVE.md|T58,`scripts:T28`,I.cmd — answered 2026-10-03 (probe 7): `claude --cloud "<task>" --model sonnet` ⇒ configured, served \& trailer = Sonnet 5.5; `--model` before the task fails (`--cloud requires a description`)
 T68|x|ARCHIVED to SPEC-ARCHIVE.md|C11,V3,I.file
 T69|x|ARCHIVED to SPEC-ARCHIVE.md|V20,C19,I.file
-T71|.|rename to `claudinix` (C10) in code \& tests: repo slug in fork block \& `setup-line.sh`, flake URLs, `nix.conf` BEGIN/END markers, `/usr/local/lib/claudinix`, `~/.local/state/claudinix/`, env prefix `NCCC_` → `CLAUDINIX_`, flake `description`; tests pinning strings change RED first; ⊥ history rewrite; gate \& `tdd-order` green|C10,C11,V3,I.file,I.cmd
+T71|x|rename to `claudinix` (C10) in code \& tests: repo slug in fork block \& `setup-line.sh`, flake URLs, `nix.conf` BEGIN/END markers, `/usr/local/lib/claudinix`, `~/.local/state/claudinix/`, env prefix `NCCC_` → `CLAUDINIX_`, flake `description`; tests pinning strings change RED first; ⊥ history rewrite; gate \& `tdd-order` green|C10,C11,V3,I.file,I.cmd
 
 ## §B BUGS
 id|date|cause|fix
