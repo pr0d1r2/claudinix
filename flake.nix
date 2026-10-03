@@ -154,15 +154,27 @@
         );
     in
     {
+      # The repo-only Rust tool (dev:C30): never in a session closure.
+      packages = forAll (
+        { pkgs, ... }:
+        {
+          claudinix-dev = import ./nix/claudinix-dev.nix { inherit pkgs; };
+        }
+      );
+
       devShells = forAll (
         {
+          system,
           pkgs,
           xnl,
           specTools,
           ...
         }:
         {
-          default = import ./nix/dev-shell.nix { inherit pkgs xnl specTools; };
+          default = import ./nix/dev-shell.nix {
+            inherit pkgs xnl specTools;
+            claudinixDev = self.packages.${system}.claudinix-dev;
+          };
         }
       );
 
@@ -172,11 +184,17 @@
       );
 
       checks = forAll (
-        { pkgs, xnl, ... }:
+        {
+          system,
+          pkgs,
+          xnl,
+          ...
+        }:
         import ./nix/checks.nix {
           inherit pkgs xnl;
           src = self;
           cloudHome = self.homeConfigurations.cloud;
+          claudinixDev = self.packages.${system}.claudinix-dev;
         }
       );
 

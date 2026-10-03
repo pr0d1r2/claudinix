@@ -13,3 +13,7 @@ result-*
 
 # The gate log AGENTS.md tells agents to write; never committed.
 /gate.log
+
+# cargo builds of the dev crate (`dev/`); `nix build .#claudinix-dev` is the
+# real build.
+/dev/target/

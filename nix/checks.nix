@@ -5,6 +5,7 @@
   xnl,
   src,
   cloudHome,
+  claudinixDev,
 }:
 let
   # The agent home exists for one system only (x86_64-linux, the cloud
@@ -21,6 +22,10 @@ in
       pkgs.git
     ];
   } "bash ${../scripts/nix/xenolith-check.sh} ${src} $out";
+
+  # The dev crate builds and its `cargo test` passes in the checkPhase
+  # (dev:C30, dev:C31).
+  claudinix-dev = claudinixDev;
 }
 // pkgs.lib.optionalAttrs onHomeSystem {
   # The cavekit skills, FORMAT.md and the set rules are in the

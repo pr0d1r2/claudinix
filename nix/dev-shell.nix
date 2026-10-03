@@ -5,8 +5,11 @@
   pkgs,
   xnl,
   specTools,
+  claudinixDev,
 }:
-pkgs.mkShellNoCC {
+# mkShell, not mkShellNoCC: cargo links through the C compiler, so the
+# Rust steps of the gate need one in the shell (dev:C31).
+pkgs.mkShell {
   packages = [
     pkgs.hk
     pkgs.pkl
@@ -27,6 +30,14 @@ pkgs.mkShellNoCC {
     pkgs.actionlint
     pkgs.zizmor
     xnl
+    # The dev crate's gate (dev:C31): fmt, clippy and tests on `dev/**`.
+    pkgs.cargo
+    pkgs.rustc
+    pkgs.clippy
+    pkgs.rustfmt
+    # The README badges and the INTEGRATION step counts (dev:C30). Built
+    # without its tests: a RED commit must still get a shell to commit in.
+    (claudinixDev.overrideAttrs { doCheck = false; })
   ]
   ++ specTools;
 
