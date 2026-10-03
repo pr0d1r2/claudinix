@@ -341,8 +341,8 @@ model_doc() {
 
 @test "step 3 with the repo's env-names.txt shows the optional Bash timeout (T48)" {
     CLAUDINIX_ENV_NAMES="$REPO/env-names.txt" run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
-    run ! grep -q 'ANTHROPIC_MODEL=' <<<"$output"
     grep -qx '  BASH_DEFAULT_TIMEOUT_MS=600000   (optional)' <<<"$output"
+    [[ "$output" != *"ANTHROPIC_MODEL="* ]]
 }
 
 @test "step 3 without env-names.txt points at it and goes on (T48)" {
