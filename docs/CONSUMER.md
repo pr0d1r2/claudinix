@@ -68,7 +68,15 @@ Two things the cloud clone needs before your gate works:
   `git fetch --unshallow`.
 - **Your git hooks.** Each session is a fresh clone, so the hooks are not
   installed. Install them from inside the dev shell with
-  `nix develop -c hk install`, if your repository uses hk.
+  `nix develop -c hk install`, if your repository uses hk. hk installs
+  config-based hooks, and git older than 2.54 ignores those, so a cloud
+  image's git may run no hook at all. claudinix copies a shim into
+  `.git/hooks` for each event that runs the same command under an older git
+  and does nothing under a newer one
+  ([`legacy-hook.sh`](../scripts/dev/legacy-hook.sh), installed by
+  [`shell-hook.sh`](../scripts/dev/shell-hook.sh); see
+  [`INTEGRATION.md`](INTEGRATION.md)). Copy that approach if your gate
+  must run in a cloud commit.
 
 Commit the hook script and register it in your repository's committed
 `.claude/settings.json`:
@@ -79,7 +87,7 @@ Commit the hook script and register it in your repository's committed
     "SessionStart": [
       {
         "hooks": [
-          { "type": "command", "command": "bash scripts/dev/cloud-session-start.sh" }
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/dev/cloud-session-start.sh\"" }
         ]
       }
     ]
@@ -119,13 +127,30 @@ domains (probe 5, 2026-10-03).
 
 So in the cloud:
 
-- Run tools that audit online in their offline mode. This repository runs
-  `zizmor --offline` everywhere, so the gate does not need the network.
-- If a tool must go online, run it without the token, for example
-  `env -u GH_TOKEN -u GITHUB_TOKEN <tool>`.
+- Run the audit online with tokens, both locally and in GitHub CI, where
+  the tokens are real. Only when `CLAUDE_CODE_REMOTE=true`, run it with
+  `GH_TOKEN` and `GITHUB_TOKEN` unset (for example
+  `env -u GH_TOKEN -u GITHUB_TOKEN zizmor ...`), and if it still fails, fall
+  back to `zizmor --offline`. The token-unset part is not yet proven: the
+  401 was reproduced once, and no session has yet shown that unsetting the
+  tokens avoids it.
+- Take the verdict from zizmor's exit code, not from its output: 0 is clean,
+  10 to 14 is a finding, and anything else means it did not run. Report that
+  as "zizmor could not run: <reason>" and still exit 1.
+  This is the approach merged in
+  [pr0d1r2/sherd#101](https://github.com/pr0d1r2/sherd/pull/101)
+  (2026-10-03); a shared step is proposed in
+  [pr0d1r2/set-and-setting#561](https://github.com/pr0d1r2/set-and-setting/pull/561).
 - A tool that could not run is not a pass and not a finding. Report it as
   "could not run". This repository's gate does that through
   [`scripts/hk/run-tool.sh`](../scripts/hk/run-tool.sh).
+
+## Format checks belong in the pre-commit layer
+
+Put format checks (for example `cargo fmt --check`) in the pre-commit
+layer, not only in `hk check --all`. A format check that runs only in the
+whole-repo gate lets an unformatted file through a commit, and it fails
+later, in the push or in CI.
 
 ## Commits and branches from a session
 
