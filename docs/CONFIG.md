@@ -12,14 +12,22 @@ does what it always did, and no tool even calls Nix to look for it.
 
 `scripts/config.sh` is the one reader. It takes the first of these:
 
-1. the file named in the `CLAUDINIX_CONFIG` environment variable;
-2. `DIR/.claudinix.toml`, when the tool was given a directory (`--dir DIR`;
-   `domains`, `inputs` and `guide` pass the project directory they were
-   given);
-3. `.claudinix.toml` at the top level of the git repository the current
-   directory is in;
-4. `.claudinix.toml` in the current directory, when it is not in a git
-   repository.
+1. `CLAUDINIX_CONFIG_JSON`, an internal handoff between tools: the effective
+   config a calling tool (`guide`, `nix-dev`) already read, passed on so the
+   run reads the file once. It is checked like a file, and no file is read
+   and no `nix` call is made. You do not set it by hand;
+2. with `--dir DIR` (`domains`, `inputs` and `guide` pass the project
+   directory they were given): `.claudinix.toml` at the top level of the git
+   repository DIR is in, else `DIR/.claudinix.toml`. `CLAUDINIX_CONFIG` is
+   not consulted, so one project's file is never read for another;
+3. without `--dir`: the file named in the `CLAUDINIX_CONFIG` environment
+   variable, else `.claudinix.toml` at the top level of the git repository
+   the current directory is in, else `.claudinix.toml` in the current
+   directory.
+
+A run makes at most one `nix eval`: `guide` and `nix-dev` pass the parsed
+config on to the tools they call. `domains` given several project
+directories reads each project's own file.
 
 A missing file is not an error. A directory given with `--dir` that does not
 exist is:
@@ -37,11 +45,11 @@ Every key is optional, but a file that exists must say `version = 1`.
 | `version` | the number `1` | none; required in a file | every reader (the file is refused without it) |
 | `session.model` | `"sonnet"` or `"opus"` | `"sonnet"` | `guide` (its answer to the model question in step 5), `probe` (`--model`) |
 | `session.agent_home` | `true` or `false` | `false` | `guide` (adds ` --agent-home` to the setup line it copies) |
-| `devshell.installable` | string | `"."` | `nix-dev` (the installable when you give none), `guide` (the first dev shell check), `probe` (the dev shell the probe task runs) |
-| `network.extra_domains` | list of strings | `[]` | `domains` (hosts added to the list, source `config`) |
-| `cache.name` | string | `"pr0d1r2"` | `inputs` (the cache it asks), `ci/verify-cachix.sh` (the cache it verifies) |
+| `devshell.installable` | string, no whitespace, quote, backtick or control character | `"."` | `nix-dev` (the installable when you give none), `guide` (the first dev shell check), `probe` (the dev shell the probe task runs) |
+| `network.extra_domains` | list of bare hostnames | `[]` | `domains` (hosts added to the list, source `config`) |
+| `cache.name` | string matching `^[a-z0-9][a-z0-9-]*$` | `"pr0d1r2"` | `inputs` (the cache it asks), `ci/verify-cachix.sh` (the cache it verifies) |
 | `cache.push_sources` | `true` or `false` | `false` | nothing yet: reserved for the central cache job, which is not built |
-| `probe.branch_prefix` | string | `"claude/nix-probe"` | `probe` (the branch the session pushes its report on) |
+| `probe.branch_prefix` | string, no whitespace, quote, backtick or control character | `"claude/nix-probe"` | `probe` (the branch the session pushes its report on) |
 
 `.` as `devshell.installable` means a bare `nix develop`, which is what the
 tools did before the file existed. The per-tool detail is in
@@ -84,10 +92,34 @@ An unknown key asked of `config.sh get`:
 config: unknown key nope.x (known: session.agent_home, session.model, devshell.installable, network.extra_domains, cache.name, cache.push_sources, probe.branch_prefix)
 ```
 
+### Value rules
+
+A value of the right type must also make sense:
+
+- every string must be non-empty;
+- `cache.name` is a cachix cache name: it matches `^[a-z0-9][a-z0-9-]*$`
+  (lowercase letters, digits and hyphens, not starting with a hyphen);
+- each `network.extra_domains` entry is a bare hostname: letters, digits,
+  dots and hyphens, with no scheme, path, port or space, no leading or
+  trailing dot or hyphen (also inside a label), and no wildcard;
+- `devshell.installable` and `probe.branch_prefix` have no whitespace,
+  quote, backtick or control character, because they are printed into shell
+  commands and a prompt.
+
+Every problem is reported at once, and the exit status is 2:
+
+```text
+config: /work/app/.claudinix.toml: cache.name must be a cachix cache name (lowercase letters, digits and hyphens, not starting with a hyphen), got "My_Cache"
+config: /work/app/.claudinix.toml: devshell.installable must have no space, quote or control character, got "path:./a b"
+config: /work/app/.claudinix.toml: network.extra_domains: "https://x.example.org" is not a bare hostname (letters, digits, dots and hyphens; no scheme, path, port or space)
+config: /work/app/.claudinix.toml: network.extra_domains: "*.example.org" is not a bare hostname (letters, digits, dots and hyphens; no scheme, path, port or space)
+config: /work/app/.claudinix.toml: probe.branch_prefix must not be empty, got ""
+```
+
 A tool that reads the file stops with that exit 2 before it does anything
 else, so a typo never turns into a silently ignored setting. A missing
-`version`, an unknown table or key, a wrong type and a `version` other than
-1 are all refused.
+`version`, an unknown table or key, a wrong type, a bad value and a
+`version` other than 1 are all refused.
 
 ## What it needs
 
@@ -96,7 +128,7 @@ session needs no other TOML parser, and `jq` checks the schema and fills in
 the defaults. Both must be on `PATH` when a file exists:
 
 ```text
-config: jq is not on PATH -- cannot read /work/app/.claudinix.toml
+config: jq is not on PATH -- cannot read the config
 config: nix is not on PATH -- cannot read /work/app/.claudinix.toml
 ```
 
