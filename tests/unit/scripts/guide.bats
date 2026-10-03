@@ -24,6 +24,10 @@ setup() {
     mkdir -p "$STUBS" "$LIB" "$P" "${CLAUDINIX_README%/*}"
     : >"$LOG"
     cp "$REPO/scripts/guide-steps.tsv" "$LIB/"
+    # The real config reader: a project without .claudinix.toml gets the
+    # defaults and no nix call (scripts:T91).
+    cp "$REPO/scripts/config.sh" "$REPO/scripts/config.jq" "$LIB/"
+    unset CLAUDINIX_CONFIG
     echo '{"remote":{"defaultEnvironmentId":"env_123"}}' >"$CLAUDE_SETTINGS"
 
     # shellcheck disable=SC2016 # expands inside the stubs, not here
@@ -430,4 +434,54 @@ model_doc() {
     CLAUDINIX_ENV_NAMES="$BATS_TEST_TMPDIR/none.txt" run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
     [ "$status" -eq 0 ]
     [[ "$output" == *"env-names.txt"* ]]
+}
+
+# .claudinix.toml (scripts:T91, scripts:V34): flag (or answer) > file > default.
+
+# config LINE...: the project's .claudinix.toml.
+config() {
+    printf '%s\n' 'version = 1' "$@" >"$P/.claudinix.toml"
+}
+
+@test "session.model is step 5's default; the answer still wins" {
+    config '[session]' 'model = "opus"'
+    run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"(Enter: opus)"* ]]
+    [[ "$output" == *'claude --cloud "<task>" --model opus'* ]]
+    run bash "$SCRIPT" --from 5 <<<$'y\ny\nsonnet\n'
+    [[ "$output" == *'claude --cloud "<task>" --model sonnet'* ]]
+    run bash "$SCRIPT" --from 5 <<<$'y\ny\nhaiku\n'
+    [[ "$output" == *"using opus"* ]]
+    [[ "$output" == *'claude --cloud "<task>" --model opus'* ]]
+}
+
+@test "session.agent_home = true asks the line for the agent home; --no-agent-home wins" {
+    config '[session]' 'agent_home = true'
+    run bash "$SCRIPT" update <<<''
+    [ "$status" -eq 0 ]
+    grep -qxF "$LINE --agent-home" "$LOG"
+    : >"$LOG"
+    run bash "$SCRIPT" update --no-agent-home <<<''
+    [ "$status" -eq 0 ]
+    run ! grep -q -- '--agent-home' "$LOG"
+    : >"$LOG"
+    run bash "$SCRIPT" update --no-agent-home --rev "$SHA" <<<''
+    grep -qx "setup-line $SHA" "$LOG"
+}
+
+@test "devshell.installable goes into the first check's nix-dev" {
+    config '[devshell]' 'installable = ".#ci"'
+    run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'nix-dev .#ci -c true && echo DEVSHELL-OK'* ]]
+}
+
+@test "a bad .claudinix.toml stops before step 0, naming the file and key (V34)" {
+    config '[session]' 'model = "haiku"'
+    run bash "$SCRIPT" <<<$'y\ny\n'
+    [ "$status" -eq 2 ]
+    [[ "$output" == *".claudinix.toml"* ]]
+    [[ "$output" == *"session.model"* ]]
+    [[ "$output" != *"== 0."* ]]
 }
