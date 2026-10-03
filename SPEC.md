@@ -39,6 +39,7 @@ functional Nix (flakes on, owner cachix) inside Claude Code cloud session VM + 1
 - ext.env: claude.ai/code → environment dialog: name, network level, allowed domains, env vars, setup script.
 - cmd: `hk check --all` (local) = CI gate; `hk fix`.
 - cmd: `just guide [flake-dir]` → `scripts/guide.sh`: interactive terminal walkthrough of `docs/SETUP.md` steps 0-5 in order. per step: says what \& where, opens URL (`open` \| `xdg-open`), copies paste value to clipboard (`pbcopy` \| `wl-copy` \| `xclip`; setup line, allowed domains, env name), waits for Enter \| `y/n`. verifies locally what it can: `claude auth status` = claude.ai login, `remote.defaultEnvironmentId` set, `just inputs` → repos to attach. money step 0 = explicit `y` confirm each (credit shown, usage credits OFF), ⊥ skippable. resumable: `--from <step>`. ⊥ network writes, ⊥ secrets.
+- cmd: `just domains` → prints non-comment lines of `allowlist.txt`, 1 per line, ready to paste into Allowed domains; copies them to clipboard when one is available (`pbcopy` \| `wl-copy` \| `xclip`).
 - cmd: `just inputs [flake-dir]` → `scripts/inputs.sh`: ∀ node in `flake.lock` (recursive, deduped) of type `github` → 1 line `owner/repo rev status`; status = `cached` (input source store path from `nix flake archive --dry-run --json` has narinfo in `pr0d1r2.cachix.org`) \| `attach` (⊥ cached ∴ must be attached to session \| routine, docs/SETUP.md). default flake-dir = `.`; works on any target flake (e.g. sherd). exit 1 iff any `attach` w/ `--check`.
 
 ## §V INVARIANTS
@@ -94,6 +95,7 @@ T23|.|CI `.github/workflows/ci.yml`: gate + `nix flake check` + cachix push on d
 T24|.|UI line: `setup.sh` takes `<sha>` arg; docs/SETUP.md shows exact 1-line script; `just`\|script prints line for HEAD after CI green; bats|V20,C19,V10
 T25|.|`just inputs` + `scripts/inputs.sh` (jq over `flake.lock`, narinfo check via curl); bats w/ fixture lock files (nested, deduped, non-github skipped, cached vs attach); `--check` mode|I.cmd,V8,V13,C6
 T26|.|`just guide` + `scripts/guide.sh`: steps from 1 data file shared w/ `docs/SETUP.md` (step ids, titles, URLs, paste values) ∴ ⊥ drift; bats via stdin answers \& stubbed `open`/clipboard/`claude`; parity test: guide steps == SETUP.md headings|I.cmd,C2,V10,T13,T25
+T27|.|`just domains` + `scripts/domains.sh`; bats: comments \& blank lines dropped, order kept, clipboard stubbed \& optional|I.cmd,C2,V10
 T10|.|`just bump-nix <ver>`: fetch installer + `.sha256`, rewrite pin pair, run tests|V11,C4
 
 ## §B BUGS
