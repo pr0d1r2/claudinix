@@ -64,21 +64,37 @@ cloud session (`.:T57`).
    checks this too: `setup-line.sh` refuses a SHA whose newest `ci.yml` run on
    `main` is not completed and successful, because that run pushes the agent
    home to the cache (`.:C19`).
-2. Record the agent home's store path. From a checkout of `main`, after that
-   CI run has pushed it to the cache, run
-   `scripts/nix/record-storepath.sh` (set `CACHIX_URL` if you use your own
-   cache). It writes `cloud-home.storepath` only when the cache answers 200
-   for the path's narinfo, so a path that is not in the cache is never
-   recorded. Commit the file, push, and wait for CI on that commit to go
-   green too: the file does not change the activation package, so the same
-   path stays in the cache, and `setup.sh` realises it when it cannot build
-   the flake.
-3. Print the new line from a checkout: `scripts/setup-line.sh`, or
-   `scripts/setup-line.sh <rev>` for another commit (a full SHA needs no
-   checkout). `--force` prints it despite a red or missing run, with a
-   warning; use it only on purpose. `--agent-home` appends the opt-in flag to
-   the line ([`CLI.md`](CLI.md)). The line goes into the README block between
-   the `setup-line` markers and the release notes; users paste that one.
+2. Cut the release in two steps with `scripts/release.sh` (`just release`
+   runs the same script). The released SHA must hold
+   `cloud-home.storepath` for its own agent home, so the path is recorded
+   and committed first, and the line pins that commit. The script never
+   commits, tags or pushes; it prints the commands and you run them.
+
+   1. `just release record REV` (`REV` defaults to `HEAD`). It checks that CI
+      on `main` is green for `REV` and that every input source and `REV`'s
+      agent home are in the cache, then writes `cloud-home.storepath`. It
+      prints a `git add cloud-home.storepath`, a `git commit` and a
+      `git push`. Run them. If `REV` already records its own agent home, it
+      says so and tells you to publish it directly.
+   2. Wait until CI on `main` is green for that new commit.
+   3. `scripts/release.sh publish REV2 >notes.md`, where `REV2` is the commit
+      from step 1 (`git rev-parse HEAD`). Run it directly, not through
+      `just`, so the redirect captures only the script's stdout (or use
+      `just --quiet release publish REV2 >notes.md`). It checks that `REV2`
+      holds `cloud-home.storepath`, that it equals the agent home evaluated
+      at `REV2`, and that CI and the cache are still good. Then it
+      regenerates the README block, writes the release notes to stdout and
+      prints the commands to stderr.
+   4. Run the printed commands: `git add README.md`, the `chore(release)`
+      commit, `git push`, `git tag -a claudinix-<short> <sha>`,
+      `git push origin claudinix-<short>` and
+      `gh release create claudinix-<short> --verify-tag --title "claudinix <short>" --notes-file notes.md`.
+3. To print a line for another commit without a release, use
+   `scripts/setup-line.sh [REV]`; `--force` prints it despite a red or
+   missing run, with a warning, and `--agent-home` appends the opt-in flag
+   ([`CLI.md`](CLI.md)). The README block between the `setup-line` markers
+   and the release notes hold the line that `publish` generated; users
+   paste that one.
 4. Follow "Updating the environment" in [`SETUP.md`](SETUP.md): open the
    `nix` environment's settings, select all of the old setup script, paste
    the new line over it, save.
