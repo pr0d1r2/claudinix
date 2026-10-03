@@ -11,6 +11,20 @@ cloud proxy treats differently than the allowlist says, a setup step that
 fails on a fresh session. Output from [`probe.sh`](../probe.sh), or the
 transcript of a session, is worth more than a description of one.
 
+## The loop at a glance
+
+```mermaid
+flowchart LR
+    A["pick one §T row<br/>from a SPEC.md"] --> B["RED<br/>test: a failing bats file"]
+    B --> C["GREEN<br/>feat: or fix:"]
+    C --> D["gate<br/>hk check --all"]
+    D -->|pass| E["REFACTOR if needed<br/>tests unchanged"]
+    E --> F["docs(spec): mark T done<br/>its own commit"]
+    D -->|fail| C
+```
+
+The rules behind each box are under "The loop" below.
+
 ## Get set up
 
 Everything the gate needs comes from the flake. Nothing is assumed installed
