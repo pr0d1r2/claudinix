@@ -15,6 +15,7 @@
 #        guide.sh update [FLAKE_DIR]          the "Updating" flow
 # Env:   NCCC_SCRIPTS      dir with guide-steps.tsv, inputs.sh, domains.sh
 #        NCCC_SETUP        setup.sh to paste (default: beside scripts/)
+#        NCCC_MODEL_DOC    MODEL.md with the prices (default: ../docs/)
 #        CLAUDE_SETTINGS   user settings (default ~/.claude/settings.json)
 #        CLIPBOARD_TOOLS   tried in order (default: pbcopy wl-copy xclip)
 #        GUIDE_OPEN_TOOLS  tried in order (default: open xdg-open)
@@ -53,6 +54,7 @@ dir="${dir:-.}"
 
 lib="${NCCC_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 setup_file="${NCCC_SETUP:-$lib/../setup.sh}"
+model_doc="${NCCC_MODEL_DOC:-$lib/../docs/MODEL.md}"
 settings="${CLAUDE_SETTINGS:-$HOME/.claude/settings.json}"
 env_name=nix
 
@@ -191,10 +193,38 @@ step_4() {
     ask "Press Enter when done."
 }
 
+trim() {
+    local s="$1"
+    s="${s#"${s%%[![:space:]]*}"}"
+    printf '%s' "${s%"${s##*[![:space:]]}"}"
+}
+
+# price MODEL: its input and output price per million tokens, read from
+# the price table in MODEL.md (never a number of our own), or a pointer
+# to MODEL.md when the file, the row or a dollar amount is missing.
+price() {
+    local line input output
+    local -a cells
+    if [ -f "$model_doc" ]; then
+        while IFS= read -r line; do
+            IFS='|' read -r -a cells <<<"$line"
+            [ "${#cells[@]}" -ge 4 ] && [ "$(trim "${cells[1]}")" = "$1" ] || continue
+            input="$(trim "${cells[2]}")"
+            output="$(trim "${cells[3]}")"
+            if [[ "$input" =~ ^\$[0-9]+(\.[0-9]+)?$ ]] && [[ "$output" =~ ^\$[0-9]+(\.[0-9]+)?$ ]]; then
+                echo "$input input, $output output per million tokens (docs/MODEL.md)"
+                return 0
+            fi
+            break
+        done <"$model_doc"
+    fi
+    echo "price: see docs/MODEL.md"
+}
+
 step_5() {
     echo "Pick the session's model. It is fixed at launch: ANTHROPIC_MODEL on the environment does not set it (probe 6)."
-    echo "  sonnet  Claude Sonnet 5.5, the default here: half the per-token price of Opus 5.5 (docs/MODEL.md)."
-    echo "  opus    Claude Opus 5.5, for harder work."
+    echo "  sonnet  Claude Sonnet 5.5, the default here: $(price 'Claude Sonnet 5.5')."
+    echo "  opus    Claude Opus 5.5, for harder work: $(price 'Claude Opus 5.5')."
     ask "Model [sonnet/opus] (Enter: sonnet):"
     local model="${answer:-sonnet}"
     case "$model" in
