@@ -5,15 +5,17 @@
       "locked": {
         "lastModified": 1786745271,
         "narHash": "sha256-yU6ript+vuo6w5pYwj5bXXZHJ4WXoSy5ef/s1PM+Y7E=",
-        "owner": "JuliusBrussee",
-        "repo": "cavekit",
+        "ref": "main",
         "rev": "7421e87d5b517c415c519ddf58a3dd10ba842530",
-        "type": "github"
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/JuliusBrussee/cavekit"
       },
       "original": {
-        "owner": "JuliusBrussee",
-        "repo": "cavekit",
-        "type": "github"
+        "ref": "main",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/JuliusBrussee/cavekit"
       }
     },
     "home-manager": {
@@ -25,16 +27,17 @@
       "locked": {
         "lastModified": 1790996401,
         "narHash": "sha256-f+kOxEmOUnQazVAmGg0i8hzwgd1kX/geY+k/Dpheye8=",
-        "owner": "nix-community",
-        "repo": "home-manager",
+        "ref": "release-26.05",
         "rev": "db7d5e2332710f5abb088f6b5de927d7f9511b35",
-        "type": "github"
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/nix-community/home-manager"
       },
       "original": {
-        "owner": "nix-community",
         "ref": "release-26.05",
-        "repo": "home-manager",
-        "type": "github"
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/nix-community/home-manager"
       }
     },
     "itok": {
@@ -131,15 +134,17 @@
       "locked": {
         "lastModified": 1787453563,
         "narHash": "sha256-fPVS5Hk7WIQ2IE+aTxuM2FQGSTePeVGlRBKFvX2waLk=",
-        "owner": "pr0d1r2",
-        "repo": "nix-home-manager-claude-code",
+        "ref": "main",
         "rev": "0ba21fb0077d82ef8d25981426d5f8441fe3ac94",
-        "type": "github"
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/pr0d1r2/nix-home-manager-claude-code"
       },
       "original": {
-        "owner": "pr0d1r2",
-        "repo": "nix-home-manager-claude-code",
-        "type": "github"
+        "ref": "main",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/pr0d1r2/nix-home-manager-claude-code"
       }
     },
     "nixpkgs": {
@@ -165,15 +170,17 @@
       "locked": {
         "lastModified": 1791010593,
         "narHash": "sha256-wnW7S083kfOML2YomUnJQqHEbXjX+MrFoFc1PS77JPY=",
-        "owner": "pr0d1r2",
-        "repo": "nixpkgs-lock",
+        "ref": "main",
         "rev": "9761cce01db58998fc0164a7b0d52b12c6cf857c",
-        "type": "github"
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/pr0d1r2/nixpkgs-lock"
       },
       "original": {
-        "owner": "pr0d1r2",
-        "repo": "nixpkgs-lock",
-        "type": "github"
+        "ref": "main",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/pr0d1r2/nixpkgs-lock"
       }
     },
     "root": {
@@ -199,15 +206,17 @@
       "locked": {
         "lastModified": 1790957371,
         "narHash": "sha256-iL/YEzut0I+3i1fNnKSsZi8pJMGftE0hS2Mq1JEIUn4=",
-        "owner": "pr0d1r2",
-        "repo": "set-and-setting",
+        "ref": "main",
         "rev": "c54b884879d64492523421472069bf7709c912d3",
-        "type": "github"
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/pr0d1r2/set-and-setting"
       },
       "original": {
-        "owner": "pr0d1r2",
-        "repo": "set-and-setting",
-        "type": "github"
+        "ref": "main",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/pr0d1r2/set-and-setting"
       }
     },
     "sherd": {

@@ -18,7 +18,12 @@
   # holds a single nixpkgs node and the cachix builds of hk and xenolith are
   # hits rather than local rebuilds against a second revision.
   inputs = {
-    nixpkgs-lock.url = "github:pr0d1r2/nixpkgs-lock";
+    # git+https, not github: the agent home evaluates this input inside a
+    # cloud session, where a `github:` tarball fetch is a 403 unless the
+    # source is cached (C6, V30, B8). The same holds for the agent-home
+    # inputs below; nixpkgs itself is substituted from cache.nixos.org
+    # by its narHash (C8b).
+    nixpkgs-lock.url = "git+https://github.com/pr0d1r2/nixpkgs-lock?ref=main&shallow=1";
     nixpkgs.follows = "nixpkgs-lock/nixpkgs";
 
     nix-hk = {
@@ -75,21 +80,23 @@
     # evaluation in a cloud session would have to fetch, and a `github:`
     # fetch there is a 403 unless cached (C6, B3). The files imported are
     # the ones their flakes export (`homeManagerModules.default`,
-    # `lib.mkSet`). cavekit ships skills, not a flake.
+    # `lib.mkSet`). cavekit ships skills, not a flake. All four are
+    # fetched over git+https (nix:T78, V30); `shallow=1` keeps the clone
+    # to the locked commit.
     home-manager = {
-      url = "github:nix-community/home-manager/release-26.05";
+      url = "git+https://github.com/nix-community/home-manager?ref=release-26.05&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-home-manager-claude-code = {
-      url = "github:pr0d1r2/nix-home-manager-claude-code";
+      url = "git+https://github.com/pr0d1r2/nix-home-manager-claude-code?ref=main&shallow=1";
       flake = false;
     };
     set-and-setting = {
-      url = "github:pr0d1r2/set-and-setting";
+      url = "git+https://github.com/pr0d1r2/set-and-setting?ref=main&shallow=1";
       flake = false;
     };
     cavekit = {
-      url = "github:JuliusBrussee/cavekit";
+      url = "git+https://github.com/JuliusBrussee/cavekit?ref=main&shallow=1";
       flake = false;
     };
   };
