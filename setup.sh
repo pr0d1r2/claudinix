@@ -16,6 +16,7 @@
 set -euo pipefail
 
 version=2.35.2
+min_version="${NIX_MIN_VERSION:-2.34}"
 url="${NIX_INSTALL_URL:-https://releases.nixos.org/nix/nix-$version/install}"
 sha256="${NIX_INSTALL_SHA256:-9adda97297d9e8ab360df95c729eabff4f4f93d6db091953c3a68f29e3fb130c}"
 conf_dir="${NIX_CONF_DIR:-/etc/nix}"
@@ -26,8 +27,21 @@ default_profile="${NIX_DEFAULT_PROFILE:-/nix/var/nix/profiles/default}"
 # The installer reads $USER; a root setup shell may not set it.
 export USER="${USER:-$(id -un)}"
 
-# Multi-user needs systemd to run nix-daemon; without it, single-user.
-if [ -d "$systemd_dir" ]; then
+# True when nix in profile dir $1 runs and is at least $min_version.
+meets_floor() {
+    local have
+    have="$("$1/nix" --version 2>/dev/null)" || return 1
+    have="${have##* }"
+    [ "$(printf '%s\n' "$min_version" "$have" | sort -V | head -n 1)" = "$min_version" ]
+}
+
+# The image ships Nix in the default profile (probe 1, C8): use it when it
+# meets the floor (V4). Otherwise multi-user needs systemd to run
+# nix-daemon; without it, single-user.
+if meets_floor "$default_profile/bin"; then
+    mode=none
+    profile_bin="$default_profile/bin"
+elif [ -d "$systemd_dir" ]; then
     mode=--daemon
     profile_bin="$default_profile/bin"
 else
@@ -35,7 +49,7 @@ else
     profile_bin="$HOME/.nix-profile/bin"
 fi
 
-if [ ! -x "$profile_bin/nix" ]; then
+if [ "$mode" != none ] && ! meets_floor "$profile_bin"; then
     tmp=$(mktemp -d)
     trap 'rm -rf "$tmp"' EXIT
     curl -fsSL "$url" -o "$tmp/install"
