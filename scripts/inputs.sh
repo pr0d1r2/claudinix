@@ -69,12 +69,14 @@ fi
 jq -r -n --slurpfile lock "$dir/flake.lock" --slurpfile arch "$tmp/archive.json" \
     -f "$lib/inputs.jq" >"$tmp/inputs"
 
-# cached PATH: some cache answers 200 for the path's narinfo.
+# cached PATH: some cache answers 200 for the path's narinfo. Bounded
+# like verify-cachix.sh (T88): a stalled cache is a miss, not a hang.
 cached() {
     local base="${1#/nix/store/}" cache code
     [ -n "$base" ] || return 1
     for cache in $caches; do
-        code="$(curl -s -o /dev/null -w '%{http_code}' "$cache/${base%%-*}.narinfo" || true)"
+        code="$(curl -s -o /dev/null -w '%{http_code}' --connect-timeout 10 --max-time 30 \
+            "$cache/${base%%-*}.narinfo" || true)"
         [ "$code" != 200 ] || return 0
     done
     return 1
