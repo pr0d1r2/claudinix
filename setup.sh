@@ -190,8 +190,10 @@ fi
 # older link: nix itself still works (V1).
 lib_dir="${CLAUDINIX_LIB_DIR:-/usr/local/lib/claudinix}"
 raw="${CLAUDINIX_RAW_URL:-https://raw.githubusercontent.com/$repo/${CLAUDINIX_REV:-${sha:-main}}}"
-# inputs.* tell nix-dev which inputs a cache holds (scripts:T49).
-nix_dev_files=(nix-dev.sh nix-dev.jq inputs.sh inputs.jq)
+# inputs.* tell nix-dev which inputs a cache holds (scripts:T49); config.*
+# read the project's .claudinix.toml for both (scripts:T91). setup.sh
+# itself never reads that file (C28).
+nix_dev_files=(nix-dev.sh nix-dev.jq inputs.sh inputs.jq config.sh config.jq)
 stage="$lib_dir.new"
 # A staging dir a killed run left behind is never installed.
 rm -rf "$stage"
