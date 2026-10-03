@@ -1,12 +1,12 @@
 # SPEC
 
 ## §G GOAL
-functional Nix (flakes on, owner cachix) inside Claude Code cloud session VM; ∀ beyond Nix (toolchains, linters, git hooks, deps) = target repo's own flake devShell.
+functional Nix (flakes on, owner cachix) inside Claude Code cloud session VM + 1 home-manager activation = agent home (user packages, `~/.claude` skills incl. cavekit) before Claude starts; repo toolchains, linters, git hooks, deps = target repo's own flake devShell.
 
 ## §C CONSTRAINTS
 - C1: platform = Claude Code cloud, Anthropic-hosted env: Ubuntu 24.04 x86_64; setup script = bash as root, runs before Claude Code; fs snapshot cached iff setup ≲ 5 min; cached snapshot ⇒ setup skipped; rebuilt on script \| allowlist change \| ~7d expiry. running processes ⊥ survive snapshot.
 - C2: ⊥ management API for cloud envs (docs 2026-09-26) ∴ files in this repo = source of truth, pasted by hand in claude.ai/code env dialog.
-- C3: scope = Nix only. ⊥ apt toolchains, ⊥ repo-specific steps. everything else → target flake (`nix develop`) + target repo `.claude/settings.json` SessionStart hook.
+- C3: scope = Nix + 1 home-manager activation of `homeConfigurations.cloud` (amended 2026-10-03: nix derivation installs ∀ agent-level packages \& skills). ⊥ apt toolchains, ⊥ repo-specific steps. repo-level → target flake (`nix develop`) + target repo `.claude/settings.json` SessionStart hook.
 - C4: upstream Nix installer from `releases.nixos.org`, version pinned (seed 2.35.2) + installer sha256 pinned; installer checks own tarball hash.
 - C5: substituters: `cache.nixos.org` (default) + `https://pr0d1r2.cachix.org`, key `pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM=`. public, read-only ∴ ⊥ token.
 - C6: network = Custom + "include default list" (covers `*.nixos.org`) + `pr0d1r2.cachix.org`. GitHub traffic via GitHub proxy: API \& release-asset requests reach only repos attached to session (docs) ∴ `github:` flake inputs (e.g. `github:NixOS/nixpkgs`) may 403 ?.
@@ -14,10 +14,13 @@ functional Nix (flakes on, owner cachix) inside Claude Code cloud session VM; �
 - C8: unknown session facts ?: session uid (root ?), systemd PID 1 ?, unprivileged user namespaces ?, Bash tool sources shell profiles ?. resolved by probe (T3, T4).
 - C9: first consumer = owner's private the owner's private seed repo (its T7) \& its public Rust targets; reusable by any flake repo. consumers change via own specs.
 - C10: open source (decided 2026-10-03). MIT, public GitHub `pr0d1r2/nix-claude-code-cloud`, same as owner's `sherd` \| `itok` \| `rekall`. public GitHub also = cloud sessions can clone it.
+- C12: agent home reuses owner home config pattern (`nix/modules/claude-home.nix`): `nix-home-manager-claude-code` module + set-and-setting `mkTrip` (today owner home config `lib/mk-trip.nix` → move upstream to set-and-setting, ⊥ copy) \| `lib.mkSet` meanwhile. cavekit = non-flake input `github:JuliusBrussee/cavekit` (plugins ⊥ installed in cloud ∴ skills materialized). standalone home-manager (Ubuntu, ⊥ NixOS).
+- C13: unknown ?: session `$HOME` \& uid Claude runs as; Claude in VM reads pre-existing `~/.claude` skills \& `settings.json` ?; harness rewrites `~/.claude/settings.json` ?. resolved by probe (T14).
 - C11: owner-specific values (cachix host + key) in 1 config block at top of `setup.sh`; fork = edit block only. README says how.
 
 ## §I INTERFACES
 - file: `setup.sh` — paste into env "Setup script". seams: `NIX_CONF_DIR`, `BIN_DIR`, `SYSTEMD_DIR`, `NIX_DEFAULT_PROFILE`, `NIX_INSTALL_URL`, `NIX_INSTALL_SHA256`.
+- file: `flake.nix` output `homeConfigurations.cloud` (x86_64-linux) + its `activationPackage`; CI pushes it to cachix \& records store path in `cloud-home.storepath`.
 - file: `allowlist.txt` — Allowed domains, 1 per line, `#` comments ⊥ entered.
 - file: `env-names.txt` — env var names only, ⊥ values.
 - cmd: `nix-dev [args]` — installed by `setup.sh` to `/usr/local/bin`; `nix develop` w/ V13 failover, args passed through.
@@ -33,13 +36,16 @@ V3: `nix.conf` edit append-only behind marker line: flakes on, cachix substitute
 V4: `--daemon` iff systemd present; else `--no-daemon`.
 V5: `setup.sh` wall time on fresh VM ≤ 5 min (cache window C1); measured, ⊥ assumed.
 V6: ⊥ secret in repo \| env vars; cachix read-only (⊥ `CACHIX_AUTH_TOKEN`).
-V7: `setup.sh` does Nix only (C3); ⊥ target-repo step (devShell warm-up, hooks, cargo).
+V7: `setup.sh` = Nix install + agent-home activation only (C3); ⊥ target-repo step (devShell warm-up, hooks, cargo).
 V8: in session, `nix develop` on target flake w/ complete `flake.lock` succeeds w/o GitHub fetch: ∀ locked input (by `narHash`) \& devShell closure substituted from `pr0d1r2.cachix.org`.
 V9: nix store usable by session uid (whatever it is): write via daemon \| ownership.
 V10: ∀ env in claude.ai UI ↔ files in this repo; mismatch = bug (§B).
 V11: Nix version \& installer sha256 change together, 1 commit.
 V12: ⊥ private info in repo \| history: ⊥ private hostnames, LAN, self-hosted forge paths, tokens. public-safe from 1st push.
 V13: input failover order, each tier logged: (1) substitute locked input by `narHash` from cachix (V8); (2) fetch as locked (`github:` via proxy); (3) `nixpkgs` → `https://channels.nixos.org/<channel>/nixexprs.tar.xz` via `--override-input` + `--no-write-lock-file` (degraded: rev ≠ lock, ⊥ commit lock). tier 3 used → warn in session, ⊥ silent.
+V14: activation runs in `setup.sh` (before Claude launches) as the uid \& `$HOME` Claude runs as ∴ skills present at launch \& kept in snapshot.
+V15: activation failover, tier logged: (1) `nix build github:pr0d1r2/nix-claude-code-cloud#homeConfigurations.cloud.activationPackage`; (2) `nix-store -r $(cat cloud-home.storepath)` from cachix (⊥ GitHub). both fail → Nix stays usable, setup exit 0, loud warning + marker file; consumer preflight sees missing skills, ⊥ silent.
+V16: agent home = agent-level tools \& skills only (what skills shell out to); ⊥ language toolchains (target devShell owns, C3).
 
 ## §T TASKS
 id|status|task|cites
@@ -55,6 +61,11 @@ T9|.|`LICENSE` (MIT), `README.md` (what, paste steps, fork block C11, known limi
 T11|.|MANUAL create public GitHub repo `pr0d1r2/nix-claude-code-cloud`, add remote, push after T9|C10,V12
 T12|.|`nix-dev` wrapper: try tiers V13 in order, log tier used, channel from target `flake.lock` nixpkgs ref (`nixos-<ver>` \| `nixpkgs-unstable`) else `nixpkgs-unstable`; installed by `setup.sh`; bats w/ stub `nix`|V13,V8,I.cmd
 T13|x|`docs/SETUP.md` for zero-knowledge user: money steps first (claim credit, usage credits OFF — before ∀ cloud session), then browser steps (selector → Add cloud environment → name, Network access Custom + default list + `allowlist.txt`, env vars from `env-names.txt`, Setup script = `setup.sh`), update flow, then terminal `/remote-env` \| `remote.defaultEnvironmentId`; prereqs, GitHub connect (App, select repos), first-session check, troubleshooting, cleanup|C2,V10,I.ext.env
+T14|.|probe ext: `echo $HOME`, `id`, `ls -la ~/.claude`, `settings.json` owner \& content before/after launch; setup places 1 test skill in `~/.claude/skills` → visible to Claude (`/` list) ?|C13,V14,I.file
+T15|.|set-and-setting issue: move `mkTrip` from owner home config `lib/mk-trip.nix` upstream; add cavekit category (non-flake input). via its spec|C12,C9
+T16|.|`homeConfigurations.cloud`: home-manager standalone, `nix-home-manager-claude-code` + set (`mkTrip` \| `mkSet`) + cavekit skills (`spec`,`build`,`check`,`backprop`,`caveman`) + `FORMAT.md`; `nix flake check` asserts skill files present|C12,V16,I.file
+T17|.|`setup.sh` tail: activate agent home w/ V15 failover as Claude's uid; seams `CLOUD_HOME_FLAKE`, `CLOUD_HOME_STOREPATH`; bats w/ stub `nix`|V14,V15,V7,I.file
+T18|.|CI: build `activationPackage` → `cachix push pr0d1r2` → commit store path to `cloud-home.storepath` (token CI-only, V6)|V15,V6,C5
 T10|.|`just bump-nix <ver>`: fetch installer + `.sha256`, rewrite pin pair, run tests|V11,C4
 
 ## §B BUGS
