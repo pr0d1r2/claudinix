@@ -1,0 +1,9 @@
+# Build outputs.
+result
+result-*
+
+# direnv's materialized profile. The `.envrc` is tracked; what it builds is not.
+/.direnv/
+
+# Local agent state (Claude Code worktrees, scratch): never part of the tree.
+/.claude/
