@@ -166,6 +166,13 @@ local fast = new Mapping<String, Step> {
     glob = List("**/*")
     check = "hk util check-merge-conflict --assume-in-merge {{files}}"
   }
+
+  // A shebang script tracked as 100644 answers "permission denied" (B6).
+  // Whole-repo glob: a mode-only change is still a change (V19, V28).
+  ["exec-bit"] {
+    glob = List("**/*")
+    check = "scripts/guard/exec-bit.sh"
+  }
 }
 
 /// LAYER TWO: everything above plus the steps that judge the branch rather
