@@ -1,4 +1,4 @@
-/// nix-claude-code-cloud's gate, defined ONCE (SPEC C14).
+/// claudinix's gate, defined ONCE (SPEC C14).
 ///
 /// Every step is ONE plain command a human can paste (SPEC C15): no pipes,
 /// no `&&`, no `||`. Logic lives in bats-covered scripts under `scripts/`,

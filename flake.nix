@@ -3,7 +3,7 @@
   # shell and nix files that set up Nix inside a Claude Code cloud session.
   # The root file is a wiring diagram -- inputs, systems, one import per
   # output -- and everything with a body lives in `nix/*.nix`.
-  description = "nix-claude-code-cloud -- Nix and an agent home inside Claude Code cloud sessions";
+  description = "claudinix -- Nix and an agent home inside Claude Code cloud sessions";
 
   # hk is built by `nix-hk` and pushed to this cache. Without the substituter
   # every entry into the dev shell builds hk from source.

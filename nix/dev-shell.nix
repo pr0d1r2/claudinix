@@ -41,7 +41,7 @@ pkgs.mkShellNoCC {
 
   # Entering the shell installs the hk hooks (V17). The logic lives in a
   # bats-covered script, read here rather than inlined (C14, C15).
-  shellHook = "${pkgs.writeShellScript "nccc-shell-hook" (
+  shellHook = "${pkgs.writeShellScript "claudinix-shell-hook" (
     builtins.readFile ../scripts/dev/shell-hook.sh
   )}";
 }

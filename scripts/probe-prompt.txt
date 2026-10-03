@@ -1,4 +1,4 @@
-Probe this Claude Code cloud session for nix-claude-code-cloud (its SPEC
+Probe this Claude Code cloud session for claudinix (its SPEC
 T3 and C8). Change no file of this project except the report below.
 
 1. Save the bash script at the end of this message as /tmp/probe.sh and
