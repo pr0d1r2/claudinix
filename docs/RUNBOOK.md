@@ -9,6 +9,24 @@ The cloud environment itself lives in the claude.ai web UI and has no API
 (`SPEC.md` C2), so every change to it is made by hand in the browser.
 [`SETUP.md`](SETUP.md) has the exact clicks.
 
+## Keep the environment and the files in step
+
+**Human.** For the owner of the environment. The files in this repository
+are the source of truth for what you paste in the browser: `setup.sh`
+through the one-line setup script, [`allowlist.txt`](../allowlist.txt) for
+the allowed domains, and [`env-names.txt`](../env-names.txt) for the
+environment variables. Never change the environment in the browser without a
+matching commit here, and never edit those files without updating the
+environment afterwards. If the two disagree, that is a bug: fix the side that
+is wrong and record it.
+
+To change the allowed domains, edit `allowlist.txt`, commit, and paste the
+new list into the environment ("Updating the environment" in
+[`SETUP.md`](SETUP.md)). To change what the setup script does, edit
+`setup.sh`, merge, wait for green CI on `main`, and publish a new setup line
+(below). Users follow the line published with a release; they never edit
+either file.
+
 ## Bump the pinned Nix version
 
 **Automated, with a human review.** `just bump-nix <version>` does the
