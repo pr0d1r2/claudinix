@@ -20,7 +20,6 @@ setup() {
     export LOG
     export SETUP_LINE="$BIN/setup-line"
     export RECORD_STOREPATH="$BIN/record-storepath"
-    export README_FILE="$REPO/README.md"
     export CLOUD_HOME_STOREPATH="$REPO/cloud-home.storepath"
     stub_setup_line 0
     stub_record 0
@@ -72,7 +71,8 @@ stub_record() {
 @test "records the agent home of the release commit, not the worktree" {
     run bash "$SCRIPT" "$SHA"
     [ "$status" -eq 0 ]
-    grep -qx "record git+file://$REPO?rev=$SHA" "$LOG"
+    # The repo's real path: on macOS the temp dir sits behind a symlink.
+    grep -qx "record git+file://$(git rev-parse --show-toplevel)?rev=$SHA" "$LOG"
 }
 
 @test "CI not green: refuses, records nothing, README untouched" {
