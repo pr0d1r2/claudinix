@@ -160,14 +160,19 @@ A few notes on why the steps look the way they do:
   `scripts/config.jq`), because a change to the schema must rerun the check
   on the file. Like the reader, it needs `nix` and `jq` on `PATH` and fails
   loudly without them; it never passes for a tool it could not run.
-- **readme-badges** and **integration-steps** run `claudinix-dev`, the
-  repository's own Rust tool in `dev/` (std only, never published, built by
-  Nix into the dev shell). The README badges, the step table above and the
-  step counts in the caller table are generated from the files that own
-  them (`hk.pkl` through `pkl eval`, the `@test` lines, `setup.sh`,
-  `.claudinix.toml`, `LICENSE`, the root `§F`), so adding a gate step or a
-  bats test means running `claudinix-dev badges --write` and
-  `claudinix-dev steps --write` in the same commit.
+- **readme-badges**, **integration-steps**, **cli-usage** and
+  **config-keys** run `claudinix-dev`, the repository's own Rust tool in
+  `dev/` (std only, never published, built by Nix into the dev shell). The
+  README badges, the step table above and the step counts in the caller
+  table are generated from the files that own them (`hk.pkl` through
+  `pkl eval`, the `@test` lines, `setup.sh`, `.claudinix.toml`, `LICENSE`,
+  the root `§F`), so adding a gate step or a bats test means running
+  `claudinix-dev badges --write` and `claudinix-dev steps --write` in the
+  same commit. `cli-usage` checks that every `usage:` line
+  [`CLI.md`](CLI.md) quotes is the text its script prints, and
+  `config-keys` that the key table in [`CONFIG.md`](CONFIG.md) is the one
+  `claudinix-dev config --write` renders from the schema in
+  `scripts/config.jq`.
 - **Secrets** are checked twice because the two tools answer different
   questions: `detect-private-key` finds key blocks, `ripsecrets` finds token
   shapes. The repository is public from its first push.
