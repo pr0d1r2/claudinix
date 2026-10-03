@@ -53,4 +53,42 @@ while read -r key value; do
     fi
 done < <(git config --local --get-regexp '^hook\.hk-.*\.command$' 2>/dev/null)
 
+# Only git 2.54 or newer runs the config hooks above. A cloud session
+# commits with the image's git, which may be older and then runs only
+# `<hooks dir>/<event>` (V32, B9). Copy legacy-hook.sh there for each
+# event; it runs the config hook's command under an older git and does
+# nothing under a newer one. `--git-path hooks` honours core.hooksPath.
+# A hook someone else put there is never overwritten: it is left alone
+# with a warning. Ours (the marker line) and hk's own script shim, which
+# runs hk outside the dev shell, are replaced when they differ.
+template="${CLAUDINIX_LEGACY_HOOK:-$(git rev-parse --show-toplevel)/scripts/dev/legacy-hook.sh}"
+if [ ! -f "$template" ]; then
+    echo "shell-hook: $template not found -- a git older than 2.54 will run no gate hook here" >&2
+    exit 0
+fi
+hooks_dir="$(git rev-parse --git-path hooks)"
+for event in pre-commit commit-msg pre-push; do
+    target="$hooks_dir/$event"
+    if [ -e "$target" ]; then
+        cmp -s "$template" "$target" && continue
+        current="$(cat "$target")"
+        # shellcheck disable=SC2016 # hk's shim text, matched literally
+        hk_shim='#!/bin/sh
+test "${HK:-1}" = "0" || exec hk run '"$event"' --from-hook "$@"'
+        case "$current" in
+        *claudinix-legacy-hook* | "$hk_shim") ;;
+        *)
+            echo "shell-hook: $target is not claudinix's, left alone -- a git older than 2.54 will not run the gate's $event hook" >&2
+            continue
+            ;;
+        esac
+    fi
+    if ! { cat "$template" >"$target.claudinix-new" &&
+        chmod +x "$target.claudinix-new" &&
+        mv "$target.claudinix-new" "$target"; } 2>/dev/null; then
+        rm -f "$target.claudinix-new"
+        echo "shell-hook: could not write $target -- a git older than 2.54 will not run the gate's $event hook" >&2
+    fi
+done
+
 exit 0
