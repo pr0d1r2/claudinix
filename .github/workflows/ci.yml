@@ -39,13 +39,14 @@ jobs:
 
       - uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31.11.0
 
-      # Pushes from the default branch only. Pull requests (forks get no
-      # secrets) still read the cache; they cannot fill it.
+      # Pushes on a push to the default branch only, and only that event
+      # sees the write token (SPEC T74). Pull requests and manual runs
+      # still read the cache; they cannot fill it.
       - uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866 # v17
         with:
           name: pr0d1r2
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
-          skipPush: ${{ github.ref != 'refs/heads/main' || github.event_name == 'pull_request' }}
+          authToken: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.CACHIX_AUTH_TOKEN || '' }}
+          skipPush: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' }}
 
       # `--check`: CI reports, never rewrites. `--no-fail-fast`: a round
       # trip costs minutes, so report every failure at once.
@@ -59,10 +60,16 @@ jobs:
       # home from the cache (nix:V15).
       - run: nix build --no-link .#devShells.x86_64-linux.default .#homeConfigurations.cloud.activationPackage
 
+      # The daemon above pushes only built paths. A cloud session also
+      # evaluates every input of the agent home and the dev shell before
+      # it builds, so their sources go to the cache too (SPEC T74, V30).
+      - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: bash scripts/ci/push-sources.sh pr0d1r2
+
   verify-cache:
     name: verify cache
     needs: gate
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -71,4 +78,6 @@ jobs:
 
       - uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31.11.0
 
-      - run: bash scripts/ci/verify-cachix.sh .#checks.x86_64-linux.xenolith .#devShells.x86_64-linux.default .#homeConfigurations.cloud.activationPackage
+      # The dev shell, the agent home and every eval-time input source.
+      # The xenolith check's output is an empty marker no session needs.
+      - run: bash scripts/ci/verify-cachix.sh --sources . .#devShells.x86_64-linux.default .#homeConfigurations.cloud.activationPackage
