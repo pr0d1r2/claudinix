@@ -1,12 +1,23 @@
 # Setup
 
-Claude Code cloud environments have no API or CLI for creating or
-editing them, so this part is done by hand in the browser. The files in
-this repository are the source of truth: copy from them, never edit the
-environment in the browser without a matching commit here.
+This guide takes you from nothing to a Claude Code cloud session that
+can run `nix develop` in your repository. It assumes no earlier
+experience with Claude Code cloud sessions.
 
-You need a claude.ai account with cloud sessions (Pro, Max, Team, or
-Enterprise with a Claude Code seat) and GitHub connected to it.
+Most of the work happens in your terminal. Two parts happen in the
+browser, because Claude Code has no API or CLI for them: account
+settings and the cloud environment itself. The files in this repository
+are the source of truth for the environment: copy from them, and never
+change the environment in the browser without a matching commit here.
+
+Steps at a glance:
+
+0. Protect your money (browser, before anything else).
+1. Check the prerequisites.
+2. Connect GitHub (browser, once).
+3. Create the environment (browser, once).
+4. Choose the environment in your terminal (once per machine).
+5. Run a first session and check that it works.
 
 ## 0. Before your first cloud session: protect your money
 
@@ -30,7 +41,48 @@ Enterprise with a Claude Code seat) and GitHub connected to it.
    routine or run more sessions in parallel, and once a week while you
    use cloud sessions.
 
-## 1. Create the environment (browser, once)
+## 1. Prerequisites
+
+- **A claude.ai plan with cloud sessions**: Pro, Max, Team, or
+  Enterprise with a Claude Code seat.
+- **Claude Code installed and signed in with that claude.ai account.**
+  Run `claude auth login` (or `/login` inside Claude Code). An API key
+  is not enough: `claude --cloud` needs a claude.ai sign-in.
+- **Your repository on GitHub.** Cloud sessions clone from GitHub and
+  push back to it.
+- **Your repository is a Nix flake** with a `devShell` and a committed
+  `flake.lock` that pins every input. Run `nix flake lock` locally and
+  commit the result if you are not sure.
+- **Your branch is pushed.** A session clones the GitHub copy of your
+  current branch, not your local checkout, so local commits it should
+  see must be pushed first.
+
+## 2. Connect GitHub (browser, once)
+
+Sessions reach GitHub through a proxy that keeps your GitHub credentials
+outside the session's VM. You connect GitHub to your claude.ai account
+in one of two ways:
+
+- **Claude GitHub App (recommended).** Install it from the
+  [GitHub App page](https://github.com/apps/claude), or follow the
+  prompt during onboarding at [claude.ai/code](https://claude.ai/code).
+  When GitHub asks which repositories it may access, pick **Only select
+  repositories** and list only the ones you want cloud sessions to
+  change. You can change the list later at
+  [github.com/settings/installations](https://github.com/settings/installations).
+- **`/web-setup` in your terminal.** This sends your local `gh` CLI token
+  to your claude.ai account. It is quicker, but sessions can then reach
+  every repository that token can, so prefer the App when you want to
+  limit access.
+
+To check: open [claude.ai/code](https://claude.ai/code) and confirm your
+repository appears in the repository picker.
+
+## 3. Create the environment (browser, once)
+
+A cloud environment is a saved configuration: network access,
+environment variables, and a setup script that runs before Claude starts
+in each new VM. This repository's environment installs Nix.
 
 1. Open [claude.ai/code](https://claude.ai/code).
 2. Select the cloud icon showing the current environment's name, in the
@@ -59,28 +111,17 @@ When it finishes within about five minutes, the VM's filesystem is
 snapshotted and later sessions start from that snapshot without
 running the script again, so the first session is the slow one.
 
-## 2. Update the environment (browser, after a change here)
-
-1. Open the environment selector as in step 1 and select **Cloud**.
-2. Hover over `nix` and select the settings icon on the right.
-3. Change only what the commit changed: the setup script, the allowed
-   domains, or the environment variable names.
-4. Save.
-
-A change to the setup script or the allowed domains rebuilds the
-snapshot on the next new session. A session that is already running
-keeps its old VM; start a new session to pick up the change.
-
-## 3. Use the environment from the terminal
+## 4. Choose the environment in your terminal (once per machine)
 
 Run `/remote-env` in Claude Code and pick `nix`. This saves the choice
-as `remote.defaultEnvironmentId` in your user settings, and
-`claude --cloud` uses it from then on in every project.
+as `remote.defaultEnvironmentId` in your user settings
+(`~/.claude/settings.json`), and `claude --cloud` uses it from then on
+in every project. Without this step, sessions run in the **Default**
+environment, which has no Nix.
 
 A repository can pin the environment for everyone who works in it by
 setting the same key in its committed `.claude/settings.json`. Copy the
-`env_...` ID from your user settings (`~/.claude/settings.json`) after
-running `/remote-env`:
+`env_...` ID from your user settings after running `/remote-env`:
 
 ```json
 {
@@ -90,13 +131,64 @@ running `/remote-env`:
 }
 ```
 
-Then start a session from a checkout whose branch is pushed to GitHub:
+## 5. Run a first session and check that it works
+
+From a checkout of your repository, with your branch pushed:
 
 ```sh
-claude --cloud "nix --version && nix develop -c true && echo DEVSHELL-OK"
+claude --cloud "Run: nix --version && nix develop -c true && echo DEVSHELL-OK. Report the output."
 ```
 
 While the VM starts, the terminal shows a checklist of setup steps,
-including the setup script. Send follow-ups with
-`claude -p "<message>" --cloud <session-id>`, and pull the session into
-your terminal with `claude --teleport <session-id>`.
+including the setup script. Expect the first start to take a few
+minutes. The command prints a link to the session; open it, or pull the
+session into your terminal with `claude --teleport <session-id>`.
+
+It works when the output shows a Nix version and `DEVSHELL-OK`.
+
+To steer a running session from the terminal, send a follow-up:
+
+```sh
+claude -p "<message>" --cloud <session-id>
+```
+
+## Updating the environment (after a change here)
+
+1. Open the environment selector as in step 3 and select **Cloud**.
+2. Hover over `nix` and select the settings icon on the right.
+3. Change only what the commit changed: the setup script, the allowed
+   domains, or the environment variable names.
+4. Save.
+
+A change to the setup script or the allowed domains rebuilds the
+snapshot on the next new session. A session that is already running
+keeps its old VM; start a new session to pick up the change.
+
+## Troubleshooting
+
+- **The session fails to start, or stops during setup.** The setup
+  script exited with an error. The setup checklist in your terminal
+  shows which step failed. Check that you pasted the whole script and
+  that **Also include default list of common package managers** is
+  checked.
+- **`nix: command not found`.** The session ran in another environment.
+  Run `/remote-env`, pick `nix`, and start a new session.
+- **Downloads fail with a network or proxy error.** The host is not
+  allowed. Add it to **Allowed domains** here and in `allowlist.txt`.
+- **`nix develop` fails while fetching a `github:` input.** The GitHub
+  proxy may refuse downloads from repositories that are not attached to
+  the session. Make sure `flake.lock` is committed and complete, so
+  inputs can come from a binary cache instead of GitHub.
+- **Every session is slow to start.** The setup script takes longer
+  than about five minutes, so no snapshot is saved.
+- **`Unable to get organization UUID`.** You are signed in with an API
+  key or your sign-in is stale. Run `/login` with your claude.ai account
+  and try again.
+
+## Cleaning up
+
+- Sessions push to branches named `claude/...`. A session cannot delete
+  branches, so delete ones you no longer need from your own machine:
+  `git push origin --delete claude/<name>`.
+- Archive finished sessions from the sidebar at
+  [claude.ai/code](https://claude.ai/code) to keep the list short.
