@@ -446,6 +446,19 @@ fetch_stub() {
     grep -qx 'https://raw.githubusercontent.com/pr0d1r2/claudinix/abc123/scripts/inputs.jq' "$FETCH_LOG"
 }
 
+@test "nix-dev's config reader (config.sh, config.jq) lands beside it (scripts:T91)" {
+    image_nix 2.34.6
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    cmp "$CLAUDINIX_LIB_DIR/config.sh" "$ENV_DIR/scripts/config.sh"
+    cmp "$CLAUDINIX_LIB_DIR/config.jq" "$ENV_DIR/scripts/config.jq"
+    fetch_stub
+    cp "$SCRIPT" "$BATS_TEST_TMPDIR/setup.sh"
+    CLAUDINIX_REV=abc123 run bash "$BATS_TEST_TMPDIR/setup.sh"
+    grep -qx 'https://raw.githubusercontent.com/pr0d1r2/claudinix/abc123/scripts/config.sh' "$FETCH_LOG"
+    grep -qx 'https://raw.githubusercontent.com/pr0d1r2/claudinix/abc123/scripts/config.jq' "$FETCH_LOG"
+}
+
 @test "nix-dev fetch failing: setup still passes with nix, warns, links no nix-dev (V1)" {
     image_nix 2.34.6
     fetch_stub
@@ -588,8 +601,11 @@ OWNER_KEY='pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM='
     cp "$SCRIPT" "$BATS_TEST_TMPDIR/setup.sh"
     run bash "$BATS_TEST_TMPDIR/setup.sh"
     [ "$status" -eq 0 ]
-    [ "$(grep -c -- '--connect-timeout' "$FETCH_ARGS")" -eq 4 ]
-    [ "$(grep -c -- '--max-time' "$FETCH_ARGS")" -eq 4 ]
+    # One bounded call per file fetched, however many nix-dev ships.
+    fetched="$(wc -l <"$FETCH_LOG" | tr -d ' ')"
+    [ "$fetched" -ge 4 ]
+    [ "$(grep -c -- '--connect-timeout' "$FETCH_ARGS")" -eq "$fetched" ]
+    [ "$(grep -c -- '--max-time' "$FETCH_ARGS")" -eq "$fetched" ]
 }
 
 @test "script read from stdin: never copies nix-dev from the cwd, fetches it (T73)" {
