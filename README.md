@@ -69,7 +69,11 @@ user (root) before Claude starts. It installs:
 - the owner's set of rules, in `~/.claude/rules`;
 - the cavekit skills `spec`, `build`, `check`, `backprop` and `caveman`, and
   the `FORMAT.md` they read;
-- a `claude-code` home-manager configuration.
+- a `claude-code` home-manager configuration;
+- a narrow list of permissions that pre-approves the gate's own commands and
+  pushing `claude/*` branches in cloud sessions, and denies pushing `main`
+  (`nix/cloud-permissions.json`). It is written to `~/.claude/settings.json`,
+  so it never reaches a local session.
 
 **It changes how Claude behaves in your sessions.** Read what it installs
 (`nix/cloud-home.nix`) before you opt in. It holds agent-level settings only:
