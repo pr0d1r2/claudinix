@@ -23,7 +23,24 @@ so you do not have to repeat them.
   only after its sha256 matches. It writes one managed block into
   `/etc/nix/nix.conf` (flakes on, `accept-flake-config = true`, the read-only
   cache `pr0d1r2.cachix.org`) and links `nix` into `/usr/local/bin`, so the
-  Bash tool finds it without sourcing a profile.
+  Bash tool finds it without sourcing a profile. It also installs `nix-dev`
+  and tries to activate the agent home (below).
+  In the environment dialog you paste one line, pinned to a commit SHA, that
+  `scripts/setup-line.sh` prints; the line downloads `setup.sh` at that
+  commit and runs it.
+- **Commands for your project** ([`docs/CLI.md`](docs/CLI.md)), run from
+  the project you will send to the cloud with
+  `nix run github:pr0d1r2/nix-claude-code-cloud#<app>`:
+  `inputs` lists which of your flake's `github:` inputs a session can get
+  from a binary cache and which must be attached; `domains` prints the
+  allowed domains your project needs; `guide` walks you through the setup
+  steps and checks what it can; `probe` starts a cloud session that probes
+  your project and prints its report. Inside a session, `nix-dev` is
+  `nix develop` with a failover for the GitHub proxy.
+- **An agent home** (`homeConfigurations.cloud`). The setup script activates
+  it before Claude starts, so the spec skills are in `~/.claude` at launch.
+  Agent-level only: no language toolchain, which stays with your repository's
+  own dev shell.
 - **The environment as files.** [`allowlist.txt`](allowlist.txt) is the list
   of allowed domains and [`env-names.txt`](env-names.txt) the environment
   variables. The claude.ai environment dialog has no API, so you paste from
@@ -55,10 +72,11 @@ In short:
 3. **Connect GitHub** to your claude.ai account (once).
 4. **Create the environment** at [claude.ai/code](https://claude.ai/code):
    name `nix`, network access **Custom** with the default package-manager
-   list included, every non-comment line of `allowlist.txt` as an allowed
-   domain, and the whole of `setup.sh` as the setup script. Today the script
-   is pasted whole; a one-line script pinned to a commit SHA is planned
-   (`SPEC.md` T24).
+   list included, as allowed domains every non-comment line of
+   `allowlist.txt` plus your project's hosts from
+   `nix run github:pr0d1r2/nix-claude-code-cloud#domains`, and as the setup
+   script the one line `scripts/setup-line.sh` prints (not the contents of
+   `setup.sh`).
 5. **Choose it in your terminal** with `/remote-env` (once per machine).
 6. **Run a first session** and look for a Nix version and `DEVSHELL-OK`:
 
@@ -120,13 +138,12 @@ the platform at any time.
   (`SPEC.md` T55).
 - **Skills placed in `~/.claude/skills` by the setup script** may or may not
   survive the session start. Not measured yet (`SPEC.md` T14).
-- **No agent home yet.** Installing agent-level packages and skills through
-  home-manager (`homeConfigurations.cloud`) is planned, not built
-  (`nix/SPEC.md` T16, T17). Today the script installs and configures Nix
-  only.
-- **The helper commands are planned, not built:** `nix-dev`, and the flake
-  apps `domains`, `inputs`, `guide` and `probe` that you would run from your
-  own project (`scripts/SPEC.md` T12, T25 to T28).
+- **Not yet run in a real cloud session:** the agent home activation, `nix-dev`
+  inside a session, the `probe` launcher from start to finish, and the setup
+  line's fetch of `setup.sh` from `raw.githubusercontent.com` during setup.
+  Each is built and covered by bats tests with stubs, but treat it as
+  untested where it counts until a probe says otherwise (`SPEC.md` T57 for
+  the fetch).
 - **Trust.** `accept-flake-config = true` lets any repository's `nixConfig`
   apply, and the setup script runs as root. Use the environment only with
   repositories you trust, and read [`docs/SECURITY.md`](docs/SECURITY.md).
@@ -138,6 +155,7 @@ the platform at any time.
 | doc | what is in it |
 |---|---|
 | [`docs/SETUP.md`](docs/SETUP.md) | browser and terminal steps, updating, troubleshooting |
+| [`docs/CLI.md`](docs/CLI.md) | the commands: flags, exit codes, output |
 | [`docs/CONSUMER.md`](docs/CONSUMER.md) | what your repository does to work well in a session |
 | [`docs/CACHE-CI.md`](docs/CACHE-CI.md) | the CI job that fills the binary cache from your repository |
 | [`docs/EXAMPLE.md`](docs/EXAMPLE.md) | a real repository from zero to a green test run, with timings |
