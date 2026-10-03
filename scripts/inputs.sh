@@ -44,8 +44,9 @@ lib="${NCCC_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 caches="${INPUTS_CACHES:-https://pr0d1r2.cachix.org https://cache.nixos.org}"
 
 # Absolute, so nix never reads a bare name as a flake registry entry.
-if ! dir="$(cd "${dir:-.}" 2>/dev/null && pwd)"; then
-    echo "inputs: no directory ${dir:-.} -- nothing was checked" >&2
+given="${dir:-.}"
+if ! dir="$(cd "$given" 2>/dev/null && pwd)"; then
+    echo "inputs: no directory $given -- nothing was checked" >&2
     exit 1
 fi
 if [ ! -f "$dir/flake.lock" ]; then
