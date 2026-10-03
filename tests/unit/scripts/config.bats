@@ -379,3 +379,12 @@ DEFAULTS='{"cache":{"name":"pr0d1r2","push_sources":false},"devshell":{"installa
     [[ "$stderr" == *'"y.example.org/z"'* ]]
     [ "$(grep -c '^config: ' <<<"$stderr")" -eq 4 ]
 }
+
+@test "this repo's own .claudinix.toml turns the agent home on (.:T101, .:C29)" {
+    # Its cloud agents build it with cavekit `/build`, which the agent
+    # home installs; the file also dogfoods the opt-in (C24).
+    cp "$BATS_TEST_DIRNAME/../../../.claudinix.toml" "$PROJECT/.claudinix.toml"
+    run --separate-stderr bash "$SCRIPT" get session.agent_home
+    [ "$status" -eq 0 ]
+    [ "$output" = true ]
+}
