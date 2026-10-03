@@ -105,9 +105,19 @@ EOF
     grep -qx 'releases.nixos.org' "$ENV_DIR/allowlist.txt"
 }
 
-@test "allowlist names crates.io hosts cargo needs (probe 4, 2026-10-03)" {
-    grep -qx 'index.crates.io' "$ENV_DIR/allowlist.txt"
-    grep -qx 'static.crates.io' "$ENV_DIR/allowlist.txt"
+@test "base allowlist is Nix hosts only: crates.io comes from domains (T30)" {
+    run ! grep -qx 'index.crates.io' "$ENV_DIR/allowlist.txt"
+    run ! grep -qx 'static.crates.io' "$ENV_DIR/allowlist.txt"
+    while IFS= read -r host; do
+        case "$host" in
+        '' | '#'*) ;;
+        pr0d1r2.cachix.org | cache.nixos.org | channels.nixos.org | releases.nixos.org | github.com) ;;
+        *)
+            echo "not a Nix host: $host"
+            return 1
+            ;;
+        esac
+    done <"$ENV_DIR/allowlist.txt"
 }
 
 @test "env vars keep ANTHROPIC_MODEL, marked as not choosing the model (probe 6)" {
