@@ -66,15 +66,19 @@ through a cache ([`CACHE-CI.md`](CACHE-CI.md)).
 ## 3. Set up the cloud environment as yours
 
 1. Follow [`SETUP.md`](SETUP.md) with your edited `setup.sh` and
-   `allowlist.txt`. The environment name `nix` is only a label in the browser;
+   `allowlist.txt`. The setup script is the line `scripts/setup-line.sh`
+   prints, and that script names the owner's repository in the raw URL it
+   prints (as `setup.sh` does in its `repo=` line). Change both to your
+   fork first, or the line fetches the owner's `setup.sh`, not yours. The environment name `nix` is only a label in the browser;
    pick another if you like and tell your terminal with `/remote-env`.
 2. The environment's allowed domains need your cache host in place of the
    owner's, and `github.com`, `cache.nixos.org`, `channels.nixos.org` and
    `releases.nixos.org` as they are now (`allowlist.txt`, probes 1-5).
 3. Add the ecosystem hosts your targets need, such as `index.crates.io` and
-   `static.crates.io` for Cargo ([`CONSUMER.md`](CONSUMER.md)). Planned: a
-   `domains` command that lists them from lock files (`scripts/SPEC.md`
-   T27).
+   `static.crates.io` for Cargo ([`CONSUMER.md`](CONSUMER.md)). The `domains`
+   command lists them from your lock files: run
+   `nix run github:<you>/<fork>#domains` in each target
+   ([`CLI.md`](CLI.md)).
 4. Fill the cache: push to your cache from your CI on the default branch, and
    check that it answers ([`CACHE-CI.md`](CACHE-CI.md)).
 5. Start a first session and run [`probe.sh`](../probe.sh). Every line should
