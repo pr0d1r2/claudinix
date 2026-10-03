@@ -378,6 +378,19 @@ fetch_stub() {
     [ -x "$BIN_DIR/nix-dev" ]
 }
 
+@test "nix-dev's cache check (inputs.sh, inputs.jq) lands beside it (scripts:T49)" {
+    image_nix 2.34.6
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    cmp "$NCCC_LIB_DIR/inputs.sh" "$ENV_DIR/scripts/inputs.sh"
+    cmp "$NCCC_LIB_DIR/inputs.jq" "$ENV_DIR/scripts/inputs.jq"
+    fetch_stub
+    cp "$SCRIPT" "$BATS_TEST_TMPDIR/setup.sh"
+    NCCC_REV=abc123 run bash "$BATS_TEST_TMPDIR/setup.sh"
+    grep -qx 'https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/abc123/scripts/inputs.sh' "$FETCH_LOG"
+    grep -qx 'https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/abc123/scripts/inputs.jq' "$FETCH_LOG"
+}
+
 @test "nix-dev fetch failing: setup still passes with nix, warns, links no nix-dev (V1)" {
     image_nix 2.34.6
     fetch_stub
