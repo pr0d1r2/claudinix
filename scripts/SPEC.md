@@ -48,7 +48,7 @@ T90|x|`scripts/config.sh [--dir D] get KEY\|json\|check`: `nix eval --impure --j
 T91|x|readers: `domains` adds `network.extra_domains` (source tag `config`); `inputs` \& verify defaults use `cache.name`; `guide` \& `probe` default `--model` from `session.model`, `--agent-home` from `session.agent_home`, first check \& probe use `devshell.installable`; `probe` branch prefix from `probe.branch_prefix`; `nix-dev` default installable from `devshell.installable`; flags still win; each w/ bats|V34,`.:C28`,V13
 T95|x|config values, ⊥ only types: non-empty strings; `cache.name` ~ `^[a-z0-9-]+$`; `extra_domains` = bare hostnames (⊥ scheme, path); `installable` shell-quoted (`printf %q`) wherever printed into a command \| probe prompt (build review W1, W5)|V34,V26
 T96|x|1 eval per run: a tool that calls another passes the effective config (`CLAUDINIX_CONFIG_JSON`) so guide → domains/inputs \& nix-dev → inputs read the file once (W6)|V34
-T97|.|`--dir D` resolves D's git top like the no-flag case; `CLAUDINIX_CONFIG` applies only w/o `--dir` (multi-project `domains`) (W3, W4)|V34
+T97|x|`--dir D` resolves D's git top like the no-flag case; `CLAUDINIX_CONFIG` applies only w/o `--dir` (multi-project `domains`) (W3, W4)|V34
 T98|.|? `nix-dev` w/ an invalid `.claudinix.toml`: today exit 2 blocks the dev shell in cloud; option: loud warning + defaults (the repo's own gate refuses a bad file at commit) — owner decides (W7)|V34,V13
 
 ## §B BUGS
