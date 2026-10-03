@@ -50,7 +50,7 @@ T70|x|ARCHIVED to SPEC-ARCHIVE.md|`.:T24`,`.:T30`,C22
 T72|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C10`,`.:T71`,C22
 T83|.|consumer-first docs: README = who/what/why + alpha line (`.:C26`) + release paste line block (`.:C25`) + agent home opt-in disclosure (`.:C24`) up top, name note at bottom; SETUP opens w/ `nix run github:pr0d1r2/claudinix#guide`, prereqs (local Nix w/ flakes, accept the cachix prompt), dialog fields in order, 1 remedy list (`nix-dev` first), `--model sonnet` on every launch line, owner-only steps → FORKING/RUNBOOK; ⊥ spec ids in user text; drop `ANTHROPIC_MODEL` advice (review R3-*)|C22,`.:C24`,`.:C25`,`.:C26`
 T84|.|docs accuracy pass: every review R5 mismatch (planned→exists, fork tables, SECURITY unchecked downloads, SESSION steps, INTEGRATION checks, model defaults, ids form)|C22
-T85|.|AGENTS.md: "Spec workflow here" (overrides cavekit defaults: Conventional Commits ⊥ `T<n>:`; status flip = own `docs(spec)` commit then `mth archive`; FORMAT.md at `~/.claude/FORMAT.md`; cloud skill names); federation rules (node owning the files, ids global = max over all `SPEC*.md` + 1, cite `.:C15` \| `docs:T13`, Refs example); gate pattern `hk check --all >log 2>&1; echo rc=$?`; app change → follow-up `docs:` commit (review R4-3,4,6,11,12,13)|C22,`.:C17`,`.:C21`
+T85|x|AGENTS.md: "Spec workflow here" (overrides cavekit defaults: Conventional Commits ⊥ `T<n>:`; status flip = own `docs(spec)` commit then `mth archive`; FORMAT.md at `~/.claude/FORMAT.md`; cloud skill names); federation rules (node owning the files, ids global = max over all `SPEC*.md` + 1, cite `.:C15` \| `docs:T13`, Refs example); gate pattern `hk check --all >log 2>&1; echo rc=$?`; app change → follow-up `docs:` commit (review R4-3,4,6,11,12,13)|C22,`.:C17`,`.:C21`
 
 ## §B BUGS
 
