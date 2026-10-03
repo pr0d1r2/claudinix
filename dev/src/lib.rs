@@ -16,7 +16,6 @@
 //! Exit 0 clean, 1 drift, 2 usage or I/O.
 
 pub mod badges;
-pub mod block;
 pub mod changelog;
 pub mod cli;
 pub mod config;

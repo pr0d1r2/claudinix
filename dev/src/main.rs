@@ -19,7 +19,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
 use claudinix_dev::badges::{Facts, render};
-use claudinix_dev::{block, cli, config, counts, facts, splice, steps};
+use claudinix_dev::{cli, config, counts, facts, region, splice, steps};
 
 mod verbs;
 
@@ -207,7 +207,7 @@ fn step_table(root: &Path, check: bool) -> Result<(), Failed> {
     let found = steps::parse(&rows).map_err(|message| (2, message))?;
     let (fast, all) = steps::counts(&found);
     let table = steps::table(&found);
-    let spliced = block::splice(&doc, steps::NAME, &table).ok_or_else(|| {
+    let spliced = region::splice(&doc, steps::NAME, &table).ok_or_else(|| {
         (
             2,
             format!("{DOC} has no <!-- BEGIN steps --> ... <!-- END steps --> block"),
@@ -219,7 +219,7 @@ fn step_table(root: &Path, check: bool) -> Result<(), Failed> {
         return Ok(());
     }
     if check {
-        let old = block::current(&doc, steps::NAME).unwrap_or_default();
+        let old = region::current(&doc, steps::NAME).unwrap_or_default();
         let mut report = splice::diff(old, &table);
         for line in stale {
             report.push_str(&line);
@@ -288,7 +288,7 @@ fn config_keys(root: &Path, check: bool) -> Result<(), Failed> {
     let doc = read(root, DOC)?;
     let keys = config::schema(&read(root, "scripts/config.jq")?).map_err(|message| (2, message))?;
     let table = config::table(&keys).map_err(|message| (2, message))?;
-    let fresh = block::splice(&doc, config::NAME, &table).ok_or_else(|| {
+    let fresh = region::splice(&doc, config::NAME, &table).ok_or_else(|| {
         (
             2,
             format!("{DOC} has no <!-- BEGIN config --> ... <!-- END config --> block"),
@@ -298,7 +298,7 @@ fn config_keys(root: &Path, check: bool) -> Result<(), Failed> {
         return Ok(());
     }
     if check {
-        let old = block::current(&doc, config::NAME).unwrap_or_default();
+        let old = region::current(&doc, config::NAME).unwrap_or_default();
         return Err((
             1,
             format!(
