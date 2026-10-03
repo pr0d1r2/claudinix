@@ -11,9 +11,9 @@ right and this file has a bug.
 
 | caller | set | when |
 |---|---|---|
-| `pre-commit` hook | `fast`, 26 steps | every commit, on the staged files |
-| `pre-push` hook | `all`, 29 steps | every push |
-| `hk check --all` in CI | `all`, 29 steps | every push to `main` and every pull request |
+| `pre-commit` hook | `fast`, 27 steps | every commit, on the staged files |
+| `pre-push` hook | `all`, 30 steps | every push |
+| `hk check --all` in CI | `all`, 30 steps | every push to `main` and every pull request |
 
 A fourth hook, `commit-msg`, runs one step on the commit message.
 
@@ -63,6 +63,12 @@ In a cloud session, the project's SessionStart hook runs
 full history and enters the dev shell once (`nix-dev -c true`, else
 `nix develop -c true`), which installs the hooks before the first commit.
 
+The `cloud-permissions` step keeps the cloud permission list narrow: it
+refuses blanket rules (`Bash`, `Bash(*)`, a rule starting with `*`, a bare
+`nix develop` or `nix-dev` runner rule), requires the main-push deny rules,
+and refuses a `permissions` block in `.claude/settings.json`, which local
+sessions read.
+
 Each external tool is called through
 [`scripts/hk/run-tool.sh`](../scripts/hk/run-tool.sh). If the tool is not
 on `PATH`, the step fails with "gate could not run, nothing was checked".
@@ -102,6 +108,7 @@ hk hands the step; by hand, name the files yourself.
 | `no-merge-conflict` | every file | `hk util check-merge-conflict --assume-in-merge <files>` |
 | `readme-setup-line` | `README.md`, `scripts/setup-line.sh`, `scripts/guard/readme-setup-line.sh` | `scripts/guard/readme-setup-line.sh` |
 | `claudinix-config` | `.claudinix.toml`, `scripts/config.sh`, `scripts/config.jq` | `scripts/config.sh check` |
+| `cloud-permissions` | `nix/cloud-permissions.json`, `.claude/settings.json`, `scripts/guard/cloud-permissions.sh` | `scripts/guard/cloud-permissions.sh` |
 | `exec-bit` | every file | `scripts/guard/exec-bit.sh` |
 
 A few notes on why the steps look the way they do:
