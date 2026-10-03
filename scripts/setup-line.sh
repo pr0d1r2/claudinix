@@ -40,7 +40,11 @@ while [ "$#" -gt 0 ]; do
 done
 rev="${rev:-HEAD}"
 
-if ! sha="$(git rev-parse --verify --quiet "$rev^{commit}")"; then
+# A full SHA needs no clone (the guide app runs in the target project);
+# CI below decides whether it is a good one.
+if [[ "$rev" =~ ^[0-9a-f]{40}$ ]]; then
+    sha="$rev"
+elif ! sha="$(git rev-parse --verify --quiet "$rev^{commit}")"; then
     echo "setup-line: cannot resolve $rev to a commit -- no line printed" >&2
     exit 1
 fi
