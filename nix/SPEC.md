@@ -30,6 +30,7 @@ id|status|task|cites
 T15|.|set-and-setting issue: move `mkTrip` from owner home config `lib/mk-trip.nix` upstream; add cavekit category (non-flake input). via its spec|C12,C9
 T16|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,I.file
 T18|x|ARCHIVED to SPEC-ARCHIVE.md|V15,`.:V6`,C5
+T78|.|agent home inputs (home-manager, nix-home-manager-claude-code, set-and-setting, cavekit) as `git+https://github.com/<o>/<r>` (`.:V30`); `programs.man.enable = false` (man-db 75 MiB, `.:V5`); skills note: in cloud they are `/spec` `/build` …, FORMAT.md at `~/.claude/FORMAT.md` (AGENTS documents)|`.:V30`,`.:V5`,V16,C12
 
 ## §B BUGS
 

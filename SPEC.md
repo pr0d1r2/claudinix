@@ -40,6 +40,10 @@ self|.|-
 - C21: atomic commits, 1 topic each (humans read changesets): Conventional Commits, body `Why:` + spec cites; ⊥ mix topics (e.g. docs for 2 findings = 2 commits); spec change ⊥ same commit as code; RED, GREEN, REFACTOR separate (C17). unpushed mixed commit → split before push.
 - C23: experiment order (T56-T66): E1, E3, E4, E5 together in 1 Sonnet session after sherd #96; E6, E7 from #96 results; E9 then E8; E2 after 1st push; E10 last; E11 alongside each.
 - C11: owner-specific values (cachix host + key, repo slug) in 1 config block at top of `setup.sh` (`# BEGIN fork config (SPEC C11)`: `cache_host`, `cache_key`, `repo`; bats: ⊥ `pr0d1r2` outside it); fork = edit block + the files outside `setup.sh` that `docs/FORKING.md` lists (allowlist, flake `nixConfig`, CI, probe \& verify defaults, `setup-line.sh`).
+- C24: agent home = OPT-IN (decided 2026-10-03): setup default = Nix + `nix-dev` only; `setup.sh [SHA] --agent-home` (\| `CLAUDINIX_AGENT_HOME=1`) adds `nix:` agent home; README states what it installs (owner set rules, cavekit skills, claude-code config) \& that it changes Claude's behaviour.
+- C25: paste line distribution (decided 2026-10-03): each release publishes the exact 1-line setup script (pinned SHA w/ green CI, cachix filled) in a generated README block + GitHub release notes; users copy it, run ⊥. `scripts/setup-line.sh` = maintainer tool.
+- C26: README top line = alpha status until E2 (T57) \& E1 (T56) pass: what is proven vs not, dated; removed by the commit that records them passing.
+- C27: this repo's own `.claude/settings.json` SessionStart hook (decided 2026-10-03): cloud sessions working ON claudinix run `git fetch --unshallow` (if shallow) + `nix develop -c true` (hooks) before 1st commit; via bats-covered script, ⊥ inline.
 
 ## §I INTERFACES
 - file: `setup.sh [SHA]` — fetched by the UI line (V20); ⊥ pasted whole; SHA = full 40-hex commit, else exit 2. seams: `NIX_CONF_DIR`, `BIN_DIR`, `SYSTEMD_DIR`, `NIX_DEFAULT_PROFILE`, `NIX_INSTALL_URL`, `NIX_INSTALL_SHA256`, `NIX_MIN_VERSION`; agent home: `CLOUD_HOME_FLAKE`, `CLOUD_HOME_STOREPATH` (file), `CLOUD_HOME_MARKER` (default `~/.local/state/claudinix/agent-home.failed`); nix-dev: `CLAUDINIX_LIB_DIR` (default `/usr/local/lib/claudinix`, `nix-dev` symlinked into `BIN_DIR`), `CLAUDINIX_RAW_URL`, `CLAUDINIX_REV` (default: SHA arg, else `main`).
@@ -77,6 +81,11 @@ V22: CI proves what it claims: same `hk check --all` as local; `nix flake check 
 V23: hk ≥ 1.55 (silent `--no-fail-fast` + `depends` bug, itok B21), pinned via `nix-hk`.
 V24: long gate commands in the Bash tool: default 120 s does NOT kill (probe 6): command moves to background at 120 s and finishes (limit 30 min); real exit status arrives only w/ the completion notice ∴ agent prompts \& wrappers wait for completion, ⊥ read the 120 s return as result. `BASH_DEFAULT_TIMEOUT_MS` raise = optional (fewer backgrounded runs).
 V25: `accept-flake-config = true` trusts cloned repo `nixConfig` ∴ env used only w/ owner-trusted repos; extra substituters outside allowlist unreachable anyway; documented in SECURITY (`docs:T36`).
+V27: `hk.pkl` evaluates under the official `pkl` (⊥ only hk's lenient parser): gate step `pkl eval hk.pkl` (B5).
+V28: every tracked `*.sh` w/ a shebang is executable (mode 100755); gate step checks (B6).
+V29: a guard that reads history detects a shallow clone \& says so w/ the fix (`git fetch --unshallow`), ⊥ blame commits it cannot see; w/o upstream it checks `merge-base HEAD origin/HEAD..HEAD` (B7).
+V30: every input needed to EVALUATE an output a session builds (agent home, dev shell) is fetchable in the cloud: `git+https` \| narinfo in an allowed cache; CI verifies narinfo for pushed sources, ⊥ only built outputs (B8).
+V31: gate output for a non-TTY caller (agent) on success ≤ a few lines; full log on failure only.
 
 ## §T TASKS
 id|status|task|cites
@@ -118,10 +127,19 @@ T66|.|EXP E11 cost per session: usage page before/after E1-E5; confirms credit c
 T67|x|ARCHIVED to SPEC-ARCHIVE.md|T58,`scripts:T28`,I.cmd — answered 2026-10-03 (probe 7): `claude --cloud "<task>" --model sonnet` ⇒ configured, served \& trailer = Sonnet 5.5; `--model` before the task fails (`--cloud requires a description`)
 T68|x|ARCHIVED to SPEC-ARCHIVE.md|C11,V3,I.file
 T69|x|ARCHIVED to SPEC-ARCHIVE.md|V20,C19,I.file
-T71|x|rename to `claudinix` (C10) in code \& tests: repo slug in fork block \& `setup-line.sh`, flake URLs, `nix.conf` BEGIN/END markers, `/usr/local/lib/claudinix`, `~/.local/state/claudinix/`, env prefix `NCCC_` → `CLAUDINIX_`, flake `description`; tests pinning strings change RED first; ⊥ history rewrite; gate \& `tdd-order` green|C10,C11,V3,I.file,I.cmd
+T71|x|ARCHIVED to SPEC-ARCHIVE.md|C10,C11,V3,I.file,I.cmd
+T73|.|`setup.sh` opt-in agent home (C24: `--agent-home` arg \| `CLAUDINIX_AGENT_HOME=1`; default skips it, logs so); nix-dev files fetched to a temp dir \& moved only when all succeed, else stale link removed; curl `--connect-timeout`/`--max-time` on every fetch; 1 script-dir var from `BASH_SOURCE`, ⊥ cwd fallback; warn when resolved `nix --version` < floor after install (review R1-3,4,6,7,13)|C24,V1,V4,V5,`nix:V15`
+T74|.|CI: push eval-time input sources (`nix flake archive --json` paths) on main; `verify-cachix.sh` checks those + agent home + dev shell, drops the empty xenolith marker; cachix write token only on push to main (review R2-1,7,10)|V30,V22,C19
+T75|.|release: `scripts/release.sh [REV]` (maintainer): refuses unless CI green \& agent home narinfo 200; records `cloud-home.storepath` (commit); prints release notes; regenerates the README setup-line block between markers; gate checks block = `setup-line.sh` output for its recorded SHA|C25,`nix:V15`,V20
+T76|.|repo `.claude/settings.json` SessionStart hook → `scripts/dev/session-start.sh` (unshallow if shallow, `nix develop -c true`, quiet on success); bats|C27,V17,V29
+T77|.|gate: `pkl eval hk.pkl` step + `///`→`//` in `hooks` (V27); exec-bit step (V28) + chmod; `bats` glob covers data files tests read (SETUP.md, justfile, `*.jq`, `*.tsv`, `*.txt`) (V19); comment blocks above the right steps; `.envrc` `watch_file scripts/dev/shell-hook.sh`; quiet success for non-TTY (V31)|V27,V28,V19,V31,C14
 
 ## §B BUGS
 id|date|cause|fix
 B1|2026-10-03|assumed "include default list" covers `*.nixos.org` (docs); proxy refused `cache.nixos.org` \& `channels.nixos.org` → `nix develop` built from source \& failed|C6 names hosts explicitly; probe checks each host (T3)
 B2|2026-10-03|seed `setup.sh` appended `nix.conf` block only when marker absent ∴ adding `accept-flake-config` never reached a VM w/ old block|V3 managed block rewritten whole
 B3|2026-10-03|spec `nix:V15`/V20 fetched own repo via `github:` → would 403 in cloud (caught before build)|`nix:V15`, V20 use `git+https`
+B5|2026-10-03|`hk.pkl` put `///` doc comments inside `hooks {}`: official `pkl eval` rejects it; passed only via hk's lenient default parser (review R2-3)|V27
+B6|2026-10-03|`scripts/setup-line.sh` committed mode 100644; docs say run it directly → `permission denied`; tests call it via `bash` ∴ never caught (review R3-1, R5-1)|V28
+B7|2026-10-03|`tdd-order` in a shallow clone (every cloud session) counted the graft commit as adding all 27 scripts \& refused the push w/o saying the clone is shallow (review R4-1)|V29
+B8|2026-10-03|agent home tier 1 needs home-manager, nix-home-manager-claude-code \& set-and-setting sources at EVAL time; `github:` inputs ⊥ cached (cachix-action daemon pushes only built paths) → 403 in cloud; tier 2 `cloud-home.storepath` never written → agent home never activates (review R2-1, R2-2, R1-3)|V30
