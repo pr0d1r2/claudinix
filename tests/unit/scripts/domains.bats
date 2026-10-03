@@ -131,3 +131,27 @@ setup() {
     run bash "$SCRIPT" --from-log "$BATS_TEST_TMPDIR/none.log" "$P"
     [ "$status" -eq 1 ]
 }
+
+# .claudinix.toml (scripts:T91, scripts:V34): network.extra_domains.
+@test "extra_domains from the project's .claudinix.toml join the list, tagged config" {
+    printf '%s\n' 'version = 1' '[network]' 'extra_domains = ["zz.example.org", "aa.example.org", "github.com"]' >"$P/.claudinix.toml"
+    run --separate-stderr bash "$SCRIPT" --why "$P"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"aa.example.org	config"* ]]
+    [[ "$output" == *"zz.example.org	config"* ]]
+    [ "$(grep -c '^github.com' <<<"$output")" -eq 1 ]
+    [[ "$output" == *"github.com	base"* ]]
+    run --separate-stderr bash "$SCRIPT" "$P"
+    [ "${lines[3]}" = aa.example.org ]
+    [ "${lines[7]}" = zz.example.org ]
+    [ "${#lines[@]}" -eq 8 ]
+}
+
+@test "a bad .claudinix.toml fails with exit 2 naming the file and key, prints no list" {
+    printf '%s\n' 'version = 1' '[network]' 'extra_domains = "aa.example.org"' >"$P/.claudinix.toml"
+    run --separate-stderr bash "$SCRIPT" "$P"
+    [ "$status" -eq 2 ]
+    [ -z "$output" ]
+    [[ "$stderr" == *"$P/.claudinix.toml"* ]]
+    [[ "$stderr" == *"network.extra_domains"* ]]
+}
