@@ -20,6 +20,7 @@ The steps are defined in [`hk.pkl`](../hk.pkl) and explained in
 | `.yml` | actionlint, zizmor (`--offline`, pedantic) | GitHub workflows only |
 | `.md` | none beyond hygiene | `SPEC.md` also gets `mth fmt`, `mth check`, `itok check`, `sherd validate` and `sherd budget` |
 | `.toml` | xenolith (`xenolith.toml` only) | `.typos.toml` is config for `typos` itself |
+| `.txt` | `setup.sh`'s bats | `allowlist.txt` and `env-names.txt`: tests check the hosts they name and that no value looks like a secret |
 | `.context-limits` | `itok check`, `sherd validate`, `sherd budget` | token ceilings for `SPEC.md` |
 | `.lock` | none beyond hygiene | `flake.lock`, written by `nix flake lock` |
 | `.gitignore` | none beyond hygiene | git config |
