@@ -240,7 +240,7 @@ EOF
 
 @test "agent home: tier 1 builds the flake over git+https and activates (nix:V15)" {
     agent_home
-    run bash "$SCRIPT"
+    run bash "$SCRIPT" --agent-home
     [ "$status" -eq 0 ]
     [[ "$output" == *"tier 1"* ]]
     grep -q 'build .*git+https://github.com/pr0d1r2/claudinix.*#homeConfigurations.cloud.activationPackage' "$NIX_LOG"
@@ -251,14 +251,14 @@ EOF
 
 @test "agent home: CLOUD_HOME_FLAKE seam picks the flake" {
     agent_home
-    CLOUD_HOME_FLAKE="path:/tmp/elsewhere" run bash "$SCRIPT"
+    CLOUD_HOME_FLAKE="path:/tmp/elsewhere" run bash "$SCRIPT" --agent-home
     [ "$status" -eq 0 ]
     grep -q 'build .*path:/tmp/elsewhere#homeConfigurations.cloud.activationPackage' "$NIX_LOG"
 }
 
 @test "agent home: activates as the setup's user and HOME (nix:V14)" {
     agent_home
-    run bash "$SCRIPT"
+    run bash "$SCRIPT" --agent-home
     [ "$status" -eq 0 ]
     [ "$(cat "$ACTIVATE_LOG")" = "HOME=$HOME USER=$USER" ]
 }
@@ -266,7 +266,7 @@ EOF
 @test "agent home: tier 1 fails, tier 2 realises the recorded path (nix:V15)" {
     agent_home
     echo "$HOME_PKG" >"$CLOUD_HOME_STOREPATH"
-    BUILD_OK=0 run bash "$SCRIPT"
+    BUILD_OK=0 run bash "$SCRIPT" --agent-home
     [ "$status" -eq 0 ]
     [[ "$output" == *"tier 2"* ]]
     grep -qx "nix-store -r $HOME_PKG" "$NIX_LOG"
@@ -277,7 +277,7 @@ EOF
 @test "agent home: both tiers fail, nix stays usable, loud warning and marker" {
     agent_home
     echo "$HOME_PKG" >"$CLOUD_HOME_STOREPATH"
-    BUILD_OK=0 STORE_OK=0 run bash "$SCRIPT"
+    BUILD_OK=0 STORE_OK=0 run bash "$SCRIPT" --agent-home
     [ "$status" -eq 0 ]
     [[ "$output" == *"WARNING"* ]]
     [ -e "$CLOUD_HOME_MARKER" ]
@@ -287,7 +287,7 @@ EOF
 
 @test "agent home: no recorded path and tier 1 fails: warning and marker" {
     agent_home
-    BUILD_OK=0 run bash "$SCRIPT"
+    BUILD_OK=0 run bash "$SCRIPT" --agent-home
     [ "$status" -eq 0 ]
     [[ "$output" == *"WARNING"* ]]
     [ -e "$CLOUD_HOME_MARKER" ]
@@ -296,7 +296,7 @@ EOF
 
 @test "agent home: activation itself fails: warning and marker, exit 0" {
     agent_home
-    ACTIVATE_OK=0 run bash "$SCRIPT"
+    ACTIVATE_OK=0 run bash "$SCRIPT" --agent-home
     [ "$status" -eq 0 ]
     [[ "$output" == *"WARNING"* ]]
     [ -e "$CLOUD_HOME_MARKER" ]
@@ -305,7 +305,7 @@ EOF
 @test "agent home: the default marker lives under ~/.local/state/claudinix (T71)" {
     agent_home
     unset CLOUD_HOME_MARKER
-    BUILD_OK=0 run bash "$SCRIPT"
+    BUILD_OK=0 run bash "$SCRIPT" --agent-home
     [ "$status" -eq 0 ]
     [ -e "$HOME/.local/state/claudinix/agent-home.failed" ]
 }
@@ -318,7 +318,7 @@ SHA=0123456789abcdef0123456789abcdef01234567
 
 @test "sha arg: tier 1 builds that exact rev over git+https (V20)" {
     agent_home
-    run bash "$SCRIPT" "$SHA"
+    run bash "$SCRIPT" "$SHA" --agent-home
     [ "$status" -eq 0 ]
     grep -qF "git+https://github.com/pr0d1r2/claudinix?rev=$SHA&shallow=1#homeConfigurations.cloud.activationPackage" "$NIX_LOG"
 }
@@ -345,7 +345,7 @@ echo "$url" >>"$CURL_LOG"
 echo "$HOME_PKG" >"$out"
 EOF
     chmod +x "$BATS_TEST_TMPDIR/stubs/curl"
-    BUILD_OK=0 run bash "$SCRIPT" "$SHA"
+    BUILD_OK=0 run bash "$SCRIPT" "$SHA" --agent-home
     [ "$status" -eq 0 ]
     [[ "$output" == *"tier 2"* ]]
     grep -qx "https://raw.githubusercontent.com/pr0d1r2/claudinix/$SHA/cloud-home.storepath" "$CURL_LOG"
@@ -356,7 +356,7 @@ EOF
     agent_home
     mkdir -p "$(dirname "$CLOUD_HOME_MARKER")"
     touch "$CLOUD_HOME_MARKER"
-    run bash "$SCRIPT"
+    run bash "$SCRIPT" --agent-home
     [ "$status" -eq 0 ]
     [ ! -e "$CLOUD_HOME_MARKER" ]
 }
@@ -365,12 +365,15 @@ EOF
 # fails when FETCH_FAIL is set. Ahead of the installer stub on PATH.
 fetch_stub() {
     export FETCH_LOG="$BATS_TEST_TMPDIR/fetch.log"
+    export FETCH_ARGS="$BATS_TEST_TMPDIR/fetch.args"
     mkdir -p "$BATS_TEST_TMPDIR/fetch"
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/bin/sh' 'url=' 'out=' \
-        'while [ $# -gt 0 ]; do case "$1" in -o) out="$2"; shift ;; -*) ;; *) url="$1" ;; esac; shift; done' \
+        'echo "$*" >>"$FETCH_ARGS"' \
+        'while [ $# -gt 0 ]; do case "$1" in -o) out="$2"; shift ;; --connect-timeout | --max-time) shift ;; -*) ;; *) url="$1" ;; esac; shift; done' \
         'echo "$url" >>"$FETCH_LOG"' \
         '[ -z "${FETCH_FAIL:-}" ] || exit 22' \
+        'case "$url" in *"/${FETCH_FAIL_ON:-/}") exit 22 ;; esac' \
         'echo "# fetched $url" >"$out"' >"$BATS_TEST_TMPDIR/fetch/curl"
     chmod +x "$BATS_TEST_TMPDIR/fetch/curl"
     PATH="$BATS_TEST_TMPDIR/fetch:$PATH"
@@ -465,7 +468,7 @@ OWNER_KEY='pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM='
         -e 's|pr0d1r2\.cachix\.org|fork.cachix.org|' \
         -e 's|pr0d1r2/claudinix|forker/claudinix|' \
         -e '}' "$SCRIPT" >"$BATS_TEST_TMPDIR/fork/setup.sh"
-    BUILD_OK=0 run bash "$BATS_TEST_TMPDIR/fork/setup.sh" "$SHA"
+    BUILD_OK=0 run bash "$BATS_TEST_TMPDIR/fork/setup.sh" "$SHA" --agent-home
     [ "$status" -eq 0 ]
     conf="$NIX_CONF_DIR/nix.conf"
     grep -qx 'extra-substituters = https://fork.cachix.org' "$conf"
@@ -474,4 +477,138 @@ OWNER_KEY='pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM='
     grep -qx "https://raw.githubusercontent.com/forker/claudinix/$SHA/cloud-home.storepath" "$FETCH_LOG"
     grep -qF "git+https://github.com/forker/claudinix?rev=$SHA&shallow=1#" "$NIX_LOG"
     run ! grep -r 'pr0d1r2' "$conf" "$FETCH_LOG" "$NIX_LOG"
+}
+
+# The agent home is opt-in (C24, T73): the default setup is Nix and
+# nix-dev only, and says in one line how to ask for the agent home.
+
+@test "agent home off by default: nothing built, one line says how to enable it (C24)" {
+    agent_home
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ ! -e "$NIX_LOG" ]
+    [ ! -e "$ACTIVATE_LOG" ]
+    [ ! -e "$CLOUD_HOME_MARKER" ]
+    [ "$(grep -c 'agent home' <<<"$output")" -eq 1 ]
+    [[ "$output" == *"--agent-home"* ]]
+    [[ "$output" == *"CLAUDINIX_AGENT_HOME=1"* ]]
+    run ! grep -q 'WARNING' <<<"$output"
+}
+
+@test "agent home: --agent-home may come before the SHA (C24)" {
+    agent_home
+    run bash "$SCRIPT" --agent-home "$SHA"
+    [ "$status" -eq 0 ]
+    grep -qF "git+https://github.com/pr0d1r2/claudinix?rev=$SHA&shallow=1#homeConfigurations.cloud.activationPackage" "$NIX_LOG"
+    [ -s "$ACTIVATE_LOG" ]
+}
+
+@test "agent home: CLAUDINIX_AGENT_HOME=1 opts in without the flag (C24)" {
+    agent_home
+    CLAUDINIX_AGENT_HOME=1 run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"tier 1"* ]]
+    [ -s "$ACTIVATE_LOG" ]
+}
+
+@test "agent home: CLAUDINIX_AGENT_HOME=0 keeps it off (C24)" {
+    agent_home
+    CLAUDINIX_AGENT_HOME=0 run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ ! -e "$NIX_LOG" ]
+}
+
+@test "an unknown argument is a usage error naming --agent-home, nothing touched" {
+    agent_home
+    run bash "$SCRIPT" --frobnicate
+    [ "$status" -eq 2 ]
+    [[ "$output" == *"usage"* ]]
+    [[ "$output" == *"--agent-home"* ]]
+    [ ! -e "$NIX_CONF_DIR/nix.conf" ]
+    [ ! -e "$NIX_LOG" ]
+}
+
+@test "two SHAs are a usage error (V20)" {
+    run bash "$SCRIPT" "$SHA" "$SHA"
+    [ "$status" -eq 2 ]
+    [[ "$output" == *"usage"* ]]
+    [ ! -e "$NIX_CONF_DIR/nix.conf" ]
+}
+
+# nix-dev's files land together or not at all (T73): a half-fetched set
+# would link a nix-dev that cannot find its jq program.
+
+@test "nix-dev: one file failing replaces nothing, removes a stale link, warns (T73)" {
+    image_nix 2.34.6
+    fetch_stub
+    cp "$SCRIPT" "$BATS_TEST_TMPDIR/setup.sh"
+    mkdir -p "$CLAUDINIX_LIB_DIR"
+    echo old >"$CLAUDINIX_LIB_DIR/nix-dev.sh"
+    ln -s "$CLAUDINIX_LIB_DIR/nix-dev.sh" "$BIN_DIR/nix-dev"
+    FETCH_FAIL_ON=inputs.jq run bash "$BATS_TEST_TMPDIR/setup.sh"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"nix-dev"* ]]
+    [ "$(cat "$CLAUDINIX_LIB_DIR/nix-dev.sh")" = old ]
+    [ ! -e "$CLAUDINIX_LIB_DIR/nix-dev.jq" ]
+    [ ! -L "$BIN_DIR/nix-dev" ]
+    [ -x "$BIN_DIR/nix" ]
+}
+
+@test "every curl in setup.sh is bounded: --connect-timeout and --max-time (T73)" {
+    calls="$(grep -v '^[[:space:]]*#' "$SCRIPT" | grep -E '(^|[^-[:alnum:]])curl ')"
+    [ -n "$calls" ]
+    while IFS= read -r line; do
+        [[ "$line" == *"--connect-timeout"* ]] || {
+            echo "unbounded: $line"
+            return 1
+        }
+        [[ "$line" == *"--max-time"* ]] || {
+            echo "unbounded: $line"
+            return 1
+        }
+    done <<<"$calls"
+}
+
+@test "nix-dev fetch passes the timeouts to curl (T73)" {
+    image_nix 2.34.6
+    fetch_stub
+    cp "$SCRIPT" "$BATS_TEST_TMPDIR/setup.sh"
+    run bash "$BATS_TEST_TMPDIR/setup.sh"
+    [ "$status" -eq 0 ]
+    [ "$(grep -c -- '--connect-timeout' "$FETCH_ARGS")" -eq 4 ]
+    [ "$(grep -c -- '--max-time' "$FETCH_ARGS")" -eq 4 ]
+}
+
+@test "script read from stdin: never copies nix-dev from the cwd, fetches it (T73)" {
+    image_nix 2.34.6
+    fetch_stub
+    mkdir -p "$BATS_TEST_TMPDIR/cwd/scripts"
+    for f in nix-dev.sh nix-dev.jq inputs.sh inputs.jq; do
+        echo "# cwd copy" >"$BATS_TEST_TMPDIR/cwd/scripts/$f"
+    done
+    # shellcheck disable=SC2016 # $1 expands in the inner shell
+    run bash -c 'cd "$1" && bash -s' _ "$BATS_TEST_TMPDIR/cwd" <"$SCRIPT"
+    [ "$status" -eq 0 ]
+    grep -qx 'https://raw.githubusercontent.com/pr0d1r2/claudinix/main/scripts/nix-dev.sh' "$FETCH_LOG"
+    run ! grep -q 'cwd copy' "$CLAUDINIX_LIB_DIR/nix-dev.sh"
+}
+
+# After an install, the nix Claude's Bash tool finds first is the default
+# profile's (C8): warn when that one is still below the floor (V1, V4).
+
+@test "install leaves an old nix first on Claude's PATH: warns (T73, V4)" {
+    image_nix 2.18.1
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"WARNING"* ]]
+    [[ "$output" == *"2.18.1"* ]]
+    [[ "$output" == *"$NIX_DEFAULT_PROFILE/bin"* ]]
+}
+
+@test "install that upgrades the default profile: no floor warning (T73, V4)" {
+    mkdir -p "$BATS_TEST_TMPDIR/systemd"
+    image_nix 2.18.1
+    SYSTEMD_DIR="$BATS_TEST_TMPDIR/systemd" run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    run ! grep -q 'WARNING' <<<"$output"
 }
