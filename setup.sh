@@ -82,8 +82,8 @@ fi
 # lines outside it (the installer's build-users-group) are kept.
 mkdir -p "$conf_dir"
 conf="$conf_dir/nix.conf"
-begin="# BEGIN nix-claude-code-cloud (SPEC V3)"
-end="# END nix-claude-code-cloud (SPEC V3)"
+begin="# BEGIN claudinix (SPEC V3)"
+end="# END claudinix (SPEC V3)"
 kept=()
 if [ -f "$conf" ]; then
     inside=0
@@ -120,7 +120,7 @@ ln -sf "$profile_bin"/* "$bin_dir/"
 # beside this script, else from the repo at the SHA this script was
 # fetched at (T69, V20), or `main` when none was given. A failed fetch
 # only warns: nix itself still works (V1).
-lib_dir="${NCCC_LIB_DIR:-/usr/local/lib/nix-claude-code-cloud}"
+lib_dir="${NCCC_LIB_DIR:-/usr/local/lib/claudinix}"
 raw="${NCCC_RAW_URL:-https://raw.githubusercontent.com/$repo/${NCCC_REV:-${sha:-main}}}"
 here="$(dirname "${BASH_SOURCE[0]:-.}")"
 mkdir -p "$lib_dir"
@@ -152,7 +152,7 @@ fi
 # With a SHA (V20) both tiers are pinned to it.
 home_flake="${CLOUD_HOME_FLAKE:-git+https://github.com/$repo?${sha:+rev=$sha&}shallow=1}"
 home_storepath="${CLOUD_HOME_STOREPATH:-$(dirname "$0")/cloud-home.storepath}"
-home_marker="${CLOUD_HOME_MARKER:-$HOME/.local/state/nix-claude-code-cloud/agent-home.failed}"
+home_marker="${CLOUD_HOME_MARKER:-$HOME/.local/state/claudinix/agent-home.failed}"
 home_attr="$home_flake#homeConfigurations.cloud.activationPackage"
 
 # The UI line fetches setup.sh alone, so the recorded path is fetched at
