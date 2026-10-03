@@ -11,7 +11,7 @@ setup() {
     export HK_LOG
     # The suite itself runs inside a wrapped git hook, which sets this; left
     # set, every test would see the script's in-a-hook early exit.
-    unset NCCC_HOOK
+    unset CLAUDINIX_HOOK
     # The suite also runs from git hooks, which export GIT_DIR and friends;
     # left set, every fixture repo would resolve to this one (V21).
     unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_OBJECT_DIRECTORY GIT_PREFIX
@@ -96,7 +96,7 @@ STUB
     [ "$status" -eq 0 ]
     for e in pre-commit pre-push commit-msg; do
         # shellcheck disable=SC2016 # ${HK:-1} is literal hook text, not expanded here
-        [ "$(git config --local "hook.hk-$e.command")" = 'test "${HK:-1}" = "0" || NCCC_HOOK=1 nix develop -c hk run '"$e"' --from-hook' ]
+        [ "$(git config --local "hook.hk-$e.command")" = 'test "${HK:-1}" = "0" || CLAUDINIX_HOOK=1 nix develop -c hk run '"$e"' --from-hook' ]
     done
 }
 
@@ -114,7 +114,7 @@ STUB
     stub_hk_installer
     make_repo
     cd "$REPO"
-    run env PATH="$STUB_BIN" NCCC_HOOK=1 "$BASH_BIN" "$SCRIPT"
+    run env PATH="$STUB_BIN" CLAUDINIX_HOOK=1 "$BASH_BIN" "$SCRIPT"
     [ "$status" -eq 0 ]
     [ -z "$output" ]
     [ ! -e "$HK_LOG" ]

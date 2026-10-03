@@ -13,7 +13,7 @@ setup() {
     export SYSTEMD_DIR="$BATS_TEST_TMPDIR/no-systemd"
     export NIX_DEFAULT_PROFILE="$BATS_TEST_TMPDIR/profiles/default"
     export INSTALLER_LOG="$BATS_TEST_TMPDIR/installer.args"
-    export NCCC_LIB_DIR="$BATS_TEST_TMPDIR/lib/nix-claude-code-cloud"
+    export CLAUDINIX_LIB_DIR="$BATS_TEST_TMPDIR/lib/claudinix"
     mkdir -p "$HOME" "$BIN_DIR" "$BATS_TEST_TMPDIR/stubs"
 
     # Fake upstream installer: logs its args, lays down a nix binary where
@@ -381,9 +381,9 @@ fetch_stub() {
     run bash "$SCRIPT"
     [ "$status" -eq 0 ]
     [ -x "$BIN_DIR/nix-dev" ]
-    cmp "$NCCC_LIB_DIR/nix-dev.sh" "$ENV_DIR/scripts/nix-dev.sh"
-    cmp "$NCCC_LIB_DIR/nix-dev.jq" "$ENV_DIR/scripts/nix-dev.jq"
-    [ "$(readlink "$BIN_DIR/nix-dev")" = "$NCCC_LIB_DIR/nix-dev.sh" ]
+    cmp "$CLAUDINIX_LIB_DIR/nix-dev.sh" "$ENV_DIR/scripts/nix-dev.sh"
+    cmp "$CLAUDINIX_LIB_DIR/nix-dev.jq" "$ENV_DIR/scripts/nix-dev.jq"
+    [ "$(readlink "$BIN_DIR/nix-dev")" = "$CLAUDINIX_LIB_DIR/nix-dev.sh" ]
 }
 
 @test "setup.sh alone with a SHA: nix-dev fetched at that SHA, not main (T69, V20)" {
@@ -408,11 +408,11 @@ fetch_stub() {
     [ -x "$BIN_DIR/nix-dev" ]
 }
 
-@test "NCCC_REV seam still picks the revision nix-dev is fetched at" {
+@test "CLAUDINIX_REV seam still picks the revision nix-dev is fetched at" {
     image_nix 2.34.6
     fetch_stub
     cp "$SCRIPT" "$BATS_TEST_TMPDIR/setup.sh"
-    NCCC_REV=abc123 run bash "$BATS_TEST_TMPDIR/setup.sh" "$SHA"
+    CLAUDINIX_REV=abc123 run bash "$BATS_TEST_TMPDIR/setup.sh" "$SHA"
     [ "$status" -eq 0 ]
     grep -qx 'https://raw.githubusercontent.com/pr0d1r2/claudinix/abc123/scripts/nix-dev.sh' "$FETCH_LOG"
 }
@@ -421,11 +421,11 @@ fetch_stub() {
     image_nix 2.34.6
     run bash "$SCRIPT"
     [ "$status" -eq 0 ]
-    cmp "$NCCC_LIB_DIR/inputs.sh" "$ENV_DIR/scripts/inputs.sh"
-    cmp "$NCCC_LIB_DIR/inputs.jq" "$ENV_DIR/scripts/inputs.jq"
+    cmp "$CLAUDINIX_LIB_DIR/inputs.sh" "$ENV_DIR/scripts/inputs.sh"
+    cmp "$CLAUDINIX_LIB_DIR/inputs.jq" "$ENV_DIR/scripts/inputs.jq"
     fetch_stub
     cp "$SCRIPT" "$BATS_TEST_TMPDIR/setup.sh"
-    NCCC_REV=abc123 run bash "$BATS_TEST_TMPDIR/setup.sh"
+    CLAUDINIX_REV=abc123 run bash "$BATS_TEST_TMPDIR/setup.sh"
     grep -qx 'https://raw.githubusercontent.com/pr0d1r2/claudinix/abc123/scripts/inputs.sh' "$FETCH_LOG"
     grep -qx 'https://raw.githubusercontent.com/pr0d1r2/claudinix/abc123/scripts/inputs.jq' "$FETCH_LOG"
 }

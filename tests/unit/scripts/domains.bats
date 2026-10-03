@@ -9,10 +9,10 @@ setup() {
     STUBS="$BATS_TEST_TMPDIR/stubs"
     P="$BATS_TEST_TMPDIR/sherd"
     export CLIP="$BATS_TEST_TMPDIR/clip"
-    export NCCC_ALLOWLIST="$BATS_TEST_TMPDIR/allowlist.txt"
+    export CLAUDINIX_ALLOWLIST="$BATS_TEST_TMPDIR/allowlist.txt"
     export CLIPBOARD_TOOLS="$STUBS/pbcopy"
     mkdir -p "$STUBS" "$P"
-    printf '%s\n' '# base' 'pr0d1r2.cachix.org' '' 'cache.nixos.org' 'github.com' >"$NCCC_ALLOWLIST"
+    printf '%s\n' '# base' 'pr0d1r2.cachix.org' '' 'cache.nixos.org' 'github.com' >"$CLAUDINIX_ALLOWLIST"
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' 'echo "$0 $*" >"$CLIP.args"' 'cat >"$CLIP"' >"$STUBS/pbcopy"
     cp "$STUBS/pbcopy" "$STUBS/xclip"
@@ -97,7 +97,7 @@ setup() {
 }
 
 @test "default base is this repo's allowlist.txt" {
-    unset NCCC_ALLOWLIST
+    unset CLAUDINIX_ALLOWLIST
     run bash "$SCRIPT" "$BATS_TEST_TMPDIR/stubs"
     [ "$status" -eq 0 ]
     [ "${lines[0]}" = "pr0d1r2.cachix.org" ]

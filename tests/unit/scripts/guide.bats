@@ -11,8 +11,8 @@ setup() {
     LIB="$BATS_TEST_TMPDIR/lib"
     P="$BATS_TEST_TMPDIR/project"
     export LOG="$BATS_TEST_TMPDIR/log"
-    export NCCC_SCRIPTS="$LIB"
-    export NCCC_SETUP_REV=0123456789abcdef0123456789abcdef01234567
+    export CLAUDINIX_SCRIPTS="$LIB"
+    export CLAUDINIX_SETUP_REV=0123456789abcdef0123456789abcdef01234567
     export CLAUDE_SETTINGS="$BATS_TEST_TMPDIR/settings.json"
     export CLIPBOARD_TOOLS="$STUBS/pbcopy"
     export GUIDE_OPEN_TOOLS="$STUBS/open"
@@ -95,8 +95,8 @@ titles() {
     grep -qx 'nix' "$LOG"
     grep -qx 'domains .' "$LOG"
     grep -qx 'index.crates.io' "$LOG"
-    grep -qx "setup-line $NCCC_SETUP_REV" "$LOG"
-    grep -qx "SETUP-LINE $NCCC_SETUP_REV" "$LOG"
+    grep -qx "setup-line $CLAUDINIX_SETUP_REV" "$LOG"
+    grep -qx "SETUP-LINE $CLAUDINIX_SETUP_REV" "$LOG"
     run ! grep -qx '#!/usr/bin/env bash' "$LOG"
     [ "$(grep -c '^--- clip' "$LOG")" -eq 3 ]
 }
@@ -137,7 +137,7 @@ titles() {
     [ "$(titles "$output")" = "== Updating the environment (after a change here) ==" ]
     [[ "$output" == *"start page"* ]]
     [[ "$output" == *"new session"* ]]
-    grep -qx "SETUP-LINE $NCCC_SETUP_REV" "$LOG"
+    grep -qx "SETUP-LINE $CLAUDINIX_SETUP_REV" "$LOG"
     grep -qx 'index.crates.io' "$LOG"
 }
 
@@ -165,7 +165,7 @@ model_doc() {
 # shellcheck disable=SC2016 # literal dollar prices, not expansions
 @test "step 5 reads the Sonnet and Opus prices from MODEL.md (scripts:T26)" {
     model_doc '$7.77 | $38.88' '$3.33 | $16.66'
-    NCCC_MODEL_DOC="$BATS_TEST_TMPDIR/MODEL.md" run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
+    CLAUDINIX_MODEL_DOC="$BATS_TEST_TMPDIR/MODEL.md" run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
     [ "$status" -eq 0 ]
     [[ "$output" == *'$3.33'* ]]
     [[ "$output" == *'$16.66'* ]]
@@ -180,7 +180,7 @@ model_doc() {
     sonnet="$(grep -F '| Claude Sonnet 5.5 |' "$doc" | cut -d'|' -f3 | tr -d ' ')"
     opus="$(grep -F '| Claude Opus 5.5 |' "$doc" | cut -d'|' -f3 | tr -d ' ')"
     [ -n "$sonnet" ] && [ -n "$opus" ]
-    NCCC_MODEL_DOC="$doc" run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
+    CLAUDINIX_MODEL_DOC="$doc" run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
     [[ "$output" == *"$sonnet"* ]]
     [[ "$output" == *"$opus"* ]]
     [[ "$output" != *"see docs/MODEL.md"* ]]
@@ -188,7 +188,7 @@ model_doc() {
 
 # shellcheck disable=SC2016 # literal dollar prices, not expansions
 @test "step 5: MODEL.md missing: points at it, shows no price (scripts:T26)" {
-    NCCC_MODEL_DOC="$BATS_TEST_TMPDIR/nope.md" run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
+    CLAUDINIX_MODEL_DOC="$BATS_TEST_TMPDIR/nope.md" run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
     [ "$status" -eq 0 ]
     [[ "$output" == *"see docs/MODEL.md"* ]]
     run ! grep -E '\$[0-9]' <<<"$output"
@@ -197,7 +197,7 @@ model_doc() {
 # shellcheck disable=SC2016 # literal dollar prices, not expansions
 @test "step 5: a price that is not a dollar amount is not shown (scripts:T26)" {
     model_doc 'TBD | $38.88' '$3.33 | soon'
-    NCCC_MODEL_DOC="$BATS_TEST_TMPDIR/MODEL.md" run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
+    CLAUDINIX_MODEL_DOC="$BATS_TEST_TMPDIR/MODEL.md" run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
     [ "$status" -eq 0 ]
     [ "$(grep -c 'see docs/MODEL.md' <<<"$output")" -eq 2 ]
     run ! grep -E '\$[0-9]' <<<"$output"
@@ -206,7 +206,7 @@ model_doc() {
 # shellcheck disable=SC2016 # literal dollar prices, not expansions
 @test "step 5: a model missing from the table points at MODEL.md (scripts:T26)" {
     printf '%s\n' '| model | input | output |' '| Claude Opus 5.5 | $7.77 | $38.88 |' >"$BATS_TEST_TMPDIR/MODEL.md"
-    NCCC_MODEL_DOC="$BATS_TEST_TMPDIR/MODEL.md" run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
+    CLAUDINIX_MODEL_DOC="$BATS_TEST_TMPDIR/MODEL.md" run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
     [[ "$output" == *'$7.77'* ]]
     [[ "$output" == *"see docs/MODEL.md"* ]]
 }
@@ -221,32 +221,32 @@ model_doc() {
 @test "--force reaches setup-line, in setup and update flows (T69)" {
     run bash "$SCRIPT" --force --from 3 <<<$'y\ny\n'
     [ "$status" -eq 0 ]
-    grep -qx "setup-line --force $NCCC_SETUP_REV" "$LOG"
+    grep -qx "setup-line --force $CLAUDINIX_SETUP_REV" "$LOG"
     : >"$LOG"
     run bash "$SCRIPT" update --force <<<''
     [ "$status" -eq 0 ]
-    grep -qx "setup-line --force $NCCC_SETUP_REV" "$LOG"
+    grep -qx "setup-line --force $CLAUDINIX_SETUP_REV" "$LOG"
 }
 
-@test "no NCCC_SETUP_REV: the line is for HEAD of the clone the guide runs from" {
+@test "no CLAUDINIX_SETUP_REV: the line is for HEAD of the clone the guide runs from" {
     while read -r var; do unset "$var"; done < <(env | sed -n 's/^\(GIT_[A-Z_]*\)=.*/\1/p')
-    unset NCCC_SETUP_REV
+    unset CLAUDINIX_SETUP_REV
     clone="$BATS_TEST_TMPDIR/clone"
     mkdir -p "$clone"
     cp -R "$LIB" "$clone/scripts"
     git init -q "$clone"
     git -C "$clone" -c user.name=t -c user.email=t@example.com commit -q --allow-empty -m one
     head="$(git -C "$clone" rev-parse HEAD)"
-    NCCC_SCRIPTS="$clone/scripts" run bash "$SCRIPT" update <<<''
+    CLAUDINIX_SCRIPTS="$clone/scripts" run bash "$SCRIPT" update <<<''
     [ "$status" -eq 0 ]
     grep -qx "setup-line $head" "$LOG"
 }
 
-@test "no NCCC_SETUP_REV and not in a clone: says how to pin, stops" {
-    unset NCCC_SETUP_REV
+@test "no CLAUDINIX_SETUP_REV and not in a clone: says how to pin, stops" {
+    unset CLAUDINIX_SETUP_REV
     GIT_CEILING_DIRECTORIES="$BATS_TEST_TMPDIR" run bash "$SCRIPT" update <<<''
     [ "$status" -eq 1 ]
-    [[ "$output" == *"NCCC_SETUP_REV"* ]]
+    [[ "$output" == *"CLAUDINIX_SETUP_REV"* ]]
     run ! grep -q 'SETUP-LINE' "$LOG"
 }
 
@@ -254,7 +254,7 @@ model_doc() {
     env_file="$BATS_TEST_TMPDIR/env-names.txt"
     printf '%s\n' '# header' '' '# Does something.' 'NEEDED=1' \
         '# Optional: not needed.' 'EXTRA_MS=5' >"$env_file"
-    NCCC_ENV_NAMES="$env_file" run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
+    CLAUDINIX_ENV_NAMES="$env_file" run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
     [ "$status" -eq 0 ]
     grep -qx '  NEEDED=1' <<<"$output"
     grep -qx '  EXTRA_MS=5   (optional)' <<<"$output"
@@ -262,13 +262,13 @@ model_doc() {
 }
 
 @test "step 3 with the repo's env-names.txt shows the optional Bash timeout (T48)" {
-    NCCC_ENV_NAMES="$REPO/env-names.txt" run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
+    CLAUDINIX_ENV_NAMES="$REPO/env-names.txt" run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
     grep -qx '  ANTHROPIC_MODEL=claude-sonnet-5-5' <<<"$output"
     grep -qx '  BASH_DEFAULT_TIMEOUT_MS=600000   (optional)' <<<"$output"
 }
 
 @test "step 3 without env-names.txt points at it and goes on (T48)" {
-    NCCC_ENV_NAMES="$BATS_TEST_TMPDIR/none.txt" run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
+    CLAUDINIX_ENV_NAMES="$BATS_TEST_TMPDIR/none.txt" run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
     [ "$status" -eq 0 ]
     [[ "$output" == *"env-names.txt"* ]]
 }

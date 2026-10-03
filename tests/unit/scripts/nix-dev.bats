@@ -112,13 +112,13 @@ setup() {
 }
 
 # Auto-overrides (scripts:T49): the cache status comes from inputs.sh,
-# stubbed here through NCCC_SCRIPTS beside a copy of nix-dev.jq.
+# stubbed here through CLAUDINIX_SCRIPTS beside a copy of nix-dev.jq.
 inputs_stub() {
-    export NCCC_SCRIPTS="$BATS_TEST_TMPDIR/lib"
-    mkdir -p "$NCCC_SCRIPTS"
-    cp "$BATS_TEST_DIRNAME/../../../scripts/nix-dev.jq" "$NCCC_SCRIPTS/"
+    export CLAUDINIX_SCRIPTS="$BATS_TEST_TMPDIR/lib"
+    mkdir -p "$CLAUDINIX_SCRIPTS"
+    cp "$BATS_TEST_DIRNAME/../../../scripts/nix-dev.jq" "$CLAUDINIX_SCRIPTS/"
     printf '%s\n' "$@" >"$BATS_TEST_TMPDIR/inputs.out"
-    printf '#!/usr/bin/env bash\ncat "%s"\n' "$BATS_TEST_TMPDIR/inputs.out" >"$NCCC_SCRIPTS/inputs.sh"
+    printf '#!/usr/bin/env bash\ncat "%s"\n' "$BATS_TEST_TMPDIR/inputs.out" >"$CLAUDINIX_SCRIPTS/inputs.sh"
 }
 
 A=1111111111111111111111111111111111111111
@@ -166,7 +166,7 @@ N=6666666666666666666666666666666666666666
 
 @test "auto: cache status unknown, every github input but nixpkgs overridden" {
     inputs_stub
-    printf '#!/usr/bin/env bash\nexit 1\n' >"$NCCC_SCRIPTS/inputs.sh"
+    printf '#!/usr/bin/env bash\nexit 1\n' >"$CLAUDINIX_SCRIPTS/inputs.sh"
     NIX_OK_GIT=1 run bash "$SCRIPT"
     [ "$status" -eq 0 ]
     [[ "$output" == *"cache status unknown"* ]]
