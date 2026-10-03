@@ -170,3 +170,24 @@ cached() {
     [ "$status" -eq 0 ]
     [ -z "$stderr" ]
 }
+
+@test "every narinfo request is bounded: --connect-timeout and --max-time (T88)" {
+    export CURL_ARGS="$BATS_TEST_TMPDIR/curl.args"
+    # shellcheck disable=SC2016 # expands inside the stub, not here
+    printf '%s\n' '#!/usr/bin/env bash' \
+        'echo "$*" >>"$CURL_ARGS"' \
+        'printf 404' >"$STUBS/curl"
+    run bash "$SCRIPT" "$PROJECT"
+    [ "$status" -eq 0 ]
+    [ -s "$CURL_ARGS" ]
+    while IFS= read -r line; do
+        [[ " $line " == *" --connect-timeout "[1-9]* ]] || {
+            echo "unbounded: $line"
+            return 1
+        }
+        [[ " $line " == *" --max-time "[1-9]* ]] || {
+            echo "unbounded: $line"
+            return 1
+        }
+    done <"$CURL_ARGS"
+}
