@@ -41,11 +41,27 @@ Every tool comes from the dev shell in [`flake.nix`](../flake.nix) and
 [`nix/dev-shell.nix`](../nix/dev-shell.nix), pinned by `flake.lock`.
 Entering the shell (`direnv allow`, or `nix develop`) runs
 [`scripts/dev/shell-hook.sh`](../scripts/dev/shell-hook.sh), which runs
-`hk install` and rewrites each installed hook to
-`CLAUDINIX_HOOK=1 nix develop -c hk run <hook>`. A commit therefore always
-uses the pinned tools, even from a terminal whose `PATH` is stale.
-`CLAUDINIX_HOOK=1` tells the shell hook, when the hook enters the shell, not
-to reinstall the hooks again.
+`hk install`. That writes config-based hooks (`hook.hk-<event>.command` in
+the local git config), and the script rewrites each command to
+`CLAUDINIX_HOOK=1 nix-dev -c hk run <hook>` where `nix-dev` is installed (a
+cloud session), or `CLAUDINIX_HOOK=1 nix develop -c hk run <hook>` where it
+is not. A commit therefore always uses the pinned tools, even from a
+terminal whose `PATH` is stale. `CLAUDINIX_HOOK=1` tells the shell hook,
+when the hook enters the shell, not to reinstall the hooks again.
+
+Only git 2.54 or newer runs config-based hooks. An older git, such as the
+one in a cloud image, runs only `.git/hooks/<event>`, so the shell hook also
+copies [`scripts/dev/legacy-hook.sh`](../scripts/dev/legacy-hook.sh) there
+for `pre-commit`, `commit-msg` and `pre-push`. Under an older git it runs
+the very command the config hook holds; under a newer git it does nothing,
+so the gate never runs twice. A hook someone else put there is never
+overwritten: it is left alone with a warning, and an older git then does
+not run that gate hook.
+
+In a cloud session, the project's SessionStart hook runs
+`bash "$CLAUDE_PROJECT_DIR/scripts/dev/session-start.sh"`. It fetches the
+full history and enters the dev shell once (`nix-dev -c true`, else
+`nix develop -c true`), which installs the hooks before the first commit.
 
 Each external tool is called through
 [`scripts/hk/run-tool.sh`](../scripts/hk/run-tool.sh). If the tool is not
