@@ -7,6 +7,8 @@
 #   2. `nix-dev -c true` (else `nix develop -c true`) enters the dev
 #      shell once, which installs and wraps the hk git hooks (V17,
 #      V32) before the first commit.
+#   0. Only with CLAUDINIX_SESSION_PERMISSIONS=1 (off by default): the
+#      cloud permissions go into .claude/settings.local.json (T101).
 #
 # Success is silence (V31). A problem is a warning on stdout, which the
 # hook hands to the agent as context, and the session always starts:
@@ -21,6 +23,44 @@ warn() {
     echo "session-start: $1"
 }
 
+# The fallback route for the cloud permissions (T101), off unless
+# CLAUDINIX_SESSION_PERMISSIONS=1: merge nix/cloud-permissions.json into
+# the gitignored .claude/settings.local.json. Rules and keys already in
+# that file stay; an unreadable file is left alone. The agent home is
+# the main route (it writes ~/.claude/settings.json before Claude
+# starts); whether this file applies to the session that wrote it is
+# experiments:T104.
+permissions_fallback() {
+    [ "${CLAUDINIX_SESSION_PERMISSIONS:-}" = 1 ] || return 0
+    local list target existing merged
+    list="$(cd "${BASH_SOURCE[0]%/*}/../.." && pwd)/nix/cloud-permissions.json"
+    target="$(git rev-parse --show-toplevel)/.claude/settings.local.json"
+    if ! command -v jq >/dev/null 2>&1; then
+        warn "jq not on PATH -- the session permissions were not written to $target"
+        return 0
+    fi
+    existing='{}'
+    if [ -e "$target" ] && ! existing="$(jq -e 'if type == "object" then . else error end' "$target" 2>/dev/null)"; then
+        warn "$target is not a JSON object -- left alone, the session permissions were not written"
+        return 0
+    fi
+    if ! merged="$(printf '%s\n' "$existing" | jq --slurpfile list "$list" '
+        def union($a; $b): ($a // []) + ($b - ($a // []));
+        .permissions = ((.permissions // {})
+            | .allow = union(.allow; $list[0].allow)
+            | .deny = union(.deny; $list[0].deny))
+    ' 2>&1)"; then
+        warn "could not merge $list into $target -- the session permissions were not written"
+        printf '%s\n' "$merged"
+        return 0
+    fi
+    if ! { mkdir -p "${target%/*}" &&
+        printf '%s\n' "$merged" >"$target.tmp.$$" &&
+        mv "$target.tmp.$$" "$target"; }; then
+        warn "could not write $target -- the session permissions were not written"
+    fi
+}
+
 if [ "${CLAUDE_CODE_REMOTE:-}" != true ]; then
     exit 0
 fi
@@ -29,6 +69,8 @@ if ! git rev-parse --git-dir >/dev/null 2>&1; then
     warn "not a git repository -- history and hooks not prepared"
     exit 0
 fi
+
+permissions_fallback
 
 if [ "$(git rev-parse --is-shallow-repository 2>/dev/null)" = true ]; then
     if ! fetch_log="$(git fetch --quiet --unshallow 2>&1)"; then
