@@ -17,8 +17,14 @@ fi
 tool="$1"
 shift
 
+# Inside the dev shell (nix sets IN_NIX_SHELL) "enter the dev shell" is
+# advice the caller already followed: the shell itself lacks the tool.
 if ! command -v "$tool" >/dev/null 2>&1; then
-    echo "hk: $tool is not on PATH -- gate could not run, nothing was checked. Enter the dev shell (direnv reload, or nix develop)." >&2
+    if [ -n "${IN_NIX_SHELL:-}" ]; then
+        echo "hk: $tool is missing from the dev shell -- add it to nix/dev-shell.nix; gate could not run, nothing was checked." >&2
+    else
+        echo "hk: $tool is not on PATH -- gate could not run, nothing was checked. Enter the dev shell (direnv reload, or nix develop)." >&2
+    fi
     exit 1
 fi
 
