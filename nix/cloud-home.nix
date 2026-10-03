@@ -89,13 +89,18 @@ home-manager.lib.homeManagerConfiguration {
       # A session VM has no desktop, no man reader and no systemd (PID 1
       # is `process_api`, C8). Each of these would grow the closure that
       # setup substitutes inside its ~5 min cache window (C1, V5).
+      # Measured against cache.nixos.org (`nix path-info -rS`, 2026-10-03,
+      # over the activation script's own tools, ~93 MiB): the default
+      # `programs.man` (man-db) adds ~24 MiB, and `systemd.user`, which
+      # puts systemd into the activation script, adds ~129 MiB.
       manual = {
         manpages.enable = false;
         html.enable = false;
         json.enable = false;
       };
+      programs.man.enable = false;
       xdg.mime.enable = false;
-      systemd.user.startServices = false;
+      systemd.user.enable = false;
       news.display = "silent";
 
       programs.claude-code = {
