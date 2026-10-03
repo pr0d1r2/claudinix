@@ -11,3 +11,4 @@ correctly and uselessly. The verb that reads it is `mth tasks`.
 
 T16|x|`homeConfigurations.cloud`: home-manager standalone, `nix-home-manager-claude-code` + set (`mkTrip` \| `mkSet`) + cavekit skills (`spec`,`build`,`check`,`backprop`,`caveman`) + `FORMAT.md`; `nix flake check` asserts skill files present|C12,V16,I.file
 T18|x|CI: build `activationPackage` → `cachix push pr0d1r2` → verify narinfo; CI stays `contents: read` ∴ owner records store path via `scripts/nix/record-storepath.sh` (writes `cloud-home.storepath` only on narinfo 200) \& commits it (token CI-only, `.:V6`)|V15,`.:V6`,C5
+T78|x|agent home inputs (home-manager, nix-home-manager-claude-code, set-and-setting, cavekit) as `git+https://github.com/<o>/<r>` (`.:V30`); `programs.man.enable = false` (man-db 75 MiB, `.:V5`); skills note: in cloud they are `/spec` `/build` …, FORMAT.md at `~/.claude/FORMAT.md` (AGENTS documents)|`.:V30`,`.:V5`,V16,C12
