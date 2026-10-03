@@ -7,7 +7,10 @@
 # file's path reaches nix through the environment, never spliced into
 # Nix code. config.jq checks the schema and merges the defaults, which
 # are what the tools do without a file. Any problem -- an unknown table
-# or key, a wrong type, a `version` other than 1, a file that is not
+# or key, a wrong type, a bad value (scripts:T95: an empty string, a
+# cache.name that is not a cachix name, an extra domain that is not a
+# bare hostname, an installable or branch prefix with a space, quote or
+# control character), a `version` other than 1, a file that is not
 # TOML -- exits 2 naming the key and the file as given (V26).
 #
 #   json           the effective config (defaults merged), as JSON

@@ -1,5 +1,5 @@
 # The schema of `.claudinix.toml` and the config it makes effective
-# (SPEC scripts:T90, scripts:V34, I.file `.claudinix.toml`).
+# (SPEC scripts:T90, scripts:T95, scripts:V34, I.file `.claudinix.toml`).
 #
 # Input: the file as `builtins.fromTOML` parsed it ({} when there is none).
 # Args:  --arg file F       the file, as given, for messages (V26)
@@ -39,6 +39,29 @@ def fits($kind):
 def wanted($kind):
   {model: "\"sonnet\" or \"opus\"", strings: "a list of strings", string: "a string", boolean: "true or false"}[$kind];
 
+# A bare hostname: dot-separated labels of letters, digits and hyphens,
+# none starting or ending with a hyphen; no scheme, path, port or space.
+def hostname:
+  test("^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)*$");
+
+# bad($key): the problems with a value of the right type (scripts:T95),
+# each naming the key and the value. The installable and the branch
+# prefix get printed into shell commands and a prompt: no space, quote
+# or control character, so quoting them is never ambiguous.
+def bad($key):
+  if $key == "network.extra_domains" then
+    .[]
+    | select(hostname | not)
+    | "\($key): \(tojson) is not a bare hostname (letters, digits, dots and hyphens; no scheme, path, port or space)"
+  elif type != "string" then empty
+  elif . == "" then "\($key) must not be empty, got \"\""
+  elif $key == "cache.name" and (test("^[a-z0-9][a-z0-9-]*$") | not) then
+    "\($key) must be a cachix cache name (lowercase letters, digits and hyphens, not starting with a hyphen), got \(tojson)"
+  elif ($key == "devshell.installable" or $key == "probe.branch_prefix") and test("[[:space:][:cntrl:]'\"`]") then
+    "\($key) must have no space, quote or control character, got \(tojson)"
+  else empty
+  end;
+
 def problems:
   (if has("version") | not then "version = 1 is missing"
    elif .version != 1 then "version must be 1, got \(.version | tojson)"
@@ -60,7 +83,7 @@ def problems:
        | .value as $x
        | if schema[$t] | has($k) | not then "unknown key \($t).\($k) (known: \(keynames))"
          elif $x | fits(schema[$t][$k]) | not then "\($t).\($k) must be \(wanted(schema[$t][$k])), got \($x | tojson)"
-         else empty
+         else $x | bad("\($t).\($k)")
          end
      end);
 
