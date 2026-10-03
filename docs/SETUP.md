@@ -108,7 +108,7 @@ in each new VM. This repository's environment installs Nix.
        `ANTHROPIC_MODEL=claude-sonnet-5-5` set on the environment, and the
        session still ran on Claude Opus 5.5: the model is fixed when the
        session is created. Choose it at launch instead, with
-       `claude --cloud --model sonnet "..."` or the model picker when you
+       `claude --cloud "<task>" --model sonnet` (the task must come right after `--cloud`; `claude --cloud --model sonnet "<task>"` fails with `--cloud requires a description`) or the model picker when you
        start a session in the browser. Claude Sonnet 5.5 costs half of
        Claude Opus 5.5 per token; see [`MODEL.md`](MODEL.md).
      - Add any other names listed in [`env-names.txt`](../env-names.txt).
