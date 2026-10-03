@@ -38,7 +38,7 @@ V4: the status badge follows the README's `> **Alpha|Beta|Preview, <date>.**` ca
 id|status|task|cites
 T106|x|ARCHIVED to SPEC-ARCHIVE.md|V1,V3,`.:T105`
 T107|x|ARCHIVED to SPEC-ARCHIVE.md|V1,V3
-T108|.|`config --write\|--check`: `docs/CONFIG.md` key table (key, type, default, readers) from `scripts/config.jq`'s schema (pklith `catalog`)|V1,V3,`scripts:V34`
+T108|x|`config --write\|--check`: `docs/CONFIG.md` key table (key, type, default, readers) from `scripts/config.jq`'s schema (pklith `catalog`)|V1,V3,`scripts:V34`
 T109|x|ARCHIVED to SPEC-ARCHIVE.md|V1,V3
 T110|x|ARCHIVED to SPEC-ARCHIVE.md|V1
 T111|x|ARCHIVED to SPEC-ARCHIVE.md|`.:V20`,`docs:T37`
