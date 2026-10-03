@@ -72,10 +72,10 @@ owner-side steps are in [`FORKING.md`](FORKING.md) and
 - **Your branch is pushed.** A session clones the GitHub copy of your
   current branch, not your local checkout, so local commits it should
   see must be pushed first.
-- **The GitHub CLI `gh`, signed in, only if you want the guide to print
-  the setup line.** It asks GitHub whether CI passed for the commit the
-  line is pinned to. Without it, paste the line published in the
-  [README](../README.md) and in the release notes instead (see step 3).
+- **The GitHub CLI `gh`, signed in, only to print a setup line for a
+  commit of your choosing** (`guide --rev SHA`). It asks GitHub whether CI
+  passed for that commit. The guide copies the line the release published
+  in the [README](../README.md) without it (see step 3).
 
 ## 2. Connect GitHub (browser, once)
 
@@ -151,13 +151,15 @@ in each new VM. This repository's environment installs Nix.
      The line downloads `setup.sh` at exactly that commit and runs it with
      the same SHA, so the same line always gives the same VM. Each release
      publishes a SHA whose CI was green and whose binary cache is filled;
-     do not make up a SHA. The guide (`guide`, step 3) copies a line to
-     your clipboard for you.
+     do not make up a SHA. The guide (`guide`, step 3) copies the
+     release's line from the README to your clipboard for you; before the
+     first release it says there is no release yet and stops.
 
      By default the script installs Nix and `nix-dev` only. To also install
      the agent home (the owner's Claude rules and skills; it changes how
      Claude behaves, see the [README](../README.md#the-agent-home-is-opt-in)),
-     add ` --agent-home` at the end of the line.
+     add ` --agent-home` at the end of the line (`guide --agent-home` does
+     that for you).
 
      Maintainers, or anyone pinning another commit, can print a line with
      [`scripts/setup-line.sh`](../scripts/setup-line.sh) (see
