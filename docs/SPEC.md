@@ -37,7 +37,7 @@ T35|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:V20`,`.:V11`,C19
 T36|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:V6`,C5
 T37|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:V20`
 T38|x|ARCHIVED to SPEC-ARCHIVE.md|C22,C15,C16
-T39|.|W3 SHOULD `docs/CONTRIBUTING.md`: run `hk check`, TDD order, commit format; model owner repos|C22,C17,C21
+T39|x|W3 SHOULD `docs/CONTRIBUTING.md`: run `hk check`, TDD order, commit format; model owner repos|C22,C17,C21
 T40|.|W3 SHOULD `docs/CODE_OF_CONDUCT.md`: same text as owner repos|C22
 T41|.|W3 SHOULD `docs/THIRD-PARTY-NOTICES.md`: Nix installer, nix-hk, xenolith, set-and-setting, cavekit (MIT)|C22,C12
 T42|.|W3 SHOULD `docs/MODEL.md`: why probe/launcher default to Sonnet 5.5, dated prices, when to change; generalized from the owner's private seed repo `docs/MODEL.md`|C22,I.cmd
