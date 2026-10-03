@@ -111,6 +111,12 @@ you push gets a random suffix. The project's SessionStart hook,
 `bash "$CLAUDE_PROJECT_DIR/scripts/dev/session-start.sh"`, fetches the full
 history and enters the dev shell once so the hooks are installed.
 
+The owner can also have a cloud session build one task for you to review.
+It is one task per cloud session, launched with `just cloud <node:Tn>`
+([`CLI.md`](CLI.md#cloud), [`RUNBOOK.md`](RUNBOOK.md)). The session pushes a
+`claude/<node>-<task>` branch and opens no pull request; the owner reviews
+the branch and its CI, then merges.
+
 ## Things that will get a patch turned down
 
 - **A bypassed or weakened gate.** See above.
