@@ -7,8 +7,9 @@ version = 1
 [session]
 # Cloud jobs here run on Sonnet (AGENTS.md "Choosing the model").
 model = "sonnet"
-# Sessions on this repo need Nix and nix-dev only (C24).
-agent_home = false
+# Its own cloud agents build it with cavekit `/build`, which the agent
+# home installs; this also dogfoods the opt-in (C24, C29, T101).
+agent_home = true
 
 [devshell]
 # The gate's shell (nix/dev-shell.nix).
