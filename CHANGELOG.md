@@ -77,6 +77,17 @@ does are summarised briefly; the git history has the detail.
   timeouts, and `CLAUDINIX_NIX_TIMEOUT` seconds per step, default 120);
   `CLAUDINIX_AGENT_HOME` accepts only 0 or 1.
 
+### Per-repo config
+
+- An optional `.claudinix.toml` in a target repository sets the session
+  model, whether the guide offers the agent home, the dev shell to start,
+  extra allowed domains, the cache name and the probe branch prefix
+  (`docs/CONFIG.md`). Flags beat the file, the file beats the defaults, and
+  with no file everything behaves as before. Nix itself parses it, so a
+  cloud session needs no extra tool; unknown keys, wrong types and bad
+  values are refused with every problem listed at once. `setup.sh` never
+  reads it. This repository carries its own, checked by the gate.
+
 ### Commands for target projects
 
 Run from the project you will send to the cloud, as
