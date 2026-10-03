@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Commit message gate: Conventional Commits subject + a `Why:` line
 # (SPEC C17, C21). The log is the reasoning audit trail.
-# Vendored from the owner's private infra repo scripts/guard/commit-msg.sh at 3db6cb9
+# Vendored from the owner's private infra repo (same author)
 # (SPEC C17: no flake export exists); keep in step by hand.
 # Usage: commit-msg.sh [message_file]   (default: .git/COMMIT_EDITMSG)
 

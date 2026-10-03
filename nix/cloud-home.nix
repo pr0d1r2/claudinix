@@ -1,7 +1,7 @@
 # The agent home (SPEC nix:T16, C12): what `setup.sh` activates for the
 # user Claude runs as in a cloud session -- root, `/root` (C8, nix:V14).
 #
-# The pattern is owner home config's `claude-home.nix`: the claude-code
+# The pattern is the owner's home configuration (`claude-home.nix`): the claude-code
 # home-manager module plus a set from set-and-setting. `mkTrip` is not
 # upstream yet (nix:T15), so the set is built with `mkSet` directly.
 # Plugins are not installed in the cloud, so cavekit's skills and the
@@ -21,7 +21,7 @@ let
   mkSet = import "${set-and-setting}/set/lib/mk-set.nix" { inherit (pkgs) lib; };
 
   # The categories that apply to any repo an agent works in here; the
-  # NixOS and lefthook ones serve owner home config's own machine, not a cloud VM.
+  # NixOS and lefthook ones serve the owner's own machine, not a cloud VM.
   # `concepts` off: they describe the owner's own machines, not a cloud VM.
   skillSet = mkSet {
     inherit pkgs;
@@ -63,7 +63,7 @@ home-manager.lib.homeManagerConfiguration {
   modules = [
     {
       # home-manager ships its own `programs.claude-code`; the fleet's
-      # module replaces it (as owner home config's mkTrip does).
+      # module replaces it (as mkTrip does).
       disabledModules = [ "programs/claude-code.nix" ];
       imports = [ "${nix-home-manager-claude-code}/modules/default.nix" ];
 

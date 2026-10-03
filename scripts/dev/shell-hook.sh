@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Install hk git hooks on every dev-shell entry (SPEC V17, T1).
 # Never breaks the shell: every path exits 0, problems are warnings.
-# Adapted from the owner's private infra repo scripts/dev/shell-hook.sh.
+# Adapted from the owner's private infra repo (same author).
 
 set -uo pipefail
 

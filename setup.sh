@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Setup script for the Claude Code cloud environment (SPEC T2, I.file,
-# I.ext.env). Imported from the the owner's private seed repo seed at 476cf1d
+# I.ext.env). Imported from the owner's private seed repo at 476cf1d
 # (cloud/envs/nix/setup.sh). Runs as root on
 # Ubuntu 24.04 before Claude Code starts; the result is cached as a
 # filesystem snapshot when it ends within ~5 min, and skipped after that.

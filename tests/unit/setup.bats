@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 bats_require_minimum_version 1.5.0
 # Unit tests for setup.sh and the env files beside it (SPEC T2, V1-V4,
-# V6, V7). Imported from the the owner's private seed repo seed at 476cf1d
+# V6, V7). Imported from the owner's private seed repo at 476cf1d
 # (cloud/envs/nix/), paths moved to the repo root.
 
 setup() {
