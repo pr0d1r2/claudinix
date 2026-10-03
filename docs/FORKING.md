@@ -4,7 +4,7 @@ You may not want to trust the owner's binary cache, or you may want sessions
 to read a cache you control. This page lists what to change. It is honest
 about one thing up front: the owner-specific values of `setup.sh` sit in one
 config block at its top, so that for that file a fork edits only that block
-(`SPEC.md` C11). Some values live outside `setup.sh`, and this page lists them.
+(`.:C11`). Some values live outside `setup.sh`, and this page lists them.
 
 Read [`SECURITY.md`](SECURITY.md) first. What you are changing is whose cache
 a root-run script trusts.
@@ -16,7 +16,7 @@ a root-run script trusts.
 | `pr0d1r2.cachix.org` | the binary cache sessions read from |
 | `pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM=` | that cache's public signing key |
 | `pr0d1r2/claudinix` | this repository, in GitHub URLs |
-| `github:pr0d1r2/...` flake inputs | the owner's tools: nix-hk, xenolith, itok, microlith, sherd, nixpkgs-lock |
+| `pr0d1r2/...` flake inputs | the owner's tools: nix-hk, xenolith, itok, microlith, sherd, nixpkgs-lock, and for the agent home nix-home-manager-claude-code and set-and-setting (the owner's claude-code module and rules) |
 
 The cache's public key is public on purpose. It is not a secret and appears in
 `setup.sh`, `flake.nix` and `SPEC.md`.
@@ -27,7 +27,7 @@ Create a cache at [cachix.org](https://www.cachix.org) (or any Nix binary
 cache you control). You need two things from it: its host name, and its public
 signing key. Cachix shows both on the cache's page. Keep the push token
 (`CACHIX_AUTH_TOKEN`) for your CI secrets only. It never goes into a cloud
-environment, an env var or a session VM (`SPEC.md` V6).
+environment, an env var or a session VM (`.:V6`).
 
 ## 2. Replace the values
 
@@ -55,21 +55,24 @@ each needs the same change:
 | [`flake.nix`](../flake.nix) | `nixConfig`, the substituter and key |
 | [`probe.sh`](../probe.sh) | the default `CACHIX_URL` |
 | [`scripts/ci/verify-cachix.sh`](../scripts/ci/verify-cachix.sh) | the default `CACHIX_URL` |
-| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | the cachix `name`, and the `CACHIX_AUTH_TOKEN` secret you add to your repository |
+| [`scripts/inputs.sh`](../scripts/inputs.sh) | the default `INPUTS_CACHES` (your cache URL, then `https://cache.nixos.org`) |
+| [`scripts/nix/record-storepath.sh`](../scripts/nix/record-storepath.sh) | the default `CACHIX_URL` |
+| [`scripts/ci/push-sources.sh`](../scripts/ci/push-sources.sh) and [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | the cachix cache name: `ci.yml` has it in the cachix action's `name` and in the `push-sources.sh` call; and add the `CACHIX_AUTH_TOKEN` secret to your repository |
 | [`scripts/setup-line.sh`](../scripts/setup-line.sh) | its `repo=` line, which sets the raw URL it prints and the repository whose CI it asks about |
 | `tests/unit/**/*.bats` | the bats tests that assert these values (for example `tests/unit/setup.bats`, `tests/unit/scripts/setup-line.bats`); the gate fails until they match |
 
-The grep above also finds the default cache URL in `scripts/inputs.sh` and
-`scripts/nix/record-storepath.sh`, and `pr0d1r2/...` in comments and docs;
-change the code ones with the table.
+The grep above also finds `pr0d1r2/...` in comments and docs; change the
+code ones with the tables.
 
 You do not need to guess if you missed one: the bats tests check that
 `allowlist.txt` names the hosts it should and that no value looks like a
 secret, and `ci.yml` verifies a cache push with a narinfo request
 ([`INTEGRATION.md`](INTEGRATION.md)).
 
-The `github:pr0d1r2/...` inputs in `flake.nix` are other people's tools, built
-and cached by the owner's CI. If you keep them, your dev shell still
+The `pr0d1r2/...` inputs in `flake.nix` are other people's tools, built
+and cached by the owner's CI (and `nix-home-manager-claude-code` and
+`set-and-setting`, which carry the agent home's claude-code module and
+rules: replacing them changes how Claude behaves in an agent-home session). If you keep them, your dev shell still
 substitutes them from the owner's cache, so keep that substituter in the
 dev-shell `nixConfig` or be ready to build them from source. If you replace
 them, you own keeping them in step. Note that the cloud environment cannot
@@ -102,8 +105,8 @@ through a cache ([`CACHE-CI.md`](CACHE-CI.md)).
    edit nothing.
 5. Fill the cache: push to your cache from your CI on the default branch, and
    check that it answers ([`CACHE-CI.md`](CACHE-CI.md)).
-6. Start a first session and run [`probe.sh`](../probe.sh). Every line should
-   say `ok`; see [`RUNBOOK.md`](RUNBOOK.md) for what each failure means.
+6. Start a first session and run [`probe.sh`](../probe.sh). No line should
+   say `FAIL`; see [`RUNBOOK.md`](RUNBOOK.md) for what each failure means.
 
 ## 4. Keep the gate green
 
