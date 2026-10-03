@@ -25,6 +25,7 @@ functional Nix (flakes on, owner cachix) inside Claude Code cloud session VM + 1
 - C20: owner Rust tools as gate steps (pinned flake inputs, `follows`): `mth` (microlith: `mth fmt --check SPEC.md`, `mth check SPEC.md`; pin tag), `itok check` (token ceilings in `.context-limits`, `--bpe`), `sherd` (spec federation: `validate`, `sync --check`, `check`, `budget`; split `SPEC.md` when it outgrows ceiling), `pklith` ? (early: `.pklith` → `hk.pklith.pkl` hk steps, `pklith check` = ∀ tracked file type has a check that reaches it + 1-to-1 unit rule; generated steps inline `command -v … || {…}` shell ⇒ conflicts C15 → pick 1: pklith gen ∨ hand `hk.pkl`, ⊥ blanket xenolith exclude). tool failing to RUN ≠ pass (V18).
 - C21: atomic commits, 1 topic each (humans read changesets): Conventional Commits, body `Why:` + spec cites; ⊥ mix topics (e.g. docs for 2 findings = 2 commits); spec change ⊥ same commit as code; RED, GREEN, REFACTOR separate (C17). unpushed mixed commit → split before push.
 - C22: human docs = plain English (⊥ caveman), modeled on owner's public repos (sherd, itok, microlith, rekall, xenolith, pklith, nix-hk) \& nixos-poe2. waves: W1 w/ guardrails (T1): AGENTS, INTEGRATION, LLM-DISCLAIMER, linter-coverage; W2 w/ seed import + probe (T2, T3): FACTS, RUNBOOK, SECURITY, CHANGELOG; W3 before 1st push (T9): README, LICENSE, CONTRIBUTING, CODE_OF_CONDUCT, THIRD-PARTY-NOTICES, CONSUMER, EXAMPLE, MODEL; W4 later: CLI, SESSION, FORKING. 1 doc = 1 task = 1 commit (C21). doc vs gate disagree ⇒ gate (`hk.pkl`) wins, doc fixed.
+- C23: experiment order (T56-T66): E1, E3, E4, E5 together in 1 Sonnet session after sherd #96; E6, E7 from #96 results; E9 then E8; E2 after 1st push; E10 last; E11 alongside each.
 - C11: owner-specific values (cachix host + key) in 1 config block at top of `setup.sh`; fork = edit block only. README says how.
 
 ## §I INTERFACES
@@ -128,6 +129,17 @@ T51|.|unattended runs: permission mode for routines \& long jobs; what a job doe
 T52|.|record VM resources (`nproc`, `free`, `df /`, store growth) in FACTS; set bats `--jobs`, hk jobs, cargo jobs from them|C18,T34
 T54|.|cache population owner: ∀ target repo CI pushes locked inputs + devShell closure to `pr0d1r2.cachix.org` on default branch (per T6 snippet); start w/ sherd via its spec; verify narinfo 200 (V22 pattern)|V8,T6,C16
 T55|.|measure snapshot reuse: 2nd session in same env skips setup?; start time cold vs warm; record in FACTS|V5,C1,T34
+T56|.|EXP E1 skills survive: `setup.sh` places test skill + `~/.claude/settings.json`; session lists skills \& reads file; decides agent-home design (T16, T17) vs account-synced skills|C13,V14,T14
+T57|.|EXP E2 SHA-pinned fetch: in session `curl raw.githubusercontent.com/<o>/<r>/<sha>/setup.sh` + `nix build git+https://…?rev=<sha>#…`; after 1st push (or sherd stand-in)|V20,V15,T24
+T58|.|EXP E3 `ANTHROPIC_MODEL` effective: commit trailer of next session names Sonnet 5.5|I.file,T42
+T59|.|EXP E4 bash timeouts: `hk check --all` (2m45s) w/ \& w/o timeout env vars|V24,T48
+T60|.|EXP E5 resources + snapshot reuse: `nproc; free -g; df -h /`; 2 sessions back to back, compare start|T52,T55
+T61|.|EXP E6 3rd-party GitHub reads w/ `github.com` allowed + `add_repo` (running in sherd #96 step 0)|T29,C6
+T62|.|EXP E7 silence prompts: commit exact `add_repo` allow rule in sherd `.claude/settings.json`; try `--permission-mode` w/ `--cloud`|T47,T51
+T63|.|EXP E8 cache fast path: after sherd CI pushes inputs + devShell (T54), fresh session times plain `nix develop` (target < 10 s), confirms narHash substitution ⊥ git fetch|V8,T54
+T64|.|EXP E9 `nix-dev` auto-overrides prototype on itok \| microlith w/o changing their flakes|T49,V13
+T65|.|EXP E10 unattended routine: API-triggered routine on env `nix`, trivial task; watch prompts \& errors|T51
+T66|.|EXP E11 cost per session: usage page before/after E1-E5; confirms credit charged at API rates ?|I.file,T42
 T10|.|`just bump-nix <ver>`: fetch installer + `.sha256`, rewrite pin pair, run tests|V11,C4
 
 ## §B BUGS
