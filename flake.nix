@@ -155,6 +155,8 @@
         }
       );
 
+      apps = forAll ({ pkgs, ... }: import ./nix/apps.nix { inherit pkgs; });
+
       checks = forAll (
         { pkgs, xnl, ... }:
         import ./nix/checks.nix {
