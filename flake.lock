@@ -1,5 +1,42 @@
 {
   "nodes": {
+    "cavekit": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1786745271,
+        "narHash": "sha256-yU6ript+vuo6w5pYwj5bXXZHJ4WXoSy5ef/s1PM+Y7E=",
+        "owner": "JuliusBrussee",
+        "repo": "cavekit",
+        "rev": "7421e87d5b517c415c519ddf58a3dd10ba842530",
+        "type": "github"
+      },
+      "original": {
+        "owner": "JuliusBrussee",
+        "repo": "cavekit",
+        "type": "github"
+      }
+    },
+    "home-manager": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1790996401,
+        "narHash": "sha256-f+kOxEmOUnQazVAmGg0i8hzwgd1kX/geY+k/Dpheye8=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "db7d5e2332710f5abb088f6b5de927d7f9511b35",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "ref": "release-26.05",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
     "itok": {
       "inputs": {
         "hk": [
@@ -89,6 +126,22 @@
         "type": "github"
       }
     },
+    "nix-home-manager-claude-code": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1787453563,
+        "narHash": "sha256-fPVS5Hk7WIQ2IE+aTxuM2FQGSTePeVGlRBKFvX2waLk=",
+        "owner": "pr0d1r2",
+        "repo": "nix-home-manager-claude-code",
+        "rev": "0ba21fb0077d82ef8d25981426d5f8441fe3ac94",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pr0d1r2",
+        "repo": "nix-home-manager-claude-code",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1790920529,
@@ -125,16 +178,36 @@
     },
     "root": {
       "inputs": {
+        "cavekit": "cavekit",
+        "home-manager": "home-manager",
         "itok": "itok",
         "microlith": "microlith",
         "nix-hk": "nix-hk",
+        "nix-home-manager-claude-code": "nix-home-manager-claude-code",
         "nixpkgs": [
           "nixpkgs-lock",
           "nixpkgs"
         ],
         "nixpkgs-lock": "nixpkgs-lock",
+        "set-and-setting": "set-and-setting",
         "sherd": "sherd",
         "xenolith": "xenolith"
+      }
+    },
+    "set-and-setting": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790957371,
+        "narHash": "sha256-iL/YEzut0I+3i1fNnKSsZi8pJMGftE0hS2Mq1JEIUn4=",
+        "owner": "pr0d1r2",
+        "repo": "set-and-setting",
+        "rev": "c54b884879d64492523421472069bf7709c912d3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pr0d1r2",
+        "repo": "set-and-setting",
+        "type": "github"
       }
     },
     "sherd": {

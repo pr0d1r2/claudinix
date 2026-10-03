@@ -4,7 +4,14 @@
   pkgs,
   xnl,
   src,
+  cloudHome,
 }:
+let
+  # The agent home exists for one system only (x86_64-linux, the cloud
+  # VM), so only that system checks its skills landed (nix:T16).
+  homeSystem = cloudHome.pkgs.stdenv.hostPlatform.system;
+  onHomeSystem = pkgs.stdenv.hostPlatform.system == homeSystem;
+in
 {
   # One language per file over the whole source tree (SPEC C15, T20).
   # `git` because xnl asks git for the file list first.
@@ -14,4 +21,11 @@
       pkgs.git
     ];
   } "bash ${../scripts/nix/xenolith-check.sh} ${src} $out";
+}
+// pkgs.lib.optionalAttrs onHomeSystem {
+  # The cavekit skills, FORMAT.md and the set rules are in the
+  # activation package (nix:T16, nix:V14).
+  cloud-home =
+    pkgs.runCommand "cloud-home-check" { }
+      "bash ${../scripts/nix/cloud-home-check.sh} ${cloudHome.activationPackage} $out";
 }

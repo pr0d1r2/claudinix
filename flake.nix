@@ -66,6 +66,32 @@
         nix-hk.follows = "nix-hk";
       };
     };
+
+    # The agent home (nix:T16, C12). home-manager's release matches the
+    # locked nixpkgs (26.05) and follows it, so the activation package
+    # shares cachix hits with everything else. The claude-code module and
+    # set-and-setting are read as plain sources (`flake = false`): their
+    # flakes carry ~50 dev-only inputs (linters, shells) that an
+    # evaluation in a cloud session would have to fetch, and a `github:`
+    # fetch there is a 403 unless cached (C6, B3). The files imported are
+    # the ones their flakes export (`homeManagerModules.default`,
+    # `lib.mkSet`). cavekit ships skills, not a flake.
+    home-manager = {
+      url = "github:nix-community/home-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nix-home-manager-claude-code = {
+      url = "github:pr0d1r2/nix-home-manager-claude-code";
+      flake = false;
+    };
+    set-and-setting = {
+      url = "github:pr0d1r2/set-and-setting";
+      flake = false;
+    };
+    cavekit = {
+      url = "github:JuliusBrussee/cavekit";
+      flake = false;
+    };
   };
 
   outputs =
@@ -77,6 +103,10 @@
       itok,
       microlith,
       sherd,
+      home-manager,
+      nix-home-manager-claude-code,
+      set-and-setting,
+      cavekit,
       ...
     }:
     let
@@ -130,7 +160,19 @@
         import ./nix/checks.nix {
           inherit pkgs xnl;
           src = self;
+          cloudHome = self.homeConfigurations.cloud;
         }
       );
+
+      # The agent home `setup.sh` activates in a cloud session (nix:T16).
+      homeConfigurations.cloud = import ./nix/cloud-home.nix {
+        pkgs = nixpkgs.legacyPackages.x86_64-linux;
+        inherit
+          home-manager
+          nix-home-manager-claude-code
+          set-and-setting
+          cavekit
+          ;
+      };
     };
 }
