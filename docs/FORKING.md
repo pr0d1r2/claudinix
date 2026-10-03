@@ -94,9 +94,15 @@ through a cache ([`CACHE-CI.md`](CACHE-CI.md)).
    command lists them from your lock files: run
    `nix run github:<you>/<fork>#domains` in each target
    ([`CLI.md`](CLI.md)).
-4. Fill the cache: push to your cache from your CI on the default branch, and
+4. Keep the environment and your files in step: `setup.sh` (through the
+   setup line) and `allowlist.txt` are what you paste into the browser, so
+   never change the environment without a matching commit, and never edit
+   either file without updating the environment afterwards
+   ([`RUNBOOK.md`](RUNBOOK.md)). Your users paste the line you publish and
+   edit nothing.
+5. Fill the cache: push to your cache from your CI on the default branch, and
    check that it answers ([`CACHE-CI.md`](CACHE-CI.md)).
-5. Start a first session and run [`probe.sh`](../probe.sh). Every line should
+6. Start a first session and run [`probe.sh`](../probe.sh). Every line should
    say `ok`; see [`RUNBOOK.md`](RUNBOOK.md) for what each failure means.
 
 ## 4. Keep the gate green
