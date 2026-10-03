@@ -31,6 +31,39 @@
       inputs = {
         nixpkgs-lock.follows = "nixpkgs-lock";
         nix-hk.follows = "nix-hk";
+        itok.follows = "itok";
+        microlith.follows = "microlith";
+      };
+    };
+
+    # The spec toolchain (SPEC C20), pinned to release tags: microlith
+    # formats and checks SPEC.md, itok counts its tokens against
+    # `.context-limits`, sherd validates the federation and its budget.
+    # itok names its hk input `hk`, microlith names it `nix-hk`; both
+    # follow the same node so the shell holds one hk build.
+    itok = {
+      url = "github:pr0d1r2/itok/v0.3.1";
+      inputs = {
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        hk.follows = "nix-hk";
+        microlith.follows = "microlith";
+      };
+    };
+
+    microlith = {
+      url = "github:pr0d1r2/microlith/v0.7.3";
+      inputs = {
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        nix-hk.follows = "nix-hk";
+        itok.follows = "itok";
+      };
+    };
+
+    sherd = {
+      url = "github:pr0d1r2/sherd/v0.5.2";
+      inputs = {
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        nix-hk.follows = "nix-hk";
       };
     };
   };
@@ -41,6 +74,9 @@
       nixpkgs,
       nix-hk,
       xenolith,
+      itok,
+      microlith,
+      sherd,
       ...
     }:
     let
@@ -68,14 +104,24 @@
                 "shell"
               ];
             };
+            specTools = map (flake: flake.packages.${system}.default) [
+              itok
+              microlith
+              sherd
+            ];
           }
         );
     in
     {
       devShells = forAll (
-        { pkgs, xnl, ... }:
         {
-          default = import ./nix/dev-shell.nix { inherit pkgs xnl; };
+          pkgs,
+          xnl,
+          specTools,
+          ...
+        }:
+        {
+          default = import ./nix/dev-shell.nix { inherit pkgs xnl specTools; };
         }
       );
 

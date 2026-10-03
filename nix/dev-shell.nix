@@ -4,6 +4,7 @@
 {
   pkgs,
   xnl,
+  specTools,
 }:
 pkgs.mkShellNoCC {
   packages = [
@@ -21,7 +22,8 @@ pkgs.mkShellNoCC {
     pkgs.actionlint
     pkgs.zizmor
     xnl
-  ];
+  ]
+  ++ specTools;
 
   LANG = "C.UTF-8";
 
