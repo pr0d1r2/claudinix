@@ -293,27 +293,52 @@ the platform at any time.
 
 ## Documentation
 
+Start with [`docs/SETUP.md`](docs/SETUP.md) if you are new.
+
+**Use it**
+
 | doc | what is in it |
 |---|---|
 | [`docs/SETUP.md`](docs/SETUP.md) | browser and terminal steps, updating, troubleshooting |
+| [`docs/EXAMPLE.md`](docs/EXAMPLE.md) | a real repository from zero to a green test run, with timings |
 | [`docs/CLI.md`](docs/CLI.md) | the commands: flags, exit codes, output |
 | [`docs/CONFIG.md`](docs/CONFIG.md) | the optional `.claudinix.toml`: every key, default and which tool reads it |
+| [`docs/MODEL.md`](docs/MODEL.md) | which model sessions use and how to choose |
+
+**Prepare your repository**
+
+| doc | what is in it |
+|---|---|
 | [`docs/CONSUMER.md`](docs/CONSUMER.md) | what your repository does to work well in a session |
 | [`docs/CACHE-CI.md`](docs/CACHE-CI.md) | the CI job that fills the binary cache from your repository |
-| [`docs/EXAMPLE.md`](docs/EXAMPLE.md) | a real repository from zero to a green test run, with timings |
+
+**Understand it**
+
+| doc | what is in it |
+|---|---|
 | [`docs/SESSION.md`](docs/SESSION.md) | what happens between `claude --cloud` and the first prompt |
 | [`docs/FACTS.md`](docs/FACTS.md) | what a cloud session looks like, measured and dated |
-| [`docs/MODEL.md`](docs/MODEL.md) | which model sessions use and how to choose |
+| [`docs/SECURITY.md`](docs/SECURITY.md) | reporting, and what the attack surface is |
+| [`docs/LLM-DISCLAIMER.md`](docs/LLM-DISCLAIMER.md) | how this was built and how to check it |
+
+**Run your own**
+
+| doc | what is in it |
+|---|---|
 | [`docs/FORKING.md`](docs/FORKING.md) | running this with your own cache and names |
 | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) | bump Nix, update the script, refill the cache, stop spend |
-| [`docs/SECURITY.md`](docs/SECURITY.md) | reporting, and what the attack surface is |
+
+**Contribute**
+
+| doc | what is in it |
+|---|---|
+| [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) | setup, the loop, and the one hard rule |
 | [`docs/INTEGRATION.md`](docs/INTEGRATION.md) | the gate, step by step |
 | [`docs/linter-coverage.md`](docs/linter-coverage.md) | which checks reach which files |
-| [`docs/LLM-DISCLAIMER.md`](docs/LLM-DISCLAIMER.md) | how this was built and how to check it |
-| [`docs/THIRD-PARTY-NOTICES.md`](docs/THIRD-PARTY-NOTICES.md) | other people's work this depends on |
 | [`SPEC.md`](SPEC.md) | the spec and the backlog |
 | [`AGENTS.md`](AGENTS.md) | the working guide for agents and humans |
 | [`CHANGELOG.md`](CHANGELOG.md) | what changes inside the session VM |
+| [`docs/THIRD-PARTY-NOTICES.md`](docs/THIRD-PARTY-NOTICES.md) | other people's work this depends on |
 
 ## Reading the specs
 
