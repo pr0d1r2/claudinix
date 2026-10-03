@@ -175,10 +175,20 @@ keeps its old VM; start a new session to pick up the change.
   Run `/remote-env`, pick `nix`, and start a new session.
 - **Downloads fail with a network or proxy error.** The host is not
   allowed. Add it to **Allowed domains** here and in `allowlist.txt`.
-- **`nix develop` fails while fetching a `github:` input.** The GitHub
-  proxy may refuse downloads from repositories that are not attached to
-  the session. Make sure `flake.lock` is committed and complete, so
-  inputs can come from a binary cache instead of GitHub.
+- **`nix develop` fails while fetching a `github:` input** with a 403
+  saying the repository isn't enabled for this session. This is
+  expected, not a misconfiguration: the GitHub proxy only lets the
+  GitHub API reach repositories attached to the session, so an input
+  such as `github:NixOS/nixpkgs` is refused (seen 2026-10-03). Ways
+  around it, best first:
+  1. Keep `flake.lock` committed and complete, and push every locked
+     input to your binary cache from CI. Nix then substitutes each
+     input by its `narHash` from the cache and never asks GitHub.
+  2. Point `nixpkgs` at a nixos.org tarball, which the default network
+     list allows:
+     `https://channels.nixos.org/<channel>/nixexprs.tar.xz`.
+  Attaching `NixOS/nixpkgs` to the session is not a fix: the session
+  would clone the whole repository.
 - **Every session is slow to start.** The setup script takes longer
   than about five minutes, so no snapshot is saved.
 - **`Unable to get organization UUID`.** You are signed in with an API
