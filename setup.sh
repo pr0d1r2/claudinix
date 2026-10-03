@@ -9,12 +9,21 @@
 # Git hooks are not installed here (V7): each session is a fresh clone and
 # this script does not run on a cached snapshot, so the target repo's
 # devShell installs them.
-# Usage: setup.sh
+# Usage: setup.sh [SHA]   SHA = the full commit id this file was fetched
+#        at (V20); pins the agent home to it.
 # Seams: NIX_CONF_DIR, BIN_DIR, SYSTEMD_DIR, NIX_DEFAULT_PROFILE,
 #        NIX_INSTALL_URL, NIX_INSTALL_SHA256; agent home (T17):
 #        CLOUD_HOME_FLAKE, CLOUD_HOME_STOREPATH (file), CLOUD_HOME_MARKER.
 
 set -euo pipefail
+
+# The SHA the UI line fetched this file at (V20). A short or mistyped id
+# would pin nothing, so refuse it before touching the system.
+sha="${1:-}"
+if [ "$#" -gt 1 ] || { [ -n "$sha" ] && ! [[ "$sha" =~ ^[0-9a-f]{40}$ ]]; }; then
+    echo "usage: setup.sh [SHA] -- SHA is a full 40-hex commit id" >&2
+    exit 2
+fi
 
 version=2.35.2
 min_version="${NIX_MIN_VERSION:-2.34}"
@@ -104,15 +113,28 @@ ln -sf "$profile_bin"/* "$bin_dir/"
 # its closure is substituted from cachix. Tier 2 realises the recorded
 # store path from cachix without touching GitHub. If both fail, Nix stays
 # usable: warn loudly, leave a marker, exit 0.
-home_flake="${CLOUD_HOME_FLAKE:-git+https://github.com/pr0d1r2/nix-claude-code-cloud?shallow=1}"
+# With a SHA (V20) both tiers are pinned to it.
+repo=pr0d1r2/nix-claude-code-cloud
+home_flake="${CLOUD_HOME_FLAKE:-git+https://github.com/$repo?${sha:+rev=$sha&}shallow=1}"
 home_storepath="${CLOUD_HOME_STOREPATH:-$(dirname "$0")/cloud-home.storepath}"
 home_marker="${CLOUD_HOME_MARKER:-$HOME/.local/state/nix-claude-code-cloud/agent-home.failed}"
 home_attr="$home_flake#homeConfigurations.cloud.activationPackage"
 
+# The UI line fetches setup.sh alone, so the recorded path is fetched at
+# the same SHA when it is not beside the script. A failed fetch only
+# leaves tier 2 with nothing to realise.
+fetch_storepath() {
+    if [ ! -s "$home_storepath" ] && [ -n "$sha" ]; then
+        curl -fsSL --max-time 30 "https://raw.githubusercontent.com/$repo/$sha/cloud-home.storepath" \
+            -o "$home_storepath" || true
+    fi
+    [ -s "$home_storepath" ]
+}
+
 home=""
 if home="$("$bin_dir/nix" build --no-link --print-out-paths "$home_attr")" && [ -x "$home/activate" ]; then
     echo "agent home: tier 1 (flake build) $home"
-elif [ -s "$home_storepath" ] && home="$(cat "$home_storepath")" &&
+elif fetch_storepath && home="$(cat "$home_storepath")" &&
     "$bin_dir/nix-store" -r "$home" >/dev/null && [ -x "$home/activate" ]; then
     echo "agent home: tier 2 (recorded store path) $home"
 else
