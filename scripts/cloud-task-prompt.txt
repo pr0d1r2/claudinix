@@ -1,0 +1,32 @@
+Build one task of this repository's spec in this Claude Code cloud
+session: task @TASK@ of node @NODE@ (its spec is `@NODE@/SPEC.md`). You
+run unattended: nobody answers questions, so do not stop to ask.
+
+The task row, as it stands in the spec:
+
+    @TASK_TEXT@
+
+1. Read AGENTS.md and follow it exactly; it overrides any skill's
+   defaults. Then read the root SPEC.md and `@NODE@/SPEC.md`. Its
+   `cites` column names the invariants and interfaces you must keep.
+2. If the SessionStart hook warned, do what it says before you commit.
+   Run tools inside the dev shell: `nix-dev --command <cmd>` when
+   nix-dev is on PATH, else `nix develop --command <cmd>`.
+3. Implement exactly this task, nothing else. Use `/build @NODE@:@TASK@`
+   if the /build skill is installed; otherwise do it by hand as
+   AGENTS.md says. Commits, in order: RED (`test:`, the failing bats
+   file), GREEN (`feat:` or `fix:`), an optional REFACTOR, then the status
+   flip `docs(spec): mark @TASK@ done` as its own commit. Each message
+   has a `Why:` and a `Refs:` line. Never use --no-verify.
+4. A spec change you would normally ask the owner about: record it in
+   the spec, commit it on its own, and name it in your report.
+5. Run the whole gate: `hk check --all >gate.log 2>&1; echo rc=$?` in
+   the dev shell. A command still running at 120 s moves to the
+   background: wait for its completion notice and use its real exit
+   status, not the 120 s return. Read gate.log only when rc is not 0;
+   fix the code, never weaken a check. Do not commit gate.log.
+6. Push your commits to a new branch: `git push -u origin @BRANCH@`
+   (the harness may add a suffix to the name). Do not push to any other
+   branch and open no pull request; the owner reviews and merges.
+7. End with a short report: each commit (hash and subject), the gate's
+   rc, the branch pushed, and anything blocked or left undone.

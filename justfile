@@ -25,6 +25,10 @@ guide *args:
 probe *args:
     scripts/probe-launch.sh {{ args }}
 
+# Build one spec task (`Tn` or `node:Tn`) in a billed cloud session; `--dry-run` prints the command.
+cloud *args:
+    scripts/cloud-task.sh {{ args }}
+
 # Pin setup.sh to another Nix release: version and installer sha256 together.
 bump-nix ver:
     scripts/bump-nix.sh {{ ver }}
