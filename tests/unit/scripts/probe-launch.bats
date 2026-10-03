@@ -10,7 +10,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     export PROBE_POLL_SECONDS=0 PROBE_POLL_TRIES=3
     export TOPLEVEL="$BATS_TEST_TMPDIR/project"
-    unset CLAUDINIX_CONFIG
+    unset CLAUDINIX_CONFIG CLAUDINIX_CONFIG_JSON
     mkdir -p "$STUBS" "$STATE" "$TOPLEVEL"
     : >"$STATE/branches"
     printf '%s\n' 'facts: ok' 'nix-dev: tier 2' >"$STATE/report"

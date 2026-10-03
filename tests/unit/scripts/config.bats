@@ -11,7 +11,7 @@ setup() {
     PROJECT="$BATS_TEST_TMPDIR/project"
     export NIX_LOG="$BATS_TEST_TMPDIR/nix.log"
     while read -r var; do unset "$var"; done < <(env | sed -n 's/^\(GIT_[A-Z_]*\)=.*/\1/p')
-    unset CLAUDINIX_CONFIG CLAUDINIX_SCRIPTS
+    unset CLAUDINIX_CONFIG CLAUDINIX_CONFIG_JSON CLAUDINIX_SCRIPTS
     export GIT_CEILING_DIRECTORIES="$BATS_TEST_TMPDIR"
     mkdir -p "$STUBS" "$PROJECT"
     REAL_NIX="$(command -v nix)"
@@ -304,6 +304,35 @@ DEFAULTS='{"cache":{"name":"pr0d1r2","push_sources":false},"devshell":{"installa
     run --separate-stderr bash "$SCRIPT" get devshell.installable
     [ "$status" -eq 0 ]
     [ "$output" = 'git+https://example.org/o/r?ref=main#ci' ]
+}
+
+# One eval per run (scripts:T96): a tool hands the config it read to the
+# tools it calls as CLAUDINIX_CONFIG_JSON.
+
+@test "CLAUDINIX_CONFIG_JSON is the effective config: no file read, no nix call" {
+    toml 'version = 1' '[cache]' 'name = "fromfile"'
+    json="$(jq -c '.cache.name = "fromjson"' <<<"$DEFAULTS")"
+    CLAUDINIX_CONFIG_JSON="$json" run --separate-stderr bash "$SCRIPT" get cache.name
+    [ "$status" -eq 0 ]
+    [ "$output" = fromjson ]
+    CLAUDINIX_CONFIG_JSON="$json" run --separate-stderr bash "$SCRIPT" json
+    [ "$(jq -cS . <<<"$output")" = "$(jq -cS . <<<"$json")" ]
+    CLAUDINIX_CONFIG_JSON="$json" run --separate-stderr bash "$SCRIPT" --dir "$BATS_TEST_TMPDIR" check
+    [ "$status" -eq 0 ]
+    [ ! -s "$NIX_LOG" ]
+}
+
+@test "CLAUDINIX_CONFIG_JSON that is not a valid config: exit 2, named" {
+    CLAUDINIX_CONFIG_JSON='not json' run --separate-stderr bash "$SCRIPT" json
+    [ "$status" -eq 2 ]
+    [[ "$stderr" == *CLAUDINIX_CONFIG_JSON* ]]
+    CLAUDINIX_CONFIG_JSON='[1]' run --separate-stderr bash "$SCRIPT" json
+    [ "$status" -eq 2 ]
+    [[ "$stderr" == *CLAUDINIX_CONFIG_JSON* ]]
+    CLAUDINIX_CONFIG_JSON="$(jq -c '.cache.name = "Bad"' <<<"$DEFAULTS")" run --separate-stderr bash "$SCRIPT" json
+    [ "$status" -eq 2 ]
+    [[ "$stderr" == *CLAUDINIX_CONFIG_JSON*cache.name*'"Bad"'* ]]
+    [ ! -s "$NIX_LOG" ]
 }
 
 @test "values: every bad value is reported at once" {

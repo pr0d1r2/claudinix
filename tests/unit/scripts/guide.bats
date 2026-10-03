@@ -27,7 +27,7 @@ setup() {
     # The real config reader: a project without .claudinix.toml gets the
     # defaults and no nix call (scripts:T91).
     cp "$REPO/scripts/config.sh" "$REPO/scripts/config.jq" "$LIB/"
-    unset CLAUDINIX_CONFIG
+    unset CLAUDINIX_CONFIG CLAUDINIX_CONFIG_JSON
     echo '{"remote":{"defaultEnvironmentId":"env_123"}}' >"$CLAUDE_SETTINGS"
 
     # shellcheck disable=SC2016 # expands inside the stubs, not here
@@ -502,6 +502,35 @@ config() {
     [ "$status" -eq 2 ]
     [[ "$output" == *'devshell.installable'*'"path:./a b"'* ]]
     [[ "$output" != *"== 0."* ]]
+}
+
+@test "one nix eval per run: the real domains and inputs get the config the guide read (scripts:T96)" {
+    # The real tools in place of the stubs; nix logs each call, eval is
+    # the real nix, flake archive prints the fixture tree.
+    local repo_scripts="$REPO/scripts"
+    cp -R "$repo_scripts/domains" "$LIB/"
+    cp "$repo_scripts/domains.sh" "$repo_scripts/inputs.sh" "$repo_scripts/inputs.jq" "$LIB/"
+    cp "$REPO/tests/fixtures/inputs/nested/flake.lock" "$P/"
+    export NIX_ARCHIVE="$REPO/tests/fixtures/inputs/nested/archive.json"
+    export NIX_LOG="$BATS_TEST_TMPDIR/nix.log"
+    export CLAUDINIX_ALLOWLIST="$REPO/allowlist.txt"
+    REAL_NIX="$(command -v nix)"
+    export REAL_NIX
+    # shellcheck disable=SC2016 # expands inside the stubs, not here
+    {
+        printf '%s\n' '#!/usr/bin/env bash' 'echo "$*" >>"$NIX_LOG"' \
+            '[ "$1" != eval ] || exec "$REAL_NIX" "$@"' \
+            '[ "$1 $2" = "flake archive" ] || exit 9' 'cat "$NIX_ARCHIVE"' >"$STUBS/nix"
+        printf '%s\n' '#!/usr/bin/env bash' 'printf 404' >"$STUBS/curl"
+    }
+    chmod +x "$STUBS/nix" "$STUBS/curl"
+    : >"$NIX_LOG"
+    config '[network]' 'extra_domains = ["extra.example.org"]' '[cache]' 'name = "forker"'
+    run bash "$SCRIPT" <<<$'y\ny\n'
+    [ "$status" -eq 0 ]
+    [[ "$output" == *extra.example.org* ]]
+    grep -q '^flake archive' "$NIX_LOG"
+    [ "$(grep -c '^eval ' "$NIX_LOG")" -eq 1 ]
 }
 
 @test "a bad .claudinix.toml stops before step 0, naming the file and key (V34)" {

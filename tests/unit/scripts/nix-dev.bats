@@ -44,7 +44,7 @@ setup() {
         'exit 1' >"$STUBS/nix"
     chmod +x "$STUBS/nix"
     export PATH="$STUBS:$PATH"
-    unset CLAUDINIX_CONFIG CLAUDINIX_SCRIPTS
+    unset CLAUDINIX_CONFIG CLAUDINIX_CONFIG_JSON CLAUDINIX_SCRIPTS
     export GIT_CEILING_DIRECTORIES="$BATS_TEST_TMPDIR"
     cd "$PROJECT" || return 1
 }
@@ -308,6 +308,15 @@ N=6666666666666666666666666666666666666666
     [[ "$output" == *".claudinix.toml"* ]]
     [[ "$output" == *"devshell.installable"* ]]
     run ! grep -q '^develop' "$NIX_LOG"
+}
+
+@test "one nix eval per run: inputs.sh gets the config nix-dev read (scripts:T96)" {
+    printf '%s\n' 'version = 1' '[devshell]' 'installable = ".#ci"' >"$PROJECT/.claudinix.toml"
+    NIX_OK_PLAIN=1 run bash "$SCRIPT" --command true
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"develop .#ci --command true"* ]]
+    grep -q '^flake archive' "$NIX_LOG"
+    [ "$(grep -c '^eval ' "$NIX_LOG")" -eq 1 ]
 }
 
 @test "an install without config.sh (older setup): no config, still works" {
