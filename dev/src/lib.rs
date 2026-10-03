@@ -13,4 +13,7 @@
 pub mod badges;
 pub mod counts;
 pub mod facts;
+pub mod json;
+pub mod notices;
+pub mod region;
 pub mod splice;
