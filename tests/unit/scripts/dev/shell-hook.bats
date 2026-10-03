@@ -110,6 +110,18 @@ STUB
     [ "$(git config --local hook.hk-pre-push.command | grep -o 'nix develop' | wc -l | tr -d ' ')" = 1 ]
 }
 
+@test "a hook wrapped under an older env prefix is rewrapped, not wrapped twice (T71)" {
+    stub_hk
+    make_repo
+    cd "$REPO"
+    # shellcheck disable=SC2016 # ${HK:-1} is literal hook text, not expanded here
+    git config --local hook.hk-pre-push.command 'test "${HK:-1}" = "0" || OLD_HOOK=1 nix develop -c hk run pre-push --from-hook'
+    run env PATH="$STUB_BIN" "$BASH_BIN" "$SCRIPT"
+    [ "$status" -eq 0 ]
+    # shellcheck disable=SC2016 # ${HK:-1} is literal hook text, not expanded here
+    [ "$(git config --local hook.hk-pre-push.command)" = 'test "${HK:-1}" = "0" || CLAUDINIX_HOOK=1 nix develop -c hk run pre-push --from-hook' ]
+}
+
 @test "inside a hook the shell hook does nothing (no reinstall, no noise)" {
     stub_hk_installer
     make_repo
