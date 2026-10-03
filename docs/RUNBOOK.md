@@ -160,6 +160,33 @@ been run end to end against a real cloud session.
 Record anything new in [`FACTS.md`](FACTS.md) with the date, and in
 `SPEC.md` `§B` through `/ck:spec`.
 
+## Build a task in the cloud
+
+**Human.** One open task of the spec becomes one cloud session that pushes
+a `claude/*` branch. It is billed, and it runs on Sonnet unless you pass
+`--model` or set `session.model` in [`.claudinix.toml`](CONFIG.md).
+
+1. Push your branch. The session clones GitHub, so the branch must be
+   pushed and equal to its upstream: `git push -u origin <branch>`.
+2. Check the launch first: `just cloud --dry-run T103` (or `node:Tn`, for
+   example `scripts:T98`). It runs every check, then prints the command it
+   would run and launches nothing.
+3. Start it: `just cloud T103`. It asks `[y/N]` before the billed session;
+   `--yes` skips only that question.
+4. Follow the session at [claude.ai/code](https://claude.ai/code). The
+   launcher does not wait for it.
+5. When it ends, review the pushed `claude/<node>-<task>` branch (the
+   harness may add a suffix) and its CI. The agent opens no pull request.
+6. Merge it if the gate and CI are green and the diff is the one task.
+
+The environment's setup line must include `--agent-home`. This repository's
+`.claudinix.toml` turns the agent home on, so the cloud agent gets the
+`/build` skill; without the flag it builds by hand from `AGENTS.md`. See
+[`SETUP.md`](SETUP.md) for the line.
+
+Unattended runs may still hit permission prompts; see
+[`FACTS.md`](FACTS.md) once measured. Reference: [`CLI.md`](CLI.md#cloud).
+
 ## Emergency stop of cloud spend
 
 **Human.** Do these in order; the first two stop money leaving.
