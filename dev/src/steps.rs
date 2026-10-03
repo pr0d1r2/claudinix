@@ -105,8 +105,8 @@ pub fn counts(steps: &[Step]) -> (usize, usize) {
 }
 
 /// A command as a human runs it inside the dev shell: without the
-/// `scripts/hk/run-tool.sh` wrapper, `{{files}}` as `<files>` and
-/// `{{workspace}}` as `<node>`.
+/// `scripts/hk/run-tool.sh` wrapper, `{{files}}` as `<files>`,
+/// `{{workspace}}` as `<node>` and `{{commit_msg_file}}` as `<message-file>`.
 #[must_use]
 pub fn by_hand(command: &str) -> String {
     command
@@ -114,6 +114,7 @@ pub fn by_hand(command: &str) -> String {
         .unwrap_or(command)
         .replace("{{files}}", "<files>")
         .replace("{{workspace}}", "<node>")
+        .replace("{{commit_msg_file}}", "<message-file>")
 }
 
 /// A command as a table cell: a code span, its pipes escaped; `-` when

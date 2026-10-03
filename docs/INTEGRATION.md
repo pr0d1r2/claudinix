@@ -129,7 +129,7 @@ the `integration-steps` step fails when it no longer matches.
 | `bats-mirror` | all | `**/*` | `scripts/guard/bats-mirror.sh` | - |
 | `tdd-order` | all | `**/*` | `scripts/guard/tdd-order.sh` | - |
 | `commit-msg` | commit-msg | the message | `scripts/guard/commit-msg.sh` | - |
-| `changelog` | commit-msg | the message | `claudinix-dev changelog {{commit_msg_file}}` | - |
+| `changelog` | commit-msg | the message | `claudinix-dev changelog <message-file>` | - |
 <!-- END steps -->
 
 A few notes on why the steps look the way they do:
