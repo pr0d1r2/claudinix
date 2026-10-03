@@ -104,7 +104,7 @@ T23|x|ARCHIVED to SPEC-ARCHIVE.md|C19,V22,C16
 T24|x|UI line: `setup.sh` takes `<sha>` arg; `scripts/setup-line.sh` prints line for HEAD; bats. split 2026-10-03: SETUP.md half → `docs:T70`, CI-green gate → T69|V20,C19,V10
 T29|x|ARCHIVED to SPEC-ARCHIVE.md|C6,V10 — answered: `github.com` allowed ⇒ 3rd-party git reads pass; `add_repo` read = no-op
 T30|x|base `allowlist.txt` = Nix-only hosts (cachix, `cache.nixos.org`, `channels.nixos.org`, `releases.nixos.org`); ecosystem hosts (crates.io…) come from `apps.domains` per target, ⊥ hardcoded; SETUP shows both|C6,I.cmd,`scripts:T27`
-T48|.|`env-names.txt`: optional `BASH_DEFAULT_TIMEOUT_MS=600000` (E4: default backgrounds at 120 s, ⊥ kills); SETUP + guide show them|V24,I.file
+T48|x|`env-names.txt`: optional `BASH_DEFAULT_TIMEOUT_MS=600000` (E4: default backgrounds at 120 s, ⊥ kills); SETUP + guide show them|V24,I.file
 T50|.|decide env strategy: 1 shared env `nix` w/ union of target domains vs 1 env per ecosystem (`nix-rust`, …); criteria: allowlist size \& review, snapshot reuse, model per env; record decision in C6|C6,V10,I.ext.env
 T51|.|unattended runs: permission mode for routines \& long jobs; what a job does while a prompt waits (timeout, report, ⊥ hang); extends `docs:T47`|`docs:T47`,C9
 T52|.|record VM resources (`nproc`, `free`, `df /`, store growth) in FACTS; set bats `--jobs`, hk jobs, cargo jobs from them|C18,`docs:T34` — measured: 4 vCPU ∴ hk \& bats jobs = 4, cargo default
