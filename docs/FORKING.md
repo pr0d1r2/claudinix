@@ -54,12 +54,34 @@ each needs the same change:
 | [`allowlist.txt`](../allowlist.txt) | the cache host |
 | [`flake.nix`](../flake.nix) | `nixConfig`, the substituter and key |
 | [`probe.sh`](../probe.sh) | the default `CACHIX_URL` |
-| [`scripts/ci/verify-cachix.sh`](../scripts/ci/verify-cachix.sh) | the default `CACHIX_URL` |
-| [`scripts/inputs.sh`](../scripts/inputs.sh) | the default `INPUTS_CACHES` (your cache URL, then `https://cache.nixos.org`) |
+| [`scripts/ci/verify-cachix.sh`](../scripts/ci/verify-cachix.sh) | nothing, when `cache.name` is set (below); its `CACHIX_URL` default is built from `cache.name` |
+| [`scripts/inputs.sh`](../scripts/inputs.sh) | the fallback `name=` line, used when an old `nix-dev` install has no `config.sh`; the default cache is built from `cache.name` (below) |
+| [`scripts/config.jq`](../scripts/config.jq) | the default `cache.name` in `defaults` |
 | [`scripts/nix/record-storepath.sh`](../scripts/nix/record-storepath.sh) | the default `CACHIX_URL` |
 | [`scripts/ci/push-sources.sh`](../scripts/ci/push-sources.sh) and [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | the cachix cache name: `ci.yml` has it in the cachix action's `name` and in the `push-sources.sh` call; and add the `CACHIX_AUTH_TOKEN` secret to your repository |
 | [`scripts/setup-line.sh`](../scripts/setup-line.sh) | its `repo=` line, which sets the raw URL it prints and the repository whose CI it asks about |
 | `tests/unit/**/*.bats` | the bats tests that assert these values (for example `tests/unit/setup.bats`, `tests/unit/scripts/setup-line.bats`); the gate fails until they match |
+
+### Set `cache.name` in `.claudinix.toml`
+
+`inputs` and `ci/verify-cachix.sh` build their cache URL as
+`https://<cache.name>.cachix.org`. A fork can set `name` under `[cache]` in
+its own [`.claudinix.toml`](CONFIG.md) and those tools use it with no code
+change:
+
+```toml
+version = 1
+
+[cache]
+name = "your-cache"
+```
+
+The built-in default is `pr0d1r2`. It lives in
+[`scripts/config.jq`](../scripts/config.jq), and the fallback for an old
+`nix-dev` install without the reader is in
+[`scripts/inputs.sh`](../scripts/inputs.sh); change both if you want your
+name as the default for everyone who runs your copy of the tools.
+`INPUTS_CACHES` and `CACHIX_URL` still win over the file.
 
 The grep above also finds `pr0d1r2/...` in comments and docs; change the
 code ones with the tables.
