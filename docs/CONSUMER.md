@@ -8,8 +8,8 @@ Nothing here is applied for you, and everything below is a recommendation
 with the dated fact behind it.
 
 Why the work lives in your repository and not in the setup script: the setup
-script installs Nix and nothing that belongs to one project (`SPEC.md` C3,
-V7). Repository toolchains, linters, hooks and dependencies come from your
+script installs Nix and nothing that belongs to one project (`.:C3`,
+`.:V7`). Repository toolchains, linters, hooks and dependencies come from your
 flake's dev shell.
 
 ## Checklist
@@ -46,7 +46,7 @@ the session builds it from source.
 Two commands do this for you ([`CLI.md`](CLI.md)):
 
 - `nix run github:pr0d1r2/claudinix#inputs`, run in your project,
-  lists each `github:` input of `flake.lock` as `cached` or `attach`. To check
+  lists each `github:` input of `flake.lock` as `cached` or `uncached`. To check
   one by hand, use the narinfo request in [`CACHE-CI.md`](CACHE-CI.md).
 - `nix-dev` is installed in the session by the setup script. It runs
   `nix develop` and tries these tiers in order: locked inputs from the cache,
@@ -106,7 +106,7 @@ nix develop -c hk install
 This snippet is a sketch written from the facts above. It has not been run
 in a target repository yet, so try it in a session and read its output
 before you depend on it. The setup script does not run on a cached snapshot
-(`SPEC.md` C1), which is one more reason this belongs in a per-session hook
+(`.:C1`), which is one more reason this belongs in a per-session hook
 and not in `setup.sh`.
 
 ## Tools that read GitHub
@@ -144,7 +144,7 @@ So in the cloud:
 On 2026-10-03 a session in `sherd` stopped on a prompt, "Allow Claude to use
 add repo (claude-code-remote)?", until someone answered it, because the
 `add_repo` tool asks first. Ways to avoid that are being worked out
-(`SPEC.md` T47) and are not documented here yet. Until then, expect that an
+(`docs:T47`) and are not documented here yet. Until then, expect that an
 unattended session can wait on a prompt.
 
 ## Network
