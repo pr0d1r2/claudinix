@@ -99,6 +99,8 @@ T25|.|`apps.inputs` (+ `just inputs`) + `scripts/inputs.sh`, default dir = cwd (
 T26|.|`apps.guide` (+ `just guide`, `update` flow) + `scripts/guide.sh`, default dir = cwd: steps from 1 data file shared w/ `docs/SETUP.md` (step ids, titles, URLs, paste values) ∴ ⊥ drift; bats via stdin answers \& stubbed `open`/clipboard/`claude`; parity test: guide steps == SETUP.md headings|I.cmd,C2,V10,T13,T25
 T27|.|`apps.domains` (+ `just domains`) + `scripts/domains.sh`, default dir = cwd: base + per-ecosystem detectors (1 script per ecosystem under `scripts/domains/`, xenolith-pure) + `--from-log`; bats per detector w/ fixture projects (sherd-like Cargo + flake, npm, py, go, gitmodules), dedup, `--why`, clipboard stubbed \& optional|I.cmd,C2,V10,C15,C16
 T28|.|`apps.probe` + `scripts/probe-launch.sh` (TTY via `script`, branch-by-prefix wait, report print, `--cleanup`); reuses T3 prompt; bats w/ stubbed `claude`\|`git`|I.cmd,T3,C8
+T29|.|open question: does `github.com` in Allowed domains (added 2026-10-03) or `add_repo` read let a session read 3rd-party public repos (`git ls-remote https://github.com/actions/checkout`)? answer → `allowlist.txt` keep\|drop + docs|C6,V10
+T30|.|base `allowlist.txt` = Nix-only hosts (cachix, `cache.nixos.org`, `channels.nixos.org`, `releases.nixos.org`); ecosystem hosts (crates.io…) come from `apps.domains` per target, ⊥ hardcoded; SETUP shows both|C6,I.cmd,T27
 T10|.|`just bump-nix <ver>`: fetch installer + `.sha256`, rewrite pin pair, run tests|V11,C4
 
 ## §B BUGS
