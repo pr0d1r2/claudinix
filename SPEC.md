@@ -127,6 +127,7 @@ T50|.|decide env strategy: 1 shared env `nix` w/ union of target domains vs 1 en
 T51|.|unattended runs: permission mode for routines \& long jobs; what a job does while a prompt waits (timeout, report, ⊥ hang); extends T47|T47,C9
 T52|.|record VM resources (`nproc`, `free`, `df /`, store growth) in FACTS; set bats `--jobs`, hk jobs, cargo jobs from them|C18,T34
 T54|.|cache population owner: ∀ target repo CI pushes locked inputs + devShell closure to `pr0d1r2.cachix.org` on default branch (per T6 snippet); start w/ sherd via its spec; verify narinfo 200 (V22 pattern)|V8,T6,C16
+T55|.|measure snapshot reuse: 2nd session in same env skips setup?; start time cold vs warm; record in FACTS|V5,C1,T34
 T10|.|`just bump-nix <ver>`: fetch installer + `.sha256`, rewrite pin pair, run tests|V11,C4
 
 ## §B BUGS
