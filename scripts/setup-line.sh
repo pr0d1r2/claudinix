@@ -50,18 +50,38 @@ elif ! sha="$(git rev-parse --verify --quiet "$rev^{commit}")"; then
 fi
 
 # ci_state: prints the newest run's "status conclusion", "none" when
-# there is no run, and fails when gh cannot answer.
+# there is no run; when gh cannot answer, prints why and fails: gh
+# missing, not signed in, a 404 (no such repo or workflow, or no access),
+# or gh's own first error line (scripts:T81).
 ci_state() {
-    local runs
-    command -v "$gh" >/dev/null 2>&1 || return 1
-    runs="$("$gh" run list --repo "$repo" --commit "$sha" --branch "$branch" \
-        --workflow "$workflow" --json conclusion,status)" || return 1
+    local runs err line
+    if ! command -v "$gh" >/dev/null 2>&1; then
+        echo "$gh is not installed"
+        return 1
+    fi
+    if ! "$gh" auth status >/dev/null 2>&1; then
+        echo "gh is not signed in to GitHub (run gh auth login)"
+        return 1
+    fi
+    err="$(mktemp)"
+    if ! runs="$("$gh" run list --repo "$repo" --commit "$sha" --branch "$branch" \
+        --workflow "$workflow" --json conclusion,status 2>"$err")"; then
+        line="$(grep -v '^[[:space:]]*$' "$err" | head -n 1 || true)"
+        rm -f "$err"
+        if [[ "$line" == *404* ]]; then
+            echo "GitHub answered 404 for workflow $workflow in $repo (no such repo or workflow, or no access): $line"
+        else
+            echo "gh run list failed: ${line:-no output}"
+        fi
+        return 1
+    fi
+    rm -f "$err"
     jq -r 'if length == 0 then "none" else .[0] | "\(.status) \(.conclusion)" end' <<<"$runs"
 }
 
 problem=
 if ! state="$(ci_state)"; then
-    problem="could not ask GitHub about CI for $sha (is gh installed and signed in?)"
+    problem="could not ask GitHub about CI for $sha: $state"
 elif [ "$state" = none ]; then
     problem="no CI run on $branch for $sha (is it pushed and merged?)"
 elif [ "$state" != "completed success" ]; then
