@@ -102,7 +102,7 @@ T24|.|UI line: `setup.sh` takes `<sha>` arg; docs/SETUP.md shows exact 1-line sc
 T25|.|`apps.inputs` (+ `just inputs`) + `scripts/inputs.sh`, default dir = cwd (jq over `flake.lock`, narinfo check via curl); bats w/ fixture lock files (nested, deduped, non-github skipped, cached vs attach); `--check` mode|I.cmd,V8,V13,C6
 T26|.|`apps.guide` (+ `just guide`, `update` flow) + `scripts/guide.sh`, default dir = cwd; explicit model step: explain Sonnet 5.5 default vs Opus 5.5 (prices from `docs/MODEL.md`), ask choice, print the launch form `claude --cloud --model <alias>` \& browser picker hint (env var does not set it, probe 6), say how to check via commit trailer; steps from 1 data file shared w/ `docs/SETUP.md` (step ids, titles, URLs, paste values) ∴ ⊥ drift; bats via stdin answers \& stubbed `open`/clipboard/`claude`; parity test: guide steps == SETUP.md headings|I.cmd,C2,V10,T13,T25
 T27|.|`apps.domains` (+ `just domains`) + `scripts/domains.sh`, default dir = cwd: base + per-ecosystem detectors (1 script per ecosystem under `scripts/domains/`, xenolith-pure) + `--from-log`; bats per detector w/ fixture projects (sherd-like Cargo + flake, npm, py, go, gitmodules), dedup, `--why`, clipboard stubbed \& optional|I.cmd,C2,V10,C15,C16
-T28|.|`apps.probe` + `scripts/probe-launch.sh` (TTY via `script`, branch-by-prefix wait, report print, `--cleanup`); reuses T3 prompt; bats w/ stubbed `claude`\|`git`|I.cmd,T3,C8
+T28|.|`apps.probe` + `scripts/probe-launch.sh` (TTY via `script`; task text right after `--cloud`, then `--model`; branch-by-prefix wait, report print, `--cleanup`); reuses T3 prompt; bats w/ stubbed `claude`\|`git`|I.cmd,T3,C8
 T29|x|open question: does `github.com` in Allowed domains (added 2026-10-03) or `add_repo` read let a session read 3rd-party public repos (`git ls-remote https://github.com/actions/checkout`)? answer → `allowlist.txt` keep\|drop + docs|C6,V10 — answered: `github.com` allowed ⇒ 3rd-party git reads pass; `add_repo` read = no-op
 T30|.|base `allowlist.txt` = Nix-only hosts (cachix, `cache.nixos.org`, `channels.nixos.org`, `releases.nixos.org`); ecosystem hosts (crates.io…) come from `apps.domains` per target, ⊥ hardcoded; SETUP shows both|C6,I.cmd,T27
 T31|.|W1 MUST `AGENTS.md`: for AI agents working here (incl. cloud sessions): spec first, gate, atomic commits, RED/GREEN/REFACTOR, model default; model sherd/itok `AGENTS.md`|C22,C17,C21
@@ -140,7 +140,7 @@ T63|.|EXP E8 cache fast path: after sherd CI pushes inputs + devShell (T54), fre
 T64|.|EXP E9 `nix-dev` auto-overrides prototype on itok \| microlith w/o changing their flakes|T49,V13
 T65|.|EXP E10 unattended routine: API-triggered routine on env `nix`, trivial task; watch prompts \& errors|T51
 T66|.|EXP E11 cost per session: usage page before/after E1-E5; confirms credit charged at API rates ?|I.file,T42
-T67|.|EXP E3b: launch w/ `claude --cloud --model sonnet`; check `get_session.configured_model` \& commit trailer; probe launcher (T28) passes `--model` always|T58,T28,I.cmd
+T67|x|EXP E3b: launch w/ `claude --cloud --model sonnet`; check `get_session.configured_model` \& commit trailer; probe launcher (T28) passes `--model` always|T58,T28,I.cmd — answered 2026-10-03 (probe 7): `claude --cloud "<task>" --model sonnet` ⇒ configured, served \& trailer = Sonnet 5.5; `--model` before the task fails (`--cloud requires a description`)
 T10|.|`just bump-nix <ver>`: fetch installer + `.sha256`, rewrite pin pair, run tests|V11,C4
 
 ## §B BUGS
