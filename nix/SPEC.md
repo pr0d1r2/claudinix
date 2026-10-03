@@ -21,7 +21,7 @@ sib|docs|human docs in plain English: setup walkthrough, facts, runbook, securit
 
 ## §V INVARIANTS
 V14: activation runs in `setup.sh` (before Claude launches) as the uid \& `$HOME` Claude runs as ∴ skills present at launch \& kept in snapshot.
-V15: activation failover, tier logged: (1) `nix build "git+https://github.com/pr0d1r2/nix-claude-code-cloud?rev=<sha>&shallow=1#homeConfigurations.cloud.activationPackage"` (⊥ `github:`: 403 unless attached, C6); (2) `nix-store -r $(cat cloud-home.storepath)` from cachix (⊥ GitHub). both fail → Nix stays usable, setup exit 0, loud warning + marker file; consumer preflight sees missing skills, ⊥ silent.
+V15: activation failover, tier logged: (1) `nix build "git+https://github.com/pr0d1r2/claudinix?rev=<sha>&shallow=1#homeConfigurations.cloud.activationPackage"` (⊥ `github:`: 403 unless attached, C6); (2) `nix-store -r $(cat cloud-home.storepath)` from cachix (⊥ GitHub). both fail → Nix stays usable, setup exit 0, loud warning + marker file; consumer preflight sees missing skills, ⊥ silent.
 V16: agent home = agent-level tools \& skills only (what skills shell out to); ⊥ language toolchains (target devShell owns, C3).
 
 ## §T TASKS
