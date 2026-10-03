@@ -228,3 +228,13 @@ cached() {
     run grep -q '^flake archive' "$NIX_LOG"
     [ "$status" -ne 0 ]
 }
+
+@test "this repo's own lock: nixpkgs is its only github input (.:T99, .:V30)" {
+    # Every other input is git+https, so a cloud session enters this
+    # repo's dev shell without an attached repo or a cached source (C6).
+    cp "$BATS_TEST_DIRNAME/../../../flake.lock" "$PROJECT/flake.lock"
+    run --separate-stderr bash "$SCRIPT" "$PROJECT"
+    [ "$status" -eq 0 ]
+    [ "${#lines[@]}" -eq 1 ]
+    [[ "${lines[0]}" == "NixOS/nixpkgs "* ]]
+}
