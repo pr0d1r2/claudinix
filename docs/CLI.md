@@ -180,7 +180,7 @@ settings, and the `github:` inputs no cache holds (through
 [`inputs`](#inputs)). It writes nothing and reads no secret.
 
 ```text
-usage: guide.sh [--force] [--agent-home] [--from STEP] [FLAKE_DIR] | guide.sh update [--force] [--agent-home] [FLAKE_DIR]
+usage: guide.sh [--force] [--agent-home] [--rev SHA] [--from STEP] [FLAKE_DIR] | guide.sh update [--force] [--agent-home] [--rev SHA] [FLAKE_DIR]
 ```
 
 | argument | meaning |
@@ -188,13 +188,15 @@ usage: guide.sh [--force] [--agent-home] [--from STEP] [FLAKE_DIR] | guide.sh up
 | `FLAKE_DIR` | the project, default the current directory |
 | `--from STEP` | resume at step 0 to 5; step 0 (protect your money) always runs first |
 | `update` | the "Updating the environment" flow instead of steps 0 to 5 |
-| `--force` | passed to [`setup-line.sh`](#setup-linesh), so the guide prints the setup line even when CI for that commit is not green |
-| `--agent-home` | passed to [`setup-line.sh`](#setup-linesh), so the line it copies ends in `--agent-home` and opts in to the agent home (see the [README](../README.md#the-agent-home-is-opt-in)); without it the line installs Nix and `nix-dev` only |
+| `--rev SHA` | copy a line for this full 40-character commit of claudinix instead of the release's, printed by [`setup-line.sh`](#setup-linesh) (needs `gh`, signed in); use it before the first release or to pin another commit |
+| `--force` | with `--rev`, passed to [`setup-line.sh`](#setup-linesh), so the guide prints the setup line even when CI for that commit is not green |
+| `--agent-home` | the line it copies ends in ` --agent-home`, exactly as [`setup-line.sh`](#setup-linesh) appends it, and opts in to the agent home (see the [README](../README.md#the-agent-home-is-opt-in)); without it the line installs Nix and `nix-dev` only |
 
 | variable | meaning |
 |---|---|
 | `CLAUDINIX_SCRIPTS` | directory holding `guide-steps.tsv`, `inputs.sh`, `domains.sh` and `setup-line.sh`; default the script's own |
-| `CLAUDINIX_SETUP_REV` | the full SHA of this repository to pin the setup line to; default `HEAD` of the clone the guide runs from (the flake app sets it to the commit it was built from) |
+| `CLAUDINIX_README` | the `README.md` whose setup-line block holds the release's line; default the one beside `scripts/` (the flake app sets it to the README of the commit it was built from) |
+| `CLAUDINIX_SETUP_REV` | the maintainer path: a full SHA of this repository to print the line for with `setup-line.sh`, as `--rev` does; `--rev` wins over it; unset by default |
 | `CLAUDINIX_MODEL_DOC` | the `MODEL.md` that step 5 reads prices from; default `docs/MODEL.md` beside `scripts/` |
 | `CLAUDINIX_ENV_NAMES` | the `env-names.txt` to list; default the one beside `scripts/` |
 | `CLAUDE_SETTINGS` | user settings to read; default `~/.claude/settings.json` |
@@ -241,11 +243,25 @@ Without a clipboard program or an opener, the guide prints the values and
 URLs and carries on.
 
 The setup-script value that step 3 copies, and that `update` copies, is the
-one line from [`setup-line.sh`](#setup-linesh), not the contents of
-`setup.sh`. The guide runs `setup-line.sh` for `CLAUDINIX_SETUP_REV`, else for
-`HEAD` of the clone it runs from. If neither gives a revision, or
-`setup-line.sh` refuses it because CI for that commit is not green (or `gh`
-cannot answer), the guide stops with exit 1 and a line such as:
+one line the release published in the README's setup-line block, not the
+contents of `setup.sh`; reading it needs neither `gh` nor a clone. Before the
+first release that block holds no line, and the guide stops with exit 1:
+
+```text
+guide: stop here -- no release yet, so there is no published setup line to copy. Run the guide again after the first release, or pass --rev SHA (a claudinix commit CI passed; needs gh signed in) to print a line for that commit
+```
+
+If the README is missing, or its block holds neither a line nor the
+placeholder, the guide stops with exit 1 and names the file:
+
+```text
+guide: stop here -- no README at <file> to copy the release's setup line from; copy the line from https://github.com/pr0d1r2/claudinix#readme, or pass --rev SHA (a claudinix commit CI passed; needs gh signed in)
+guide: stop here -- no setup line in the setup-line block of <file>; copy the line from https://github.com/pr0d1r2/claudinix#readme, or pass --rev SHA (a claudinix commit CI passed; needs gh signed in)
+```
+
+With `--rev SHA` (or `CLAUDINIX_SETUP_REV`) the guide runs `setup-line.sh` for
+that SHA instead. If it refuses because CI for that commit is not green (or
+`gh` cannot answer), the guide stops with exit 1:
 
 ```text
 guide: stop here -- no setup line for <sha> (see above); pick a SHA CI passed, or run the guide with --force
@@ -254,8 +270,8 @@ guide: stop here -- no setup line for <sha> (see above); pick a SHA CI passed, o
 | exit | meaning |
 |---|---|
 | 0 | the steps ran to the end |
-| 1 | stopped: a money check at step 0 was not accepted, there is no setup line to print (no revision, or CI not green and no `--force`), or the project directory does not exist (`guide: no directory <dir> -- nothing was checked`) |
-| 2 | a usage error: an unknown flag, `--from` outside 0 to 5, or two directories |
+| 1 | stopped: a money check at step 0 was not accepted, there is no setup line to copy (no release yet, no README block, or with `--rev` CI not green and no `--force`), or the project directory does not exist (`guide: no directory <dir> -- nothing was checked`) |
+| 2 | a usage error: an unknown flag, `--from` outside 0 to 5, `--rev` without a full 40-character SHA, or two directories |
 
 ## probe
 
