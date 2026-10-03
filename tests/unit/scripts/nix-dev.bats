@@ -251,3 +251,19 @@ N=6666666666666666666666666666666666666666
     [[ "$dev" == *"--override-input a/nixpkgs https://channels.nixos.org/nixos-26.05/nixexprs.tar.xz"* ]]
     [[ "$dev" == *"--override-input b/nixpkgs https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz"* ]]
 }
+
+@test "an installable in another dir reads that dir's lock" {
+    mkdir "$PROJECT/sub"
+    mv "$PROJECT/flake.lock" "$PROJECT/sub/flake.lock"
+    NIX_OK_GIT=1 run bash "$SCRIPT" './sub#ci' -c true
+    [ "$status" -eq 0 ]
+    [[ "$(grep '^develop ' <<<"$output")" == "develop ./sub#ci --no-write-lock-file --override-input a git+https://"* ]]
+}
+
+@test "a remote installable: plain nix develop, named as given, no failover" {
+    run bash "$SCRIPT" 'github:o/r#ci' -c true
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"tier 1"*"github:o/r#ci is not a local flake dir"* ]]
+    [[ "$output" == *"develop github:o/r#ci -c true"* ]]
+    run ! grep -q '^print-dev-env' "$NIX_LOG"
+}
