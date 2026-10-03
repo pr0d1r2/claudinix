@@ -28,15 +28,15 @@ id|status|task|cites
 T6|.|target-repo CI snippet (doc only, targets adopt via own spec): on push to default branch `nix flake archive --json` + devShell closure → `cachix push pr0d1r2`; push token in CI secrets only, ⊥ VM|`.:V8`,`.:V6`,C5,C6,C3
 T8|.|`docs/CONSUMER.md` + SessionStart hook snippet for target repos (doc only, targets adopt via own spec): `github:` inputs not in cachix → `git+https://github.com/<o>/<r>?ref=main&shallow=1` (sherd #96); tools that read 3rd-party GitHub (zizmor online audit) → in cloud (`CLAUDE_CODE_REMOTE=true`) unset `GH_TOKEN`/`GITHUB_TOKEN` (placeholder `proxy-injected` ⇒ 401) \| offline, report "could not run" ⊥ "finding"; hook: `git fetch --unshallow` (tdd-order needs history), `nix develop -c hk install`; commit author in cloud = `Claude <noreply@anthropic.com>` + `Claude-Session:` trailer ∴ commit-msg hooks must accept it; branch names get random suffix|C3,`.:V7`,C9,C8
 T9|.|`LICENSE` (MIT), `README.md` (what, paste steps, fork block C11, known limits); `.:V12` scan of tree \& history before 1st push|C10,C11,`.:V12`
-T13|x|`docs/SETUP.md` for zero-knowledge user: money steps first (claim credit, usage credits OFF — before ∀ cloud session), then browser steps (selector → Add cloud environment → name, Network access Custom + default list + `allowlist.txt`, env vars from `env-names.txt`, Setup script = `setup.sh`), update flow, then terminal `/remote-env` \| `remote.defaultEnvironmentId`; prereqs, GitHub connect (App, select repos), first-session check, troubleshooting, cleanup|C2,`.:V10`,I.ext.env
-T31|x|W1 MUST `AGENTS.md`: for AI agents working here (incl. cloud sessions): spec first, gate, atomic commits, RED/GREEN/REFACTOR, model default; model sherd/itok `AGENTS.md`|C22,C17,C21
-T32|x|W1 MUST `docs/INTEGRATION.md`: every hk step, how to run each by hand, parallelism, "hk.pkl wins"; model itok/xenolith `INTEGRATION.md`|C22,C14,C18
-T33|x|W1 MUST `docs/LLM-DISCLAIMER.md`: built by Claude in the open; what to check before trusting a root-run setup script; model sherd|C22,C10
-T34|x|W2 MUST `docs/FACTS.md`: dated cloud VM facts per probe (user, image Nix, proxy 403s, git vs tarball, branch suffix, commit author, shallow clone, allowlist only for new sessions); stale assumption = visible by date|C22,C8,C13
-T35|x|W2 MUST `docs/RUNBOOK.md`: each procedure marked automated\|human: bump Nix pin, rotate SHA in UI, refill cachix, red probe, emergency stop of cloud spend, probe branch cleanup; model nix-hk `RUNBOOK.md`|C22,`.:V20`,`.:V11`,C19
-T36|x|W2 MUST `docs/SECURITY.md`: private reporting path + threat model (root setup script, cache trust, `accept-flake-config` (`.:V25`: any cloned repo's `nixConfig` applies), GitHub proxy, ⊥ secrets in env vars); model sherd|C22,`.:V6`,C5
-T37|x|W2 MUST `CHANGELOG.md`: per release \& per UI-pinned SHA what changed, so users know before bumping the setup line|C22,`.:V20`
-T38|x|W1 SHOULD `docs/linter-coverage.md`: file type → linter table (`.sh`, `.nix`, `.bats`, `.pkl`, `.yml`, `.md`, `.toml`); model nixos-poe2|C22,C15,C16
+T13|x|ARCHIVED to SPEC-ARCHIVE.md|C2,`.:V10`,I.ext.env
+T31|x|ARCHIVED to SPEC-ARCHIVE.md|C22,C17,C21
+T32|x|ARCHIVED to SPEC-ARCHIVE.md|C22,C14,C18
+T33|x|ARCHIVED to SPEC-ARCHIVE.md|C22,C10
+T34|x|ARCHIVED to SPEC-ARCHIVE.md|C22,C8,C13
+T35|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:V20`,`.:V11`,C19
+T36|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:V6`,C5
+T37|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:V20`
+T38|x|ARCHIVED to SPEC-ARCHIVE.md|C22,C15,C16
 T39|.|W3 SHOULD `docs/CONTRIBUTING.md`: run `hk check`, TDD order, commit format; model owner repos|C22,C17,C21
 T40|.|W3 SHOULD `docs/CODE_OF_CONDUCT.md`: same text as owner repos|C22
 T41|.|W3 SHOULD `docs/THIRD-PARTY-NOTICES.md`: Nix installer, nix-hk, xenolith, set-and-setting, cavekit (MIT)|C22,C12

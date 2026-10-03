@@ -85,23 +85,23 @@ V25: `accept-flake-config = true` trusts cloned repo `nixConfig` ∴ env used on
 
 ## §T TASKS
 id|status|task|cites
-T1|x|GUARDRAILS FIRST: `flake.nix` (inputs `nixpkgs-lock`, `nix-hk`, `xenolith` w/ `follows`) devShell (hk, bats, `parallel`, shellcheck, shfmt, nixfmt, coreutils, kcov ?) + shellHook from file (`hk install`); `hk.pkl` from owner infra repo `hk.pkl` template (vendored `pkl/Config.pkl`, fast ⊂ all, commit-msg) w/ hk util hygiene, shellcheck, shfmt, nixfmt, typos, ripsecrets, actionlint, zizmor; parallel. ⊥ other task before T1,T19-T23 green|C7,C14,C18,V17,V18,V23
-T2|x|import seed from the owner's private seed repo `476cf1d` `cloud/envs/nix/` (16 bats; `accept-flake-config`, nixos.org, crates.io \& `github.com` hosts, `ANTHROPIC_MODEL` line marked as not choosing the model; crates.io → per-target per T30) → repo root (`setup.sh`, `allowlist.txt`, `env-names.txt`, `tests/unit/setup.bats`); fix paths; `just check` green|V1,V2,V3,V4,V6,V7,I.file
-T3|x|`probe.sh`: `id`, PID 1 comm, systemd dir, `unshare -Ur true`, profile sourcing, `nix --version`, `nix config show substituters`, `nix flake metadata github:NixOS/nixpkgs` (direct fetch via proxy ok ?), locked-input substitution from cachix (input source w/ `narHash` pushed, ⊥ GitHub), `channels.nixos.org` tarball fetch, `nix-dev` tier reached, cachix narinfo hit, elapsed; bats w/ stubs|C8,V8,V9,I.file
-T4|x|MANUAL create env `nix` at claude.ai/code from repo files; run 1 probe session; record facts → resolve C8 `?`, C6 `?`|C8,C6,V10,I.ext.env — done 2026-10-03: env `nix` created; probes 1-5 on sherd
-T5|x|if probe: session uid ≠ root ∧ no systemd → make store usable (V9) \| switch install mode; bats|V9,V4 — not needed: session uid = root (probe 1)
+T1|x|ARCHIVED to SPEC-ARCHIVE.md|C7,C14,C18,V17,V18,V23
+T2|x|ARCHIVED to SPEC-ARCHIVE.md|V1,V2,V3,V4,V6,V7,I.file
+T3|x|ARCHIVED to SPEC-ARCHIVE.md|C8,V8,V9,I.file
+T4|x|ARCHIVED to SPEC-ARCHIVE.md|C8,C6,V10,I.ext.env — done 2026-10-03: env `nix` created; probes 1-5 on sherd
+T5|x|ARCHIVED to SPEC-ARCHIVE.md|V9,V4 — not needed: session uid = root (probe 1)
 T7|.|measure setup wall time on fresh VM; record; > 5 min → trim|V5,C1
 T10|.|`just bump-nix <ver>`: fetch installer + `.sha256`, rewrite pin pair, run tests|V11,C4
 T11|.|MANUAL create public GitHub repo `pr0d1r2/nix-claude-code-cloud`, add remote, push after `docs:T9`|C10,V12
 T14|.|probe ext: `echo $HOME`, `id`, `ls -la ~/.claude`, `settings.json` owner \& content before/after launch; setup places 1 test skill in `~/.claude/skills` → visible to Claude (`/` list) ?|C13,`nix:V14`,I.file
 T17|.|`setup.sh` tail: activate agent home w/ `nix:V15` failover as Claude's uid; seams `CLOUD_HOME_FLAKE`, `CLOUD_HOME_STOREPATH`; bats w/ stub `nix`|`nix:V14`,`nix:V15`,V7,I.file
-T19|x|guard scripts: `bats-mirror` (unicoverage, both directions), `tdd-order` (RED in parent of GREEN, `-M`), `commit-msg` (Conventional + `Why:`); reused per C17; pre-push \| all; each w/ own bats (RED→GREEN)|C16,C17,V17,V19
-T20|x|xenolith step `xnl check {{files}}` + `checks.<sys>.xenolith`; `xenolith.toml` (languages nix, shell)|C15,V18
-T21|x|owner tools steps: `mth` on `SPEC.md`, `itok check` + `.context-limits`, `sherd validate`\|`budget`; pinned inputs w/ `follows`; via `scripts/hk/run-tool.sh` (V18)|C20,V18
-T22|x|pklith ?: `.pklith` → `hk.pklith.pkl` imported by `hk.pkl`, `pklith check` step; adopt only if generated steps pass C15 purity (else upstream pklith issue: emit `scripts/hk/*.sh` calls) \& render C14-C20 steps ⊥ loss|C20,C15,V19 — decided 2026-10-03: ⊥ adopt; pklith v0.1.0 (`4aa83e0`) still emits inline `command -v … \|\| {…}` per step ⇒ C15 breach; keep hand `hk.pkl`; upstream issue (emit `scripts/hk/*.sh` calls) pending owner OK to file
-T23|x|CI `.github/workflows/ci.yml`: gate + `nix flake check` + cachix push on default branch + verify job (narinfo 200); kcov line-coverage job ? w/ ratchet|C19,V22,C16
+T19|x|ARCHIVED to SPEC-ARCHIVE.md|C16,C17,V17,V19
+T20|x|ARCHIVED to SPEC-ARCHIVE.md|C15,V18
+T21|x|ARCHIVED to SPEC-ARCHIVE.md|C20,V18
+T22|x|ARCHIVED to SPEC-ARCHIVE.md|C20,C15,V19 — decided 2026-10-03: ⊥ adopt; pklith v0.1.0 (`4aa83e0`) still emits inline `command -v … \|\| {…}` per step ⇒ C15 breach; keep hand `hk.pkl`; upstream issue (emit `scripts/hk/*.sh` calls) pending owner OK to file
+T23|x|ARCHIVED to SPEC-ARCHIVE.md|C19,V22,C16
 T24|.|UI line: `setup.sh` takes `<sha>` arg; docs/SETUP.md shows exact 1-line script; `just`\|script prints line for HEAD after CI green; bats|V20,C19,V10
-T29|x|open question: does `github.com` in Allowed domains (added 2026-10-03) or `add_repo` read let a session read 3rd-party public repos (`git ls-remote https://github.com/actions/checkout`)? answer → `allowlist.txt` keep\|drop + docs|C6,V10 — answered: `github.com` allowed ⇒ 3rd-party git reads pass; `add_repo` read = no-op
+T29|x|ARCHIVED to SPEC-ARCHIVE.md|C6,V10 — answered: `github.com` allowed ⇒ 3rd-party git reads pass; `add_repo` read = no-op
 T30|.|base `allowlist.txt` = Nix-only hosts (cachix, `cache.nixos.org`, `channels.nixos.org`, `releases.nixos.org`); ecosystem hosts (crates.io…) come from `apps.domains` per target, ⊥ hardcoded; SETUP shows both|C6,I.cmd,`scripts:T27`
 T48|.|`env-names.txt`: optional `BASH_DEFAULT_TIMEOUT_MS=600000` (E4: default backgrounds at 120 s, ⊥ kills); SETUP + guide show them|V24,I.file
 T50|.|decide env strategy: 1 shared env `nix` w/ union of target domains vs 1 env per ecosystem (`nix-rust`, …); criteria: allowlist size \& review, snapshot reuse, model per env; record decision in C6|C6,V10,I.ext.env
@@ -111,16 +111,16 @@ T54|.|cache population owner: ∀ target repo CI pushes locked inputs + devShell
 T55|.|measure snapshot reuse: 2nd session in same env skips setup?; start time cold vs warm; record in FACTS|V5,C1,`docs:T34`
 T56|.|EXP E1 skills survive: `setup.sh` places test skill + `~/.claude/settings.json`; session lists skills \& reads file; decides agent-home design (`nix:T16`, T17) vs account-synced skills|C13,`nix:V14`,T14
 T57|.|EXP E2 SHA-pinned fetch: in session `curl raw.githubusercontent.com/<o>/<r>/<sha>/setup.sh` + `nix build git+https://…?rev=<sha>#…`; after 1st push (or sherd stand-in)|V20,`nix:V15`,T24
-T58|x|EXP E3 `ANTHROPIC_MODEL` effective: commit trailer of next session names Sonnet 5.5|I.file,`docs:T42` — answered 2026-10-03 (probe 6): env var ⊥ effective; launcher model wins. follow-up E3b: does `claude --cloud --model sonnet` set it? (T67)
-T59|x|EXP E4 bash timeouts: `hk check --all` (2m45s) w/ \& w/o timeout env vars|V24,T48 — answered 2026-10-03 (probe 6): cold `hk check --all` 3m43s, backgrounded at 120 s, ⊥ killed
-T60|x|EXP E5 resources + snapshot reuse: `nproc; free -g; df -h /`; 2 sessions back to back, compare start|T52,T55 — resources answered 2026-10-03 (probe 6); snapshot reuse still open (T55)
-T61|x|EXP E6 3rd-party GitHub reads w/ `github.com` allowed + `add_repo` (running in sherd #96 step 0)|T29,C6 — answered: `github.com` allowed ⇒ 3rd-party git reads pass; `add_repo` read = no-op
+T58|x|ARCHIVED to SPEC-ARCHIVE.md|I.file,`docs:T42` — answered 2026-10-03 (probe 6): env var ⊥ effective; launcher model wins. follow-up E3b: does `claude --cloud --model sonnet` set it? (T67)
+T59|x|ARCHIVED to SPEC-ARCHIVE.md|V24,T48 — answered 2026-10-03 (probe 6): cold `hk check --all` 3m43s, backgrounded at 120 s, ⊥ killed
+T60|x|ARCHIVED to SPEC-ARCHIVE.md|T52,T55 — resources answered 2026-10-03 (probe 6); snapshot reuse still open (T55)
+T61|x|ARCHIVED to SPEC-ARCHIVE.md|T29,C6 — answered: `github.com` allowed ⇒ 3rd-party git reads pass; `add_repo` read = no-op
 T62|.|EXP E7 silence prompts: commit exact `add_repo` allow rule in sherd `.claude/settings.json`; try `--permission-mode` w/ `--cloud`|`docs:T47`,T51
 T63|.|EXP E8 cache fast path: after sherd CI pushes inputs + devShell (T54), fresh session times plain `nix develop` (target < 10 s), confirms narHash substitution ⊥ git fetch|V8,T54
 T64|.|EXP E9 `nix-dev` auto-overrides prototype on itok \| microlith w/o changing their flakes|`scripts:T49`,`scripts:V13`
 T65|.|EXP E10 unattended routine: API-triggered routine on env `nix`, trivial task; watch prompts \& errors|T51
 T66|.|EXP E11 cost per session: usage page before/after E1-E5; confirms credit charged at API rates ?|I.file,`docs:T42` — first reading 2026-10-03: $7 for 8 short sessions (7 probes + 1 job, 7 on Opus 5.5) ≈ $0.90/session; per-session split still unmeasured
-T67|x|EXP E3b: launch w/ `claude --cloud --model sonnet`; check `get_session.configured_model` \& commit trailer; probe launcher (`scripts:T28`) passes `--model` always|T58,`scripts:T28`,I.cmd — answered 2026-10-03 (probe 7): `claude --cloud "<task>" --model sonnet` ⇒ configured, served \& trailer = Sonnet 5.5; `--model` before the task fails (`--cloud requires a description`)
+T67|x|ARCHIVED to SPEC-ARCHIVE.md|T58,`scripts:T28`,I.cmd — answered 2026-10-03 (probe 7): `claude --cloud "<task>" --model sonnet` ⇒ configured, served \& trailer = Sonnet 5.5; `--model` before the task fails (`--cloud requires a description`)
 
 ## §B BUGS
 id|date|cause|fix

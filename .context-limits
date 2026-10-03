@@ -5,17 +5,18 @@
 # plus every ancestor plus the node -- which is what an agent pays before
 # it sees any code. `.` is the root node.
 #
-# Re-set 2026-10-03 after federating into scripts, nix and docs: ~15% over the measured size (`itok estimate
+# Re-set 2026-10-03 after federating into scripts, nix and docs and
+# archiving finished tasks: ~15% over the measured size (`itok estimate
 # --bpe` for files, `sherd budget` for chains). The root chain is
 # gated by the root file's row. A raise is its own commit with the
 # measurement in `Why:`; the fix for an overage is to move rows down to
 # the node that owns them, not to raise the number.
 
-SPEC.md          9600
+SPEC.md          8700
 scripts/SPEC.md  1200
 nix/SPEC.md       850
-docs/SPEC.md     2250
+docs/SPEC.md     1800
 
-scripts 10200
-nix      9850
-docs    11300
+scripts  9300
+nix      8950
+docs     9900
