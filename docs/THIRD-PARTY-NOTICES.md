@@ -43,6 +43,7 @@ into this repository, and each keeps its own licence.
 | shfmt | shell formatter | BSD-3-Clause |
 | nixfmt | Nix formatter | MPL-2.0 |
 | bats, GNU parallel, pkl, typos, ripsecrets, actionlint, zizmor | tests and checks | see each project |
+| [just](https://github.com/casey/just), [jq](https://github.com/jqlang/jq), [gh](https://github.com/cli/cli) | `just` runs the recipes, `jq` reads `flake.lock` and JSON, and `gh` asks GitHub whether CI passed (read-only); the dev shell also ships them | see each project |
 
 The three licences listed for ShellCheck, shfmt and nixfmt are the ones the
 owner's xenolith notices record for the same nixpkgs packages. Running a
