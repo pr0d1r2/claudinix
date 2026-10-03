@@ -46,11 +46,11 @@ self|.|-
 - C27: this repo's own `.claude/settings.json` SessionStart hook (decided 2026-10-03): cloud sessions working ON claudinix run `git fetch --unshallow` (if shallow) + `nix develop -c true` (hooks) before 1st commit; via bats-covered script, ⊥ inline.
 
 ## §I INTERFACES
-- file: `setup.sh [SHA]` — fetched by the UI line (V20); ⊥ pasted whole; SHA = full 40-hex commit, else exit 2. seams: `NIX_CONF_DIR`, `BIN_DIR`, `SYSTEMD_DIR`, `NIX_DEFAULT_PROFILE`, `NIX_INSTALL_URL`, `NIX_INSTALL_SHA256`, `NIX_MIN_VERSION`; agent home: `CLOUD_HOME_FLAKE`, `CLOUD_HOME_STOREPATH` (file), `CLOUD_HOME_MARKER` (default `~/.local/state/claudinix/agent-home.failed`); nix-dev: `CLAUDINIX_LIB_DIR` (default `/usr/local/lib/claudinix`, `nix-dev` symlinked into `BIN_DIR`), `CLAUDINIX_RAW_URL`, `CLAUDINIX_REV` (default: SHA arg, else `main`).
+- file: `setup.sh [SHA] [--agent-home]` — fetched by the UI line (V20); ⊥ pasted whole; SHA = full 40-hex commit; any other arg → exit 2; `--agent-home` \| `CLAUDINIX_AGENT_HOME=1` activates the agent home (C24), else 1 line says it was skipped \& how to opt in; every fetch bounded (`--connect-timeout 10 --max-time 60`); nix-dev installed all-or-nothing; script dir only from `BASH_SOURCE` (stdin → fetch at SHA, ⊥ cwd); `CLOUD_HOME_STOREPATH` default beside the script \| temp dir. seams: `NIX_CONF_DIR`, `BIN_DIR`, `SYSTEMD_DIR`, `NIX_DEFAULT_PROFILE`, `NIX_INSTALL_URL`, `NIX_INSTALL_SHA256`, `NIX_MIN_VERSION`; agent home: `CLOUD_HOME_FLAKE`, `CLOUD_HOME_STOREPATH` (file), `CLOUD_HOME_MARKER` (default `~/.local/state/claudinix/agent-home.failed`); nix-dev: `CLAUDINIX_LIB_DIR` (default `/usr/local/lib/claudinix`, `nix-dev` symlinked into `BIN_DIR`), `CLAUDINIX_RAW_URL`, `CLAUDINIX_REV` (default: SHA arg, else `main`).
 - cmd: `scripts/setup-line.sh [--force] [REV]` → prints the 1-line UI setup script for REV (default HEAD; full 40-hex SHA taken w/o a clone): fresh `mktemp -d`, `curl` `setup.sh` at the SHA, `bash` it w/ the SHA. refuses (exit 1) unless newest `ci.yml` run on `main` for that commit = completed success (`gh run list`, read-only, seam `GH_BIN`); `--force` prints anyway + warns.
 - file: `flake.nix` output `homeConfigurations.cloud` (x86_64-linux) + its `activationPackage`; CI pushes it to cachix \& records store path in `cloud-home.storepath`.
 - file: `hk.pkl` (+ `hk.pklith.pkl` ? C20), `xenolith.toml`, `.context-limits`, `scripts/guard/*.sh`, `scripts/hk/*.sh` — gate (C14-C18, C20).
-- file: `.github/workflows/ci.yml` — gate + cachix push + verify; `fetch-depth: 0`, SHA-pinned actions, `permissions: contents: read`, `persist-credentials: false`, push only on default branch.
+- file: `.github/workflows/ci.yml` — gate + cachix push (event `push` to default branch only; write token only then) + `scripts/ci/push-sources.sh` (eval-time input sources, `nix flake archive --json`) + verify (`verify-cachix.sh --sources .` + dev shell + agent home; source ok if owner cache \| `UPSTREAM_URL` = cache.nixos.org answers 200); `fetch-depth: 0`, SHA-pinned actions, `permissions: contents: read`, `persist-credentials: false`, push only on default branch.
 - file: `allowlist.txt` — Allowed domains, 1 per line, `#` comments ⊥ entered.
 - file: `env-names.txt` — env vars for the env dialog: secrets as names only, ⊥ values; non-secret settings w/ value. ⊥ model: `ANTHROPIC_MODEL` on env does NOT pick the session model (probe 6: env sonnet-5-5, session `configured_model` opus-5-5); model = launch `--model` \| browser picker.
 - file: `probe.sh` — run inside cloud session; prints session facts (C8) + nix health.
@@ -65,7 +65,7 @@ V3: `nix.conf` managed block between begin/end marker lines, replaced whole on r
 V4: Nix on PATH ≥ floor ⇒ ⊥ install. else `--daemon` iff systemd present; else `--no-daemon`. probe: image Nix found at `/nix/var/nix/profiles/default/bin` \& `~/.nix-profile` (root), no daemon, no systemd.
 V5: `setup.sh` wall time on fresh VM ≤ 5 min (cache window C1); measured, ⊥ assumed.
 V6: ⊥ secret in repo \| env vars; cachix read-only (⊥ `CACHIX_AUTH_TOKEN`).
-V7: `setup.sh` = Nix install + agent-home activation only (C3); ⊥ target-repo step (devShell warm-up, hooks, cargo).
+V7: `setup.sh` = Nix install + `nix-dev` + opt-in agent home (C3, C24) only; ⊥ target-repo step (devShell warm-up, hooks, cargo).
 V8: in session, `nix develop` on target flake w/ complete `flake.lock` succeeds w/o GitHub tarball fetch: locked inputs substituted by `narHash` from `cache.nixos.org` (nixpkgs, probe 4) \| `pr0d1r2.cachix.org` (pushed by target CI, T54); devShell closure from either cache.
 V9: nix store usable by session uid (whatever it is): write via daemon \| ownership. holds: session runs as root, store owned by root (probe 1).
 V10: ∀ env in claude.ai UI ↔ files in this repo; mismatch = bug (§B).
@@ -84,7 +84,7 @@ V25: `accept-flake-config = true` trusts cloned repo `nixConfig` ∴ env used on
 V27: `hk.pkl` evaluates under the official `pkl` (⊥ only hk's lenient parser): gate step `pkl eval hk.pkl` (B5).
 V28: every tracked `*.sh` w/ a shebang is executable (mode 100755); gate step checks (B6).
 V29: a guard that reads history detects a shallow clone \& says so w/ the fix (`git fetch --unshallow`), ⊥ blame commits it cannot see; w/o upstream it checks `merge-base HEAD origin/HEAD..HEAD` (B7).
-V30: every input needed to EVALUATE an output a session builds (agent home, dev shell) is fetchable in the cloud: `git+https` \| narinfo in an allowed cache; CI verifies narinfo for pushed sources, ⊥ only built outputs (B8).
+V30: every input needed to EVALUATE an output a session builds (agent home, dev shell) is fetchable in the cloud: `git+https` \| narinfo in an allowed cache; CI verifies narinfo for pushed sources, ⊥ only built outputs (B8). cache.nixos.org counts for sources it already serves (nixpkgs).
 V31: gate output for a non-TTY caller (agent) on success ≤ a few lines; full log on failure only.
 
 ## §T TASKS
