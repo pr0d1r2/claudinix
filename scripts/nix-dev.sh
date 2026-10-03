@@ -29,9 +29,12 @@
 # every github input but nixpkgs. Without jq there is no failover at all,
 # and a loud warning says so.
 #
+# Without INSTALLABLE, the project's .claudinix.toml names it
+# (devshell.installable, scripts:T91); an INSTALLABLE given wins.
+#
 # Usage: nix-dev [INSTALLABLE] [ARGS...]   (as for `nix develop`)
-# Env:   CLAUDINIX_SCRIPTS  dir holding nix-dev.jq and inputs.sh (default:
-#                           this script's dir, symlinks followed)
+# Env:   CLAUDINIX_SCRIPTS  dir holding nix-dev.jq, inputs.sh and config.sh
+#                           (default: this script's dir, symlinks followed)
 
 set -euo pipefail
 
@@ -51,17 +54,31 @@ done
 lib="${CLAUDINIX_SCRIPTS:-$(dirname "$self")}"
 
 # A leading installable names the flake; its lock is the one that counts.
+# Without one, the project's devshell.installable (scripts:T91, V34),
+# read by config.sh at the repo's top level; `.` is a bare develop. A
+# bad file exits 2. A lib dir without config.sh (an older install) or a
+# PATH without jq reads no file.
 installable=()
-flake=.
 case "${1:-}" in
--* | "") ;;
+-* | "")
+    if [ -f "$lib/config.sh" ] && command -v jq >/dev/null 2>&1; then
+        from_file="$(bash "$lib/config.sh" get devshell.installable)" || exit "$?"
+        if [ "$from_file" != . ]; then
+            installable=("$from_file")
+            log "installable $from_file from .claudinix.toml (devshell.installable)"
+        fi
+    fi
+    ;;
 *)
     installable=("$1")
-    flake="${1%%#*}"
-    flake="${flake:-.}"
     shift
     ;;
 esac
+flake=.
+if [ "${#installable[@]}" -gt 0 ]; then
+    flake="${installable[0]%%#*}"
+    flake="${flake:-.}"
+fi
 
 if [ ! -d "$flake" ]; then
     log "tier 1: plain nix develop (${installable[0]} is not a local flake dir, so no failover)"
