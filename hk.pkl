@@ -337,6 +337,12 @@ hooks {
       ["commit-msg"] {
         check = "scripts/guard/commit-msg.sh"
       }
+      // A feat or fix touching session code stages CHANGELOG.md
+      // (dev:T111). Here, not in pre-commit: only the message says which
+      // kind a change is. hk hands it the message file git gave the hook.
+      ["changelog"] {
+        check = "scripts/hk/run-tool.sh claudinix-dev changelog {{commit_msg_file}}"
+      }
     }
   }
   ["pre-push"] {

@@ -15,7 +15,7 @@ right and this file has a bug.
 | `pre-push` hook | `all`, 37 steps | every push |
 | `hk check --all` in CI | `all`, 37 steps | every push to `main` and every pull request |
 
-A fourth hook, `commit-msg`, runs one step on the commit message.
+A fourth hook, `commit-msg`, runs two steps on the commit message.
 
 `all` is `fast` plus four steps that judge the branch rather than a single
 commit: the bats suite, the dev crate's `cargo test`, `bats-mirror` and
@@ -177,9 +177,19 @@ clone (as in a cloud session) run `git fetch --unshallow` first.
 | step | by hand |
 |---|---|
 | `commit-msg` | `scripts/guard/commit-msg.sh <message-file>` |
+| `changelog` | `claudinix-dev changelog <message-file>` |
 
 The subject must follow Conventional Commits and the body must have a
 `Why:` line. Merge, revert and fixup subjects pass untouched.
+
+`changelog` refuses a `feat` or `fix` commit that stages session code
+without `CHANGELOG.md`. Session code is what a session VM or a
+target-project user gets: `setup.sh`, `probe.sh`, `allowlist.txt`,
+`env-names.txt`, `nix/cloud-home.nix`, `nix/cloud-permissions.json`,
+`nix/apps.nix`, and `scripts/**` except `scripts/guard/`, `scripts/hk/`,
+`scripts/ci/`, `scripts/dev/`, `scripts/nix/` and spec files. Other
+commit types, merge, revert and fixup subjects, and an amend of a commit
+that already staged its entry pass.
 
 ### In `nix flake check`
 
