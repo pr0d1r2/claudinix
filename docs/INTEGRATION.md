@@ -11,9 +11,9 @@ right and this file has a bug.
 
 | caller | set | when |
 |---|---|---|
-| `pre-commit` hook | `fast`, 19 steps | every commit, on the staged files |
-| `pre-push` hook | `all`, 22 steps | every push |
-| `hk check --all` in CI | `all`, 22 steps | every push to `main` and every pull request |
+| `pre-commit` hook | `fast`, 21 steps | every commit, on the staged files |
+| `pre-push` hook | `all`, 24 steps | every push |
+| `hk check --all` in CI | `all`, 24 steps | every push to `main` and every pull request |
 
 A fourth hook, `commit-msg`, runs one step on the commit message.
 
@@ -65,11 +65,13 @@ hk hands the step; by hand, name the files yourself.
 | `xenolith` | `*.nix`, `*.sh`, `*.bats`, `xenolith.toml` | `xnl check <files>` |
 | `actionlint` | `.github/workflows/*.yml` | `actionlint <files>` |
 | `zizmor` | `.github/workflows/*.yml` | `zizmor --offline --no-progress --persona=pedantic <files>` |
-| `spec-fmt` | `SPEC.md` | `mth fmt --check SPEC.md` (fix: `mth fmt SPEC.md`) |
-| `spec-check` | `SPEC.md` | `mth check SPEC.md` |
-| `spec-tokens` | `SPEC.md`, `.context-limits` | `itok check` |
-| `federation` | `SPEC.md`, `.context-limits` | `sherd validate` |
-| `budget` | `SPEC.md`, `.context-limits` | `sherd budget` |
+| `spec-fmt` | every `SPEC.md` | `mth fmt --check <node>/SPEC.md` (fix: `mth fmt`) |
+| `spec-check` | every `SPEC.md` | `mth check <node>/SPEC.md` |
+| `spec-tokens` | `SPEC.md` files, `.context-limits` | `itok check` |
+| `federation` | `SPEC.md` files, `.context-limits` | `sherd validate` |
+| `nav` | `SPEC.md` files | `sherd sync --check` (fix: `sherd sync`) |
+| `spec-structure` | `SPEC.md` files | `sherd check` |
+| `budget` | `SPEC.md` files, `.context-limits` | `sherd budget` |
 | `typos` | every file | `typos --force-exclude <files>` |
 | `no-private-key` | every file | `hk util detect-private-key <files>` |
 | `ripsecrets` | every file | `ripsecrets <files>` |
@@ -87,9 +89,15 @@ A few notes on why the steps look the way they do:
 - **zizmor** runs `--offline`. A gate must not need the network, and inside
   a cloud session the injected `GH_TOKEN` placeholder makes online audits
   fail with 401.
-- **The spec steps** (`mth`, `itok`, `sherd`) keep `SPEC.md` well formed and
-  under the token ceilings in `.context-limits`. When the spec outgrows its
-  ceiling, the fix is to split it into sherd nodes, not to raise the number.
+- **The spec steps** (`mth`, `itok`, `sherd`) keep the spec well formed and
+  under the token ceilings in `.context-limits`. The spec is federated: the
+  root `SPEC.md` names its child nodes (`scripts`, `nix`, `docs`) in a
+  `§F` table, and each node has its own `SPEC.md`. `mth` runs once per
+  changed node; `sherd check` follows citations across nodes, and
+  `sherd sync --check` keeps each node's `§N` in step with its parent's
+  `§F`. When a spec outgrows its ceiling, move rows down to the node that
+  owns them; do not raise the number. Finished tasks move to
+  `SPEC-ARCHIVE.md` with `mth archive`.
 - **Secrets** are checked twice because the two tools answer different
   questions: `detect-private-key` finds key blocks, `ripsecrets` finds token
   shapes. The repository is public from its first push.
@@ -134,8 +142,8 @@ push step that exits 0 is not proof that anything arrived.
 ## Parallelism
 
 hk runs independent steps in parallel. `depends` is used only where one
-step must wait for another: `spec-check` waits for `spec-fmt`, and `budget`
-waits for `federation`.
+step must wait for another: `spec-check` waits for `spec-fmt`, and
+`budget`, `nav` and `spec-structure` wait for `federation`.
 
 The dev shell sets `HK_JOBS=4` and `BATS_NUMBER_OF_PARALLEL_JOBS=4`, so hk
 and the bats suite (through GNU `parallel`) each run four jobs at once. Four
