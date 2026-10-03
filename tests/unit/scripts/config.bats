@@ -335,6 +335,42 @@ DEFAULTS='{"cache":{"name":"pr0d1r2","push_sources":false},"devshell":{"installa
     [ ! -s "$NIX_LOG" ]
 }
 
+# --dir D resolves like the no-flag case, from D (scripts:T97).
+
+@test "--dir D in a subdir of a git repo: the file at the repo's top" {
+    git init -q "$PROJECT"
+    toml 'version = 1' '[session]' 'model = "opus"'
+    mkdir -p "$PROJECT/sub/dir"
+    cd "$BATS_TEST_TMPDIR"
+    run --separate-stderr bash "$SCRIPT" --dir "$PROJECT/sub/dir" get session.model
+    [ "$status" -eq 0 ]
+    [ "$output" = opus ]
+    run --separate-stderr bash "$SCRIPT" --dir project/sub get session.model
+    [ "$output" = opus ]
+}
+
+@test "--dir D not in a git repo: D's own file, not the cwd's repo's" {
+    git init -q "$PROJECT"
+    toml 'version = 1' '[session]' 'model = "opus"'
+    other="$BATS_TEST_TMPDIR/other"
+    mkdir -p "$other/sub"
+    printf '%s\n' 'version = 1' '[cache]' 'name = "other"' >"$other/sub/.claudinix.toml"
+    run --separate-stderr bash "$SCRIPT" --dir "$other/sub" json
+    [ "$status" -eq 0 ]
+    [ "$(jq -r .cache.name <<<"$output")" = other ]
+    [ "$(jq -r .session.model <<<"$output")" = sonnet ]
+}
+
+@test "CLAUDINIX_CONFIG applies only without --dir" {
+    toml 'version = 1' '[cache]' 'name = "fromdir"'
+    printf '%s\n' 'version = 1' '[cache]' 'name = "seam"' >"$BATS_TEST_TMPDIR/x.toml"
+    CLAUDINIX_CONFIG="$BATS_TEST_TMPDIR/x.toml" run --separate-stderr bash "$SCRIPT" --dir "$PROJECT" get cache.name
+    [ "$status" -eq 0 ]
+    [ "$output" = fromdir ]
+    CLAUDINIX_CONFIG="$BATS_TEST_TMPDIR/x.toml" run --separate-stderr bash "$SCRIPT" get cache.name
+    [ "$output" = seam ]
+}
+
 @test "values: every bad value is reported at once" {
     refused cache.name 'version = 1' '[cache]' 'name = "Bad"' '[devshell]' 'installable = "a b"' \
         '[network]' 'extra_domains = ["https://x.example.org", "y.example.org/z"]'

@@ -147,6 +147,29 @@ setup() {
     [ "${#lines[@]}" -eq 8 ]
 }
 
+@test "several projects: each reads its own .claudinix.toml (scripts:T97)" {
+    while read -r var; do unset "$var"; done < <(env | sed -n 's/^\(GIT_[A-Z_]*\)=.*/\1/p')
+    export GIT_CEILING_DIRECTORIES="$BATS_TEST_TMPDIR"
+    Q="$BATS_TEST_TMPDIR/web"
+    mkdir -p "$Q/sub"
+    git init -q "$Q"
+    printf '%s\n' 'version = 1' '[network]' 'extra_domains = ["p.example.org"]' >"$P/.claudinix.toml"
+    printf '%s\n' 'version = 1' '[network]' 'extra_domains = ["q.example.org"]' >"$Q/.claudinix.toml"
+    printf '%s\n' 'version = 1' '[network]' 'extra_domains = ["seam.example.org"]' >"$BATS_TEST_TMPDIR/x.toml"
+    CLAUDINIX_CONFIG="$BATS_TEST_TMPDIR/x.toml" run --separate-stderr bash "$SCRIPT" --why "$P" "$Q/sub"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"p.example.org	config"* ]]
+    [[ "$output" == *"q.example.org	config"* ]]
+    [[ "$output" != *seam.example.org* ]]
+    # A config handed down for one project is not every project's.
+    json="$(CLAUDINIX_CONFIG="$BATS_TEST_TMPDIR/x.toml" bash "$BATS_TEST_DIRNAME/../../../scripts/config.sh" json)"
+    CLAUDINIX_CONFIG_JSON="$json" run --separate-stderr bash "$SCRIPT" --why "$P" "$Q/sub"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"p.example.org	config"* ]]
+    [[ "$output" == *"q.example.org	config"* ]]
+    [[ "$output" != *seam.example.org* ]]
+}
+
 @test "a bad .claudinix.toml fails with exit 2 naming the file and key, prints no list" {
     printf '%s\n' 'version = 1' '[network]' 'extra_domains = "aa.example.org"' >"$P/.claudinix.toml"
     run --separate-stderr bash "$SCRIPT" "$P"
