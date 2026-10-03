@@ -20,6 +20,7 @@ functional Nix (flakes on, owner cachix) inside Claude Code cloud session VM; �
 - file: `setup.sh` — paste into env "Setup script". seams: `NIX_CONF_DIR`, `BIN_DIR`, `SYSTEMD_DIR`, `NIX_DEFAULT_PROFILE`, `NIX_INSTALL_URL`, `NIX_INSTALL_SHA256`.
 - file: `allowlist.txt` — Allowed domains, 1 per line, `#` comments ⊥ entered.
 - file: `env-names.txt` — env var names only, ⊥ values.
+- cmd: `nix-dev [args]` — installed by `setup.sh` to `/usr/local/bin`; `nix develop` w/ V13 failover, args passed through.
 - file: `probe.sh` — run inside cloud session; prints session facts (C8) + nix health.
 - ext.env: claude.ai/code → environment dialog: name, network level, allowed domains, env vars, setup script.
 - cmd: `just check` = shellcheck + shfmt + bats, same local \& CI.
@@ -37,12 +38,13 @@ V9: nix store usable by session uid (whatever it is): write via daemon \| owners
 V10: ∀ env in claude.ai UI ↔ files in this repo; mismatch = bug (§B).
 V11: Nix version \& installer sha256 change together, 1 commit.
 V12: ⊥ private info in repo \| history: ⊥ private hostnames, LAN, self-hosted forge paths, tokens. public-safe from 1st push.
+V13: input failover order, each tier logged: (1) substitute locked input by `narHash` from cachix (V8); (2) fetch as locked (`github:` via proxy); (3) `nixpkgs` → `https://channels.nixos.org/<channel>/nixexprs.tar.xz` via `--override-input` + `--no-write-lock-file` (degraded: rev ≠ lock, ⊥ commit lock). tier 3 used → warn in session, ⊥ silent.
 
 ## §T TASKS
 id|status|task|cites
 T1|.|`flake.nix` devShell (bats, shellcheck, shfmt, just, coreutils) + `justfile` `check` + pre-commit hook running `just check`|C7,I.cmd
 T2|.|import seed from the owner's private seed repo `a35942b` `cloud/envs/nix/` → repo root (`setup.sh`, `allowlist.txt`, `env-names.txt`, `tests/unit/setup.bats`); fix paths; `just check` green|V1,V2,V3,V4,V6,V7,I.file
-T3|.|`probe.sh`: `id`, PID 1 comm, systemd dir, `unshare -Ur true`, profile sourcing, `nix --version`, `nix config show substituters`, `nix flake metadata github:NixOS/nixpkgs` (direct fetch via proxy ok ?), locked-input substitution from cachix (input source w/ `narHash` pushed, ⊥ GitHub), cachix narinfo hit, elapsed; bats w/ stubs|C8,V8,V9,I.file
+T3|.|`probe.sh`: `id`, PID 1 comm, systemd dir, `unshare -Ur true`, profile sourcing, `nix --version`, `nix config show substituters`, `nix flake metadata github:NixOS/nixpkgs` (direct fetch via proxy ok ?), locked-input substitution from cachix (input source w/ `narHash` pushed, ⊥ GitHub), `channels.nixos.org` tarball fetch, `nix-dev` tier reached, cachix narinfo hit, elapsed; bats w/ stubs|C8,V8,V9,I.file
 T4|.|MANUAL create env `nix` at claude.ai/code from repo files; run 1 probe session; record facts → resolve C8 `?`, C6 `?`|C8,C6,V10,I.ext.env
 T5|.|if probe: session uid ≠ root ∧ no systemd → make store usable (V9) \| switch install mode; bats|V9,V4
 T6|.|target-repo CI snippet (doc only, targets adopt via own spec): on push to default branch `nix flake archive --json` + devShell closure → `cachix push pr0d1r2`; push token in CI secrets only, ⊥ VM|V8,V6,C5,C6,C3
@@ -50,6 +52,7 @@ T7|.|measure setup wall time on fresh VM; record; > 5 min → trim|V5,C1
 T8|.|SessionStart hook snippet for target repos: enter devShell once (warm), install git hooks; doc only, target repos adopt via own spec|C3,V7,C9
 T9|.|`LICENSE` (MIT), `README.md` (what, paste steps, fork block C11, known limits); V12 scan of tree \& history before 1st push|C10,C11,V12
 T11|.|MANUAL create public GitHub repo `pr0d1r2/nix-claude-code-cloud`, add remote, push after T9|C10,V12
+T12|.|`nix-dev` wrapper: try tiers V13 in order, log tier used, channel from target `flake.lock` nixpkgs ref (`nixos-<ver>` \| `nixpkgs-unstable`) else `nixpkgs-unstable`; installed by `setup.sh`; bats w/ stub `nix`|V13,V8,I.cmd
 T10|.|`just bump-nix <ver>`: fetch installer + `.sha256`, rewrite pin pair, run tests|V11,C4
 
 ## §B BUGS
