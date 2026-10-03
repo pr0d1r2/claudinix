@@ -150,16 +150,16 @@ EOF
 @test "nix.conf: managed block sits between begin and end markers (V3)" {
     run bash "$SCRIPT"
     conf="$NIX_CONF_DIR/nix.conf"
-    [ "$(grep -c '^# BEGIN nix-claude-code-cloud' "$conf")" -eq 1 ]
-    [ "$(grep -c '^# END nix-claude-code-cloud' "$conf")" -eq 1 ]
+    [ "$(grep -c '^# BEGIN claudinix' "$conf")" -eq 1 ]
+    [ "$(grep -c '^# END claudinix' "$conf")" -eq 1 ]
 }
 
 @test "nix.conf: a stale managed block is replaced whole on re-run (V3, B2)" {
     mkdir -p "$NIX_CONF_DIR"
     printf '%s\n' 'build-users-group = nixbld' \
-        '# BEGIN nix-claude-code-cloud (SPEC V3)' \
+        '# BEGIN claudinix (SPEC V3)' \
         'extra-substituters = https://old.example' \
-        '# END nix-claude-code-cloud (SPEC V3)' \
+        '# END claudinix (SPEC V3)' \
         'max-jobs = 4' >"$NIX_CONF_DIR/nix.conf"
     run bash "$SCRIPT"
     [ "$status" -eq 0 ]
@@ -168,7 +168,7 @@ EOF
     grep -qx 'accept-flake-config = true' "$conf"
     grep -qx 'build-users-group = nixbld' "$conf"
     grep -qx 'max-jobs = 4' "$conf"
-    [ "$(grep -c '^# BEGIN nix-claude-code-cloud' "$conf")" -eq 1 ]
+    [ "$(grep -c '^# BEGIN claudinix' "$conf")" -eq 1 ]
 }
 
 # An image-shipped nix in the default profile, as probe 1 found it (C4, C8).
@@ -300,6 +300,18 @@ EOF
     [ "$status" -eq 0 ]
     [[ "$output" == *"WARNING"* ]]
     [ -e "$CLOUD_HOME_MARKER" ]
+}
+
+@test "agent home: the default marker lives under ~/.local/state/claudinix (T71)" {
+    agent_home
+    unset CLOUD_HOME_MARKER
+    BUILD_OK=0 run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ -e "$HOME/.local/state/claudinix/agent-home.failed" ]
+}
+
+@test "nix-dev: the default lib dir is /usr/local/lib/claudinix (T71)" {
+    grep -qF ':-/usr/local/lib/claudinix}' "$SCRIPT"
 }
 
 SHA=0123456789abcdef0123456789abcdef01234567
