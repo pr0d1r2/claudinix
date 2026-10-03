@@ -7,7 +7,7 @@ functional Nix (flakes on, owner cachix) inside Claude Code cloud session VM + 1
 - C1: platform = Claude Code cloud, Anthropic-hosted env: Ubuntu 24.04 x86_64; setup script = bash as root, runs before Claude Code; fs snapshot cached iff setup ≲ 5 min; cached snapshot ⇒ setup skipped; rebuilt on script \| allowlist change \| ~7d expiry. running processes ⊥ survive snapshot.
 - C2: ⊥ management API for cloud envs (docs 2026-09-26) ∴ files in this repo = source of truth, pasted by hand in claude.ai/code env dialog.
 - C3: scope = Nix + 1 home-manager activation of `homeConfigurations.cloud` (amended 2026-10-03: nix derivation installs ∀ agent-level packages \& skills). ⊥ apt toolchains, ⊥ repo-specific steps. repo-level → target flake (`nix develop`) + target repo `.claude/settings.json` SessionStart hook.
-- C4: upstream Nix installer from `releases.nixos.org`, version pinned (seed 2.35.2) + installer sha256 pinned; installer checks own tarball hash.
+- C4: upstream Nix installer from `releases.nixos.org`, version pinned (seed 2.35.2) + installer sha256 pinned; installer checks own tarball hash. image ships Nix 2.34.6 (probe 1) ∴ use it when `nix --version` ≥ floor `NIX_MIN_VERSION` (seed 2.34), else install pinned version; ⊥ 2nd Nix on PATH.
 - C5: substituters: `cache.nixos.org` (default) + `https://pr0d1r2.cachix.org`, key `pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM=`. public, read-only ∴ ⊥ token.
 - C6: network = Custom + "include default list" (covers `*.nixos.org`) + `pr0d1r2.cachix.org`. GitHub traffic via GitHub proxy: API \& release-asset requests reach only repos attached to session (docs) ∴ `github:` flake inputs 403: confirmed 2026-10-03 probe, `github:NixOS/nixpkgs` → GitHub API 403 "repo isn't enabled for this session". ∴ V8/V13 tiers 1 \& 3 required, tier 2 works only for session-attached repos.
 - C7: repo = nix + shell only (+ `hk.pkl`, CI yaml, md, toml data). shell style per owner infra repo: `set -euo pipefail`, shellcheck, `shfmt -i 4`, env-var seams for paths. guardrails = 1st thing built (C14); ⊥ feature code before gate green.
@@ -47,7 +47,7 @@ functional Nix (flakes on, owner cachix) inside Claude Code cloud session VM + 1
 V1: `setup.sh` exit 0 ⇒ `nix --version` works from Claude Bash tool shell w/o profile sourcing (nix linked into `/usr/local/bin`).
 V2: installer executed only after sha256 match; mismatch → exit ≠ 0, nothing executed.
 V3: `nix.conf` edit append-only behind marker line: flakes on, cachix substituter + key; installer lines (e.g. `build-users-group`) kept; rerun ⊥ duplicates, ⊥ reinstall.
-V4: `--daemon` iff systemd present; else `--no-daemon`.
+V4: Nix on PATH ≥ floor ⇒ ⊥ install. else `--daemon` iff systemd present; else `--no-daemon`. probe: image Nix found at `/nix/var/nix/profiles/default/bin` \& `~/.nix-profile` (root), no daemon, no systemd.
 V5: `setup.sh` wall time on fresh VM ≤ 5 min (cache window C1); measured, ⊥ assumed.
 V6: ⊥ secret in repo \| env vars; cachix read-only (⊥ `CACHIX_AUTH_TOKEN`).
 V7: `setup.sh` = Nix install + agent-home activation only (C3); ⊥ target-repo step (devShell warm-up, hooks, cargo).
