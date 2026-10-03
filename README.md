@@ -8,11 +8,11 @@
 
 Read [LLM-DISCLAIMER](docs/LLM-DISCLAIMER.md) first.
 
-**Who it is for.** Your repository is a Nix flake and you use Claude Code
-cloud sessions.
+**Nix, and your flake's dev shell, inside Claude Code cloud sessions.**
 
-**What it does.** It makes Nix, and `nix develop` in your repository, work
-inside those sessions, before Claude starts.
+Your repository is a Nix flake and you use Claude Code cloud sessions.
+claudinix makes Nix, and `nix develop` in your repository, work inside those
+sessions, before Claude starts.
 
 **Why.** A cloud session is an Ubuntu VM with no toolchain for your
 repository, a network proxy that refuses hosts you did not list, and a GitHub
@@ -33,17 +33,69 @@ repeat them.
 No release yet: the maintainer publishes the line with `scripts/release.sh record`, then `scripts/release.sh publish`.
 <!-- END setup-line -->
 
-## The fastest path
+## Quickstart
 
 In your project (a Nix flake with a committed `flake.lock`, on GitHub, branch
-pushed), with Nix and flakes on your machine and the `claude` CLI signed in
-to claude.ai:
+pushed), with Nix and flakes on your machine and the `claude` CLI signed in:
 
 ```sh
 nix run github:pr0d1r2/claudinix#guide
 ```
 
-The first `nix run` asks whether to trust the extra binary cache
+1. **Run the guide** (above). It walks you through the setup and checks what
+   it can. Creating the environment itself is the one part you do by hand at
+   [claude.ai/code](https://claude.ai/code).
+2. **Choose the environment** in `claude` with `/remote-env`.
+3. **Run a first session** and look for a Nix version and `DEVSHELL-OK`:
+
+   ```sh
+   claude --cloud "Run: nix --version && nix-dev -c true && echo DEVSHELL-OK. Report the output." --model sonnet
+   ```
+
+Before the first session, check that usage credits (metered overage) are OFF
+([`docs/SETUP.md`](docs/SETUP.md), step 0).
+
+## What it is, and what it is not
+
+- **It is** a setup script that installs Nix and `nix-dev` on the session VM
+  before Claude starts, and a few commands for your machine that prepare your
+  project for that ([`docs/CLI.md`](docs/CLI.md)).
+- **It is** a record of what a cloud session looks like, measured and dated
+  ([`docs/FACTS.md`](docs/FACTS.md)).
+- **It is not** a toolchain installer. Your repository's tools come from its
+  own flake dev shell.
+- **It is not** a way to create the environment for you: claude.ai has no API
+  for that, so you paste the values by hand.
+- **It is not** official. See the notice at the top.
+
+## How the pieces fit
+
+```mermaid
+flowchart LR
+    L["setup line<br/>pasted once in the<br/>environment dialog"] --> S["setup.sh<br/>runs as root"]
+    S --> N["Nix and nix-dev"]
+    S -.->|"--agent-home only"| H["agent home"]
+    N --> C["your repository<br/>is cloned"]
+    H --> C
+    C --> K["your SessionStart<br/>hook"]
+    K --> A["Claude starts"]
+```
+
+The setup line and the script run when a snapshot is built, not on every
+session, so per-session work belongs in your SessionStart hook. The full
+sequence is in [`docs/SESSION.md`](docs/SESSION.md).
+
+## Do you need this?
+
+Not if your repository is not a Nix flake: claudinix only makes `nix develop`
+work in a session, and installs nothing else for your project. Not if you only
+run Claude Code on your own machine: nothing here reaches a local session.
+It helps when your flake's dev shell is the toolchain you want Claude to use in
+the cloud, and `nix develop` fails there out of the box.
+
+## About the guide
+
+The first `nix run github:pr0d1r2/claudinix#guide` asks whether to trust the extra binary cache
 `pr0d1r2.cachix.org`: answer `y`, or pass `--accept-flake-config`. The guide
 walks you through every step in your terminal and the browser, copies each
 value you have to paste, and checks what it can. Creating the environment
