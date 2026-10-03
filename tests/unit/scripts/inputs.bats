@@ -16,10 +16,14 @@ setup() {
     mkdir -p "$STUBS" "$PROJECT" "$CODES"
     cp "$FIXTURES/nested/flake.lock" "$PROJECT/flake.lock"
 
-    # nix: `flake archive --dry-run --json DIR` prints the fixture tree.
+    # nix: `flake archive --dry-run --json DIR` prints the fixture tree;
+    # `eval` (config.sh parsing a .claudinix.toml) is the real nix.
+    REAL_NIX="$(command -v nix)"
+    export REAL_NIX
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "$*" >>"$NIX_LOG"' \
+        '[ "$1" != eval ] || exec "$REAL_NIX" "$@"' \
         '[ "$1 $2" = "flake archive" ] || exit 9' \
         '[ "$STUB_ARCHIVE_RC" = 0 ] || { echo "error: cannot fetch" >&2; exit "$STUB_ARCHIVE_RC"; }' \
         'cat "$NIX_ARCHIVE"' >"$STUBS/nix"
@@ -190,4 +194,37 @@ cached() {
             return 1
         }
     done <"$CURL_ARGS"
+}
+
+# .claudinix.toml (scripts:T91, scripts:V34): cache.name picks the cachix.
+
+@test "cache.name in the flake dir's .claudinix.toml replaces the owner cachix" {
+    printf '%s\n' 'version = 1' '[cache]' 'name = "forker"' >"$PROJECT/.claudinix.toml"
+    cached forker.cachix.org bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    cached pr0d1r2.cachix.org aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    cached cache.nixos.org nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
+    run --separate-stderr bash "$SCRIPT" "$PROJECT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"pr0d1r2/b 2222222222222222222222222222222222222222 cached"* ]]
+    [[ "$output" == *"pr0d1r2/a 1111111111111111111111111111111111111111 uncached"* ]]
+    [[ "$output" == *"NixOS/nixpkgs 6666666666666666666666666666666666666666 cached"* ]]
+}
+
+@test "INPUTS_CACHES still wins over cache.name (flag/env > file)" {
+    printf '%s\n' 'version = 1' '[cache]' 'name = "forker"' >"$PROJECT/.claudinix.toml"
+    cached forker.cachix.org bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    INPUTS_CACHES="https://nowhere.example" run --separate-stderr bash "$SCRIPT" "$PROJECT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"pr0d1r2/b 2222222222222222222222222222222222222222 uncached"* ]]
+}
+
+@test "a bad .claudinix.toml: exit 2 naming the file and key, nothing checked" {
+    printf '%s\n' 'version = 1' '[cache]' 'name = 1' >"$PROJECT/.claudinix.toml"
+    run --separate-stderr bash "$SCRIPT" "$PROJECT"
+    [ "$status" -eq 2 ]
+    [ -z "$output" ]
+    [[ "$stderr" == *".claudinix.toml"* ]]
+    [[ "$stderr" == *"cache.name"* ]]
+    run grep -q '^flake archive' "$NIX_LOG"
+    [ "$status" -ne 0 ]
 }
