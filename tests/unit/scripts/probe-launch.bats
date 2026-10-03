@@ -247,6 +247,24 @@ config() {
     grep -qF 'time nix develop .#ci --command true' "$STATE/claude.task"
 }
 
+# shellcheck disable=SC2016 # literal $ in the values, not expanded
+@test "devshell.installable and probe.branch_prefix are shell-quoted in the task (scripts:T95)" {
+    config '[devshell]' 'installable = "./a;b$c|d"' '[probe]' 'branch_prefix = "claude/p$x"'
+    PUSH_BRANCH='claude/p$x-1' run bash "$SCRIPT" --yes
+    [ "$status" -eq 0 ]
+    grep -qF 'time nix-dev ./a\;b\$c\|d --command true' "$STATE/claude.task"
+    grep -qF 'time nix develop ./a\;b\$c\|d --command true' "$STATE/claude.task"
+    grep -qF 'Create a branch named `claude/p\$x`' "$STATE/claude.task"
+}
+
+@test "an installable with a space is refused, no session (scripts:T95)" {
+    config '[devshell]' 'installable = "path:./a b"'
+    run bash "$SCRIPT" --yes
+    [ "$status" -eq 2 ]
+    [[ "$output" == *'"path:./a b"'* ]]
+    [ ! -e "$STATE/claude.1" ]
+}
+
 # shellcheck disable=SC2016 # literal Markdown backticks, not a command
 @test "without a file the task is the prompt as written" {
     run bash "$SCRIPT" --yes

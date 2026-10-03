@@ -477,6 +477,33 @@ config() {
     [[ "$output" == *'nix-dev .#ci -c true && echo DEVSHELL-OK'* ]]
 }
 
+# shellcheck disable=SC2016 # literal $ in the installable, not expanded
+@test "devshell.installable is shell-quoted in the first check: run as printed, it is one word (scripts:T95)" {
+    config '[devshell]' 'installable = "./a;b$c|d&e"'
+    run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
+    [ "$status" -eq 0 ]
+    line="$(grep -F 'DEVSHELL-OK. Report the output.' <<<"$output")"
+    # The terminal's shell: claude gets the task as one argument.
+    claude() { printf '%s' "$2"; }
+    task="$(eval "$line")"
+    cmd="${task#Run: }"
+    cmd="${cmd%. Report the output.}"
+    # The session's shell: nix-dev gets the installable as one argument.
+    nix() { :; }
+    nix-dev() { printf '%s\n' "$#" "$1" >"$BATS_TEST_TMPDIR/args"; }
+    eval "$cmd" >/dev/null
+    [ "$(sed -n 1p "$BATS_TEST_TMPDIR/args")" = 3 ]
+    [ "$(sed -n 2p "$BATS_TEST_TMPDIR/args")" = './a;b$c|d&e' ]
+}
+
+@test "an installable with a space is refused before step 0 (scripts:T95)" {
+    config '[devshell]' 'installable = "path:./a b"'
+    run bash "$SCRIPT" <<<$'y\ny\n'
+    [ "$status" -eq 2 ]
+    [[ "$output" == *'devshell.installable'*'"path:./a b"'* ]]
+    [[ "$output" != *"== 0."* ]]
+}
+
 @test "a bad .claudinix.toml stops before step 0, naming the file and key (V34)" {
     config '[session]' 'model = "haiku"'
     run bash "$SCRIPT" <<<$'y\ny\n'
