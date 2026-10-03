@@ -25,6 +25,7 @@ The steps are defined in [`hk.pkl`](../hk.pkl) and explained in
 | `.tsv` | none beyond hygiene | `scripts/guide-steps.tsv`: a bats test keeps its step titles equal to the `docs/SETUP.md` headings |
 | `.txt` | `setup.sh`'s bats | `allowlist.txt` and `env-names.txt`: tests check the hosts they name and that no value looks like a secret; `scripts/probe-prompt.txt` is a template: the task text `probe-launch.sh` sends, with `@NIX_DEV@`, `@NIX_DEVELOP@` and `@BRANCH_PREFIX@` placeholders it fills in; it gets hygiene only |
 | `.context-limits` | `itok check`, `sherd validate`, `sherd budget` | token ceilings for `SPEC.md` |
+| `.json` | `cloud-permissions` (`nix/cloud-permissions.json` only) | the cloud session permission list: no blanket rules, the main-push deny rules present; the step also refuses a `permissions` block in `.claude/settings.json` |
 | `.lock` | none beyond hygiene | `flake.lock`, written by `nix flake lock` |
 | `.gitignore` | none beyond hygiene | git config |
 
