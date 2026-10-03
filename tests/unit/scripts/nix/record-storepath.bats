@@ -23,11 +23,15 @@ echo "$*" >>"$NIX_LOG"
 [ "$NIX_EXIT" = 0 ] || exit "$NIX_EXIT"
 printf '%s' "$STORE_PATH"
 EOF
-    # curl: logs the URL, answers with the HTTP code under test.
+    # curl: logs the URL and its args, answers with the HTTP code under
+    # test, exits CURL_EXIT (7 = could not connect, after printing 000).
+    export CURL_ARGS="$BATS_TEST_TMPDIR/curl.args"
     cat >"$STUBS/curl" <<'EOF'
 #!/usr/bin/env bash
 echo "${*: -1}" >>"$CURL_LOG"
+echo "$*" >>"$CURL_ARGS"
 printf '%s' "$NARINFO_CODE"
+exit "${CURL_EXIT:-0}"
 EOF
     chmod +x "$STUBS/nix" "$STUBS/curl"
     export PATH="$STUBS:$PATH"
@@ -82,4 +86,43 @@ EOF
     run bash "$SCRIPT" a b
     [ "$status" -eq 2 ]
     [[ "$output" == *"usage"* ]]
+}
+
+@test "unreachable cache: fails with HTTP 000, file untouched (T74)" {
+    echo "/nix/store/old-home" >"$CLOUD_HOME_STOREPATH"
+    NARINFO_CODE=000 CURL_EXIT=7 run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"000"* ]]
+    [[ "$output" == *"nothing was recorded"* ]]
+    [ "$(cat "$CLOUD_HOME_STOREPATH")" = "/nix/store/old-home" ]
+}
+
+@test "the narinfo request is bounded: --connect-timeout and --max-time (T74)" {
+    run bash "$SCRIPT"
+    grep -q -- '--connect-timeout' "$CURL_ARGS"
+    grep -q -- '--max-time' "$CURL_ARGS"
+}
+
+@test "a new path: names the file, the old path and the new one (T74)" {
+    echo "/nix/store/old-home" >"$CLOUD_HOME_STOREPATH"
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"updated"* ]]
+    [[ "$output" == *"$CLOUD_HOME_STOREPATH"* ]]
+    [[ "$output" == *"/nix/store/old-home"* ]]
+    [[ "$output" == *"$STORE_PATH"* ]]
+}
+
+@test "the same path again: says it is unchanged (T74)" {
+    echo "$STORE_PATH" >"$CLOUD_HOME_STOREPATH"
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"unchanged"* ]]
+    [ "$(cat "$CLOUD_HOME_STOREPATH")" = "$STORE_PATH" ]
+}
+
+@test "no file yet: says it was created (T74)" {
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"created"* ]]
 }
