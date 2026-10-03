@@ -96,14 +96,22 @@ in each new VM. This repository's environment installs Nix.
    - **Name**: `nix`.
    - **Network access**: **Custom**.
      - Check **Also include default list of common package managers**.
-     - In **Allowed domains**, enter every non-comment line of
-       [`allowlist.txt`](../allowlist.txt), one domain per line. It
-       lists `cache.nixos.org`, `channels.nixos.org` and
-       `releases.nixos.org` explicitly: the first probe (2026-10-03) got
-       a 403 from the proxy for `cache.nixos.org` and
-       `channels.nixos.org`, so do not rely on the default list for
-       them.
-   - **Environment variables**: one `KEY=value` per line.
+     - In **Allowed domains**, enter the base list plus the hosts of the
+       project you will work on, one domain per line:
+       - The base is every non-comment line of
+         [`allowlist.txt`](../allowlist.txt): the Nix hosts
+         (`pr0d1r2.cachix.org`, `cache.nixos.org`, `channels.nixos.org`,
+         `releases.nixos.org`) and `github.com`. It lists the nixos.org
+         hosts explicitly: the first probe (2026-10-03) got a 403 from the
+         proxy for `cache.nixos.org` and `channels.nixos.org`, so do not
+         rely on the default list for them.
+       - The project's own hosts (`index.crates.io` for Cargo, PyPI, npm
+         and so on) are not in the base. Run the `domains` app inside the
+         project: `nix run github:pr0d1r2/nix-claude-code-cloud#domains`.
+         It prints the base list followed by the hosts the project's files
+         name, each once, and copies them to the clipboard when a clipboard
+         tool is available. `--why` shows which file named each host. See
+         [`CLI.md`](CLI.md).
      - **The model is not chosen here.** Probe 6 (2026-10-03) had
        `ANTHROPIC_MODEL=claude-sonnet-5-5` set on the environment, and the
        session still ran on Claude Opus 5.5: the model is fixed when the
@@ -114,9 +122,31 @@ in each new VM. This repository's environment installs Nix.
      - Add any other names listed in [`env-names.txt`](../env-names.txt).
      - Anyone who can use the environment can read these values, so
        never put secrets here.
-   - **Setup script**: paste the whole of [`setup.sh`](../setup.sh).
-     To use your own binary cache, edit the config block at its top
-     first.
+   - **Setup script**: the one line that `scripts/setup-line.sh` prints,
+     pinned to a commit SHA. From a checkout of this repository:
+
+     ```sh
+     scripts/setup-line.sh
+     ```
+
+     It prints a single line of this shape (the SHA is the commit it
+     resolved; pass a revision to pin another one, such as
+     `scripts/setup-line.sh <rev>`):
+
+     ```text
+     d=$(mktemp -d) && curl -fsSL https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/<sha>/setup.sh -o "$d/setup.sh" && bash "$d/setup.sh" <sha>
+     ```
+
+     Paste that line, not the contents of [`setup.sh`](../setup.sh). The
+     line downloads `setup.sh` at exactly that commit and runs it with the
+     same SHA, which pins the agent home to the commit as well, so the same
+     line always gives the same VM. Use a SHA that is pushed to GitHub:
+     the VM fetches it from there. To use your own binary cache, edit the
+     config block at the top of `setup.sh`, push, and print a new line.
+     `setup.sh` itself takes the SHA as its one optional argument and
+     refuses anything that is not a full 40-character commit id.
+     The fetch from `raw.githubusercontent.com` during setup has not yet
+     been tried in a real cloud session (`SPEC.md` T57).
 5. Select **Create environment**.
 
 The setup script runs as root on the first session in the environment.
@@ -153,8 +183,10 @@ For every repository your flake fetches straight from GitHub, either:
   `pr0d1r2/nix-hk`; avoid it for `NixOS/nixpkgs`, whose git history is
   huge.
 
-`just inputs` lists every `github:` input of a flake and whether it is
-already cached.
+`nix run github:pr0d1r2/nix-claude-code-cloud#inputs`, run in your
+project, lists every `github:` input of its `flake.lock` and whether it
+is already cached (`cached`) or must be attached to the session
+(`attach`). See [`CLI.md`](CLI.md).
 
 ## 4. Choose the environment in your terminal (once per machine)
 
@@ -205,9 +237,11 @@ claude -p "<message>" --cloud <session-id>
 2. Hover over `nix` and select the settings (gear) icon on the right.
 3. Change only what the commit changed:
    - **Setup script**: select all of the old script and paste the new
-     one over it.
-   - **Allowed domains**: one domain per line; `just domains` prints
-     the full list.
+     line over it (`scripts/setup-line.sh` prints it). A bump is a new SHA
+     in that line and nothing else.
+   - **Allowed domains**: one domain per line; run
+     `nix run github:pr0d1r2/nix-claude-code-cloud#domains` in your
+     project for the full list.
    - **Environment variables**: names from `env-names.txt`.
 4. Save, then check the change in a **new** session (see below).
 
@@ -219,8 +253,8 @@ keeps its old VM; start a new session to pick up the change.
 
 - **The session fails to start, or stops during setup.** The setup
   script exited with an error. The setup checklist in your terminal
-  shows which step failed. Check that you pasted the whole script and
-  that **Also include default list of common package managers** is
+  shows which step failed. Check that you pasted the whole line, that the SHA in it is pushed to
+  GitHub, and that **Also include default list of common package managers** is
   checked.
 - **`nix: command not found`.** The session ran in another environment.
   Run `/remote-env`, pick `nix`, and start a new session.
