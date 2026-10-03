@@ -48,6 +48,35 @@ put() {
     [[ "$output" == *"scripts/b.sh"* ]]
 }
 
+@test "a path with spaces is read whole: a 100644 one fails and is named" {
+    put "scripts/my dir/a b.sh" -x
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"scripts/my dir/a b.sh has a shebang"* ]]
+}
+
+@test "a path with spaces tracked as 100755 passes" {
+    put "scripts/my dir/a b.sh" +x
+    put " lead.sh" +x
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
+
+@test "a path with a leading space is not trimmed: a 100644 one is named" {
+    put " lead.sh" -x
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"exec-bit:  lead.sh has a shebang"* ]]
+}
+
+@test "a non-ASCII path is read as is, not as git's quoted form" {
+    put "scripts/zażółć.sh" -x
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"scripts/zażółć.sh has a shebang"* ]]
+}
+
 @test "a sourced library without a shebang may stay 100644" {
     put scripts/lib.sh -x '# shellcheck shell=bash'
     run bash "$SCRIPT"
