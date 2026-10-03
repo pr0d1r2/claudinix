@@ -192,15 +192,15 @@ local all = (fast) {
 }
 
 hooks {
-  /// `stash = "git"` is correctness: without it a partially staged file is
-  /// checked as it looks in the worktree, not as it is being committed.
+  // `stash = "git"` is correctness: without it a partially staged file is
+  // checked as it looks in the worktree, not as it is being committed.
   ["pre-commit"] {
     fix = true
     stash = "git"
     steps = fast
   }
-  /// A message is not a file in the tree, so this step lives only here.
-  /// The script finds COMMIT_EDITMSG itself, keeping the step one command.
+  // A message is not a file in the tree, so this step lives only here.
+  // The script finds COMMIT_EDITMSG itself, keeping the step one command.
   ["commit-msg"] {
     steps {
       ["commit-msg"] {
@@ -211,7 +211,7 @@ hooks {
   ["pre-push"] {
     steps = all
   }
-  /// The entry point for CI and for a full run by hand: `hk check --all`.
+  // The entry point for CI and for a full run by hand: `hk check --all`.
   ["check"] {
     steps = all
   }
