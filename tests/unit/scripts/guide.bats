@@ -249,3 +249,26 @@ model_doc() {
     [[ "$output" == *"NCCC_SETUP_REV"* ]]
     run ! grep -q 'SETUP-LINE' "$LOG"
 }
+
+@test "step 3 lists the env vars from env-names.txt, optional ones marked (T48)" {
+    env_file="$BATS_TEST_TMPDIR/env-names.txt"
+    printf '%s\n' '# header' '' '# Does something.' 'NEEDED=1' \
+        '# Optional: not needed.' 'EXTRA_MS=5' >"$env_file"
+    NCCC_ENV_NAMES="$env_file" run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
+    [ "$status" -eq 0 ]
+    grep -qx '  NEEDED=1' <<<"$output"
+    grep -qx '  EXTRA_MS=5   (optional)' <<<"$output"
+    run ! grep -q 'header' <<<"$output"
+}
+
+@test "step 3 with the repo's env-names.txt shows the optional Bash timeout (T48)" {
+    NCCC_ENV_NAMES="$REPO/env-names.txt" run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
+    grep -qx '  ANTHROPIC_MODEL=claude-sonnet-5-5' <<<"$output"
+    grep -qx '  BASH_DEFAULT_TIMEOUT_MS=600000   (optional)' <<<"$output"
+}
+
+@test "step 3 without env-names.txt points at it and goes on (T48)" {
+    NCCC_ENV_NAMES="$BATS_TEST_TMPDIR/none.txt" run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"env-names.txt"* ]]
+}
