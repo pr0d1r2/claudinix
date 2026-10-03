@@ -14,7 +14,7 @@ sib|docs|human docs in plain English: setup walkthrough, facts, runbook, securit
 
 ## §C CONSTRAINTS
 
-- C12: agent home reuses owner home config pattern (`nix/modules/claude-home.nix`): `nix-home-manager-claude-code` module + set-and-setting `mkTrip` (today owner home config `lib/mk-trip.nix` → move upstream to set-and-setting, ⊥ copy) \| `lib.mkSet` meanwhile. cavekit = non-flake input `github:JuliusBrussee/cavekit` (plugins ⊥ installed in cloud ∴ skills materialized). standalone home-manager (Ubuntu, ⊥ NixOS).
+- C12: agent home reuses owner home config pattern (`nix/modules/claude-home.nix`): `nix-home-manager-claude-code` module + set-and-setting `mkTrip` (today owner home config `lib/mk-trip.nix` → move upstream to set-and-setting, ⊥ copy) \| `lib.mkSet` meanwhile. cavekit = non-flake input `github:JuliusBrussee/cavekit` (plugins ⊥ installed in cloud ∴ skills materialized). standalone home-manager (Ubuntu, ⊥ NixOS). sources `nix-home-manager-claude-code`, set-and-setting \& cavekit as `flake = false` inputs (import `modules/default.nix`, `set/lib/mk-set.nix`) until upstream drops dev-only inputs (nix-home-manager-claude-code#34, set-and-setting#559); only `home-manager` is a flake input.
 
 ## §I INTERFACES
 
@@ -29,7 +29,7 @@ V16: agent home = agent-level tools \& skills only (what skills shell out to); �
 id|status|task|cites
 T15|.|set-and-setting issue: move `mkTrip` from owner home config `lib/mk-trip.nix` upstream; add cavekit category (non-flake input). via its spec|C12,C9
 T16|x|`homeConfigurations.cloud`: home-manager standalone, `nix-home-manager-claude-code` + set (`mkTrip` \| `mkSet`) + cavekit skills (`spec`,`build`,`check`,`backprop`,`caveman`) + `FORMAT.md`; `nix flake check` asserts skill files present|C12,V16,I.file
-T18|.|CI: build `activationPackage` → `cachix push pr0d1r2` → commit store path to `cloud-home.storepath` (token CI-only, `.:V6`)|V15,`.:V6`,C5
+T18|x|CI: build `activationPackage` → `cachix push pr0d1r2` → verify narinfo; CI stays `contents: read` ∴ owner records store path via `scripts/nix/record-storepath.sh` (writes `cloud-home.storepath` only on narinfo 200) \& commits it (token CI-only, `.:V6`)|V15,`.:V6`,C5
 
 ## §B BUGS
 
