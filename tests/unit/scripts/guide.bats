@@ -149,3 +149,59 @@ titles() {
     run bash "$SCRIPT" --from 9 </dev/null
     [ "$status" -eq 2 ]
 }
+
+# A MODEL.md price table with prices no real model has, so a hit can
+# only come from reading this file (scripts:T26).
+model_doc() {
+    printf '%s\n' '# Model choice' '' '| model | input | output |' '|---|---|---|' \
+        "| Claude Opus 5.5 | $1 |" "| Claude Sonnet 5.5 | $2 |" >"$BATS_TEST_TMPDIR/MODEL.md"
+}
+
+# shellcheck disable=SC2016 # literal dollar prices, not expansions
+@test "step 5 reads the Sonnet and Opus prices from MODEL.md (scripts:T26)" {
+    model_doc '$7.77 | $38.88' '$3.33 | $16.66'
+    NCCC_MODEL_DOC="$BATS_TEST_TMPDIR/MODEL.md" run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'$3.33'* ]]
+    [[ "$output" == *'$16.66'* ]]
+    [[ "$output" == *'$7.77'* ]]
+    [[ "$output" == *'$38.88'* ]]
+    [[ "$output" != *"see docs/MODEL.md"* ]]
+}
+
+# shellcheck disable=SC2016 # literal dollar prices, not expansions
+@test "step 5: the repo's own MODEL.md parses, prices match its table (scripts:T26)" {
+    doc="$REPO/docs/MODEL.md"
+    sonnet="$(grep -F '| Claude Sonnet 5.5 |' "$doc" | cut -d'|' -f3 | tr -d ' ')"
+    opus="$(grep -F '| Claude Opus 5.5 |' "$doc" | cut -d'|' -f3 | tr -d ' ')"
+    [ -n "$sonnet" ] && [ -n "$opus" ]
+    NCCC_MODEL_DOC="$doc" run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
+    [[ "$output" == *"$sonnet"* ]]
+    [[ "$output" == *"$opus"* ]]
+    [[ "$output" != *"see docs/MODEL.md"* ]]
+}
+
+# shellcheck disable=SC2016 # literal dollar prices, not expansions
+@test "step 5: MODEL.md missing: points at it, shows no price (scripts:T26)" {
+    NCCC_MODEL_DOC="$BATS_TEST_TMPDIR/nope.md" run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"see docs/MODEL.md"* ]]
+    run ! grep -E '\$[0-9]' <<<"$output"
+}
+
+# shellcheck disable=SC2016 # literal dollar prices, not expansions
+@test "step 5: a price that is not a dollar amount is not shown (scripts:T26)" {
+    model_doc 'TBD | $38.88' '$3.33 | soon'
+    NCCC_MODEL_DOC="$BATS_TEST_TMPDIR/MODEL.md" run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
+    [ "$status" -eq 0 ]
+    [ "$(grep -c 'see docs/MODEL.md' <<<"$output")" -eq 2 ]
+    run ! grep -E '\$[0-9]' <<<"$output"
+}
+
+# shellcheck disable=SC2016 # literal dollar prices, not expansions
+@test "step 5: a model missing from the table points at MODEL.md (scripts:T26)" {
+    printf '%s\n' '| model | input | output |' '| Claude Opus 5.5 | $7.77 | $38.88 |' >"$BATS_TEST_TMPDIR/MODEL.md"
+    NCCC_MODEL_DOC="$BATS_TEST_TMPDIR/MODEL.md" run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
+    [[ "$output" == *'$7.77'* ]]
+    [[ "$output" == *"see docs/MODEL.md"* ]]
+}
