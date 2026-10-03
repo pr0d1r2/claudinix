@@ -1,8 +1,10 @@
 #!/usr/bin/env bats
 bats_require_minimum_version 1.5.0
 # Unit tests for scripts/guide.sh (SPEC scripts:T26, I.cmd `guide`,
-# C2, .:V10). Answers come on stdin; open, the clipboard, claude and the
-# inputs/domains/setup-line tools are stubs, so nothing leaves the test.
+# C2, .:V10, .:C25). Answers come on stdin; open, the clipboard, claude and
+# the inputs/domains/setup-line tools are stubs, so nothing leaves the test.
+# The setup line comes from a README release block written by the real
+# readme-setup-line.sh, so the guide reads the format the release writes.
 
 setup() {
     REPO="$BATS_TEST_DIRNAME/../../.."
@@ -12,11 +14,14 @@ setup() {
     P="$BATS_TEST_TMPDIR/project"
     export LOG="$BATS_TEST_TMPDIR/log"
     export CLAUDINIX_SCRIPTS="$LIB"
-    export CLAUDINIX_SETUP_REV=0123456789abcdef0123456789abcdef01234567
+    export SHA=0123456789abcdef0123456789abcdef01234567
+    REL=89abcdef0123456789abcdef0123456789abcdef
+    export CLAUDINIX_README="$BATS_TEST_TMPDIR/release/README.md"
+    unset CLAUDINIX_SETUP_REV
     export CLAUDE_SETTINGS="$BATS_TEST_TMPDIR/settings.json"
     export CLIPBOARD_TOOLS="$STUBS/pbcopy"
     export GUIDE_OPEN_TOOLS="$STUBS/open"
-    mkdir -p "$STUBS" "$LIB" "$P"
+    mkdir -p "$STUBS" "$LIB" "$P" "${CLAUDINIX_README%/*}"
     : >"$LOG"
     cp "$REPO/scripts/guide-steps.tsv" "$LIB/"
     echo '{"remote":{"defaultEnvironmentId":"env_123"}}' >"$CLAUDE_SETTINGS"
@@ -36,7 +41,18 @@ setup() {
     }
     chmod +x "$STUBS"/*
     export PATH="$STUBS:$PATH"
+    printf '%s\n' '# claudinix' '<!-- BEGIN setup-line -->' '<!-- END setup-line -->' '' '## Next' >"$CLAUDINIX_README"
+    README_FILE="$CLAUDINIX_README" bash "$REPO/scripts/guard/readme-setup-line.sh" --write "$REL"
+    LINE="$(GH_BIN=claudinix-no-gh-offline bash "$REPO/scripts/setup-line.sh" --force "$REL" 2>/dev/null)"
     cd "$P" || return 1
+}
+
+# no_release: the README block as it is before the first release (.:C25).
+no_release() {
+    # shellcheck disable=SC2016 # literal Markdown backticks, not a command
+    printf '%s\n' '<!-- BEGIN setup-line -->' \
+        'No release yet: the maintainer publishes the line with `scripts/release.sh REV`.' \
+        '<!-- END setup-line -->' >"$CLAUDINIX_README"
 }
 
 # Every step's title, in order, as the guide prints it.
@@ -89,14 +105,14 @@ titles() {
     grep -qx 'open https://claude.ai/code' "$LOG"
 }
 
-@test "step 3 copies the env name, the allowed domains and the setup line" {
+@test "step 3 copies the env name, the allowed domains and the README's release line (.:C25)" {
     run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
     [ "$status" -eq 0 ]
     grep -qx 'nix' "$LOG"
     grep -qx 'domains .' "$LOG"
     grep -qx 'index.crates.io' "$LOG"
-    grep -qx "setup-line $CLAUDINIX_SETUP_REV" "$LOG"
-    grep -qx "SETUP-LINE $CLAUDINIX_SETUP_REV" "$LOG"
+    grep -qxF "$LINE" "$LOG"
+    run ! grep -q 'setup-line' "$LOG"
     run ! grep -qx '#!/usr/bin/env bash' "$LOG"
     [ "$(grep -c '^--- clip' "$LOG")" -eq 3 ]
 }
@@ -188,7 +204,8 @@ titles() {
     [ "$(titles "$output")" = "== Updating the environment (after a change here) ==" ]
     [[ "$output" == *"start page"* ]]
     [[ "$output" == *"new session"* ]]
-    grep -qx "SETUP-LINE $CLAUDINIX_SETUP_REV" "$LOG"
+    grep -qxF "$LINE" "$LOG"
+    run ! grep -q 'setup-line' "$LOG"
     grep -qx 'index.crates.io' "$LOG"
 }
 
@@ -273,59 +290,123 @@ model_doc() {
     [[ "$output" == *"see docs/MODEL.md"* ]]
 }
 
-@test "setup line refused (CI not green): guide stops, copies nothing for it (T69)" {
-    SETUP_LINE_RC=1 run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
-    [ "$status" -eq 1 ]
-    [[ "$output" == *"--force"* ]]
-    run ! grep -q 'SETUP-LINE' "$LOG"
-}
-
-@test "--force reaches setup-line, in setup and update flows (T69)" {
-    run bash "$SCRIPT" --force --from 3 <<<$'y\ny\n'
-    [ "$status" -eq 0 ]
-    grep -qx "setup-line --force $CLAUDINIX_SETUP_REV" "$LOG"
-    : >"$LOG"
-    run bash "$SCRIPT" update --force <<<''
-    [ "$status" -eq 0 ]
-    grep -qx "setup-line --force $CLAUDINIX_SETUP_REV" "$LOG"
-}
-
-@test "--agent-home reaches setup-line, in setup and update flows (.:C24)" {
+@test "--agent-home appends --agent-home to the README's line, in setup and update flows (.:C24)" {
     run bash "$SCRIPT" --agent-home --from 3 <<<$'y\ny\n'
     [ "$status" -eq 0 ]
-    grep -qx "setup-line --agent-home $CLAUDINIX_SETUP_REV" "$LOG"
+    grep -qxF "$LINE --agent-home" "$LOG"
     : >"$LOG"
-    run bash "$SCRIPT" update --force --agent-home <<<''
+    run bash "$SCRIPT" update --agent-home <<<''
     [ "$status" -eq 0 ]
-    grep -qx "setup-line --force --agent-home $CLAUDINIX_SETUP_REV" "$LOG"
+    grep -qxF "$LINE --agent-home" "$LOG"
+    run ! grep -q 'setup-line' "$LOG"
 }
 
-@test "without --agent-home, setup-line is not asked for it (.:C24)" {
+@test "without --agent-home, the copied line does not ask for it (.:C24)" {
     run bash "$SCRIPT" update <<<''
     [ "$status" -eq 0 ]
     run ! grep -q -- '--agent-home' "$LOG"
 }
 
-@test "no CLAUDINIX_SETUP_REV: the line is for HEAD of the clone the guide runs from" {
-    while read -r var; do unset "$var"; done < <(env | sed -n 's/^\(GIT_[A-Z_]*\)=.*/\1/p')
-    unset CLAUDINIX_SETUP_REV
-    clone="$BATS_TEST_TMPDIR/clone"
-    mkdir -p "$clone"
-    cp -R "$LIB" "$clone/scripts"
-    git init -q "$clone"
-    git -C "$clone" -c user.name=t -c user.email=t@example.com commit -q --allow-empty -m one
-    head="$(git -C "$clone" rev-parse HEAD)"
-    CLAUDINIX_SCRIPTS="$clone/scripts" run bash "$SCRIPT" update <<<''
+@test "no CLAUDINIX_README: the README beside the scripts dir (.:C25)" {
+    unset CLAUDINIX_README
+    cp "$BATS_TEST_TMPDIR/release/README.md" "$LIB/../README.md"
+    run bash "$SCRIPT" update <<<''
     [ "$status" -eq 0 ]
-    grep -qx "setup-line $head" "$LOG"
+    grep -qxF "$LINE" "$LOG"
 }
 
-@test "no CLAUDINIX_SETUP_REV and not in a clone: says how to pin, stops" {
-    unset CLAUDINIX_SETUP_REV
-    GIT_CEILING_DIRECTORIES="$BATS_TEST_TMPDIR" run bash "$SCRIPT" update <<<''
+@test "no release yet: says so, says what to do, stops before step 4, asks nobody (.:C25)" {
+    no_release
+    run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
     [ "$status" -eq 1 ]
-    [[ "$output" == *"CLAUDINIX_SETUP_REV"* ]]
+    [[ "$output" == *"guide: stop here -- no release yet"* ]]
+    [[ "$output" == *"--rev SHA"* ]]
+    [[ "$output" != *"== 4."* ]]
+    run ! grep -q 'setup-line' "$LOG"
     run ! grep -q 'SETUP-LINE' "$LOG"
+}
+
+@test "no release yet in the update flow: stops the same way (.:C25)" {
+    no_release
+    run bash "$SCRIPT" update <<<''
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"no release yet"* ]]
+    run ! grep -q 'setup-line' "$LOG"
+}
+
+@test "a README with no setup-line block: names it and stops (.:C25)" {
+    printf '%s\n' '# claudinix' >"$CLAUDINIX_README"
+    run bash "$SCRIPT" update <<<''
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"$CLAUDINIX_README"* ]]
+    [[ "$output" == *"--rev SHA"* ]]
+    rm "$CLAUDINIX_README"
+    run bash "$SCRIPT" update <<<''
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"$CLAUDINIX_README"* ]]
+}
+
+@test "the repo's own README: a release line, or no release yet (.:C25)" {
+    CLAUDINIX_README="$REPO/README.md" run bash "$SCRIPT" update <<<''
+    if [ "$status" -eq 0 ]; then
+        grep -qE '^d=\$\(mktemp -d\) && curl ' "$LOG"
+    else
+        [ "$status" -eq 1 ]
+        [[ "$output" == *"no release yet"* ]]
+    fi
+}
+
+@test "no release yet and --rev SHA: setup-line.sh prints the line for that SHA (.:C25)" {
+    no_release
+    run bash "$SCRIPT" --rev "$SHA" --from 3 <<<$'y\ny\n'
+    [ "$status" -eq 0 ]
+    grep -qx "setup-line $SHA" "$LOG"
+    grep -qx "SETUP-LINE $SHA" "$LOG"
+}
+
+@test "--rev wins over a release in the README (.:C25)" {
+    run bash "$SCRIPT" update --rev "$SHA" <<<''
+    [ "$status" -eq 0 ]
+    grep -qx "setup-line $SHA" "$LOG"
+    run ! grep -qxF "$LINE" "$LOG"
+}
+
+@test "--rev needs a full SHA (.:C25)" {
+    run bash "$SCRIPT" --rev abc123 </dev/null
+    [ "$status" -eq 2 ]
+    run bash "$SCRIPT" --rev </dev/null
+    [ "$status" -eq 2 ]
+}
+
+@test "CLAUDINIX_SETUP_REV still pins the line through setup-line.sh (maintainer path)" {
+    no_release
+    CLAUDINIX_SETUP_REV="$SHA" run bash "$SCRIPT" update <<<''
+    [ "$status" -eq 0 ]
+    grep -qx "setup-line $SHA" "$LOG"
+    grep -qx "SETUP-LINE $SHA" "$LOG"
+}
+
+@test "setup line refused (CI not green): guide stops, copies nothing for it (T69)" {
+    no_release
+    SETUP_LINE_RC=1 run bash "$SCRIPT" --rev "$SHA" --from 3 <<<$'y\ny\n'
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"--force"* ]]
+    run ! grep -q 'SETUP-LINE' "$LOG"
+}
+
+@test "--force and --agent-home reach setup-line with --rev, in setup and update flows (T69, .:C24)" {
+    no_release
+    run bash "$SCRIPT" --force --rev "$SHA" --from 3 <<<$'y\ny\n'
+    [ "$status" -eq 0 ]
+    grep -qx "setup-line --force $SHA" "$LOG"
+    : >"$LOG"
+    run bash "$SCRIPT" update --force --agent-home --rev "$SHA" <<<''
+    [ "$status" -eq 0 ]
+    grep -qx "setup-line --force --agent-home $SHA" "$LOG"
+    : >"$LOG"
+    run bash "$SCRIPT" update --agent-home --rev "$SHA" <<<''
+    [ "$status" -eq 0 ]
+    grep -qx "setup-line --agent-home $SHA" "$LOG"
 }
 
 @test "step 3 lists the env vars from env-names.txt, optional ones marked (T48)" {
