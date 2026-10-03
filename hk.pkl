@@ -63,6 +63,13 @@ local fast = new Mapping<String, Step> {
     fix = "scripts/hk/run-tool.sh just --fmt --unstable"
   }
 
+  // hk parses its config leniently, so a file it accepts may still be
+  // invalid Pkl (B5). The official evaluator is the judge (V27).
+  ["pkl-eval"] {
+    glob = List("hk.pkl", "pkl/*.pkl")
+    check = "scripts/hk/run-tool.sh pkl eval --output-path /dev/null hk.pkl"
+  }
+
   ["actionlint"] {
     glob = List(".github/workflows/*.yml", ".github/workflows/*.yaml")
     check = "scripts/hk/run-tool.sh actionlint {{files}}"
