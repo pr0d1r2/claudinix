@@ -67,6 +67,11 @@ while IFS= read -r line || [ -n "$line" ]; do
 done <"$allowlist"
 touch "$tmp/base"
 
+# Each project reads its own .claudinix.toml (scripts:T97): a config a
+# caller handed down (scripts:T96) is one project's, so it holds only
+# when there is one project.
+[ "${#dirs[@]}" -eq 1 ] || unset CLAUDINIX_CONFIG_JSON
+
 : >"$tmp/found"
 for dir in "${dirs[@]}"; do
     if [ ! -d "$dir" ]; then

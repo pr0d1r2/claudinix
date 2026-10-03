@@ -23,12 +23,13 @@
 # eval per run.
 #
 # Usage: config.sh [--dir DIR] get TABLE.KEY | json | check
-#        file: DIR/.claudinix.toml, else at the root of the cwd's git
+#        file: at the root of DIR's git repo, else in DIR; without
+#        --dir, CLAUDINIX_CONFIG, else at the root of the cwd's git
 #        repo, else in the cwd
 # Env:   CLAUDINIX_CONFIG_JSON  the effective config a caller already read
 #                               (`json`'s output): used as it is, after the
 #                               same checks; no file is read, no nix runs
-#        CLAUDINIX_CONFIG       the file to read instead (wins over --dir)
+#        CLAUDINIX_CONFIG       the file to read when no --dir is given
 #        CLAUDINIX_SCRIPTS      dir holding config.jq (default: this script's dir)
 
 set -euo pipefail
@@ -102,14 +103,18 @@ if [ -n "${CLAUDINIX_CONFIG_JSON:-}" ]; then
     exit 0
 fi
 
-if [ -n "${CLAUDINIX_CONFIG:-}" ]; then
-    file="$CLAUDINIX_CONFIG"
-elif [ "$dir_given" = 1 ]; then
+# --dir D resolves as the no-flag case does from the cwd: D's git top,
+# else D itself (scripts:T97). CLAUDINIX_CONFIG only stands in for the
+# cwd's file, so it never crosses into another project's --dir.
+if [ "$dir_given" = 1 ]; then
     if [ ! -d "$dir" ]; then
         echo "config: no directory $dir -- nothing was read" >&2
         exit 2
     fi
-    file="${dir%/}/.claudinix.toml"
+    root="$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null || true)"
+    file="${root:-${dir%/}}/.claudinix.toml"
+elif [ -n "${CLAUDINIX_CONFIG:-}" ]; then
+    file="$CLAUDINIX_CONFIG"
 else
     root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
     file="${root:-.}/.claudinix.toml"
