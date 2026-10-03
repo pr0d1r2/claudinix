@@ -12,7 +12,7 @@ functional Nix (flakes on, owner cachix) inside Claude Code cloud session VM; �
 - C6: network = Custom + "include default list" (covers `*.nixos.org`) + `pr0d1r2.cachix.org`. GitHub traffic via GitHub proxy: API \& release-asset requests reach only repos attached to session (docs) ∴ `github:` flake inputs (e.g. `github:NixOS/nixpkgs`) may 403 ?.
 - C7: shell style per owner infra repo: `set -euo pipefail`, shellcheck, `shfmt -i 4`, bats 1-to-1, TDD RED→GREEN, env-var seams for paths.
 - C8: unknown session facts ?: session uid (root ?), systemd PID 1 ?, unprivileged user namespaces ?, Bash tool sources shell profiles ?. resolved by probe (T3, T4).
-- C9: first consumer = owner's private cloud-credit project \& its public Rust targets; reusable by any flake repo. consumers change via own specs.
+- C9: first consumer = owner's private the owner's private seed repo (its T7) \& its public Rust targets; reusable by any flake repo. consumers change via own specs.
 - C10: open source (decided 2026-10-03). MIT, public GitHub `pr0d1r2/nix-claude-code-cloud`, same as owner's `sherd` \| `itok` \| `rekall`. public GitHub also = cloud sessions can clone it.
 - C11: owner-specific values (cachix host + key) in 1 config block at top of `setup.sh`; fork = edit block only. README says how.
 
@@ -36,12 +36,12 @@ V8: in session, `nix develop` on target flake w/ `github:` inputs succeeds; else
 V9: nix store usable by session uid (whatever it is): write via daemon \| ownership.
 V10: ∀ env in claude.ai UI ↔ files in this repo; mismatch = bug (§B).
 V11: Nix version \& installer sha256 change together, 1 commit.
-V12: ⊥ private info in repo \| history: ⊥ private hostnames, LAN, self-hosted forge paths, private repo names \| commits, tokens. public-safe from 1st push.
+V12: ⊥ private info in repo \| history: ⊥ private hostnames, LAN, self-hosted forge paths, tokens. naming the owner's private seed repo OK (owner 2026-10-03). public-safe from 1st push.
 
 ## §T TASKS
 id|status|task|cites
 T1|.|`flake.nix` devShell (bats, shellcheck, shfmt, just, coreutils) + `justfile` `check` + pre-commit hook running `just check`|C7,I.cmd
-T2|.|import seed from owner's private prototype (`cloud/envs/nix/`) → repo root (`setup.sh`, `allowlist.txt`, `env-names.txt`, `tests/unit/setup.bats`); fix paths; `just check` green|V1,V2,V3,V4,V6,V7,I.file
+T2|.|import seed from the owner's private seed repo `a35942b` `cloud/envs/nix/` → repo root (`setup.sh`, `allowlist.txt`, `env-names.txt`, `tests/unit/setup.bats`); fix paths; `just check` green|V1,V2,V3,V4,V6,V7,I.file
 T3|.|`probe.sh`: `id`, PID 1 comm, systemd dir, `unshare -Ur true`, profile sourcing, `nix --version`, `nix config show substituters`, `nix flake metadata github:NixOS/nixpkgs`, cachix narinfo hit, elapsed; bats w/ stubs|C8,V8,V9,I.file
 T4|.|MANUAL create env `nix` at claude.ai/code from repo files; run 1 probe session; record facts → resolve C8 `?`, C6 `?`|C8,C6,V10,I.ext.env
 T5|.|if probe: session uid ≠ root ∧ no systemd → make store usable (V9) \| switch install mode; bats|V9,V4
