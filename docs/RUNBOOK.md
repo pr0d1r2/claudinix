@@ -184,7 +184,16 @@ The environment's setup line must include `--agent-home`. This repository's
 `/build` skill; without the flag it builds by hand from `AGENTS.md`. See
 [`SETUP.md`](SETUP.md) for the line.
 
-Unattended runs may still hit permission prompts; see
+`--agent-home` also installs the cloud permissions: a narrow list that
+pre-approves the gate's own commands and pushing `claude/*` branches, and
+denies pushing `main`. The agent home writes it into `~/.claude/settings.json`
+before Claude starts, so local sessions never get it. As a fallback, add
+`CLAUDINIX_SESSION_PERMISSIONS=1` to the cloud environment: the SessionStart
+hook then merges the same list into the gitignored
+`.claude/settings.local.json`. It is off by default and acts only in a cloud
+session. Whether the first route survives to launch, and whether the fallback
+applies in the session that wrote it, is not measured yet (experiment T104).
+Anything outside the list can still prompt; see
 [`FACTS.md`](FACTS.md) once measured. Reference: [`CLI.md`](CLI.md#cloud).
 
 ## Emergency stop of cloud spend
