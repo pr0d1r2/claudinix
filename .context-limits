@@ -1,0 +1,15 @@
+# Token ceilings (SPEC C20, T21). itok format, shared with sherd.
+#
+# File rows (`itok check`): the cost of one spec file, o200k tokens.
+# Dir rows (`sherd budget`): the CHAIN cost of reaching a node -- root
+# plus every ancestor plus the node -- which is what an agent pays before
+# it sees any code. `.` is the root node.
+#
+# Set 2026-10-03 at ~15% over the measured size (`itok estimate --bpe`
+# 11000 for SPEC.md; `sherd budget` chain 10821). A raise is its own
+# commit with the measurement in `Why:`; the fix for an overage is to
+# split SPEC.md into sherd nodes (C20), not to raise the number.
+
+SPEC.md 12650
+
+.       12450
