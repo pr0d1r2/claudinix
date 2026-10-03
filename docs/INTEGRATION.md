@@ -11,9 +11,9 @@ right and this file has a bug.
 
 | caller | set | when |
 |---|---|---|
-| `pre-commit` hook | `fast`, 32 steps | every commit, on the staged files |
-| `pre-push` hook | `all`, 36 steps | every push |
-| `hk check --all` in CI | `all`, 36 steps | every push to `main` and every pull request |
+| `pre-commit` hook | `fast`, 33 steps | every commit, on the staged files |
+| `pre-push` hook | `all`, 37 steps | every push |
+| `hk check --all` in CI | `all`, 37 steps | every push to `main` and every pull request |
 
 A fourth hook, `commit-msg`, runs one step on the commit message.
 
@@ -115,6 +115,7 @@ hk hands the step; by hand, name the files yourself.
 | `readme-badges` | `README.md`, `LICENSE`, `setup.sh`, `.claudinix.toml`, `hk.pkl`, `pkl/*.pkl`, `SPEC.md`, `ci.yml`, `tests/unit/**/*.bats`, `dev/**` | `claudinix-dev badges --check` (fix: `--write`) |
 | `integration-counts` | `docs/INTEGRATION.md`, `hk.pkl`, `pkl/*.pkl`, `dev/**` | `claudinix-dev counts --check` (fix: `--write`) |
 | `third-party-notices` | `docs/THIRD-PARTY-NOTICES.md`, `flake.lock`, `dev/**` | `claudinix-dev notices --check` (fix: `--write`) |
+| `prose-facts` | `README.md`, `docs/LLM-DISCLAIMER.md`, `docs/FACTS.md`, `setup.sh`, `hk.pkl`, `pkl/*.pkl`, `SPEC.md`, `tests/unit/**/*.bats`, `dev/**` | `claudinix-dev facts --check` |
 
 A few notes on why the steps look the way they do:
 

@@ -228,6 +228,23 @@ local fast = new Mapping<String, Step> {
     check = "scripts/hk/run-tool.sh claudinix-dev notices --check"
     fix = "scripts/hk/run-tool.sh claudinix-dev notices --write"
   }
+  // The numbers README.md and docs/LLM-DISCLAIMER.md state in prose equal
+  // their owners (dev:T110): every owner is in the glob (V19). No fix:
+  // the prose is rewritten by hand.
+  ["prose-facts"] {
+    glob = List(
+      "README.md",
+      "docs/LLM-DISCLAIMER.md",
+      "docs/FACTS.md",
+      "setup.sh",
+      "hk.pkl",
+      "pkl/*.pkl",
+      "SPEC.md",
+      "tests/unit/**/*.bats",
+      "dev/**"
+    )
+    check = "scripts/hk/run-tool.sh claudinix-dev facts --check"
+  }
 
   // This repo's own .claudinix.toml must pass the reader every tool uses
   // (T92, scripts:V34). The reader and its schema are data the check
