@@ -99,7 +99,7 @@ fi
 
 # uncached NAME REV: no cache holds it, or nobody knows.
 uncached() {
-    [ "$known" = 0 ] || grep -qxF "$1 $2 attach" "$tmp/status"
+    [ "$known" = 0 ] || grep -qxF "$1 $2 uncached" "$tmp/status"
 }
 
 git_overrides=()
@@ -147,7 +147,7 @@ attempt() {
 
 missing=0
 if [ "$known" = 1 ]; then
-    missing="$(grep -c ' attach$' "$tmp/status" || true)"
+    missing="$(grep -c ' uncached$' "$tmp/status" || true)"
 fi
 
 if [ "$missing" -gt 0 ]; then

@@ -15,10 +15,12 @@ dir="${1:?usage: nix.sh PROJECT_DIR}"
 hosts="$(dirname "${BASH_SOURCE[0]}")/hosts.sh"
 
 # The lines of every `substituters = ...;` assignment, which may span
-# lines as a list; comments and input URLs elsewhere are left out.
+# lines as a list; comments (from `#` on) and input URLs elsewhere are
+# left out.
 substituters() {
     local line inside=0 assign='substituters[[:space:]]*='
     while IFS= read -r line || [ -n "$line" ]; do
+        line="${line%%#*}"
         if [[ "$line" =~ $assign ]]; then
             inside=1
         fi

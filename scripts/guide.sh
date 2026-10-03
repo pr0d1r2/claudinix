@@ -97,8 +97,8 @@ copy() {
     for tool in ${CLIPBOARD_TOOLS:-pbcopy wl-copy xclip}; do
         command -v "$tool" >/dev/null 2>&1 || continue
         case "${tool##*/}" in
-        xclip) "$tool" -selection clipboard <"$1" 2>/dev/null && return 0 ;;
-        *) "$tool" <"$1" 2>/dev/null && return 0 ;;
+        xclip) "$tool" -selection clipboard <"$1" >/dev/null 2>&1 && return 0 ;;
+        *) "$tool" <"$1" >/dev/null 2>&1 && return 0 ;;
         esac
         return 1
     done
@@ -214,8 +214,8 @@ step_3() {
     echo
     echo "GitHub repositories the flake fetches (a session gets only attached ones):"
     if bash "$lib/inputs.sh" "$dir" >"$tmp/inputs"; then
-        if grep -q ' attach$' "$tmp/inputs"; then
-            grep ' attach$' "$tmp/inputs" | sed 's/ attach$//; s/^/  attach or cache: /'
+        if grep -q ' uncached$' "$tmp/inputs"; then
+            grep ' uncached$' "$tmp/inputs" | sed 's/ uncached$//; s/^/  attach or cache: /'
         else
             echo "  every github input is in a cache: nothing to attach."
         fi

@@ -9,13 +9,17 @@
 # deduped) prints one line:
 #
 #   owner/repo rev cached   -- a cache has its source's narinfo
-#   owner/repo rev attach   -- attach it to the session or routine
+#   owner/repo rev uncached -- no cache has it: GitHub must serve it
+#
+# When any input is uncached, one line on stderr says what to do: nix-dev
+# fetches them over git, or the flake can name them as
+# `git+https://github.com/<owner>/<repo>` (scripts:T80).
 #
 # Store paths come from `nix flake archive --dry-run --json`, which fetches
 # nothing. Run it from the project you will send to the cloud.
 #
 # Usage: inputs.sh [--check] [FLAKE_DIR]   (default: the current directory)
-#   --check  exit 1 when any input must be attached
+#   --check  exit 1 when any input is uncached
 # Env:   INPUTS_CACHES  cache URLs, space-separated
 #                       (default: owner cachix and cache.nixos.org)
 #        CLAUDINIX_SCRIPTS  dir holding inputs.jq (default: this script's dir)
@@ -81,10 +85,14 @@ while read -r name rev path; do
     if cached "${path:-}"; then
         echo "$name $rev cached"
     else
-        echo "$name $rev attach"
+        echo "$name $rev uncached"
         status=1
     fi
 done <"$tmp/inputs"
+
+if [ "$status" = 1 ]; then
+    echo "inputs: uncached inputs come from GitHub: nix-dev fetches them over git, or rewrite each as git+https://github.com/<owner>/<repo> in flake.nix" >&2
+fi
 
 if [ "$check" = 1 ]; then
     exit "$status"

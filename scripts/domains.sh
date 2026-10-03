@@ -106,7 +106,8 @@ for tool in ${CLIPBOARD_TOOLS:-pbcopy wl-copy xclip}; do
     xclip) set -- -selection clipboard ;;
     *) set -- ;;
     esac
-    if "$tool" "$@" <"$tmp/hosts" 2>/dev/null; then
+    # xclip stays behind as a daemon: let it hold no pipe of ours open.
+    if "$tool" "$@" <"$tmp/hosts" >/dev/null 2>&1; then
         echo "domains: copied $(wc -l <"$tmp/hosts" | tr -d ' ') hosts to the clipboard (${tool##*/})" >&2
     fi
     break
