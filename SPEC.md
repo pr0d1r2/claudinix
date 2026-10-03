@@ -36,7 +36,7 @@ V8: in session, `nix develop` on target flake w/ `github:` inputs succeeds; else
 V9: nix store usable by session uid (whatever it is): write via daemon \| ownership.
 V10: ∀ env in claude.ai UI ↔ files in this repo; mismatch = bug (§B).
 V11: Nix version \& installer sha256 change together, 1 commit.
-V12: ⊥ private info in repo \| history: ⊥ private hostnames, LAN, self-hosted forge paths, tokens. naming the owner's private seed repo OK (owner 2026-10-03). public-safe from 1st push.
+V12: ⊥ private info in repo \| history: ⊥ private hostnames, LAN, self-hosted forge paths, tokens. public-safe from 1st push.
 
 ## §T TASKS
 id|status|task|cites
