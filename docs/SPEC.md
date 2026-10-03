@@ -48,10 +48,10 @@ T46|x|ARCHIVED to SPEC-ARCHIVE.md|C22,C11
 T47|.|cloud permission prompts (seen 2026-10-03: "Allow Claude to use add repo (claude-code-remote)?" blocked the sherd #96 session until answered): find exact tool ids (`add_repo` under server `claude-code-remote`, likely `mcp__claude-code-remote__add_repo` ?) from a session transcript; document 3 ways in `docs/SETUP.md` + `docs/CONSUMER.md`: (a) target repo committed `.claude/settings.json` `permissions.allow` (read in 1-repo sessions; user `~/.claude` ⊥ reaches cloud), (b) permission mode chosen at session start (mode dropdown \| CLI flag ?), (c) answer in UI ("Always allow" scope ?). `apps.guide` offers to write (a) into the target repo as its own commit; ⊥ allow write access by default (least privilege)|C2,C9,I.cmd,`scripts:T26`,T8
 T70|x|ARCHIVED to SPEC-ARCHIVE.md|`.:T24`,`.:T30`,C22
 T72|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C10`,`.:T71`,C22
-T83|x|consumer-first docs: README = who/what/why + alpha line (`.:C26`) + release paste line block (`.:C25`) + agent home opt-in disclosure (`.:C24`) up top, name note at bottom; SETUP opens w/ `nix run github:pr0d1r2/claudinix#guide`, prereqs (local Nix w/ flakes, accept the cachix prompt), dialog fields in order, 1 remedy list (`nix-dev` first), `--model sonnet` on every launch line, owner-only steps → FORKING/RUNBOOK; ⊥ spec ids in user text; drop `ANTHROPIC_MODEL` advice (review R3-*)|C22,`.:C24`,`.:C25`,`.:C26`
-T84|x|docs accuracy pass: every review R5 mismatch (planned→exists, fork tables, SECURITY unchecked downloads, SESSION steps, INTEGRATION checks, model defaults, ids form)|C22
-T85|x|AGENTS.md: "Spec workflow here" (overrides cavekit defaults: Conventional Commits ⊥ `T<n>:`; status flip = own `docs(spec)` commit then `mth archive`; FORMAT.md at `~/.claude/FORMAT.md`; cloud skill names); federation rules (node owning the files, ids global = max over all `SPEC*.md` + 1, cite `.:C15` \| `docs:T13`, Refs example); gate pattern `hk check --all >log 2>&1; echo rc=$?`; app change → follow-up `docs:` commit (review R4-3,4,6,11,12,13)|C22,`.:C17`,`.:C21`
-T89|x|`docs/CONSUMER.md` zizmor: replace "`--offline` everywhere" w/ the reference approach (pr0d1r2/sherd#101, merged 2026-10-03; shared step pr0d1r2/set-and-setting#561): verdict by exit code (0 clean, 10-14 finding, else "could not run: <reason>", still exit 1); online audit w/ tokens locally \& in CI; only when `CLAUDE_CODE_REMOTE=true` unset `GH_TOKEN`/`GITHUB_TOKEN`, then `--offline` if still failing; token-unset part ⊥ proven (401 seen once). + lesson: format checks must run pre-commit, ⊥ only in `hk check --all`|`.:C6`,`.:V18`,C22
+T83|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:C24`,`.:C25`,`.:C26`
+T84|x|ARCHIVED to SPEC-ARCHIVE.md|C22
+T85|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:C17`,`.:C21`
+T89|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C6`,`.:V18`,C22
 
 ## §B BUGS
 

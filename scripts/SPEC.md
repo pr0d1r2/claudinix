@@ -38,10 +38,10 @@ T26|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,C2,`.:V10`,`docs:T13`,T25
 T27|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,C2,`.:V10`,C15,C16
 T28|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:T3`,C8
 T49|x|ARCHIVED to SPEC-ARCHIVE.md|V13,T12,T25
-T79|x|`nix-dev`: nixpkgs match case-insensitive (`nixos/nixpkgs`); installable arg (`.#ci`) passed to every tier's `print-dev-env`; log the `error:` line, ⊥ last line; ⊥ `jq` → loud warning (failover off); per-path channel in tier 4 (review R1-1,2,8,9,11)|V13,V26
-T80|x|`inputs`: status `attach` → `uncached` + 1-line remedy on stderr (`nix-dev` fetches them over git, or use `git+https://github.com/<o>/<r>`); `domains/nix.sh` skips commented lines; clipboard tool stdout → /dev/null; `verify-cachix.sh`/`record-storepath.sh` curl `\|\| true` → HTTP 000 message (review R3-4, R1-10,12,5)|V13,V26,`.:V18`
-T81|x|target-project UX: `guide` first-session check uses `nix-dev -c true` \& `--model sonnet`, own step listing uncached inputs w/ remedy before launch, credit question allows "had none", absolute paths; `probe` checks remote origin \& pushed branch \& asks y/N before a billed session; `setup-line` tells auth failure from 404/no workflow (review R3-3,6,7,13,14,15,16,21)|`.:C24`,`.:C25`,V26
-T82|x|guard UX: `tdd-order` shallow detect + merge-base range + split-commit recipe in refusal; `commit-msg` reports every problem at once w/ allowed types \& an example; `run-tool` says "add it to nix/dev-shell.nix" when already in the shell; shell-hook quiet on success (review R4-1,7,8,10,15)|`.:V29`,`.:V18`,`.:V17`
+T79|x|ARCHIVED to SPEC-ARCHIVE.md|V13,V26
+T80|x|ARCHIVED to SPEC-ARCHIVE.md|V13,V26,`.:V18`
+T81|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C24`,`.:C25`,V26
+T82|x|ARCHIVED to SPEC-ARCHIVE.md|`.:V29`,`.:V18`,`.:V17`
 
 ## §B BUGS
 
