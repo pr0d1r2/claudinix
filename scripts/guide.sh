@@ -11,19 +11,19 @@
 # check. Step titles and URLs come from guide-steps.tsv, which a test
 # keeps equal to the SETUP.md headings. No network writes, no secrets.
 #
-# The setup line is pinned to NCCC_SETUP_REV, else to HEAD of the clone
+# The setup line is pinned to CLAUDINIX_SETUP_REV, else to HEAD of the clone
 # the guide runs from; setup-line.sh refuses a SHA whose CI on main is
 # not green, and the guide stops with it unless --force is given (T69).
 #
 # Usage: guide.sh [--force] [--from STEP] [FLAKE_DIR]   steps 0-5 (dir: .)
 #        guide.sh update [--force] [FLAKE_DIR]          the "Updating" flow
-# Env:   NCCC_SCRIPTS      dir with guide-steps.tsv, inputs.sh, domains.sh,
-#                          setup-line.sh
-#        NCCC_SETUP_REV    full SHA of this repo to pin the setup line to
-#        NCCC_MODEL_DOC    MODEL.md with the prices (default: ../docs/)
-#        NCCC_ENV_NAMES    env-names.txt to list (default: beside scripts/)
-#        CLAUDE_SETTINGS   user settings (default ~/.claude/settings.json)
-#        CLIPBOARD_TOOLS   tried in order (default: pbcopy wl-copy xclip)
+# Env:   CLAUDINIX_SCRIPTS    dir with guide-steps.tsv, inputs.sh, domains.sh,
+#                             setup-line.sh
+#        CLAUDINIX_SETUP_REV  full SHA of this repo to pin the setup line to
+#        CLAUDINIX_MODEL_DOC  MODEL.md with the prices (default: ../docs/)
+#        CLAUDINIX_ENV_NAMES  env-names.txt to list (default: beside scripts/)
+#        CLAUDE_SETTINGS      user settings (default ~/.claude/settings.json)
+#        CLIPBOARD_TOOLS      tried in order (default: pbcopy wl-copy xclip)
 #        GUIDE_OPEN_TOOLS  tried in order (default: open xdg-open)
 
 set -euo pipefail
@@ -60,9 +60,9 @@ case "$from" in
 esac
 dir="${dir:-.}"
 
-lib="${NCCC_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
-model_doc="${NCCC_MODEL_DOC:-$lib/../docs/MODEL.md}"
-env_names="${NCCC_ENV_NAMES:-$lib/../env-names.txt}"
+lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
+model_doc="${CLAUDINIX_MODEL_DOC:-$lib/../docs/MODEL.md}"
+env_names="${CLAUDINIX_ENV_NAMES:-$lib/../env-names.txt}"
 settings="${CLAUDE_SETTINGS:-$HOME/.claude/settings.json}"
 env_name=nix
 
@@ -108,13 +108,13 @@ copy() {
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
-# setup_line: the one-line UI setup script (V20) for NCCC_SETUP_REV, else
+# setup_line: the one-line UI setup script (V20) for CLAUDINIX_SETUP_REV, else
 # for HEAD of the clone this guide runs from; stops when there is
 # neither, or when setup-line.sh refuses the SHA (T69).
 setup_line() {
-    local rev="${NCCC_SETUP_REV:-}"
+    local rev="${CLAUDINIX_SETUP_REV:-}"
     if [ -z "$rev" ] && ! rev="$(git -C "$lib/.." rev-parse --verify --quiet HEAD 2>/dev/null)"; then
-        stop "cannot tell which revision to pin the setup line to: set NCCC_SETUP_REV to a full SHA of nix-claude-code-cloud"
+        stop "cannot tell which revision to pin the setup line to: set CLAUDINIX_SETUP_REV to a full SHA of claudinix"
     fi
     bash "$lib/setup-line.sh" ${force[@]+"${force[@]}"} "$rev" ||
         stop "no setup line for $rev (see above); pick a SHA CI passed, or run the guide with --force"

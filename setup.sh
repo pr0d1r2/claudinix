@@ -14,8 +14,8 @@
 # Seams: NIX_CONF_DIR, BIN_DIR, SYSTEMD_DIR, NIX_DEFAULT_PROFILE,
 #        NIX_INSTALL_URL, NIX_INSTALL_SHA256; agent home (T17):
 #        CLOUD_HOME_FLAKE, CLOUD_HOME_STOREPATH (file), CLOUD_HOME_MARKER;
-#        nix-dev: NCCC_LIB_DIR, NCCC_RAW_URL, NCCC_REV (default: the SHA
-#        argument, else main).
+#        nix-dev: CLAUDINIX_LIB_DIR, CLAUDINIX_RAW_URL, CLAUDINIX_REV
+#        (default: the SHA argument, else main).
 
 set -euo pipefail
 
@@ -120,8 +120,8 @@ ln -sf "$profile_bin"/* "$bin_dir/"
 # beside this script, else from the repo at the SHA this script was
 # fetched at (T69, V20), or `main` when none was given. A failed fetch
 # only warns: nix itself still works (V1).
-lib_dir="${NCCC_LIB_DIR:-/usr/local/lib/claudinix}"
-raw="${NCCC_RAW_URL:-https://raw.githubusercontent.com/$repo/${NCCC_REV:-${sha:-main}}}"
+lib_dir="${CLAUDINIX_LIB_DIR:-/usr/local/lib/claudinix}"
+raw="${CLAUDINIX_RAW_URL:-https://raw.githubusercontent.com/$repo/${CLAUDINIX_REV:-${sha:-main}}}"
 here="$(dirname "${BASH_SOURCE[0]:-.}")"
 mkdir -p "$lib_dir"
 nix_dev=ok

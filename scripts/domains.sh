@@ -14,9 +14,10 @@
 #
 # Usage: domains.sh [--why] [--from-log FILE]... [PROJECT_DIR...]
 #        (default PROJECT_DIR: the current directory)
-# Env:   NCCC_ALLOWLIST   base list (default: allowlist.txt beside scripts/)
-#        NCCC_SCRIPTS     dir holding domains/ (default: this script's dir)
-#        CLIPBOARD_TOOLS  tried in order (default: pbcopy wl-copy xclip)
+# Env:   CLAUDINIX_ALLOWLIST  base list (default: allowlist.txt beside
+#                             scripts/)
+#        CLAUDINIX_SCRIPTS    dir holding domains/ (default: this script's dir)
+#        CLIPBOARD_TOOLS      tried in order (default: pbcopy wl-copy xclip)
 
 set -euo pipefail
 
@@ -43,8 +44,8 @@ while [ "$#" -gt 0 ]; do
 done
 [ "${#dirs[@]}" -gt 0 ] || dirs=(.)
 
-lib="${NCCC_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
-allowlist="${NCCC_ALLOWLIST:-$lib/../allowlist.txt}"
+lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
+allowlist="${CLAUDINIX_ALLOWLIST:-$lib/../allowlist.txt}"
 detectors=(cargo nix git npm python ruby go)
 tab="$(printf '\t')"
 

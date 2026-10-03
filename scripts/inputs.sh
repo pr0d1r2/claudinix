@@ -18,7 +18,7 @@
 #   --check  exit 1 when any input must be attached
 # Env:   INPUTS_CACHES  cache URLs, space-separated
 #                       (default: owner cachix and cache.nixos.org)
-#        NCCC_SCRIPTS   dir holding inputs.jq (default: this script's dir)
+#        CLAUDINIX_SCRIPTS  dir holding inputs.jq (default: this script's dir)
 
 set -euo pipefail
 
@@ -40,7 +40,7 @@ for arg in "$@"; do
     esac
 done
 
-lib="${NCCC_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
+lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 caches="${INPUTS_CACHES:-https://pr0d1r2.cachix.org https://cache.nixos.org}"
 
 # Absolute, so nix never reads a bare name as a flake registry entry.

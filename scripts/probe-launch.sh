@@ -16,7 +16,7 @@
 #        PROBE_POLL_SECONDS  wait between branch checks (default 20)
 #        PROBE_POLL_TRIES    checks before giving up (default 90: 30 min)
 #        PROBE_SCRIPT        probe.sh to send (default: beside scripts/)
-#        NCCC_SCRIPTS        dir holding probe-prompt.txt (default: here)
+#        CLAUDINIX_SCRIPTS   dir holding probe-prompt.txt (default: here)
 
 set -euo pipefail
 
@@ -40,7 +40,7 @@ while [ "$#" -gt 0 ]; do
     shift
 done
 
-lib="${NCCC_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
+lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 probe="${PROBE_SCRIPT:-$lib/../probe.sh}"
 remote="${PROBE_REMOTE:-origin}"
 poll="${PROBE_POLL_SECONDS:-20}"

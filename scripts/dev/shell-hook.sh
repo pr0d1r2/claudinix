@@ -7,7 +7,7 @@ set -uo pipefail
 
 # A hook enters this shell itself (see the wrap below). Reinstalling from
 # inside it would be wasted time and noise on every commit.
-if [ "${NCCC_HOOK:-}" = 1 ]; then
+if [ "${CLAUDINIX_HOOK:-}" = 1 ]; then
     exit 0
 fi
 
@@ -29,7 +29,7 @@ fi
 # hk and tools the calling shell happens to have. Wrap each hook so it
 # enters this dev shell itself (V17). Already-wrapped commands are left
 # alone; two shells racing here meet git's config.lock: the loser warns.
-wrap="NCCC_HOOK=1 nix develop -c hk run"
+wrap="CLAUDINIX_HOOK=1 nix develop -c hk run"
 while read -r key value; do
     case "$value" in
     *"$wrap"*) continue ;;

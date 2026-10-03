@@ -25,8 +25,8 @@
 # every github input but nixpkgs.
 #
 # Usage: nix-dev [ARGS...]   (ARGS as for `nix develop`)
-# Env:   NCCC_SCRIPTS  dir holding nix-dev.jq and inputs.sh (default:
-#                      this script's dir, symlinks followed)
+# Env:   CLAUDINIX_SCRIPTS  dir holding nix-dev.jq and inputs.sh (default:
+#                           this script's dir, symlinks followed)
 
 set -euo pipefail
 
@@ -43,7 +43,7 @@ while [ -L "$self" ]; do
     *) self="$(dirname "$self")/$target" ;;
     esac
 done
-lib="${NCCC_SCRIPTS:-$(dirname "$self")}"
+lib="${CLAUDINIX_SCRIPTS:-$(dirname "$self")}"
 
 if [ ! -f flake.lock ] || ! command -v jq >/dev/null 2>&1; then
     log "tier 1: plain nix develop (no flake.lock or no jq here, so no failover)"
