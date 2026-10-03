@@ -102,6 +102,13 @@ T27|.|`apps.domains` (+ `just domains`) + `scripts/domains.sh`, default dir = cw
 T28|.|`apps.probe` + `scripts/probe-launch.sh` (TTY via `script`, branch-by-prefix wait, report print, `--cleanup`); reuses T3 prompt; bats w/ stubbed `claude`\|`git`|I.cmd,T3,C8
 T29|.|open question: does `github.com` in Allowed domains (added 2026-10-03) or `add_repo` read let a session read 3rd-party public repos (`git ls-remote https://github.com/actions/checkout`)? answer → `allowlist.txt` keep\|drop + docs|C6,V10
 T30|.|base `allowlist.txt` = Nix-only hosts (cachix, `cache.nixos.org`, `channels.nixos.org`, `releases.nixos.org`); ecosystem hosts (crates.io…) come from `apps.domains` per target, ⊥ hardcoded; SETUP shows both|C6,I.cmd,T27
+T31|.|W1 MUST `AGENTS.md`: for AI agents working here (incl. cloud sessions): spec first, gate, atomic commits, RED/GREEN/REFACTOR, model default; model sherd/itok `AGENTS.md`|C22,C17,C21
+T32|.|W1 MUST `docs/INTEGRATION.md`: every hk step, how to run each by hand, parallelism, "hk.pkl wins"; model itok/xenolith `INTEGRATION.md`|C22,C14,C18
+T33|.|W1 MUST `docs/LLM-DISCLAIMER.md`: built by Claude in the open; what to check before trusting a root-run setup script; model sherd|C22,C10
+T34|.|W2 MUST `docs/FACTS.md`: dated cloud VM facts per probe (user, image Nix, proxy 403s, git vs tarball, branch suffix, commit author, shallow clone, allowlist only for new sessions); stale assumption = visible by date|C22,C8,C13
+T35|.|W2 MUST `docs/RUNBOOK.md`: each procedure marked automated\|human: bump Nix pin, rotate SHA in UI, refill cachix, red probe, emergency stop of cloud spend, probe branch cleanup; model nix-hk `RUNBOOK.md`|C22,V20,V11,C19
+T36|.|W2 MUST `docs/SECURITY.md`: private reporting path + threat model (root setup script, cache trust, `accept-flake-config`, GitHub proxy, ⊥ secrets in env vars); model sherd|C22,V6,C5
+T37|.|W2 MUST `CHANGELOG.md`: per release \& per UI-pinned SHA what changed, so users know before bumping the setup line|C22,V20
 T10|.|`just bump-nix <ver>`: fetch installer + `.sha256`, rewrite pin pair, run tests|V11,C4
 
 ## §B BUGS
