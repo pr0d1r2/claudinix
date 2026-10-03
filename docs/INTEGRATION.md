@@ -76,46 +76,59 @@ A missing tool must never look like a pass, and never like a finding.
 
 ## The steps
 
-Run any step by hand from inside the dev shell. `{{files}}` means the files
-hk hands the step; by hand, name the files yourself.
+Run any step by hand from inside the dev shell with the command in its
+`check` column; the `fix` column, where there is one, is what the
+pre-commit hook and `hk fix` run instead. `<files>` means the files hk
+hands the step (by hand, name the files yourself) and `<node>` a spec
+node's directory. `fast` steps run on every commit, `all` steps join them
+on push and in CI, and the `commit-msg` steps check the message.
 
-### On every commit (`fast`)
+The table is generated from `hk.pkl` by `claudinix-dev steps --write`, and
+the `integration-steps` step fails when it no longer matches.
 
-| step | files | by hand |
-|---|---|---|
-| `shellcheck` | `*.sh`, `*.bats`, `.envrc` | `shellcheck <files>` |
-| `shfmt` | `*.sh`, `*.bats` | `shfmt --diff --indent 4 <files>` (fix: `--write`) |
-| `nixfmt` | `*.nix` | `nixfmt --check <files>` (fix: drop `--check`) |
-| `xenolith` | `*.nix`, `*.sh`, `*.bats`, `xenolith.toml` | `xnl check <files>` |
-| `just` | `justfile` | `just --fmt --check --unstable` (fix: drop `--check`) |
-| `pkl-eval` | `hk.pkl`, `pkl/*.pkl` | `pkl eval --output-path /dev/null hk.pkl` |
-| `actionlint` | `.github/workflows/*.yml` | `actionlint <files>` |
-| `zizmor` | `.github/workflows/*.yml` | `zizmor --offline --no-progress --persona=pedantic <files>` |
-| `spec-fmt` | every `SPEC.md` | `mth fmt --check <node>/SPEC.md` (fix: `mth fmt`) |
-| `spec-check` | every `SPEC.md` | `mth check <node>/SPEC.md` |
-| `spec-tokens` | `SPEC.md` files, `.context-limits` | `itok check` |
-| `federation` | `SPEC.md` files, `.context-limits` | `sherd validate` |
-| `nav` | `SPEC.md` files | `sherd sync --check` (fix: `sherd sync`) |
-| `spec-structure` | `SPEC.md` files | `sherd check` |
-| `budget` | `SPEC.md` files, `.context-limits` | `sherd budget` |
-| `typos` | every file | `typos --force-exclude <files>` |
-| `no-private-key` | every file | `hk util detect-private-key <files>` |
-| `ripsecrets` | every file | `ripsecrets <files>` |
-| `trailing-whitespace` | every file | `hk util trailing-whitespace <files>` |
-| `final-newline` | every file | `hk util end-of-file-fixer <files>` |
-| `line-endings` | every file | `hk util mixed-line-ending <files>` |
-| `no-large-files` | every file | `hk util check-added-large-files <files>` |
-| `no-merge-conflict` | every file | `hk util check-merge-conflict --assume-in-merge <files>` |
-| `readme-setup-line` | `README.md`, `scripts/setup-line.sh`, `scripts/guard/readme-setup-line.sh` | `scripts/guard/readme-setup-line.sh` |
-| `claudinix-config` | `.claudinix.toml`, `scripts/config.sh`, `scripts/config.jq` | `scripts/config.sh check` |
-| `cloud-permissions` | `nix/cloud-permissions.json`, `.claude/settings.json`, `scripts/guard/cloud-permissions.sh` | `scripts/guard/cloud-permissions.sh` |
-| `exec-bit` | every file | `scripts/guard/exec-bit.sh` |
-| `dev-fmt` | `dev/**` | `cargo fmt --check --manifest-path dev/Cargo.toml` (fix: drop `--check`) |
-| `dev-clippy` | `dev/**` | `cargo clippy --quiet --all-targets --manifest-path dev/Cargo.toml -- -D warnings` |
-| `readme-badges` | `README.md`, `LICENSE`, `setup.sh`, `.claudinix.toml`, `hk.pkl`, `pkl/*.pkl`, `SPEC.md`, `ci.yml`, `tests/unit/**/*.bats`, `dev/**` | `claudinix-dev badges --check` (fix: `--write`) |
-| `integration-counts` | `docs/INTEGRATION.md`, `hk.pkl`, `pkl/*.pkl`, `dev/**` | `claudinix-dev counts --check` (fix: `--write`) |
-| `third-party-notices` | `docs/THIRD-PARTY-NOTICES.md`, `flake.lock`, `dev/**` | `claudinix-dev notices --check` (fix: `--write`) |
-| `prose-facts` | `README.md`, `docs/LLM-DISCLAIMER.md`, `docs/FACTS.md`, `setup.sh`, `hk.pkl`, `pkl/*.pkl`, `SPEC.md`, `tests/unit/**/*.bats`, `dev/**` | `claudinix-dev facts --check` |
+<!-- BEGIN steps: generated from hk.pkl by `claudinix-dev steps --write`; do not edit -->
+| step | layer | files | check | fix |
+|---|---|---|---|---|
+| `shellcheck` | fast | `**/*.sh` `**/*.bats` `.envrc` | `shellcheck <files>` | - |
+| `shfmt` | fast | `**/*.sh` `**/*.bats` | `shfmt --diff --indent 4 <files>` | `shfmt --write --indent 4 <files>` |
+| `nixfmt` | fast | `**/*.nix` | `nixfmt --check <files>` | `nixfmt <files>` |
+| `xenolith` | fast | `**/*.nix` `**/*.sh` `**/*.bats` `xenolith.toml` | `xnl check <files>` | - |
+| `just` | fast | `justfile` | `just --fmt --check --unstable` | `just --fmt --unstable` |
+| `pkl-eval` | fast | `hk.pkl` `pkl/*.pkl` | `pkl eval --output-path /dev/null hk.pkl` | - |
+| `actionlint` | fast | `.github/workflows/*.yml` `.github/workflows/*.yaml` | `actionlint <files>` | - |
+| `zizmor` | fast | `.github/workflows/*.yml` `.github/workflows/*.yaml` | `zizmor --offline --no-progress --persona=pedantic <files>` | - |
+| `spec-fmt` | fast | `**/SPEC.md` | `mth fmt --check <node>/SPEC.md` | `mth fmt <node>/SPEC.md` |
+| `spec-check` | fast | `**/SPEC.md` | `mth check <node>/SPEC.md` | - |
+| `spec-tokens` | fast | `**/SPEC.md` `.context-limits` | `itok check` | - |
+| `federation` | fast | `**/SPEC.md` `.context-limits` | `sherd validate` | - |
+| `nav` | fast | `**/SPEC.md` | `sherd sync --check` | `sherd sync` |
+| `spec-structure` | fast | `**/SPEC.md` | `sherd check` | - |
+| `budget` | fast | `**/SPEC.md` `.context-limits` | `sherd budget` | - |
+| `typos` | fast | `**/*` | `typos --force-exclude <files>` | `typos --force-exclude --write-changes <files>` |
+| `no-private-key` | fast | `**/*` | `hk util detect-private-key <files>` | - |
+| `ripsecrets` | fast | `**/*` | `ripsecrets <files>` | - |
+| `trailing-whitespace` | fast | `**/*` | `hk util trailing-whitespace <files>` | `hk util trailing-whitespace --fix <files>` |
+| `final-newline` | fast | `**/*` | `hk util end-of-file-fixer <files>` | `hk util end-of-file-fixer --fix <files>` |
+| `line-endings` | fast | `**/*` | `hk util mixed-line-ending <files>` | `hk util mixed-line-ending --fix <files>` |
+| `no-large-files` | fast | `**/*` | `hk util check-added-large-files <files>` | - |
+| `no-merge-conflict` | fast | `**/*` | `hk util check-merge-conflict --assume-in-merge <files>` | - |
+| `readme-setup-line` | fast | `README.md` `scripts/setup-line.sh` `scripts/guard/readme-setup-line.sh` | `scripts/guard/readme-setup-line.sh` | - |
+| `dev-fmt` | fast | `dev/**` | `cargo fmt --check --manifest-path dev/Cargo.toml` | `cargo fmt --manifest-path dev/Cargo.toml` |
+| `dev-clippy` | fast | `dev/**` | `cargo clippy --quiet --all-targets --manifest-path dev/Cargo.toml -- -D warnings` | - |
+| `readme-badges` | fast | `README.md` `LICENSE` `setup.sh` `.claudinix.toml` `hk.pkl` `pkl/*.pkl` `SPEC.md` `.github/workflows/ci.yml` `tests/unit/**/*.bats` `dev/**` | `claudinix-dev badges --check` | `claudinix-dev badges --write` |
+| `integration-counts` | fast | `docs/INTEGRATION.md` `hk.pkl` `pkl/*.pkl` `dev/**` | `claudinix-dev counts --check` | `claudinix-dev counts --write` |
+| `third-party-notices` | fast | `docs/THIRD-PARTY-NOTICES.md` `flake.lock` `dev/**` | `claudinix-dev notices --check` | `claudinix-dev notices --write` |
+| `prose-facts` | fast | `README.md` `docs/LLM-DISCLAIMER.md` `docs/FACTS.md` `setup.sh` `hk.pkl` `pkl/*.pkl` `SPEC.md` `tests/unit/**/*.bats` `dev/**` | `claudinix-dev facts --check` | - |
+| `claudinix-config` | fast | `.claudinix.toml` `scripts/config.sh` `scripts/config.jq` | `scripts/config.sh check` | - |
+| `cloud-permissions` | fast | `nix/cloud-permissions.json` `.claude/settings.json` `scripts/guard/cloud-permissions.sh` | `scripts/guard/cloud-permissions.sh` | - |
+| `exec-bit` | fast | `**/*` | `scripts/guard/exec-bit.sh` | - |
+| `bats` | all | `**/*.sh` `**/*.bats` `**/*.jq` `**/*.tsv` `**/*.txt` `justfile` `docs/SETUP.md` `tests/fixtures/**` | `bats --recursive tests/unit` | - |
+| `dev-test` | all | `dev/**` | `cargo test --quiet --manifest-path dev/Cargo.toml` | - |
+| `bats-mirror` | all | `**/*` | `scripts/guard/bats-mirror.sh` | - |
+| `tdd-order` | all | `**/*` | `scripts/guard/tdd-order.sh` | - |
+| `commit-msg` | commit-msg | the message | `scripts/guard/commit-msg.sh` | - |
+| `changelog` | commit-msg | the message | `claudinix-dev changelog {{commit_msg_file}}` | - |
+<!-- END steps -->
 
 A few notes on why the steps look the way they do:
 
@@ -145,39 +158,31 @@ A few notes on why the steps look the way they do:
   `scripts/config.jq`), because a change to the schema must rerun the check
   on the file. Like the reader, it needs `nix` and `jq` on `PATH` and fails
   loudly without them; it never passes for a tool it could not run.
-- **readme-badges** and **integration-counts** run `claudinix-dev`, the
+- **readme-badges** and **integration-steps** run `claudinix-dev`, the
   repository's own Rust tool in `dev/` (std only, never published, built by
-  Nix into the dev shell). The README badges and the step counts in the
-  table above are generated from the files that own them (`hk.pkl` through
-  `pkl eval`, the `@test` lines, `setup.sh`, `.claudinix.toml`, `LICENSE`,
-  the root `§F`), so adding a gate step or a bats test means running
-  `claudinix-dev badges --write` and `claudinix-dev counts --write` in the
-  same commit.
+  Nix into the dev shell). The README badges, the step table above and the
+  step counts in the caller table are generated from the files that own
+  them (`hk.pkl` through `pkl eval`, the `@test` lines, `setup.sh`,
+  `.claudinix.toml`, `LICENSE`, the root `§F`), so adding a gate step or a
+  bats test means running `claudinix-dev badges --write` and
+  `claudinix-dev steps --write` in the same commit.
 - **Secrets** are checked twice because the two tools answer different
   questions: `detect-private-key` finds key blocks, `ripsecrets` finds token
   shapes. The repository is public from its first push.
 
 ### On every push (`all` adds)
 
-| step | by hand |
-|---|---|
-| `bats` | `bats --recursive tests/unit` |
-| `dev-test` | `cargo test --quiet --manifest-path dev/Cargo.toml` |
-| `bats-mirror` | `scripts/guard/bats-mirror.sh` |
-| `tdd-order` | `scripts/guard/tdd-order.sh [range]` |
-
 `bats-mirror` checks that every tracked `*.sh` has
 `tests/unit/<same path>.bats` and that every bats file still has its script.
 `tdd-order` checks that each commit adding a script had the script's test in
 its parent commit. It reads history, so it needs a full clone: in a shallow
-clone (as in a cloud session) run `git fetch --unshallow` first.
+clone (as in a cloud session) run `git fetch --unshallow` first. By hand it
+takes a range: `scripts/guard/tdd-order.sh [range]`.
 
 ### On every commit message
 
-| step | by hand |
-|---|---|
-| `commit-msg` | `scripts/guard/commit-msg.sh <message-file>` |
-| `changelog` | `claudinix-dev changelog <message-file>` |
+By hand: `scripts/guard/commit-msg.sh <message-file>` and
+`claudinix-dev changelog <message-file>`.
 
 The subject must follow Conventional Commits and the body must have a
 `Why:` line. Merge, revert and fixup subjects pass untouched.
