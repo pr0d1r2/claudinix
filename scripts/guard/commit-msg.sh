@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Commit message gate: Conventional Commits subject + a `Why:` line
-# (SPEC C17, C21). The log is the reasoning audit trail.
+# Commit message gate: Conventional Commits subject, a `Why:` line and a
+# `Refs:` line naming the spec ids (SPEC C17, C21, AGENTS.md). The log is
+# the reasoning audit trail. Every problem is reported in one block, with
+# the allowed types and an example that passes, so one retry is enough.
 # Vendored from the owner's private infra repo (same author)
 # (SPEC C17: no flake export exists); keep in step by hand.
 # Usage: commit-msg.sh [message_file]   (default: .git/COMMIT_EDITMSG)
@@ -26,14 +28,36 @@ case "$subject" in
     ;;
 esac
 
-types='feat|fix|docs|test|refactor|chore|ci|build|perf|style|revert'
-if ! printf '%s\n' "$subject" | grep -Eq "^($types)(\([a-z0-9._/-]+\))?!?: .+"; then
-    echo "commit-msg: subject must follow Conventional Commits: <type>(<scope>): <summary>" >&2
-    echo "commit-msg: got: $subject" >&2
-    exit 1
+types='feat fix docs test refactor chore ci build perf style revert'
+problems=()
+
+if ! printf '%s\n' "$subject" | grep -Eq "^(${types// /|})(\([a-z0-9._/-]+\))?!?: .+"; then
+    problems+=("subject must follow Conventional Commits: <type>(<scope>): <summary>
+    got: $subject
+    types: $types")
 fi
 
 if ! printf '%s\n' "$body" | grep -q '^Why: '; then
-    echo "commit-msg: body needs a 'Why: ...' line -- the reasoning is the audit trail (C21)" >&2
-    exit 1
+    problems+=("body needs a 'Why: ...' line -- the reasoning is the audit trail (C21)")
 fi
+
+if ! printf '%s\n' "$body" | grep -q '^Refs: .'; then
+    problems+=("body needs a 'Refs: ...' line naming the spec ids it touches, e.g. Refs: §T.19, §V.17")
+fi
+
+if [ "${#problems[@]}" -eq 0 ]; then
+    exit 0
+fi
+
+{
+    echo "commit-msg: the message was refused:"
+    for problem in "${problems[@]}"; do
+        echo "  - $problem"
+    done
+    echo "commit-msg: example:"
+    echo "  | fix(setup): refuse a bad installer hash"
+    echo "  |"
+    echo "  | Why: a mismatched hash would run an unverified installer."
+    echo "  | Refs: §T.2, §V.3"
+} >&2
+exit 1
