@@ -4,7 +4,6 @@
 //!
 //! ```text
 //! claudinix-dev badges --write|--check [--root DIR]
-//! claudinix-dev counts --write|--check [--root DIR]
 //! claudinix-dev notices --write|--check [--root DIR]
 //! claudinix-dev facts --check [--root DIR]
 //! claudinix-dev changelog MESSAGE-FILE
@@ -22,8 +21,7 @@ use claudinix_dev::{block, counts, facts, splice, steps};
 
 mod verbs;
 
-const USAGE: &str =
-    "usage: claudinix-dev <badges|counts|notices|steps> <--write|--check> [--root DIR]
+const USAGE: &str = "usage: claudinix-dev <badges|notices|steps> <--write|--check> [--root DIR]
        claudinix-dev facts --check [--root DIR]
        claudinix-dev changelog MESSAGE-FILE";
 
@@ -62,7 +60,6 @@ fn dispatch(args: &[String]) -> Result<(), Failed> {
     let root = Path::new(root);
     match verb {
         "badges" => badges(root, check),
-        "counts" => step_counts(root, check),
         "notices" => verbs::notices(root, check),
         "facts" => verbs::facts(root, check),
         "steps" => step_table(root, check),
@@ -194,28 +191,6 @@ fn badges(root: &Path, check: bool) -> Result<(), Failed> {
     }
     fs::write(root.join("README.md"), fresh)
         .map_err(|err| (2, format!("cannot write README.md: {err}")))
-}
-
-/// Write the step counts docs/INTEGRATION.md states, or check them.
-fn step_counts(root: &Path, check: bool) -> Result<(), Failed> {
-    const DOC: &str = "docs/INTEGRATION.md";
-    let doc = read(root, DOC)?;
-    let (fast, all) = gate_steps(root)?;
-    let stale = counts::drift(&doc, fast, all).map_err(|message| (2, message))?;
-    if stale.is_empty() {
-        return Ok(());
-    }
-    if check {
-        return Err((
-            1,
-            format!(
-                "{DOC} step counts drifted from hk.pkl (fast {fast}, all {all}); run: claudinix-dev counts --write\n{}",
-                stale.join("\n")
-            ),
-        ));
-    }
-    fs::write(root.join(DOC), counts::rewrite(&doc, fast, all))
-        .map_err(|err| (2, format!("cannot write {DOC}: {err}")))
 }
 
 /// Write the step table and the step counts docs/INTEGRATION.md states,
