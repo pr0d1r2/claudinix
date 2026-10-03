@@ -14,7 +14,7 @@ sib|docs|human docs in plain English: setup walkthrough, facts, runbook, securit
 
 ## §C CONSTRAINTS
 
-- C12: agent home reuses owner home config pattern (`nix/modules/claude-home.nix`): `nix-home-manager-claude-code` module + set-and-setting `mkTrip` (today owner home config `lib/mk-trip.nix` → move upstream to set-and-setting, ⊥ copy) \| `lib.mkSet` meanwhile. cavekit = non-flake input `github:JuliusBrussee/cavekit` (plugins ⊥ installed in cloud ∴ skills materialized). standalone home-manager (Ubuntu, ⊥ NixOS). sources `nix-home-manager-claude-code`, set-and-setting \& cavekit as `flake = false` inputs (import `modules/default.nix`, `set/lib/mk-set.nix`) until upstream drops dev-only inputs (nix-home-manager-claude-code#34, set-and-setting#559); only `home-manager` is a flake input.
+- C12: agent home reuses owner home-config pattern (`nix/modules/claude-home.nix`): `nix-home-manager-claude-code` module + set-and-setting `mkTrip` (today owner home config `lib/mk-trip.nix` → move upstream to set-and-setting, ⊥ copy) \| `lib.mkSet` meanwhile. cavekit = non-flake input `github:JuliusBrussee/cavekit` (plugins ⊥ installed in cloud ∴ skills materialized). standalone home-manager (Ubuntu, ⊥ NixOS). sources `nix-home-manager-claude-code`, set-and-setting \& cavekit as `flake = false` inputs (import `modules/default.nix`, `set/lib/mk-set.nix`) until upstream drops dev-only inputs (nix-home-manager-claude-code#34, set-and-setting#559); only `home-manager` is a flake input.
 
 ## §I INTERFACES
 
