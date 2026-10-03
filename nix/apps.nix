@@ -4,8 +4,11 @@
 #   nix run github:pr0d1r2/claudinix#inputs
 #
 # Each app is its bats-covered script read verbatim, never shell written
-# here (C15). The scripts find their data files (`*.jq`, detectors)
-# through CLAUDINIX_SCRIPTS, which points at a store copy of `scripts/`.
+# here (C15). The scripts find their data files (`*.jq`, detectors) and
+# the config reader (`config.sh`, scripts:T91) through CLAUDINIX_SCRIPTS,
+# which points at a store copy of `scripts/`. The reader parses a
+# project's .claudinix.toml with the caller's own `nix` from PATH, as
+# `inputs` already runs it; every app ships jq for it.
 { pkgs }:
 let
   app =
@@ -77,11 +80,15 @@ in
   };
 
   # git, claude and `script` come from the caller's PATH: their own
-  # credentials and the TTY form of `script` this OS has.
+  # credentials and the TTY form of `script` this OS has. jq reads the
+  # project's .claudinix.toml through config.sh (scripts:T91).
   probe = app {
     name = "probe";
     script = "probe-launch";
-    runtimeInputs = [ pkgs.coreutils ];
+    runtimeInputs = [
+      pkgs.jq
+      pkgs.coreutils
+    ];
     runtimeEnv.PROBE_SCRIPT = "${../probe.sh}";
     description = "Start a cloud session that probes this project, print its report";
   };
