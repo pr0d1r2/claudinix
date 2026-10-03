@@ -2,7 +2,7 @@
 bats_require_minimum_version 1.5.0
 # Unit tests for scripts/guide.sh (SPEC scripts:T26, I.cmd `guide`,
 # C2, .:V10). Answers come on stdin; open, the clipboard, claude and the
-# inputs/domains tools are stubs, so nothing leaves the test.
+# inputs/domains/setup-line tools are stubs, so nothing leaves the test.
 
 setup() {
     REPO="$BATS_TEST_DIRNAME/../../.."
@@ -12,7 +12,7 @@ setup() {
     P="$BATS_TEST_TMPDIR/project"
     export LOG="$BATS_TEST_TMPDIR/log"
     export NCCC_SCRIPTS="$LIB"
-    export NCCC_SETUP="$REPO/setup.sh"
+    export NCCC_SETUP_REV=0123456789abcdef0123456789abcdef01234567
     export CLAUDE_SETTINGS="$BATS_TEST_TMPDIR/settings.json"
     export CLIPBOARD_TOOLS="$STUBS/pbcopy"
     export GUIDE_OPEN_TOOLS="$STUBS/open"
@@ -30,6 +30,9 @@ setup() {
             'echo "pr0d1r2/a 1111 attach"' 'echo "NixOS/nixpkgs 2222 cached"' >"$LIB/inputs.sh"
         printf '%s\n' '#!/usr/bin/env bash' 'echo "domains $*" >>"$LOG"' \
             'printf "%s\n" pr0d1r2.cachix.org index.crates.io' >"$LIB/domains.sh"
+        printf '%s\n' '#!/usr/bin/env bash' 'echo "setup-line $*" >>"$LOG"' \
+            '[ "${SETUP_LINE_RC:-0}" = 0 ] || { echo "setup-line: CI is not green -- pass --force" >&2; exit 1; }' \
+            'echo "SETUP-LINE ${*: -1}"' >"$LIB/setup-line.sh"
     }
     chmod +x "$STUBS"/*
     export PATH="$STUBS:$PATH"
@@ -86,13 +89,15 @@ titles() {
     grep -qx 'open https://claude.ai/code' "$LOG"
 }
 
-@test "step 3 copies the env name, the allowed domains and the setup script" {
+@test "step 3 copies the env name, the allowed domains and the setup line" {
     run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
     [ "$status" -eq 0 ]
     grep -qx 'nix' "$LOG"
     grep -qx 'domains .' "$LOG"
     grep -qx 'index.crates.io' "$LOG"
-    grep -qx '#!/usr/bin/env bash' "$LOG"
+    grep -qx "setup-line $NCCC_SETUP_REV" "$LOG"
+    grep -qx "SETUP-LINE $NCCC_SETUP_REV" "$LOG"
+    run ! grep -qx '#!/usr/bin/env bash' "$LOG"
     [ "$(grep -c '^--- clip' "$LOG")" -eq 3 ]
 }
 
@@ -132,7 +137,7 @@ titles() {
     [ "$(titles "$output")" = "== Updating the environment (after a change here) ==" ]
     [[ "$output" == *"start page"* ]]
     [[ "$output" == *"new session"* ]]
-    grep -qx '#!/usr/bin/env bash' "$LOG"
+    grep -qx "SETUP-LINE $NCCC_SETUP_REV" "$LOG"
     grep -qx 'index.crates.io' "$LOG"
 }
 
@@ -204,4 +209,43 @@ model_doc() {
     NCCC_MODEL_DOC="$BATS_TEST_TMPDIR/MODEL.md" run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
     [[ "$output" == *'$7.77'* ]]
     [[ "$output" == *"see docs/MODEL.md"* ]]
+}
+
+@test "setup line refused (CI not green): guide stops, copies nothing for it (T69)" {
+    SETUP_LINE_RC=1 run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"--force"* ]]
+    run ! grep -q 'SETUP-LINE' "$LOG"
+}
+
+@test "--force reaches setup-line, in setup and update flows (T69)" {
+    run bash "$SCRIPT" --force --from 3 <<<$'y\ny\n'
+    [ "$status" -eq 0 ]
+    grep -qx "setup-line --force $NCCC_SETUP_REV" "$LOG"
+    : >"$LOG"
+    run bash "$SCRIPT" update --force <<<''
+    [ "$status" -eq 0 ]
+    grep -qx "setup-line --force $NCCC_SETUP_REV" "$LOG"
+}
+
+@test "no NCCC_SETUP_REV: the line is for HEAD of the clone the guide runs from" {
+    while read -r var; do unset "$var"; done < <(env | sed -n 's/^\(GIT_[A-Z_]*\)=.*/\1/p')
+    unset NCCC_SETUP_REV
+    clone="$BATS_TEST_TMPDIR/clone"
+    mkdir -p "$clone"
+    cp -R "$LIB" "$clone/scripts"
+    git init -q "$clone"
+    git -C "$clone" -c user.name=t -c user.email=t@example.com commit -q --allow-empty -m one
+    head="$(git -C "$clone" rev-parse HEAD)"
+    NCCC_SCRIPTS="$clone/scripts" run bash "$SCRIPT" update <<<''
+    [ "$status" -eq 0 ]
+    grep -qx "setup-line $head" "$LOG"
+}
+
+@test "no NCCC_SETUP_REV and not in a clone: says how to pin, stops" {
+    unset NCCC_SETUP_REV
+    GIT_CEILING_DIRECTORIES="$BATS_TEST_TMPDIR" run bash "$SCRIPT" update <<<''
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"NCCC_SETUP_REV"* ]]
+    run ! grep -q 'SETUP-LINE' "$LOG"
 }
