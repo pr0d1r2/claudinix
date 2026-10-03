@@ -66,6 +66,35 @@ make_repo() {
     [ "$(grep -c '^install$' "$HK_LOG")" -eq 2 ]
 }
 
+# An hk stub that chatters on stderr the way hk 1.58 `install` does.
+stub_hk_chatty() {
+    local rc="$1"
+    # shellcheck disable=SC2016 # $* and $HK_LOG expand inside the stub, not here
+    printf '#!%s\necho "$*" >>"$HK_LOG"\necho "hk Installed hk hook via git config" >&2\necho "hk stdout line"\nexit %s\n' "$BASH_BIN" "$rc" >"$STUB_BIN/hk"
+    chmod +x "$STUB_BIN/hk"
+}
+
+@test "success is silence: hk install's own chatter is not shown (V31)" {
+    stub_hk_chatty 0
+    make_repo
+    cd "$REPO"
+    run env PATH="$STUB_BIN" "$BASH_BIN" "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+    [ "$(cat "$HK_LOG")" = "install" ]
+}
+
+@test "hk install failing: its output is shown with the warning" {
+    stub_hk_chatty 4
+    make_repo
+    cd "$REPO"
+    run env PATH="$STUB_BIN" "$BASH_BIN" "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"hk Installed hk hook via git config"* ]]
+    [[ "$output" == *"hk stdout line"* ]]
+    [[ "$output" == *"hk install failed"* ]]
+}
+
 @test "hk install failing: warns but never breaks the dev shell" {
     stub_hk 3
     make_repo
