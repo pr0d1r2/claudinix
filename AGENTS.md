@@ -101,7 +101,12 @@ Measured in real sessions: root, `HOME=/root`, `CLAUDE_CODE_REMOTE=true`.
   `Claude-Session:` trailer; `commit-msg` accepts that.
 - The pushed branch gets a random suffix (`claude/<name>-<suffix>`).
 - GitHub goes through a proxy. A `github:` flake input missing from a
-  binary cache fails with 403; use `git+https://github.com/<owner>/<repo>`.
+  binary cache fails with 403; use `git+https://github.com/<owner>/<repo>`. This repo's dev-shell inputs are
+  fetched that way, so only nixpkgs is a `github:` input (served by
+  cache.nixos.org).
+- Launch cloud tasks with `just cloud <node:Tn>` (`--dry-run` first), never
+  a hand-written `claude --cloud`. A cloud agent pushes
+  `claude/<node>-<task>` and opens no PR; the owner reviews and merges.
 
 ## Choosing the model
 
