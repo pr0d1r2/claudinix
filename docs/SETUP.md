@@ -84,10 +84,13 @@ A cloud environment is a saved configuration: network access,
 environment variables, and a setup script that runs before Claude starts
 in each new VM. This repository's environment installs Nix.
 
-1. Open [claude.ai/code](https://claude.ai/code).
+1. Open [claude.ai/code](https://claude.ai/code) and stay on the start
+   page with the empty message box. Inside an open session the selector
+   is not shown.
 2. Select the cloud icon showing the current environment's name, in the
    row above the message box. There is no settings page or direct URL
-   for it.
+   for it. In the Desktop app, the same selector is in the prompt box
+   once you choose **Cloud**.
 3. Select **Cloud**, then **Add cloud environment**.
 4. Fill in the dialog:
    - **Name**: `nix`.
@@ -189,11 +192,17 @@ claude -p "<message>" --cloud <session-id>
 
 ## Updating the environment (after a change here)
 
-1. Open the environment selector as in step 3 and select **Cloud**.
-2. Hover over `nix` and select the settings icon on the right.
-3. Change only what the commit changed: the setup script, the allowed
-   domains, or the environment variable names.
-4. Save.
+1. Open the environment selector as in step 3: start page of
+   [claude.ai/code](https://claude.ai/code), cloud icon above the message
+   box, then **Cloud**.
+2. Hover over `nix` and select the settings (gear) icon on the right.
+3. Change only what the commit changed:
+   - **Setup script**: select all of the old script and paste the new
+     one over it.
+   - **Allowed domains**: one domain per line; `just domains` prints
+     the full list.
+   - **Environment variables**: names from `env-names.txt`.
+4. Save, then check the change in a **new** session (see below).
 
 A change to the setup script or the allowed domains rebuilds the
 snapshot on the next new session. A session that is already running
