@@ -18,13 +18,18 @@
 #   check          nothing; exit 0 when the file is valid or absent
 #
 # One nix eval per call, none without a file: a tool that needs several
-# keys calls `json` once and reads it with jq.
+# keys calls `json` once and reads it with jq. A tool that calls another
+# tool passes that JSON on as CLAUDINIX_CONFIG_JSON (scripts:T96): one
+# eval per run.
 #
 # Usage: config.sh [--dir DIR] get TABLE.KEY | json | check
 #        file: DIR/.claudinix.toml, else at the root of the cwd's git
 #        repo, else in the cwd
-# Env:   CLAUDINIX_CONFIG   the file to read instead (wins over --dir)
-#        CLAUDINIX_SCRIPTS  dir holding config.jq (default: this script's dir)
+# Env:   CLAUDINIX_CONFIG_JSON  the effective config a caller already read
+#                               (`json`'s output): used as it is, after the
+#                               same checks; no file is read, no nix runs
+#        CLAUDINIX_CONFIG       the file to read instead (wins over --dir)
+#        CLAUDINIX_SCRIPTS      dir holding config.jq (default: this script's dir)
 
 set -euo pipefail
 
@@ -62,6 +67,41 @@ esac
 
 lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 
+if ! command -v jq >/dev/null 2>&1; then
+    echo "config: jq is not on PATH -- cannot read the config" >&2
+    exit 1
+fi
+
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+
+# check_and_print FILE PRESENT: config.jq on stdin, as the command asks.
+check_and_print() {
+    local rc=0
+    jq -r --arg file "$1" --argjson present "$2" --arg key "$key" \
+        -f "$lib/config.jq" >"$tmp/out" || rc=$?
+    case "$rc" in
+    0) ;;
+    2) exit 2 ;;
+    *)
+        echo "config: jq could not check $1 (exit $rc)" >&2
+        exit 1
+        ;;
+    esac
+    [ "$cmd" = check ] || cat "$tmp/out"
+}
+
+# The config a calling tool already read (scripts:T96): checked like a
+# file, never re-read, no nix.
+if [ -n "${CLAUDINIX_CONFIG_JSON:-}" ]; then
+    if ! jq -e 'type == "object"' <<<"$CLAUDINIX_CONFIG_JSON" >/dev/null 2>&1; then
+        echo "config: CLAUDINIX_CONFIG_JSON is not a JSON object -- unset it to read .claudinix.toml" >&2
+        exit 2
+    fi
+    check_and_print CLAUDINIX_CONFIG_JSON true <<<"$CLAUDINIX_CONFIG_JSON"
+    exit 0
+fi
+
 if [ -n "${CLAUDINIX_CONFIG:-}" ]; then
     file="$CLAUDINIX_CONFIG"
 elif [ "$dir_given" = 1 ]; then
@@ -74,14 +114,6 @@ else
     root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
     file="${root:-.}/.claudinix.toml"
 fi
-
-if ! command -v jq >/dev/null 2>&1; then
-    echo "config: jq is not on PATH -- cannot read $file" >&2
-    exit 1
-fi
-
-tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
 
 present=false
 parsed='{}'
@@ -106,15 +138,4 @@ if [ -e "$file" ]; then
     fi
 fi
 
-rc=0
-jq -r --arg file "$file" --argjson present "$present" --arg key "$key" \
-    -f "$lib/config.jq" <<<"$parsed" >"$tmp/out" || rc=$?
-case "$rc" in
-0) ;;
-2) exit 2 ;;
-*)
-    echo "config: jq could not check $file (exit $rc)" >&2
-    exit 1
-    ;;
-esac
-[ "$cmd" = check ] || cat "$tmp/out"
+check_and_print "$file" "$present" <<<"$parsed"

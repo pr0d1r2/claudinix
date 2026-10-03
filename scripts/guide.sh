@@ -99,6 +99,8 @@ config="$(bash "$lib/config.sh" --dir "$given" json)" || exit "$?"
 IFS="$(printf '\t')" read -r default_model file_agent_home installable < <(
     jq -r '[.session.model, .session.agent_home, .devshell.installable] | @tsv' <<<"$config"
 )
+# domains and inputs take it from here, not from the file (scripts:T96).
+export CLAUDINIX_CONFIG_JSON="$config"
 agent_home=()
 if [ "${agent_home_flag:-$file_agent_home}" = true ]; then
     agent_home=(--agent-home)

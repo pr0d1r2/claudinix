@@ -59,10 +59,15 @@ lib="${CLAUDINIX_SCRIPTS:-$(dirname "$self")}"
 # bad file exits 2. A lib dir without config.sh (an older install) or a
 # PATH without jq reads no file.
 installable=()
+# The config read here goes to inputs.sh as CLAUDINIX_CONFIG_JSON, for
+# that one call only, never into the dev shell (scripts:T96).
+config_env=()
 case "${1:-}" in
 -* | "")
     if [ -f "$lib/config.sh" ] && command -v jq >/dev/null 2>&1; then
-        from_file="$(bash "$lib/config.sh" get devshell.installable)" || exit "$?"
+        config="$(bash "$lib/config.sh" json)" || exit "$?"
+        config_env=("CLAUDINIX_CONFIG_JSON=$config")
+        from_file="$(jq -r .devshell.installable <<<"$config")"
         if [ "$from_file" != . ]; then
             installable=("$from_file")
             log "installable $from_file from .claudinix.toml (devshell.installable)"
@@ -107,7 +112,7 @@ why() {
 }
 
 # `owner/repo rev cached|uncached` per github input (scripts:T25).
-if bash "$lib/inputs.sh" "$flake" >"$tmp/status" 2>"$tmp/status.err"; then
+if env ${config_env[@]+"${config_env[@]}"} bash "$lib/inputs.sh" "$flake" >"$tmp/status" 2>"$tmp/status.err"; then
     known=1
 else
     known=0
