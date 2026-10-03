@@ -20,9 +20,11 @@
 #
 # Usage: inputs.sh [--check] [FLAKE_DIR]   (default: the current directory)
 #   --check  exit 1 when any input is uncached
-# Env:   INPUTS_CACHES  cache URLs, space-separated
-#                       (default: owner cachix and cache.nixos.org)
-#        CLAUDINIX_SCRIPTS  dir holding inputs.jq (default: this script's dir)
+# Env:   INPUTS_CACHES  cache URLs, space-separated (default: the cachix
+#                       `cache.name` in FLAKE_DIR/.claudinix.toml names,
+#                       else the owner's, and cache.nixos.org)
+#        CLAUDINIX_SCRIPTS  dir holding inputs.jq and config.sh (default:
+#                           this script's dir)
 
 set -euo pipefail
 
@@ -45,13 +47,25 @@ for arg in "$@"; do
 done
 
 lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
-caches="${INPUTS_CACHES:-https://pr0d1r2.cachix.org https://cache.nixos.org}"
 
 # Absolute, so nix never reads a bare name as a flake registry entry.
 given="${dir:-.}"
 if ! dir="$(cd "$given" 2>/dev/null && pwd)"; then
     echo "inputs: no directory $given -- nothing was checked" >&2
     exit 1
+fi
+
+# INPUTS_CACHES wins; else the flake dir's cache.name (scripts:T91, V34;
+# default pr0d1r2) beside cache.nixos.org. A bad file exits 2. A lib
+# dir without config.sh (an older nix-dev install) reads no file.
+name=pr0d1r2
+if [ -n "${INPUTS_CACHES:-}" ]; then
+    caches="$INPUTS_CACHES"
+else
+    if [ -f "$lib/config.sh" ]; then
+        name="$(bash "$lib/config.sh" --dir "$given" get cache.name)" || exit "$?"
+    fi
+    caches="https://$name.cachix.org https://cache.nixos.org"
 fi
 if [ ! -f "$dir/flake.lock" ]; then
     echo "inputs: no flake.lock in $dir -- nothing was checked (run nix flake lock first)" >&2
