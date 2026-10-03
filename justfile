@@ -24,6 +24,6 @@ probe *args:
 bump-nix ver:
     scripts/bump-nix.sh {{ ver }}
 
-# Cut a release (maintainer): CI green and agent home cached, then notes.
-release rev="HEAD":
-    scripts/release.sh {{ rev }}
+# Cut a release (maintainer): `release record [REV]`, commit, `release publish SHA`.
+release *args:
+    scripts/release.sh {{ args }}
