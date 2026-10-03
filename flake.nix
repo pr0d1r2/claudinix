@@ -22,17 +22,21 @@
     # cloud session, where a `github:` tarball fetch is a 403 unless the
     # source is cached (C6, V30, B8). The same holds for the agent-home
     # inputs below; nixpkgs itself is substituted from cache.nixos.org
-    # by its narHash (C8b).
+    # by its narHash (C8b). The dev-shell inputs (nix-hk, xenolith and the
+    # spec tools) use git+https too, so `nix develop` of this repo works in
+    # a cloud session without cached sources (T99, C29). A tag needs its
+    # full `refs/tags/<tag>` ref: the git fetcher reads a bare ref as a
+    # branch.
     nixpkgs-lock.url = "git+https://github.com/pr0d1r2/nixpkgs-lock?ref=main&shallow=1";
     nixpkgs.follows = "nixpkgs-lock/nixpkgs";
 
     nix-hk = {
-      url = "github:pr0d1r2/nix-hk";
+      url = "git+https://github.com/pr0d1r2/nix-hk?ref=main&shallow=1";
       inputs.nixpkgs-lock.follows = "nixpkgs-lock";
     };
 
     xenolith = {
-      url = "github:pr0d1r2/xenolith";
+      url = "git+https://github.com/pr0d1r2/xenolith?ref=main&shallow=1";
       inputs = {
         nixpkgs-lock.follows = "nixpkgs-lock";
         nix-hk.follows = "nix-hk";
@@ -47,7 +51,7 @@
     # itok names its hk input `hk`, microlith names it `nix-hk`; both
     # follow the same node so the shell holds one hk build.
     itok = {
-      url = "github:pr0d1r2/itok/v0.3.1";
+      url = "git+https://github.com/pr0d1r2/itok?ref=refs/tags/v0.3.1&shallow=1";
       inputs = {
         nixpkgs-lock.follows = "nixpkgs-lock";
         hk.follows = "nix-hk";
@@ -56,7 +60,7 @@
     };
 
     microlith = {
-      url = "github:pr0d1r2/microlith/v0.7.3";
+      url = "git+https://github.com/pr0d1r2/microlith?ref=refs/tags/v0.7.3&shallow=1";
       inputs = {
         nixpkgs-lock.follows = "nixpkgs-lock";
         nix-hk.follows = "nix-hk";
@@ -65,7 +69,7 @@
     };
 
     sherd = {
-      url = "github:pr0d1r2/sherd/v0.5.3";
+      url = "git+https://github.com/pr0d1r2/sherd?ref=refs/tags/v0.5.3&shallow=1";
       inputs = {
         nixpkgs-lock.follows = "nixpkgs-lock";
         nix-hk.follows = "nix-hk";

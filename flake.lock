@@ -60,16 +60,17 @@
       "locked": {
         "lastModified": 1787390756,
         "narHash": "sha256-sqRCaH/geTFiANjUWoXkbbQnohFCuybCOgohK8gwk+Q=",
-        "owner": "pr0d1r2",
-        "repo": "itok",
+        "ref": "refs/tags/v0.3.1",
         "rev": "f6b6b7222d1858c1003906c519fdb363b36df2d9",
-        "type": "github"
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/pr0d1r2/itok"
       },
       "original": {
-        "owner": "pr0d1r2",
-        "ref": "v0.3.1",
-        "repo": "itok",
-        "type": "github"
+        "ref": "refs/tags/v0.3.1",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/pr0d1r2/itok"
       }
     },
     "microlith": {
@@ -92,16 +93,17 @@
       "locked": {
         "lastModified": 1789925744,
         "narHash": "sha256-uNVVUqzh7Od5UzDhKu5X7R3Xeje/8vmk0zOGbu5SsQE=",
-        "owner": "pr0d1r2",
-        "repo": "microlith",
+        "ref": "refs/tags/v0.7.3",
         "rev": "58a36c3bc90b76e1f561996b14cf3beaf9a40ed2",
-        "type": "github"
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/pr0d1r2/microlith"
       },
       "original": {
-        "owner": "pr0d1r2",
-        "ref": "v0.7.3",
-        "repo": "microlith",
-        "type": "github"
+        "ref": "refs/tags/v0.7.3",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/pr0d1r2/microlith"
       }
     },
     "nix-hk": {
@@ -118,15 +120,17 @@
       "locked": {
         "lastModified": 1789817970,
         "narHash": "sha256-q/pSSRnGdouzdH8dtQUV2ZhMeNB/B9dNXlwS7U8HEts=",
-        "owner": "pr0d1r2",
-        "repo": "nix-hk",
+        "ref": "main",
         "rev": "a063d34d951e733086a63b6704dad12ac9934d3f",
-        "type": "github"
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/pr0d1r2/nix-hk"
       },
       "original": {
-        "owner": "pr0d1r2",
-        "repo": "nix-hk",
-        "type": "github"
+        "ref": "main",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/pr0d1r2/nix-hk"
       }
     },
     "nix-home-manager-claude-code": {
@@ -236,16 +240,17 @@
       "locked": {
         "lastModified": 1791020948,
         "narHash": "sha256-eZhxU54+S5GY8UOSzzkEtqB/UIJVkofNw5U1sEBFxVo=",
-        "owner": "pr0d1r2",
-        "repo": "sherd",
+        "ref": "refs/tags/v0.5.3",
         "rev": "014357299f560b9a467341cd9db023e477347520",
-        "type": "github"
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/pr0d1r2/sherd"
       },
       "original": {
-        "owner": "pr0d1r2",
-        "ref": "v0.5.3",
-        "repo": "sherd",
-        "type": "github"
+        "ref": "refs/tags/v0.5.3",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/pr0d1r2/sherd"
       }
     },
     "xenolith": {
@@ -271,15 +276,17 @@
       "locked": {
         "lastModified": 1790778663,
         "narHash": "sha256-dty/jwRnM+80PSXzguDC3h3Od+ylxRqMYcrS45vylXw=",
-        "owner": "pr0d1r2",
-        "repo": "xenolith",
+        "ref": "main",
         "rev": "917b3ee017d8e405314a246a09f78b7bbbf63dba",
-        "type": "github"
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/pr0d1r2/xenolith"
       },
       "original": {
-        "owner": "pr0d1r2",
-        "repo": "xenolith",
-        "type": "github"
+        "ref": "main",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/pr0d1r2/xenolith"
       }
     }
   },
