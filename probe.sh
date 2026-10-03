@@ -46,6 +46,33 @@ else
     report unshare refused
 fi
 
+# V32: the git a session commits with outside the dev shell. Only git
+# 2.54 or newer runs hk's config-based hooks; an older one runs only the
+# `.git/hooks` shims. Reported, never a failure.
+config_hooks=unknown
+if git_line="$(git --version 2>/dev/null)"; then
+    report git-version "$git_line"
+    version="${git_line#git version }"
+    major="${version%%.*}"
+    minor="${version#"$major".}"
+    minor="${minor%%[!0-9]*}"
+    case "$major" in
+    "" | *[!0-9]*) ;;
+    *)
+        if [ -n "$minor" ]; then
+            if [ "$major" -gt 2 ] || { [ "$major" -eq 2 ] && [ "$minor" -ge 54 ]; }; then
+                config_hooks="yes (>= 2.54)"
+            else
+                config_hooks="no (< 2.54: only the .git/hooks shims run the gate)"
+            fi
+        fi
+        ;;
+    esac
+else
+    report git-version unavailable
+fi
+report git-config-hooks "$config_hooks"
+
 # V1: nix must resolve in a shell that sourced no profile.
 if nix_path="$(command -v nix)"; then
     report nix-path "$nix_path"
