@@ -183,14 +183,18 @@ fi
 # failover, linked onto the same PATH dir. Its files come from the clone
 # beside this script, else from the repo at the SHA this script was
 # fetched at (T69, V20), or `main` when none was given. They are staged
-# and moved into place together (T73): a partial set would link a nix-dev
-# that cannot find its jq program. A failed fetch only warns and drops
-# any older link: nix itself still works (V1).
+# in "$lib_dir.new", beside the live dir so the swap never crosses a
+# filesystem, and swapped in whole with one mv (T73, T88): a partial set
+# would link a nix-dev that cannot find its jq program, and files nix-dev
+# no longer ships do not linger. A failed fetch only warns and drops any
+# older link: nix itself still works (V1).
 lib_dir="${CLAUDINIX_LIB_DIR:-/usr/local/lib/claudinix}"
 raw="${CLAUDINIX_RAW_URL:-https://raw.githubusercontent.com/$repo/${CLAUDINIX_REV:-${sha:-main}}}"
 # inputs.* tell nix-dev which inputs a cache holds (scripts:T49).
 nix_dev_files=(nix-dev.sh nix-dev.jq inputs.sh inputs.jq)
-stage="$work/nix-dev"
+stage="$lib_dir.new"
+# A staging dir a killed run left behind is never installed.
+rm -rf "$stage"
 mkdir -p "$stage"
 nix_dev=ok
 for file in "${nix_dev_files[@]}"; do
@@ -203,12 +207,11 @@ for file in "${nix_dev_files[@]}"; do
 done
 if [ "$nix_dev" = ok ]; then
     chmod +x "$stage/nix-dev.sh"
-    mkdir -p "$lib_dir"
-    for file in "${nix_dev_files[@]}"; do
-        mv -f "$stage/$file" "$lib_dir/$file"
-    done
+    rm -rf "$lib_dir"
+    mv "$stage" "$lib_dir"
     ln -sf "$lib_dir/nix-dev.sh" "$bin_dir/nix-dev"
 else
+    rm -rf "$stage"
     if [ -L "$bin_dir/nix-dev" ]; then
         rm -f "$bin_dir/nix-dev"
     fi
