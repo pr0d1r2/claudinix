@@ -18,11 +18,16 @@ fi
 
 status=0
 
-while read -r mode _ _ path; do
+# `-z`: NUL-ended entries, paths never quoted. Each entry is
+# `<mode> <object> <stage>TAB<path>`; splitting at the first tab keeps a
+# path's spaces, leading ones included, and its non-ASCII bytes.
+while IFS= read -r -d '' entry; do
+    path="${entry#*$'\t'}"
+    mode="${entry%% *}"
     [ "$mode" = 100755 ] && continue
     [ "$(git cat-file blob ":$path" | head -c 2)" = '#!' ] || continue
-    echo "exec-bit: $path has a shebang but is tracked as $mode -- run: git update-index --chmod=+x $path" >&2
+    echo "exec-bit: $path has a shebang but is tracked as $mode -- run: git update-index --chmod=+x $(printf '%q' "$path")" >&2
     status=1
-done < <(git ls-files --stage -- '*.sh')
+done < <(git ls-files --stage -z -- '*.sh')
 
 exit "$status"
