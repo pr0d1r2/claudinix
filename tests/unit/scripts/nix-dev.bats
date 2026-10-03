@@ -15,7 +15,9 @@ setup() {
     cp "$FIXTURES/nested/flake.lock" "$PROJECT/flake.lock"
 
     # print-dev-env: plain, git+https overrides, or a channel override
-    # each succeed only when the test says so. develop: echoes its args.
+    # each succeed only when the test says so; a leading installable is
+    # set aside first. A failure prints NIX_ERR_FILE, when set, on stderr.
+    # develop: echoes its args.
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "$*" >>"$NIX_LOG"' \
@@ -25,6 +27,7 @@ setup() {
         'print-dev-env) ;;' \
         '*) exit 9 ;;' \
         'esac' \
+        'case "${1:-}" in -* | "") ;; *) shift ;; esac' \
         'case "$*" in' \
         '"") ok="$NIX_OK_PLAIN" ;;' \
         '*channels.nixos.org*) ok="$NIX_OK_CHANNEL" ;;' \
@@ -32,6 +35,7 @@ setup() {
         '*) ok=0 ;;' \
         'esac' \
         '[ "$ok" = 1 ] && exit 0' \
+        '[ -z "${NIX_ERR_FILE:-}" ] || { cat "$NIX_ERR_FILE" >&2; exit 1; }' \
         'echo "error: unable to download: HTTP error 403" >&2' \
         'exit 1' >"$STUBS/nix"
     chmod +x "$STUBS/nix"
@@ -172,4 +176,78 @@ N=6666666666666666666666666666666666666666
     [[ "$output" == *"cache status unknown"* ]]
     [ "$(grep -o 'tier [0-9]' <<<"$output" | tail -n 1)" = "tier 2" ]
     [[ "$(grep '^develop ' <<<"$output")" == *"--override-input b git+https"* ]]
+}
+
+# scripts:T79 (review R1-1,2,8,9,11).
+
+@test "nixpkgs is matched case-insensitively: nixos/nixpkgs is never fetched over git" {
+    jq '.nodes.nixpkgs.locked.owner = "nixos"' "$PROJECT/flake.lock" >"$PROJECT/l" && mv "$PROJECT/l" "$PROJECT/flake.lock"
+    NIX_OK_CHANNEL=1 run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ "$(grep -o 'tier [0-9]' <<<"$output" | tail -n 1)" = "tier 4" ]
+    [[ "$(grep '^develop ' <<<"$output")" == *"--override-input a/nixpkgs https://channels.nixos.org/nixos-26.05/nixexprs.tar.xz"* ]]
+    run ! grep -qi 'git+https://github.com/nixos/nixpkgs' "$NIX_LOG"
+}
+
+@test "a leading installable goes to every tier's print-dev-env and to nix develop" {
+    NIX_OK_CHANNEL=1 run bash "$SCRIPT" '.#ci' -c true
+    [ "$status" -eq 0 ]
+    [ "$(grep -c '^print-dev-env' "$NIX_LOG")" -eq 3 ]
+    [ "$(grep -c '^print-dev-env \.#ci' "$NIX_LOG")" -eq 3 ]
+    dev="$(grep '^develop ' <<<"$output")"
+    [[ "$dev" == "develop .#ci --no-write-lock-file "* ]]
+    [[ "$dev" == *" -c true" ]]
+    [ "$(grep -o '\.#ci' <<<"$dev" | wc -l | tr -d ' ')" -eq 1 ]
+}
+
+@test "a leading installable with a working plain tier: tier 1, installable kept" {
+    NIX_OK_PLAIN=1 run bash "$SCRIPT" '.#ci' --command true
+    [ "$status" -eq 0 ]
+    grep -qx 'print-dev-env .#ci' "$NIX_LOG"
+    [[ "$output" == *"develop .#ci --command true"* ]]
+}
+
+@test "a failing tier logs nix's error: line, not its last line" {
+    printf '%s\n' 'warning: Git tree is dirty' \
+        'error: unable to download https://github.com/x: HTTP error 403' \
+        '       … while fetching the input' '' \
+        '(use --show-trace to show detailed location information)' >"$BATS_TEST_TMPDIR/err"
+    NIX_ERR_FILE="$BATS_TEST_TMPDIR/err" run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"tier 2 failed (github inputs as git+https at the locked rev): error: unable to download https://github.com/x: HTTP error 403"* ]]
+    run ! grep -q 'failed.*--show-trace' <<<"$output"
+}
+
+@test "a failing tier without an error: line logs its last non-empty line" {
+    printf '%s\n' 'something odd' 'the real last words' '' '' >"$BATS_TEST_TMPDIR/err"
+    NIX_ERR_FILE="$BATS_TEST_TMPDIR/err" run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"tier 2 failed (github inputs as git+https at the locked rev): the real last words"* ]]
+}
+
+@test "no jq: one loud warning that failover is off, then plain nix develop" {
+    nojq="$BATS_TEST_TMPDIR/nojq"
+    mkdir -p "$nojq"
+    for tool in bash dirname readlink cat; do
+        ln -s "$(command -v "$tool")" "$nojq/$tool"
+    done
+    ln -s "$STUBS/nix" "$nojq/nix"
+    PATH="$nojq" run "$nojq/bash" "$SCRIPT" -c true
+    [ "$status" -eq 0 ]
+    [ "$(grep -c 'WARNING' <<<"$output")" -eq 1 ]
+    warning="$(grep 'WARNING' <<<"$output")"
+    [[ "$warning" == *"jq"* ]]
+    [[ "$warning" == *"failover is off"* ]]
+    [[ "$warning" == *"tier 1"* ]]
+    [[ "$output" == *"develop -c true"* ]]
+}
+
+@test "tier 4: each nixpkgs node gets the channel its own lock entry names" {
+    jq '.nodes.nixpkgs_2 = (.nodes.nixpkgs | .original.ref = "nixos-unstable" | .locked.rev = "7777777777777777777777777777777777777777")
+        | .nodes.b.inputs.nixpkgs = "nixpkgs_2"' "$PROJECT/flake.lock" >"$PROJECT/l" && mv "$PROJECT/l" "$PROJECT/flake.lock"
+    NIX_OK_CHANNEL=1 run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    dev="$(grep '^develop ' <<<"$output")"
+    [[ "$dev" == *"--override-input a/nixpkgs https://channels.nixos.org/nixos-26.05/nixexprs.tar.xz"* ]]
+    [[ "$dev" == *"--override-input b/nixpkgs https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz"* ]]
 }
