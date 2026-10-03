@@ -253,3 +253,64 @@ DEFAULTS='{"cache":{"name":"pr0d1r2","push_sources":false},"devshell":{"installa
     run bash "$SCRIPT" frob
     [ "$status" -eq 2 ]
 }
+
+# Values, not only types (scripts:T95): each message names the key, the
+# file and the bad value.
+
+@test "values: an empty string is refused, for every string key" {
+    refused devshell.installable 'version = 1' '[devshell]' 'installable = ""'
+    [[ "$stderr" == *'""'* ]]
+    refused cache.name 'version = 1' '[cache]' 'name = ""'
+    refused probe.branch_prefix 'version = 1' '[probe]' 'branch_prefix = ""'
+    refused network.extra_domains 'version = 1' '[network]' 'extra_domains = [""]'
+}
+
+@test "values: cache.name must be a cachix name" {
+    refused cache.name 'version = 1' '[cache]' 'name = "My_Cache"'
+    [[ "$stderr" == *'"My_Cache"'* ]]
+    refused cache.name 'version = 1' '[cache]' 'name = "-x"'
+    refused cache.name 'version = 1' '[cache]' 'name = "a.cachix.org"'
+    toml 'version = 1' '[cache]' 'name = "my-cache-2"'
+    run --separate-stderr bash "$SCRIPT" get cache.name
+    [ "$status" -eq 0 ]
+    [ "$output" = my-cache-2 ]
+}
+
+@test "values: each extra_domains entry must be a bare hostname" {
+    local bad
+    for bad in 'https://a.example.org' 'a.example.org/path' 'a.example.org:8443' 'a example.org' '.a.example.org' 'a.example.org.'; do
+        refused network.extra_domains 'version = 1' '[network]' "extra_domains = [\"ok.example.org\", \"$bad\"]"
+        [[ "$stderr" == *"\"$bad\""* ]]
+        [[ "$stderr" != *'"ok.example.org"'* ]]
+    done
+    toml 'version = 1' '[network]' 'extra_domains = ["a-1.Example.org", "localhost"]'
+    run --separate-stderr bash "$SCRIPT" get network.extra_domains
+    [ "$status" -eq 0 ]
+    [ "${lines[0]}" = a-1.Example.org ]
+}
+
+@test "values: installable and branch_prefix allow no space, quote or control char" {
+    refused devshell.installable 'version = 1' '[devshell]' 'installable = "path:./a b"'
+    [[ "$stderr" == *'"path:./a b"'* ]]
+    refused devshell.installable 'version = 1' '[devshell]' "installable = \".#ci'\""
+    refused devshell.installable 'version = 1' '[devshell]' 'installable = ".#c\"i"'
+    # shellcheck disable=SC2016 # a literal backtick in the TOML value
+    refused devshell.installable 'version = 1' '[devshell]' 'installable = ".#c`i`"'
+    refused devshell.installable 'version = 1' '[devshell]' 'installable = ".#ci\t"'
+    refused devshell.installable 'version = 1' '[devshell]' 'installable = ".#ci\u0007"'
+    [[ "$stderr" == *'\u0007'* ]]
+    refused probe.branch_prefix 'version = 1' '[probe]' 'branch_prefix = "claude/a b"'
+    toml 'version = 1' '[devshell]' 'installable = "git+https://example.org/o/r?ref=main#ci"'
+    run --separate-stderr bash "$SCRIPT" get devshell.installable
+    [ "$status" -eq 0 ]
+    [ "$output" = 'git+https://example.org/o/r?ref=main#ci' ]
+}
+
+@test "values: every bad value is reported at once" {
+    refused cache.name 'version = 1' '[cache]' 'name = "Bad"' '[devshell]' 'installable = "a b"' \
+        '[network]' 'extra_domains = ["https://x.example.org", "y.example.org/z"]'
+    [[ "$stderr" == *devshell.installable* ]]
+    [[ "$stderr" == *'"https://x.example.org"'* ]]
+    [[ "$stderr" == *'"y.example.org/z"'* ]]
+    [ "$(grep -c '^config: ' <<<"$stderr")" -eq 4 ]
+}
