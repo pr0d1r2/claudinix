@@ -110,6 +110,23 @@ local all = (fast) {
     glob = List("**/*.sh", "**/*.bats")
     check = "scripts/hk/run-tool.sh bats --recursive tests/unit"
   }
+
+  // The mirror rule is a property of the branch, not of every commit: a
+  // RED commit lands a test before its script exists, so checking it on
+  // pre-commit would make RED commits impossible (xenolith
+  // `scripts/guard` B1). Whole-repo glob, because the change that breaks
+  // it -- a rename or a deletion -- is not a file the step is handed
+  // (V19).
+  ["bats-mirror"] {
+    glob = List("**/*")
+    check = "scripts/guard/bats-mirror.sh"
+  }
+  // Ordering is a property of history: reads the range a push publishes,
+  // so every file counts as a trigger.
+  ["tdd-order"] {
+    glob = List("**/*")
+    check = "scripts/guard/tdd-order.sh"
+  }
 }
 
 hooks {
