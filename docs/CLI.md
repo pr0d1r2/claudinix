@@ -17,6 +17,7 @@ has a bug.
 | [`setup.sh`](#setupsh) | the environment's setup script | a cloud session's VM, through the setup line |
 | [`setup-line.sh`](#setup-linesh) | prints the one-line setup script, for a commit whose CI is green | your machine; a checkout of this repository, or any directory with a full SHA |
 | [`bump-nix.sh`](#bump-nixsh) | pins `setup.sh` to another Nix release | a checkout of this repository |
+| [`release.sh`](#releasesh) | cuts a release in two steps: record the agent home, then publish | a checkout of this repository (maintainer) |
 | [`just` recipes](#just-recipes) | the same scripts, run on this repository | a checkout of this repository |
 
 ## How to run them
@@ -47,9 +48,10 @@ In a checkout of this repository you can run the scripts directly
   had.
 - **Streams.** Results go to stdout. Diagnostics and refusals go to stderr,
   so output can be piped.
-- **Nothing is written** to your project, to GitHub or to claude.ai. The
-  commands read files, ask a binary cache a question, or start a session you
-  asked for.
+- **Nothing is written** to your project, to GitHub or to claude.ai, with
+  one exception: `probe --cleanup` deletes the remote `claude/nix-probe*`
+  branches. The commands read files, ask a binary cache a question, or
+  start a session you asked for.
 - **Run from the project.** The default directory is the current one.
 
 ## inputs
@@ -515,6 +517,38 @@ or the answer was not one 64-hex hash.
 | 1 | it could not be rewritten, and `setup.sh` is unchanged |
 | 2 | a usage error: not exactly one argument, or a version that is not `MAJOR.MINOR.PATCH` |
 
+## release.sh
+
+Cuts a release in two steps (maintainer). It never commits, tags or pushes;
+it prints the commands and you run them. The released SHA must hold
+`cloud-home.storepath` for its own agent home, so the path is recorded and
+committed first, and the setup line pins that commit.
+
+```text
+usage: release.sh record [REV] | release.sh publish REV
+```
+
+1. `just release record REV` (`REV` defaults to `HEAD`) checks that CI on
+   `main` is green for `REV` (through `setup-line.sh`, never `--force`) and
+   that every input source and `REV`'s agent home are in the cache, then
+   writes `cloud-home.storepath`. It prints `git add`, `git commit` and
+   `git push` for it. Run them.
+2. Wait for green CI on `main` for that commit.
+3. `scripts/release.sh publish REV2 >notes.md` (`REV2` is that commit).
+   Run it directly, not through `just`, so the redirect holds only the
+   release notes; or use `just --quiet release publish REV2 >notes.md`. It
+   checks that `REV2` holds `cloud-home.storepath`, that it equals the agent
+   home evaluated at `REV2`, and that CI and the cache are good, then
+   regenerates the README block. The notes go to stdout.
+4. Run the printed `git add README.md`, `git commit`, `git push`,
+   `git tag -a claudinix-<short> <sha>`, `git push origin claudinix-<short>`
+   and `gh release create ... --verify-tag --notes-file notes.md`.
+
+If `REV` already records its own agent home, `record` says so and prints the
+`publish` command to run directly. A refusal ends `nothing was recorded` or
+`nothing was published`. Exit 0 on success, 1 on a refusal, 2 on a usage
+error.
+
 ## just recipes
 
 The [`justfile`](../justfile) runs the same scripts on this repository.
@@ -527,6 +561,7 @@ Arguments pass through, and each recipe is one plain command.
 | `just guide [args]` | `scripts/guide.sh`; `just guide update` for the update flow |
 | `just probe [args]` | `scripts/probe-launch.sh` |
 | `just bump-nix <version>` | `scripts/bump-nix.sh` |
+| `just release [args]` | `scripts/release.sh` (maintainer) |
 
-`just --list` shows the five. There is no recipe for `nix-dev` or
+`just --list` shows the six. There is no recipe for `nix-dev` or
 `setup-line.sh`: run `scripts/setup-line.sh` directly.
