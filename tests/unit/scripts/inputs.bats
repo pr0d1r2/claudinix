@@ -135,3 +135,10 @@ cached() {
     run bash "$SCRIPT" "$PROJECT" "$PROJECT"
     [ "$status" -eq 2 ]
 }
+
+@test "a missing flake dir: the error names the argument given, not ." {
+    run bash "$SCRIPT" "$BATS_TEST_TMPDIR/nonexistent"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"no directory $BATS_TEST_TMPDIR/nonexistent "* ]]
+    [[ "$output" == *"nothing was checked"* ]]
+}
