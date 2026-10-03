@@ -54,7 +54,7 @@ T84|x|ARCHIVED to SPEC-ARCHIVE.md|C22
 T85|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:C17`,`.:C21`
 T89|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C6`,`.:V18`,C22
 T94|x|`docs/CONFIG.md`: every key, type, default, which tool reads it, precedence, example (this repo's file); CLI/README/CONSUMER/SETUP mention it; plain English|`.:C28`,`scripts:V34`,C22
-T103|.|AGENTS.md + CONTRIBUTING: cloud-built changes arrive as `claude/*` branches (1 task each); how the owner launches (`just cloud Tn`), reviews (CI on the branch) \& merges; what a cloud agent must report|`.:C29`,C22
+T103|x|AGENTS.md + CONTRIBUTING: cloud-built changes arrive as `claude/*` branches (1 task each); how the owner launches (`just cloud Tn`), reviews (CI on the branch) \& merges; what a cloud agent must report|`.:C29`,C22
 
 ## §B BUGS
 
