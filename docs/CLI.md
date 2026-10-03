@@ -216,7 +216,7 @@ checks, for a project whose inputs are all cached:
 
 ```text
 == 5. Run a first session and check that it works ==
-Pick the session's model. It is fixed at launch: ANTHROPIC_MODEL on the environment does not set it (probe 6).
+Pick the session's model. It is fixed at launch: ANTHROPIC_MODEL on the environment does not set it (measured, see docs/FACTS.md).
   sonnet  Claude Sonnet 5.5, the default here: $2.00 input, $10.00 output per million tokens (docs/MODEL.md).
   opus    Claude Opus 5.5, for harder work: $4.00 input, $20.00 output per million tokens (docs/MODEL.md).
 Model [sonnet/opus] (Enter: sonnet):
