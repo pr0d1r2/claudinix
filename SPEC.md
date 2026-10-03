@@ -54,7 +54,7 @@ V5: `setup.sh` wall time on fresh VM ≤ 5 min (cache window C1); measured, ⊥ 
 V6: ⊥ secret in repo \| env vars; cachix read-only (⊥ `CACHIX_AUTH_TOKEN`).
 V7: `setup.sh` = Nix install + agent-home activation only (C3); ⊥ target-repo step (devShell warm-up, hooks, cargo).
 V8: in session, `nix develop` on target flake w/ complete `flake.lock` succeeds w/o GitHub tarball fetch: locked inputs substituted by `narHash` from `cache.nixos.org` (nixpkgs, probe 4) \| `pr0d1r2.cachix.org` (pushed by target CI, T54); devShell closure from either cache.
-V9: nix store usable by session uid (whatever it is): write via daemon \| ownership.
+V9: nix store usable by session uid (whatever it is): write via daemon \| ownership. holds: session runs as root, store owned by root (probe 1).
 V10: ∀ env in claude.ai UI ↔ files in this repo; mismatch = bug (§B).
 V11: Nix version \& installer sha256 change together, 1 commit.
 V12: ⊥ private info in repo \| history: ⊥ private hostnames, LAN, self-hosted forge paths, tokens. public-safe from 1st push.
@@ -76,8 +76,8 @@ id|status|task|cites
 T1|.|GUARDRAILS FIRST: `flake.nix` (inputs `nixpkgs-lock`, `nix-hk`, `xenolith` w/ `follows`) devShell (hk, bats, `parallel`, shellcheck, shfmt, nixfmt, coreutils, kcov ?) + shellHook from file (`hk install`); `hk.pkl` from owner infra repo `hk.pkl` template (vendored `pkl/Config.pkl`, fast ⊂ all, commit-msg) w/ hk util hygiene, shellcheck, shfmt, nixfmt, typos, ripsecrets, actionlint, zizmor; parallel. ⊥ other task before T1,T19-T23 green|C7,C14,C18,V17,V18,V23
 T2|.|import seed from the owner's private seed repo `fab6db5` `cloud/envs/nix/` (13 bats; adds `accept-flake-config`, nixos.org \& crates.io hosts after probes 1-4) → repo root (`setup.sh`, `allowlist.txt`, `env-names.txt`, `tests/unit/setup.bats`); fix paths; `just check` green|V1,V2,V3,V4,V6,V7,I.file
 T3|.|`probe.sh`: `id`, PID 1 comm, systemd dir, `unshare -Ur true`, profile sourcing, `nix --version`, `nix config show substituters`, `nix flake metadata github:NixOS/nixpkgs` (direct fetch via proxy ok ?), locked-input substitution from cachix (input source w/ `narHash` pushed, ⊥ GitHub), `channels.nixos.org` tarball fetch, `nix-dev` tier reached, cachix narinfo hit, elapsed; bats w/ stubs|C8,V8,V9,I.file
-T4|.|MANUAL create env `nix` at claude.ai/code from repo files; run 1 probe session; record facts → resolve C8 `?`, C6 `?`|C8,C6,V10,I.ext.env
-T5|.|if probe: session uid ≠ root ∧ no systemd → make store usable (V9) \| switch install mode; bats|V9,V4
+T4|x|MANUAL create env `nix` at claude.ai/code from repo files; run 1 probe session; record facts → resolve C8 `?`, C6 `?`|C8,C6,V10,I.ext.env — done 2026-10-03: env `nix` created; probes 1-5 on sherd
+T5|x|if probe: session uid ≠ root ∧ no systemd → make store usable (V9) \| switch install mode; bats|V9,V4 — not needed: session uid = root (probe 1)
 T6|.|target-repo CI snippet (doc only, targets adopt via own spec): on push to default branch `nix flake archive --json` + devShell closure → `cachix push pr0d1r2`; push token in CI secrets only, ⊥ VM|V8,V6,C5,C6,C3
 T7|.|measure setup wall time on fresh VM; record; > 5 min → trim|V5,C1
 T8|.|`docs/CONSUMER.md` + SessionStart hook snippet for target repos (doc only, targets adopt via own spec): `github:` inputs not in cachix → `git+https://github.com/<o>/<r>?ref=main&shallow=1` (sherd #96); tools that read 3rd-party GitHub (zizmor online audit) → offline in cloud, report "could not run" ⊥ "finding"; hook: `git fetch --unshallow` (tdd-order needs history), `nix develop -c hk install`; commit author in cloud = `Claude <noreply@anthropic.com>` + `Claude-Session:` trailer ∴ commit-msg hooks must accept it; branch names get random suffix|C3,V7,C9,C8
