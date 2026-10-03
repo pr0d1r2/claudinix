@@ -20,9 +20,15 @@
 # SHA whose CI on main is not green unless --force is given (T69).
 # --agent-home asks the setup line for the opt-in agent home (.:C24).
 #
-# Usage: guide.sh [--force] [--agent-home] [--rev SHA] [--from STEP] [FLAKE_DIR]
+# The project's .claudinix.toml (scripts:T91, read by config.sh) sets
+# the defaults: session.model for step 5's answer, session.agent_home
+# for --agent-home (--no-agent-home turns it off), devshell.installable
+# for the first check's nix-dev. Flags and answers win (scripts:V34); a
+# bad file stops the guide before step 0 with exit 2.
+#
+# Usage: guide.sh [--force] [--[no-]agent-home] [--rev SHA] [--from STEP] [FLAKE_DIR]
 #                 steps 0-5 (dir: .)
-#        guide.sh update [--force] [--agent-home] [--rev SHA] [FLAKE_DIR]
+#        guide.sh update [--force] [--[no-]agent-home] [--rev SHA] [FLAKE_DIR]
 #                 the "Updating" flow
 # Env:   CLAUDINIX_SCRIPTS    dir with guide-steps.tsv, inputs.sh, domains.sh,
 #                             setup-line.sh
@@ -39,7 +45,7 @@
 set -euo pipefail
 
 usage() {
-    echo "usage: guide.sh [--force] [--agent-home] [--rev SHA] [--from STEP] [FLAKE_DIR] | guide.sh update [--force] [--agent-home] [--rev SHA] [FLAKE_DIR]" >&2
+    echo "usage: guide.sh [--force] [--[no-]agent-home] [--rev SHA] [--from STEP] [FLAKE_DIR] | guide.sh update [--force] [--[no-]agent-home] [--rev SHA] [FLAKE_DIR]" >&2
     exit 2
 }
 
@@ -47,13 +53,14 @@ flow=setup
 from=0
 dir=
 force=()
-agent_home=()
+agent_home_flag=
 rev="${CLAUDINIX_SETUP_REV:-}"
 while [ "$#" -gt 0 ]; do
     case "$1" in
     update) flow=update ;;
     --force) force=(--force) ;;
-    --agent-home) agent_home=(--agent-home) ;;
+    --agent-home) agent_home_flag=true ;;
+    --no-agent-home) agent_home_flag=false ;;
     --rev)
         [ "$#" -ge 2 ] && [[ "$2" =~ ^[0-9a-f]{40}$ ]] || usage
         rev="$2"
@@ -85,6 +92,21 @@ if ! abs="$(cd "$given" 2>/dev/null && pwd)"; then
 fi
 
 lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
+
+# The project's .claudinix.toml, read once (scripts:T91, V34): flag >
+# file > default. config.sh names a bad file and exits 2.
+config="$(bash "$lib/config.sh" --dir "$given" json)" || exit "$?"
+IFS="$(printf '\t')" read -r default_model file_agent_home installable < <(
+    jq -r '[.session.model, .session.agent_home, .devshell.installable] | @tsv' <<<"$config"
+)
+agent_home=()
+if [ "${agent_home_flag:-$file_agent_home}" = true ]; then
+    agent_home=(--agent-home)
+fi
+# `.` is a bare nix-dev, as the check has always been written.
+dev_shell="nix-dev -c true"
+[ "$installable" = . ] || dev_shell="nix-dev $installable -c true"
+
 readme="${CLAUDINIX_README:-$lib/../README.md}"
 model_doc="${CLAUDINIX_MODEL_DOC:-$lib/../docs/MODEL.md}"
 env_names="${CLAUDINIX_ENV_NAMES:-$lib/../env-names.txt}"
@@ -323,22 +345,23 @@ price() {
 
 step_5() {
     echo "Pick the session's model. It is fixed at launch: ANTHROPIC_MODEL on the environment does not set it (measured, see docs/FACTS.md)."
-    echo "  sonnet  Claude Sonnet 5.5, the default here: $(price 'Claude Sonnet 5.5')."
+    echo "  sonnet  Claude Sonnet 5.5, for everyday work: $(price 'Claude Sonnet 5.5')."
     echo "  opus    Claude Opus 5.5, for harder work: $(price 'Claude Opus 5.5')."
-    ask "Model [sonnet/opus] (Enter: sonnet):"
-    local model="${answer:-sonnet}"
+    # The project's session.model is the default (scripts:T91).
+    ask "Model [sonnet/opus] (Enter: $default_model):"
+    local model="${answer:-$default_model}"
     case "$model" in
     sonnet | opus) ;;
     *)
-        echo "Not a choice here: using sonnet."
-        model=sonnet
+        echo "Not a choice here: using $default_model."
+        model="$default_model"
         ;;
     esac
     uncached_inputs
     echo "Launch from a checkout of the project ($abs), branch pushed (the task comes right after --cloud):"
     echo "  claude --cloud \"<task>\" --model $model"
     echo "First check, it works when the output shows a Nix version and DEVSHELL-OK:"
-    echo "  claude --cloud \"Run: nix --version && nix-dev -c true && echo DEVSHELL-OK. Report the output.\" --model $model"
+    echo "  claude --cloud \"Run: nix --version && $dev_shell && echo DEVSHELL-OK. Report the output.\" --model $model"
     echo "In the browser, use the model picker when you start the session instead."
     echo "Which model ran: the Co-Authored-By trailer of the session's commits."
 }
