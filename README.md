@@ -75,8 +75,8 @@ In short:
    list included, as allowed domains every non-comment line of
    `allowlist.txt` plus your project's hosts from
    `nix run github:pr0d1r2/nix-claude-code-cloud#domains`, and as the setup
-   script the one line `scripts/setup-line.sh` prints (not the contents of
-   `setup.sh`).
+   script the one line `scripts/setup-line.sh` prints once CI on `main` is
+   green for the commit (not the contents of `setup.sh`).
 5. **Choose it in your terminal** with `/remote-env` (once per machine).
 6. **Run a first session** and look for a Nix version and `DEVSHELL-OK`:
 
@@ -102,20 +102,20 @@ host `pr0d1r2.cachix.org`, its public signing key, and the repository's own
 name in GitHub URLs. To use your own cache, change them everywhere they
 appear. [`docs/FORKING.md`](docs/FORKING.md) has the full walkthrough.
 
-Today the cache host and key are in these files:
+In [`setup.sh`](setup.sh) they sit in one fork config block at the top
+(`cache_host`, `cache_key` and `repo`), and a fork edits only that block
+there (`SPEC.md` C11). They also appear in these files:
 
 | file | what to change |
 |---|---|
-| [`setup.sh`](setup.sh) | the `extra-substituters` and `extra-trusted-public-keys` lines of the managed `nix.conf` block |
 | [`allowlist.txt`](allowlist.txt) | the cache host |
 | [`flake.nix`](flake.nix) | `nixConfig` |
 | [`probe.sh`](probe.sh) | the `CACHIX_URL` default |
+| [`scripts/ci/verify-cachix.sh`](scripts/ci/verify-cachix.sh) | the `CACHIX_URL` default |
+| [`scripts/setup-line.sh`](scripts/setup-line.sh) | the `repo=` line |
 | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | the cachix cache name and the `CACHIX_AUTH_TOKEN` secret |
 
-Collecting the owner-specific values into one config block at the top of
-`setup.sh`, so that a fork edits only that block, is a constraint of the spec
-(`SPEC.md` C11) and is not done yet. Until it is, treat the table above as
-the checklist.
+The bats tests assert these values too and need the same change.
 
 Your cache needs a push token, and that token lives only in your CI secrets.
 It is never put on a session VM; from the VM the cache is read-only.
