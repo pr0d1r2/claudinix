@@ -41,4 +41,16 @@ in
     ];
     description = "List a flake's github inputs: cached, or attach to the session";
   };
+
+  domains = app {
+    name = "domains";
+    runtimeInputs = [
+      pkgs.jq
+      pkgs.coreutils
+      pkgs.gnugrep
+      pkgs.gnused
+    ];
+    runtimeEnv.NCCC_ALLOWLIST = "${../allowlist.txt}";
+    description = "Print the allowed domains a cloud environment needs for a project";
+  };
 }

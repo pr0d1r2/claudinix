@@ -7,3 +7,7 @@
 # List a flake's github inputs: cached, or attach to the session.
 inputs *args:
     scripts/inputs.sh {{ args }}
+
+# Print the allowed domains a cloud environment needs for projects.
+domains *args:
+    scripts/domains.sh {{ args }}
