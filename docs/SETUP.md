@@ -104,17 +104,13 @@ in each new VM. This repository's environment installs Nix.
        `channels.nixos.org`, so do not rely on the default list for
        them.
    - **Environment variables**: one `KEY=value` per line.
-     - **Choose the model here.** Add
-       `ANTHROPIC_MODEL=claude-sonnet-5-5`. Every session in this
-       environment then runs on Claude Sonnet 5.5, whether you start it
-       in the browser, with `claude --cloud`, or from a routine, and
-       your local sessions are not affected. Sonnet 5.5 costs half of
-       Claude Opus 5.5 per token and handles routine coding work; see
-       [`MODEL.md`](MODEL.md) for prices and when to choose differently.
-       To use Opus 5.5 for one session only, start it with
-       `claude --cloud --model opus` or pick the model in the browser.
-       Do not set the model in a repository's `.claude/settings.json`:
-       that also changes your local sessions in that repository.
+     - **The model is not chosen here.** Probe 6 (2026-10-03) had
+       `ANTHROPIC_MODEL=claude-sonnet-5-5` set on the environment, and the
+       session still ran on Claude Opus 5.5: the model is fixed when the
+       session is created. Choose it at launch instead, with
+       `claude --cloud --model sonnet "..."` or the model picker when you
+       start a session in the browser. Claude Sonnet 5.5 costs half of
+       Claude Opus 5.5 per token; see [`MODEL.md`](MODEL.md).
      - Add any other names listed in [`env-names.txt`](../env-names.txt).
      - Anyone who can use the environment can read these values, so
        never put secrets here.
@@ -251,10 +247,9 @@ keeps its old VM; start a new session to pick up the change.
   Attaching `NixOS/nixpkgs` to the session is not a fix: the session
   would clone the whole repository.
 - **Sessions run on a different model than expected.** Check the
-  `Co-Authored-By` trailer of a commit the session made. If it does not
-  name the model you set, check `ANTHROPIC_MODEL` in the environment's
-  variables, and remember that `--model` on the command line overrides
-  it for that session.
+  `Co-Authored-By` trailer of a commit the session made. The model comes
+  from how the session was started (`--model`, or the browser's picker),
+  not from the environment's variables.
 - **Every session is slow to start.** The setup script takes longer
   than about five minutes, so no snapshot is saved.
 - **`Unable to get organization UUID`.** You are signed in with an API
