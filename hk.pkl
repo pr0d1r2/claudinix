@@ -190,6 +190,14 @@ local fast = new Mapping<String, Step> {
     check = "scripts/config.sh check"
   }
 
+  // The one rule list cloud sessions get stays narrow and keeps the deny
+  // rules against pushing main; the committed project settings, which
+  // local sessions read, carry none (T101). jq missing fails (V18).
+  ["cloud-permissions"] {
+    glob = List("nix/cloud-permissions.json", ".claude/settings.json", "scripts/guard/cloud-permissions.sh")
+    check = "scripts/guard/cloud-permissions.sh"
+  }
+
   // A shebang script tracked as 100644 answers "permission denied" (B6).
   // Whole-repo glob: a mode-only change is still a change (V19, V28).
   ["exec-bit"] {

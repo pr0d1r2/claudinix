@@ -1,0 +1,41 @@
+{
+  "allow": [
+    "Bash(nix develop -c true)",
+    "Bash(nix develop -c hk *)",
+    "Bash(nix develop -c bats *)",
+    "Bash(nix develop -c mth *)",
+    "Bash(nix develop -c sherd *)",
+    "Bash(nix develop -c itok *)",
+    "Bash(nix-dev -c true)",
+    "Bash(nix-dev -c hk *)",
+    "Bash(nix-dev -c bats *)",
+    "Bash(nix-dev -c mth *)",
+    "Bash(nix-dev -c sherd *)",
+    "Bash(nix-dev -c itok *)",
+    "Bash(hk check *)",
+    "Bash(hk fix *)",
+    "Bash(bats *)",
+    "Bash(mth *)",
+    "Bash(sherd *)",
+    "Bash(itok *)",
+    "Bash(bash scripts/*)",
+    "Bash(scripts/*)",
+    "Bash(./scripts/*)",
+    "Bash(git add *)",
+    "Bash(git commit *)",
+    "Bash(git fetch *)",
+    "Bash(git status *)",
+    "Bash(git diff *)",
+    "Bash(git log *)",
+    "Bash(git push -u origin claude/*)",
+    "Bash(git push origin claude/*)",
+    "Edit(/gate.log)"
+  ],
+  "deny": [
+    "Bash(git push * main)",
+    "Bash(git push * main *)",
+    "Bash(git push *:main)",
+    "Bash(git push *:main *)",
+    "Bash(git push *refs/heads/main*)"
+  ]
+}
