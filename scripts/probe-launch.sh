@@ -11,7 +11,12 @@
 # so --cleanup deletes every `claude/nix-probe*` branch on the remote.
 # Follow-ups go through `claude -p MSG --cloud ID` (no TTY needed).
 #
-# Usage: probe-launch.sh [--model M] [--cleanup]   (default model: sonnet)
+# Before a session starts (scripts:T81): the remote must exist, the
+# current branch must be pushed and equal to its upstream (the session
+# clones GitHub, not this disk), and a y/N answer must confirm that a
+# billed cloud session starts; --yes skips only that question.
+#
+# Usage: probe-launch.sh [--model M] [--yes] [--cleanup]   (model: sonnet)
 # Env:   PROBE_REMOTE        remote the session pushes to (default origin)
 #        PROBE_POLL_SECONDS  wait between branch checks (default 20)
 #        PROBE_POLL_TRIES    checks before giving up (default 90: 30 min)
@@ -21,12 +26,13 @@
 set -euo pipefail
 
 usage() {
-    echo "usage: probe-launch.sh [--model M] [--cleanup]" >&2
+    echo "usage: probe-launch.sh [--model M] [--yes] [--cleanup]" >&2
     exit 2
 }
 
 model=sonnet
 cleanup=0
+yes=0
 while [ "$#" -gt 0 ]; do
     case "$1" in
     --model)
@@ -35,6 +41,7 @@ while [ "$#" -gt 0 ]; do
         shift
         ;;
     --cleanup) cleanup=1 ;;
+    --yes) yes=1 ;;
     *) usage ;;
     esac
     shift
@@ -50,6 +57,10 @@ report=nix-probe-report.txt
 
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     echo "probe: not inside a git work tree -- run it from the project the session clones" >&2
+    exit 1
+fi
+if ! git remote get-url "$remote" >/dev/null 2>&1; then
+    echo "probe: no remote $remote -- push the project to GitHub first" >&2
     exit 1
 fi
 
@@ -72,6 +83,33 @@ if [ "$cleanup" = 1 ]; then
     git push "$remote" --delete "${old[@]}"
     echo "probe: deleted ${old[*]}"
     exit 0
+fi
+
+# The session clones GitHub: the branch must be there as it is here.
+if ! current="$(git symbolic-ref --quiet --short HEAD)"; then
+    echo "probe: HEAD is detached -- check out the branch the session should clone" >&2
+    exit 1
+fi
+if ! upstream="$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null)"; then
+    echo "probe: branch $current is not pushed (no upstream) -- push it first: git push -u $remote $current" >&2
+    exit 1
+fi
+if [ "$(git rev-parse HEAD)" != "$(git rev-parse '@{u}')" ]; then
+    echo "probe: branch $current is not up to date with $upstream -- push (or pull) first" >&2
+    exit 1
+fi
+
+if [ "$yes" = 0 ]; then
+    printf 'probe: this starts a billed Claude Code cloud session (model %s) from %s. Start it? [y/N] ' "$model" "$current"
+    answer=
+    IFS= read -r answer || true
+    case "$answer" in
+    y | Y | yes) ;;
+    *)
+        echo "probe: not started" >&2
+        exit 1
+        ;;
+    esac
 fi
 
 task="$(cat "$lib/probe-prompt.txt" "$probe")"
