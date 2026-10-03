@@ -2,10 +2,9 @@
 
 You may not want to trust the owner's binary cache, or you may want sessions
 to read a cache you control. This page lists what to change. It is honest
-about one thing up front: the spec calls for all owner-specific values to sit in
-one config block at the top of `setup.sh`, so that a fork edits only that block
-(`SPEC.md` C11). That block does not exist yet. Today the values are spread
-over a few files, and this page is the checklist until it does.
+about one thing up front: the owner-specific values of `setup.sh` sit in one
+config block at its top, so that for that file a fork edits only that block
+(`SPEC.md` C11). Some values live outside `setup.sh`, and this page lists them.
 
 Read [`SECURITY.md`](SECURITY.md) first. What you are changing is whose cache
 a root-run script trusts.
@@ -38,17 +37,31 @@ Find every use:
 grep -rn "pr0d1r2" --exclude-dir=.git .
 ```
 
-The ones that matter, as they stand today:
+In [`setup.sh`](../setup.sh), edit only the fork config block between
+`# BEGIN fork config (SPEC C11)` and `# END fork config (SPEC C11)`:
+
+| variable | change it to |
+|---|---|
+| `cache_host` | your cache's host name |
+| `cache_key` | your cache's public signing key |
+| `repo` | `<you>/<your fork>`, used in the raw and `git+https` URLs |
+
+Nothing else in `setup.sh` names the owner. These values live outside it, and
+each needs the same change:
 
 | file | change |
 |---|---|
-| [`setup.sh`](../setup.sh) | the `extra-substituters` and `extra-trusted-public-keys` lines in the managed `nix.conf` block |
 | [`allowlist.txt`](../allowlist.txt) | the cache host |
 | [`flake.nix`](../flake.nix) | `nixConfig`, the substituter and key |
 | [`probe.sh`](../probe.sh) | the default `CACHIX_URL` |
-| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | the cachix `name`, and the `CACHIX_AUTH_TOKEN` secret you add to your repository |
 | [`scripts/ci/verify-cachix.sh`](../scripts/ci/verify-cachix.sh) | the default `CACHIX_URL` |
-| `tests/unit/*.bats` | the bats tests that assert these values; the gate fails until they match |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | the cachix `name`, and the `CACHIX_AUTH_TOKEN` secret you add to your repository |
+| [`scripts/setup-line.sh`](../scripts/setup-line.sh) | its `repo=` line, which sets the raw URL it prints and the repository whose CI it asks about |
+| `tests/unit/**/*.bats` | the bats tests that assert these values (for example `tests/unit/setup.bats`, `tests/unit/scripts/setup-line.bats`); the gate fails until they match |
+
+The grep above also finds the default cache URL in `scripts/inputs.sh` and
+`scripts/nix/record-storepath.sh`, and `pr0d1r2/...` in comments and docs;
+change the code ones with the table.
 
 You do not need to guess if you missed one: the bats tests check that
 `allowlist.txt` names the hosts it should and that no value looks like a
@@ -67,9 +80,11 @@ through a cache ([`CACHE-CI.md`](CACHE-CI.md)).
 
 1. Follow [`SETUP.md`](SETUP.md) with your edited `setup.sh` and
    `allowlist.txt`. The setup script is the line `scripts/setup-line.sh`
-   prints, and that script names the owner's repository in the raw URL it
-   prints (as `setup.sh` does in its `repo=` line). Change both to your
-   fork first, or the line fetches the owner's `setup.sh`, not yours. The environment name `nix` is only a label in the browser;
+   prints, and that script has its own `repo=` line. Change it to your fork
+   first, or the line fetches the owner's `setup.sh`, not yours, and asks
+   about the owner's CI. It prints a line only for a commit whose CI on
+   `main` is green, so your fork's CI must run `ci.yml` on `main` first. The
+   environment name `nix` is only a label in the browser;
    pick another if you like and tell your terminal with `/remote-env`.
 2. The environment's allowed domains need your cache host in place of the
    owner's, and `github.com`, `cache.nixos.org`, `channels.nixos.org` and
