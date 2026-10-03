@@ -21,6 +21,12 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- **Renamed to claudinix** ("Claude in cloud on Nix") before the first
+  public release. The repository is `pr0d1r2/claudinix`; settings use the
+  `CLAUDINIX_` prefix; the `nix.conf` block is marked `claudinix`; files
+  live in `/usr/local/lib/claudinix` and `~/.local/state/claudinix/`. The
+  working name `nix-claude-code-cloud` stays in the git history.
+
 ### Session VM
 
 - `setup.sh`, imported from the owner's private seed: configures Nix with
