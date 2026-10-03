@@ -19,3 +19,7 @@ guide *args:
 # Start a cloud session that probes this project; print its report.
 probe *args:
     scripts/probe-launch.sh {{ args }}
+
+# Pin setup.sh to another Nix release: version and installer sha256 together.
+bump-nix ver:
+    scripts/bump-nix.sh {{ ver }}
