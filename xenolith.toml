@@ -1,0 +1,5 @@
+# xenolith config (SPEC C15): one language per file. The binary is built
+# with only the languages this repo has (`nix` and `shell`, flake.nix), so
+# this file holds only what differs from the defaults. Every `[[allow]]`
+# entry must carry a reason, and one that matches nothing fails the gate.
+version = 1

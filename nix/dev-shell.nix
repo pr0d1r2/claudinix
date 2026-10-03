@@ -2,9 +2,8 @@
 # `flake.lock` (SPEC C14). CI and the git hooks enter this same shell, so a
 # local pass and a CI pass mean the same thing (V17, V22).
 {
-  inputs,
   pkgs,
-  system,
+  xnl,
 }:
 pkgs.mkShellNoCC {
   packages = [
@@ -21,7 +20,7 @@ pkgs.mkShellNoCC {
     pkgs.ripsecrets
     pkgs.actionlint
     pkgs.zizmor
-    inputs.xenolith.packages.${system}.default
+    xnl
   ];
 
   LANG = "C.UTF-8";

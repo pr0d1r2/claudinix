@@ -36,7 +36,13 @@
   };
 
   outputs =
-    inputs@{ nixpkgs, nix-hk, ... }:
+    inputs@{
+      self,
+      nixpkgs,
+      nix-hk,
+      xenolith,
+      ...
+    }:
     let
       # Where the gate runs: the owner's laptop and the Linux of CI and of
       # the cloud session itself.
@@ -54,14 +60,30 @@
           f {
             inherit system;
             pkgs = nixpkgs.legacyPackages.${system}.extend nix-hk.overlays.default;
+            # Only the languages this repo has (SPEC C15): a smaller binary
+            # with only the linters those languages call.
+            xnl = xenolith.packages.${system}.default.override {
+              languages = [
+                "nix"
+                "shell"
+              ];
+            };
           }
         );
     in
     {
       devShells = forAll (
-        { pkgs, system }:
+        { pkgs, xnl, ... }:
         {
-          default = import ./nix/dev-shell.nix { inherit inputs pkgs system; };
+          default = import ./nix/dev-shell.nix { inherit pkgs xnl; };
+        }
+      );
+
+      checks = forAll (
+        { pkgs, xnl, ... }:
+        import ./nix/checks.nix {
+          inherit pkgs xnl;
+          src = self;
         }
       );
     };
