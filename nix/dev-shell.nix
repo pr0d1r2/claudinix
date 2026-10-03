@@ -11,6 +11,8 @@ pkgs.mkShellNoCC {
     pkgs.hk
     pkgs.pkl
     pkgs.git
+    # The target-project apps read flake.lock with jq (scripts:T25).
+    pkgs.jq
     pkgs.bats
     pkgs.parallel
     pkgs.coreutils
