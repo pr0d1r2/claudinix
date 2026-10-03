@@ -38,6 +38,43 @@ does are summarised briefly; the git history has the detail.
   secrets).
 - `probe.sh` reports a session's facts and Nix health, one line per
   check.
+- `setup.sh [SHA]` takes the full commit SHA it was fetched at. The
+  environment's setup script is now one line, printed by
+  `scripts/setup-line.sh`, that downloads `setup.sh` at that SHA and runs
+  it. `setup-line.sh` refuses a commit whose CI run on `main` is not green
+  unless you pass `--force`.
+- `setup.sh` activates an agent home (home-manager, as root) before Claude
+  starts: the claude-code module, the set rules, the cavekit skills
+  `spec`, `build`, `check`, `backprop`, `caveman`, and `FORMAT.md` in
+  `~/.claude`. It builds the home from this repository over `git+https` at
+  the SHA, falls back to the store path recorded in `cloud-home.storepath`,
+  and if both fail warns loudly, leaves a marker file and still exits 0.
+  Not yet run in a real cloud session.
+- `setup.sh` installs `nix-dev` into `/usr/local/lib/nix-claude-code-cloud`
+  and links it onto the PATH: `nix develop` with input failover (cache,
+  then `git+https` overrides for uncached `github:` inputs, then the
+  locked `github:` inputs, then a nixos.org channel tarball), logging the
+  tier it reached. Fetched at the same SHA; a failed fetch only warns.
+- Owner-specific values (cache host, cache key, repository) sit in one
+  fork config block at the top of `setup.sh`.
+- `allowlist.txt` now holds only the Nix hosts and `github.com`. Hosts a
+  target project needs (crates.io, PyPI, npm, ...) come from the `domains`
+  command instead.
+- `env-names.txt` offers an optional `BASH_DEFAULT_TIMEOUT_MS=600000`.
+
+### Commands for target projects
+
+Run from the project you will send to the cloud, as
+`nix run github:pr0d1r2/nix-claude-code-cloud#<app>`:
+
+- `inputs`: lists the flake's `github:` inputs and whether a binary cache
+  holds each, or whether it must be attached to the session.
+- `domains`: prints the allowed domains the project needs, detected from
+  its lock files, optionally from a session log's proxy refusals.
+- `guide`: walks the browser setup steps from the terminal, copying each
+  value to paste.
+- `probe`: starts a cloud session that runs `probe.sh` on the project and
+  prints its report.
 
 ### Repository
 
@@ -46,7 +83,13 @@ does are summarised briefly; the git history has the detail.
   sherd) and hygiene checks on every commit, and the bats suite plus the
   `bats-mirror` and `tdd-order` guards on every push.
 - CI runs the same gate and `nix flake check --all-systems`, fills the
-  binary cache on `main`, and verifies the push.
-- Docs: `AGENTS.md`, `docs/INTEGRATION.md`, `docs/LLM-DISCLAIMER.md`,
-  `docs/linter-coverage.md`, `docs/FACTS.md`, `docs/RUNBOOK.md`,
-  `docs/SECURITY.md`.
+  binary cache on `main` (dev shell, checks and the agent home), and
+  verifies the push.
+- The spec is federated with sherd into a root and three nodes (`scripts`,
+  `nix`, `docs`), so separate agents can work on each in parallel.
+- `just bump-nix <version>` rewrites the pinned Nix version and its sha256
+  together.
+- Docs: `README.md`, `LICENSE` (MIT), `AGENTS.md`, and under `docs/`:
+  SETUP, CLI, CONSUMER, CACHE-CI, EXAMPLE, SESSION, FORKING, MODEL, FACTS,
+  RUNBOOK, SECURITY, INTEGRATION, linter-coverage, LLM-DISCLAIMER,
+  CONTRIBUTING, CODE_OF_CONDUCT, THIRD-PARTY-NOTICES.
