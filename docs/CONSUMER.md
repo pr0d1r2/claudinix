@@ -140,7 +140,7 @@ So in the cloud:
   This is the approach merged in
   [pr0d1r2/sherd#101](https://github.com/pr0d1r2/sherd/pull/101)
   (2026-10-03); a shared step is proposed in
-  [pr0d1r2/set-and-setting#561](https://github.com/pr0d1r2/set-and-setting/pull/561).
+  [pr0d1r2/set-and-setting#561](https://github.com/pr0d1r2/set-and-setting/issues/561).
 - A tool that could not run is not a pass and not a finding. Report it as
   "could not run". This repository's gate does that through
   [`scripts/hk/run-tool.sh`](../scripts/hk/run-tool.sh).
