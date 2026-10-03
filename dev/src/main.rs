@@ -9,6 +9,7 @@
 //! claudinix-dev changelog MESSAGE-FILE
 //! claudinix-dev steps --write|--check [--root DIR]
 //! claudinix-dev cli --check [--root DIR]
+//! claudinix-dev config --write|--check [--root DIR]
 //! ```
 //!
 //! Exit 0 clean, 1 drift, 2 usage or I/O.
@@ -18,11 +19,12 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
 use claudinix_dev::badges::{Facts, render};
-use claudinix_dev::{block, cli, counts, facts, splice, steps};
+use claudinix_dev::{block, cli, config, counts, facts, splice, steps};
 
 mod verbs;
 
-const USAGE: &str = "usage: claudinix-dev <badges|notices|steps> <--write|--check> [--root DIR]
+const USAGE: &str =
+    "usage: claudinix-dev <badges|config|notices|steps> <--write|--check> [--root DIR]
        claudinix-dev cli|facts --check [--root DIR]
        claudinix-dev changelog MESSAGE-FILE";
 
@@ -65,6 +67,7 @@ fn dispatch(args: &[String]) -> Result<(), Failed> {
         "facts" => verbs::facts(root, check),
         "steps" => step_table(root, check),
         "cli" if check => cli_usages(root),
+        "config" => config_keys(root, check),
         _ => Err(usage()),
     }
 }
@@ -276,4 +279,33 @@ fn cli_usages(root: &Path) -> Result<(), Failed> {
             stale.join("\n")
         ),
     ))
+}
+
+/// Write the key table docs/CONFIG.md holds, or check it is what
+/// scripts/config.jq's schema renders (dev:T108).
+fn config_keys(root: &Path, check: bool) -> Result<(), Failed> {
+    const DOC: &str = "docs/CONFIG.md";
+    let doc = read(root, DOC)?;
+    let keys = config::schema(&read(root, "scripts/config.jq")?).map_err(|message| (2, message))?;
+    let table = config::table(&keys).map_err(|message| (2, message))?;
+    let fresh = block::splice(&doc, config::NAME, &table).ok_or_else(|| {
+        (
+            2,
+            format!("{DOC} has no <!-- BEGIN config --> ... <!-- END config --> block"),
+        )
+    })?;
+    if fresh == doc {
+        return Ok(());
+    }
+    if check {
+        let old = block::current(&doc, config::NAME).unwrap_or_default();
+        return Err((
+            1,
+            format!(
+                "{DOC} key table drifted from scripts/config.jq; run: claudinix-dev config --write\n{}",
+                splice::diff(old, &table).trim_end()
+            ),
+        ));
+    }
+    fs::write(root.join(DOC), fresh).map_err(|err| (2, format!("cannot write {DOC}: {err}")))
 }
