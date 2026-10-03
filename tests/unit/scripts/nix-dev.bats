@@ -110,3 +110,66 @@ setup() {
     [ "$status" -eq 1 ]
     run ! grep -q 'channels.nixos.org' "$NIX_LOG"
 }
+
+# Auto-overrides (scripts:T49): the cache status comes from inputs.sh,
+# stubbed here through NCCC_SCRIPTS beside a copy of nix-dev.jq.
+inputs_stub() {
+    export NCCC_SCRIPTS="$BATS_TEST_TMPDIR/lib"
+    mkdir -p "$NCCC_SCRIPTS"
+    cp "$BATS_TEST_DIRNAME/../../../scripts/nix-dev.jq" "$NCCC_SCRIPTS/"
+    printf '%s\n' "$@" >"$BATS_TEST_TMPDIR/inputs.out"
+    printf '#!/usr/bin/env bash\ncat "%s"\n' "$BATS_TEST_TMPDIR/inputs.out" >"$NCCC_SCRIPTS/inputs.sh"
+}
+
+A=1111111111111111111111111111111111111111
+B=2222222222222222222222222222222222222222
+E=5555555555555555555555555555555555555555
+N=6666666666666666666666666666666666666666
+
+@test "auto: every input cached, tier 1 runs plain" {
+    inputs_stub "pr0d1r2/a $A cached" "pr0d1r2/b $B cached" "owner/e $E cached" "NixOS/nixpkgs $N cached"
+    NIX_OK_PLAIN=1 run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ "$(grep -o 'tier [0-9]' <<<"$output" | tail -n 1)" = "tier 1" ]
+}
+
+@test "auto: uncached inputs skip tier 1; tier 2 overrides only those" {
+    inputs_stub "pr0d1r2/a $A attach" "pr0d1r2/b $B cached" "owner/e $E attach" "NixOS/nixpkgs $N cached"
+    NIX_OK_PLAIN=1 NIX_OK_GIT=1 run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"tier 1 skipped"* ]]
+    [ "$(grep -o 'tier [0-9]' <<<"$output" | tail -n 1)" = "tier 2" ]
+    [ "$(grep -c '^print-dev-env' "$NIX_LOG")" -eq 1 ]
+    dev="$(grep '^develop ' <<<"$output")"
+    [[ "$dev" == *"--override-input a git+https://github.com/pr0d1r2/a?rev=$A&shallow=1"* ]]
+    [[ "$dev" == *"--override-input b/a git+https://"* ]]
+    [[ "$dev" == *"--override-input b/e git+https://github.com/owner/e?rev=$E&shallow=1"* ]]
+    [[ "$dev" != *"--override-input b git+https"* ]]
+}
+
+@test "auto: tier 2 failing falls to tier 3, github: as locked, warned" {
+    inputs_stub "pr0d1r2/a $A attach" "pr0d1r2/b $B cached" "owner/e $E cached" "NixOS/nixpkgs $N cached"
+    NIX_OK_PLAIN=1 run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ "$(grep -o 'tier [0-9]' <<<"$output" | tail -n 1)" = "tier 3" ]
+    [[ "$output" == *"warning"* ]]
+    [[ "$(grep '^develop ' <<<"$output")" != *"--override-input"* ]]
+}
+
+@test "auto: only nixpkgs uncached, nothing for tier 2 to override" {
+    inputs_stub "pr0d1r2/a $A cached" "pr0d1r2/b $B cached" "owner/e $E cached" "NixOS/nixpkgs $N attach"
+    NIX_OK_CHANNEL=1 run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    run ! grep -q 'git+https' "$NIX_LOG"
+    grep -q 'channels.nixos.org/nixos-26.05' "$NIX_LOG"
+}
+
+@test "auto: cache status unknown, every github input but nixpkgs overridden" {
+    inputs_stub
+    printf '#!/usr/bin/env bash\nexit 1\n' >"$NCCC_SCRIPTS/inputs.sh"
+    NIX_OK_GIT=1 run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"cache status unknown"* ]]
+    [ "$(grep -o 'tier [0-9]' <<<"$output" | tail -n 1)" = "tier 2" ]
+    [[ "$(grep '^develop ' <<<"$output")" == *"--override-input b git+https"* ]]
+}
