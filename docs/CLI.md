@@ -13,6 +13,7 @@ has a bug.
 | [`domains`](#domains) | prints the allowed domains the environment needs | your machine, in the project |
 | [`guide`](#guide) | walks the setup steps of [`SETUP.md`](SETUP.md) | your machine, in the project |
 | [`probe`](#probe) | starts a billed cloud session that probes the project and prints its report | your machine, in the project's git checkout |
+| [`config.sh`](#configsh) | reads and checks a project's optional [`.claudinix.toml`](CONFIG.md) | your machine or a session, in the project |
 | [`nix-dev`](#nix-dev) | `nix develop` that survives the GitHub proxy | inside a cloud session |
 | [`setup.sh`](#setupsh) | the environment's setup script | a cloud session's VM, through the setup line |
 | [`setup-line.sh`](#setup-linesh) | prints the one-line setup script, for a commit whose CI is green | your machine; a checkout of this repository, or any directory with a full SHA |
@@ -53,6 +54,11 @@ In a checkout of this repository you can run the scripts directly
   branches. The commands read files, ask a binary cache a question, or
   start a session you asked for.
 - **Run from the project.** The default directory is the current one.
+- **One optional config file.** `domains`, `inputs`, `guide`, `probe`,
+  `nix-dev` and `ci/verify-cachix.sh` read the project's
+  [`.claudinix.toml`](CONFIG.md) for their defaults. A flag or an
+  environment variable wins over it, and without the file nothing changes.
+  A bad file stops the command with exit 2, naming the file and the key.
 
 ## inputs
 
@@ -73,8 +79,12 @@ usage: inputs.sh [--check] [FLAKE_DIR]
 
 | variable | meaning |
 |---|---|
-| `INPUTS_CACHES` | cache URLs to ask, space-separated; default `https://pr0d1r2.cachix.org https://cache.nixos.org` |
-| `CLAUDINIX_SCRIPTS` | directory holding `inputs.jq`; default the script's own |
+| `INPUTS_CACHES` | cache URLs to ask, space-separated; default `https://<cache.name>.cachix.org https://cache.nixos.org`, where `cache.name` comes from the `.claudinix.toml` in `FLAKE_DIR` and is `pr0d1r2` without one |
+| `CLAUDINIX_SCRIPTS` | directory holding `inputs.jq` and `config.sh`; default the script's own |
+
+Keys read from [`.claudinix.toml`](CONFIG.md): `cache.name`. A directory
+without `config.sh` beside `inputs.sh` (an older `nix-dev` install) reads no
+file and uses `pr0d1r2`.
 
 It reads every `github` node of `flake.lock`, nested and deduplicated, asks
 `nix flake archive --dry-run --json` for the store paths (this fetches
@@ -119,7 +129,8 @@ every host not on the list. `domains` prints, one per line and each once:
    (`pypi.org`, `files.pythonhosted.org` and any other index), Ruby (the
    `remote:` hosts of `Gemfile.lock`) and Go (`proxy.golang.org`,
    `sum.golang.org`);
-3. with `--from-log`, hosts a session's proxy refused.
+3. each project's `network.extra_domains` from its [`.claudinix.toml`](CONFIG.md), sorted in with 2;
+4. with `--from-log`, hosts a session's proxy refused.
 
 ```text
 usage: domains.sh [--why] [--from-log FILE]... [PROJECT_DIR...]
@@ -128,19 +139,20 @@ usage: domains.sh [--why] [--from-log FILE]... [PROJECT_DIR...]
 | argument | meaning |
 |---|---|
 | `PROJECT_DIR` | a project to scan; repeat it to merge several; default the current directory |
-| `--why` | print `host`, a tab, and the source: `base`, the file that named the host, or `log` |
+| `--why` | print `host`, a tab, and the source: `base`, the file that named the host, `config` (a `network.extra_domains` entry) or `log` |
 | `--from-log FILE` | add the hosts named in a saved session log; repeatable. It reads `Host not in allowlist: <host>` lines and `CONNECT tunnel failed, response 403` lines that carry a URL |
 
 | variable | meaning |
 |---|---|
 | `CLAUDINIX_ALLOWLIST` | base list; default `allowlist.txt` beside `scripts/` |
-| `CLAUDINIX_SCRIPTS` | directory holding the `domains/` detectors; default the script's own |
+| `CLAUDINIX_SCRIPTS` | directory holding the `domains/` detectors and `config.sh`; default the script's own |
 | `CLIPBOARD_TOOLS` | clipboard programs to try in order; default `pbcopy wl-copy xclip` |
 
 The plain output is paste-ready. When a clipboard program is on the machine
 the list is also copied to the clipboard, and a note goes to stderr
 (`domains: copied 5 hosts to the clipboard (pbcopy)`). It reads files only
-and never uses the network.
+and never uses the network. Keys read from `.claudinix.toml`:
+`network.extra_domains`; a bad file exits 2.
 
 Run in this repository with `--why`:
 
@@ -182,7 +194,7 @@ settings, and the `github:` inputs no cache holds (through
 [`inputs`](#inputs)). It writes nothing and reads no secret.
 
 ```text
-usage: guide.sh [--force] [--agent-home] [--rev SHA] [--from STEP] [FLAKE_DIR] | guide.sh update [--force] [--agent-home] [--rev SHA] [FLAKE_DIR]
+usage: guide.sh [--force] [--[no-]agent-home] [--rev SHA] [--from STEP] [FLAKE_DIR] | guide.sh update [--force] [--[no-]agent-home] [--rev SHA] [FLAKE_DIR]
 ```
 
 | argument | meaning |
@@ -193,10 +205,11 @@ usage: guide.sh [--force] [--agent-home] [--rev SHA] [--from STEP] [FLAKE_DIR] |
 | `--rev SHA` | copy a line for this full 40-character commit of claudinix instead of the release's, printed by [`setup-line.sh`](#setup-linesh) (needs `gh`, signed in); use it before the first release or to pin another commit |
 | `--force` | with `--rev`, passed to [`setup-line.sh`](#setup-linesh), so the guide prints the setup line even when CI for that commit is not green |
 | `--agent-home` | the line it copies ends in ` --agent-home`, exactly as [`setup-line.sh`](#setup-linesh) appends it, and opts in to the agent home (see the [README](../README.md#the-agent-home-is-opt-in)); without it the line installs Nix and `nix-dev` only |
+| `--no-agent-home` | the opposite: the line has no ` --agent-home`, even when `session.agent_home` in `.claudinix.toml` is `true` |
 
 | variable | meaning |
 |---|---|
-| `CLAUDINIX_SCRIPTS` | directory holding `guide-steps.tsv`, `inputs.sh`, `domains.sh` and `setup-line.sh`; default the script's own |
+| `CLAUDINIX_SCRIPTS` | directory holding `guide-steps.tsv`, `inputs.sh`, `domains.sh`, `setup-line.sh` and `config.sh`; default the script's own |
 | `CLAUDINIX_README` | the `README.md` whose setup-line block holds the release's line; default the one beside `scripts/` (the flake app sets it to the README of the commit it was built from) |
 | `CLAUDINIX_SETUP_REV` | the maintainer path: a full SHA of this repository to print the line for with `setup-line.sh`, as `--rev` does; `--rev` wins over it; unset by default |
 | `CLAUDINIX_MODEL_DOC` | the `MODEL.md` that step 5 reads prices from; default `docs/MODEL.md` beside `scripts/` |
@@ -204,6 +217,12 @@ usage: guide.sh [--force] [--agent-home] [--rev SHA] [--from STEP] [FLAKE_DIR] |
 | `CLAUDE_SETTINGS` | user settings to read; default `~/.claude/settings.json` |
 | `CLIPBOARD_TOOLS` | clipboard programs to try in order; default `pbcopy wl-copy xclip` |
 | `GUIDE_OPEN_TOOLS` | URL openers to try in order; default `open xdg-open` |
+
+Keys read from [`.claudinix.toml`](CONFIG.md) in `FLAKE_DIR`, before step 0:
+`session.model` (the default answer in step 5), `session.agent_home` (the
+default for `--agent-home`; `--agent-home` and `--no-agent-home` win) and
+`devshell.installable` (the first check runs `nix-dev <installable> -c true`
+instead of `nix-dev -c true`). A bad file stops the guide with exit 2.
 
 Step titles and URLs come from
 [`scripts/guide-steps.tsv`](../scripts/guide-steps.tsv), and a bats test keeps
@@ -289,7 +308,7 @@ usage: probe-launch.sh [--model M] [--yes] [--cleanup]
 
 | argument | meaning |
 |---|---|
-| `--model M` | the model alias, default `sonnet` (see [`MODEL.md`](MODEL.md)) |
+| `--model M` | the model alias, default `session.model` from `.claudinix.toml`, else `sonnet` (see [`MODEL.md`](MODEL.md)) |
 | `--yes` | skip the y/N question; every other check still runs |
 | `--cleanup` | delete every `claude/nix-probe*` branch on the remote and exit; a session cannot delete branches itself |
 
@@ -299,7 +318,22 @@ usage: probe-launch.sh [--model M] [--yes] [--cleanup]
 | `PROBE_POLL_SECONDS` | wait between branch checks; default `20` |
 | `PROBE_POLL_TRIES` | checks before giving up; default `90`, which is 30 minutes |
 | `PROBE_SCRIPT` | the `probe.sh` to send; default the one in this repository |
-| `CLAUDINIX_SCRIPTS` | directory holding `probe-prompt.txt`; default the script's own |
+| `CLAUDINIX_SCRIPTS` | directory holding `probe-prompt.txt` and `config.sh`; default the script's own |
+
+Keys read from [`.claudinix.toml`](CONFIG.md) (at the top level of the git
+repository you run it in): `session.model`, `probe.branch_prefix` and
+`devshell.installable`. `--model` wins. The task text,
+[`probe-prompt.txt`](../scripts/probe-prompt.txt), is a template with three
+placeholders that the launcher fills before it sends the task:
+
+| placeholder | becomes |
+|---|---|
+| `@NIX_DEV@` | `nix-dev`, or `nix-dev <installable>` when `devshell.installable` is not `.` |
+| `@NIX_DEVELOP@` | `nix develop`, or `nix develop <installable>` |
+| `@BRANCH_PREFIX@` | `probe.branch_prefix`, default `claude/nix-probe` |
+
+A bad file exits 2 before anything starts. The branch the session pushes
+and `--cleanup` match is `claude/nix-probe` unless the file changes it.
 
 Before it starts a session it checks that the session can see what you see.
 The session clones the GitHub copy of your branch, so the launcher refuses
@@ -344,6 +378,53 @@ session; its logic is tested with stubbed `claude` and `git`.
 | 1 | a refusal above, or the answer was not yes; no new branch after the last check; or the branch has no `nix-probe-report.txt` |
 | 2 | a usage error |
 
+## config.sh
+
+The one reader of a project's optional [`.claudinix.toml`](CONFIG.md); every
+tool above goes through it. It is not a flake app and is installed beside
+`nix-dev` by [`setup.sh`](#setupsh).
+
+```text
+usage: config.sh [--dir DIR] get TABLE.KEY | json | check
+```
+
+| argument | meaning |
+|---|---|
+| `--dir DIR` | read `DIR/.claudinix.toml`; default the git top level of the current directory, else the current directory |
+| `get TABLE.KEY` | print one value, for example `session.model`; a list prints one item per line |
+| `json` | print the effective config (the file over the defaults) as JSON |
+| `check` | print nothing; exit 0 when the file is valid or absent |
+
+| variable | meaning |
+|---|---|
+| `CLAUDINIX_CONFIG` | the file to read instead; wins over `--dir` |
+| `CLAUDINIX_SCRIPTS` | directory holding `config.jq`; default the script's own |
+
+Which tool reads which key:
+
+| key | read by |
+|---|---|
+| `session.model` | `guide`, `probe` |
+| `session.agent_home` | `guide` |
+| `devshell.installable` | `nix-dev`, `guide`, `probe` |
+| `network.extra_domains` | `domains` |
+| `cache.name` | `inputs`, `ci/verify-cachix.sh` |
+| `cache.push_sources` | nobody yet |
+| `probe.branch_prefix` | `probe` |
+
+`ci/verify-cachix.sh` builds its cache URL as `https://<cache.name>.cachix.org`
+unless `CACHIX_URL` is set; it reads the file in the `--sources` directory
+when that is a local directory, else the current repository's.
+
+| exit | meaning |
+|---|---|
+| 0 | the value or the config was printed, or `check` passed |
+| 1 | `jq` or `nix` is missing, or `jq` failed |
+| 2 | a usage error, an unknown key, a missing directory, or an invalid file |
+
+Keys, defaults, precedence and the error messages are in
+[`CONFIG.md`](CONFIG.md).
+
 ## nix-dev
 
 `nix develop` for the flake in the current directory, for a session whose
@@ -374,6 +455,19 @@ of its flake directory is the one read. Everything else goes to the final
    `nixpkgs-unstable` ref, else `nixpkgs-unstable`. Degraded: the revision
    differs from the lock. Warns.
 
+Without an installable, `nix-dev` uses `devshell.installable` from the
+project's [`.claudinix.toml`](CONFIG.md) (read at the top level of the git
+repository), unless it is `.`, which is a bare `nix develop`. It logs the
+choice, for example with `installable = ".#default"`:
+
+```text
+nix-dev: installable .#default from .claudinix.toml (devshell.installable)
+```
+
+An installable you give wins and logs nothing about the file. A bad file
+exits 2. Without `jq`, or with an older install that has no `config.sh`,
+no file is read.
+
 Overrides are never written to `flake.lock`. A tier whose command an earlier
 tier already ran is skipped, and a failed tier logs nix's first `error:` line.
 Without a `flake.lock`, or with an installable that is not a local flake
@@ -393,7 +487,7 @@ nix-dev: using tier 2: github inputs as git+https at the locked rev
 
 | variable | meaning |
 |---|---|
-| `CLAUDINIX_SCRIPTS` | directory holding `nix-dev.jq` and `inputs.sh`; default the script's own, symlinks followed |
+| `CLAUDINIX_SCRIPTS` | directory holding `nix-dev.jq`, `inputs.sh` and `config.sh`; default the script's own, symlinks followed |
 
 | exit | meaning |
 |---|---|
