@@ -3,7 +3,7 @@
 This repository is shell, Nix and Markdown. It vendors one schema file and
 depends on other people's work in three ways: things the setup script
 downloads and runs, things the dev shell and the gate run, and things the
-planned agent home will install. Each is listed with the licence its owner
+agent home installs. Each is listed with the licence its owner
 declares. Nothing from the list below is copied into this repository except
 where a section says so.
 
@@ -50,12 +50,14 @@ GPL-licensed linter over this repository's files does not make the files
 GPL-licensed, and shipping none of them is why this repository carries no
 GPL text.
 
-## Planned: the agent home
+## The agent home
 
-The home-manager configuration `homeConfigurations.cloud` is planned
-(`nix/SPEC.md` T16) and not built yet. It is expected to install the
-following. This section describes the plan; it will be updated when the
-inputs exist.
+The home-manager configuration `homeConfigurations.cloud`
+(`nix/cloud-home.nix`) is built from the following flake inputs, and
+`setup.sh` activates it in a session. That activation has not yet been run
+in a real cloud session. It also uses the owner's
+`pr0d1r2/nix-home-manager-claude-code` module, whose licence is not
+recorded here.
 
 ### cavekit
 
@@ -93,7 +95,7 @@ SOFTWARE.
 
 ### set-and-setting
 
-The owner's skill sets, built into the agent home with its `mkTrip` helper.
+The owner's skill sets, built into the agent home with its `mkSet` helper.
 
 - Upstream: <https://github.com/pr0d1r2/set-and-setting>
 - Licensed under the MIT License, Copyright (c) 2026 Marcin Nowicki
