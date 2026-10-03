@@ -71,7 +71,7 @@ V20: UI setup script = 1 line: fetch `setup.sh` at fixed GIT SHA from `raw.githu
 V21: tests parallel-safe: own `BATS_TEST_TMPDIR`; ⊥ write-then-exec same path across forks (ETXTBSY: rekall B26, sherd B32, xenolith B3); ⊥ wall-clock asserts (rekall B5); fixtures unset `GIT_*` env (xenolith B1, sherd B25).
 V22: CI proves what it claims: same `hk check --all` as local; `nix flake check --all-systems` (bare form skips systems silently, nix-hk T14); cachix push verified by narinfo 200 for built paths, empty \| 403 push = red (nix-hk B3-B5); pre-push peels annotated tags `^{commit}` (microlith B22, rekall B18, sherd B27).
 V23: hk ≥ 1.55 (silent `--no-fail-fast` + `depends` bug, itok B21), pinned via `nix-hk`.
-V24: Bash tool timeouts cover the slowest gate: env sets `BASH_DEFAULT_TIMEOUT_MS` \& `BASH_MAX_TIMEOUT_MS` (sherd `hk check --all` = 2m45s > 2 min default).
+V24: long gate commands in the Bash tool: default 120 s does NOT kill (probe 6): command moves to background at 120 s and finishes (limit 30 min); real exit status arrives only w/ the completion notice ∴ agent prompts \& wrappers wait for completion, ⊥ read the 120 s return as result. `BASH_DEFAULT_TIMEOUT_MS` raise = optional (fewer backgrounded runs).
 V25: `accept-flake-config = true` trusts cloned repo `nixConfig` ∴ env used only w/ owner-trusted repos; extra substituters outside allowlist unreachable anyway; documented in SECURITY (T36).
 
 ## §T TASKS
@@ -122,7 +122,7 @@ T44|.|W4 SHOULD `docs/CLI.md`: `domains`, `inputs`, `guide`, `probe` flags, exit
 T45|.|W4 SHOULD `docs/SESSION.md`: session lifecycle `claude --cloud` → VM → clone → setup script \| snapshot → SessionStart → Claude; why edits ⊥ reach running session; model nixos-poe2 `usage.md` boot flow|C22,C1,C8
 T46|.|W4 SHOULD `docs/FORKING.md`: own cachix, domains, env name (C11 block); model nixos-poe2 `development.md`|C22,C11
 T47|.|cloud permission prompts (seen 2026-10-03: "Allow Claude to use add repo (claude-code-remote)?" blocked the sherd #96 session until answered): find exact tool ids (`add_repo` under server `claude-code-remote`, likely `mcp__claude-code-remote__add_repo` ?) from a session transcript; document 3 ways in `docs/SETUP.md` + `docs/CONSUMER.md`: (a) target repo committed `.claude/settings.json` `permissions.allow` (read in 1-repo sessions; user `~/.claude` ⊥ reaches cloud), (b) permission mode chosen at session start (mode dropdown \| CLI flag ?), (c) answer in UI ("Always allow" scope ?). `apps.guide` offers to write (a) into the target repo as its own commit; ⊥ allow write access by default (least privilege)|C2,C9,I.cmd,T26,T8
-T48|.|`env-names.txt`: `BASH_DEFAULT_TIMEOUT_MS=600000`, `BASH_MAX_TIMEOUT_MS=600000` (values via E4); SETUP + guide show them|V24,I.file
+T48|.|`env-names.txt`: optional `BASH_DEFAULT_TIMEOUT_MS=600000` (E4: default backgrounds at 120 s, ⊥ kills); SETUP + guide show them|V24,I.file
 T49|.|`nix-dev` auto-overrides: read target `flake.lock`; ∀ `github` input w/o cache hit (T25 status) add `--override-input <path> git+https://github.com/<o>/<r>?rev=<locked>&shallow=1`; consumers need ⊥ flake change; prototype = E9|V13,T12,T25
 T50|.|decide env strategy: 1 shared env `nix` w/ union of target domains vs 1 env per ecosystem (`nix-rust`, …); criteria: allowlist size \& review, snapshot reuse, model per env; record decision in C6|C6,V10,I.ext.env
 T51|.|unattended runs: permission mode for routines \& long jobs; what a job does while a prompt waits (timeout, report, ⊥ hang); extends T47|T47,C9
@@ -132,7 +132,7 @@ T55|.|measure snapshot reuse: 2nd session in same env skips setup?; start time c
 T56|.|EXP E1 skills survive: `setup.sh` places test skill + `~/.claude/settings.json`; session lists skills \& reads file; decides agent-home design (T16, T17) vs account-synced skills|C13,V14,T14
 T57|.|EXP E2 SHA-pinned fetch: in session `curl raw.githubusercontent.com/<o>/<r>/<sha>/setup.sh` + `nix build git+https://…?rev=<sha>#…`; after 1st push (or sherd stand-in)|V20,V15,T24
 T58|x|EXP E3 `ANTHROPIC_MODEL` effective: commit trailer of next session names Sonnet 5.5|I.file,T42 — answered 2026-10-03 (probe 6): env var ⊥ effective; launcher model wins. follow-up E3b: does `claude --cloud --model sonnet` set it? (T67)
-T59|.|EXP E4 bash timeouts: `hk check --all` (2m45s) w/ \& w/o timeout env vars|V24,T48
+T59|x|EXP E4 bash timeouts: `hk check --all` (2m45s) w/ \& w/o timeout env vars|V24,T48 — answered 2026-10-03 (probe 6): cold `hk check --all` 3m43s, backgrounded at 120 s, ⊥ killed
 T60|.|EXP E5 resources + snapshot reuse: `nproc; free -g; df -h /`; 2 sessions back to back, compare start|T52,T55
 T61|x|EXP E6 3rd-party GitHub reads w/ `github.com` allowed + `add_repo` (running in sherd #96 step 0)|T29,C6 — answered: `github.com` allowed ⇒ 3rd-party git reads pass; `add_repo` read = no-op
 T62|.|EXP E7 silence prompts: commit exact `add_repo` allow rule in sherd `.claude/settings.json`; try `--permission-mode` w/ `--cloud`|T47,T51
