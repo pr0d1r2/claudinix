@@ -1,0 +1,7 @@
+# `typos` config. Every entry is an exemption, not a suppression: each
+# names something deliberately spelled the way it is.
+
+[files]
+# `pkl/` is upstream hk's schema, vendored verbatim at the pinned release.
+# "Fixing" a typo in it would fork it while it still claims to be upstream.
+extend-exclude = ["pkl/"]

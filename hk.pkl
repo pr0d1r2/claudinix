@@ -1,0 +1,143 @@
+/// nix-claude-code-cloud's gate, defined ONCE (SPEC C14).
+///
+/// Every step is ONE plain command a human can paste (SPEC C15): no pipes,
+/// no `&&`, no `||`. Logic lives in bats-covered scripts under `scripts/`,
+/// never inline here. External tools run through `scripts/hk/run-tool.sh`,
+/// so a missing tool fails as "gate could not run" instead of passing
+/// (V18).
+///
+/// CI runs this same set (`hk check --all`), so a local pass means what a
+/// CI pass means (V22). The schema is vendored at `pkl/Config.pkl`
+/// (hk v1.58.1, verbatim) so the gate needs no network.
+amends "pkl/Config.pkl"
+
+/// Locally the loop is cheap, so the first failure is the most useful
+/// thing to see; CI passes `--no-fail-fast` to get every failure at once.
+fail_fast = true
+
+/// Success is silence: output that always appears is output nobody reads.
+env {
+  ["HK_HIDE_WHEN_DONE"] = "true"
+}
+
+/// LAYER ONE: every commit. Scoped by glob, so a doc-only commit never
+/// waits on the shell linters.
+local fast = new Mapping<String, Step> {
+  // `.envrc` is shell that runs on every directory entry, so it is linted
+  // like the scripts. bats files are bash with `@test` blocks, which
+  // shellcheck and shfmt both read.
+  ["shellcheck"] {
+    glob = List("**/*.sh", "**/*.bats", ".envrc")
+    check = "scripts/hk/run-tool.sh shellcheck {{files}}"
+  }
+  ["shfmt"] {
+    glob = List("**/*.sh", "**/*.bats")
+    check = "scripts/hk/run-tool.sh shfmt --diff --indent 4 {{files}}"
+    fix = "scripts/hk/run-tool.sh shfmt --write --indent 4 {{files}}"
+  }
+  ["nixfmt"] {
+    glob = List("**/*.nix")
+    check = "scripts/hk/run-tool.sh nixfmt --check {{files}}"
+    fix = "scripts/hk/run-tool.sh nixfmt {{files}}"
+  }
+
+  // The workflow is the one file no other local step exercises. actionlint
+  // checks syntax and types; zizmor audits security posture. `--offline`
+  // because a gate must not need the network, and in a cloud session the
+  // injected GH_TOKEN placeholder makes online audits fail with 401
+  // (SPEC C6, C8).
+  ["actionlint"] {
+    glob = List(".github/workflows/*.yml", ".github/workflows/*.yaml")
+    check = "scripts/hk/run-tool.sh actionlint {{files}}"
+  }
+  ["zizmor"] {
+    glob = List(".github/workflows/*.yml", ".github/workflows/*.yaml")
+    check = "scripts/hk/run-tool.sh zizmor --offline --no-progress --persona=pedantic {{files}}"
+  }
+
+  ["typos"] {
+    glob = List("**/*")
+    check = "scripts/hk/run-tool.sh typos --force-exclude {{files}}"
+    fix = "scripts/hk/run-tool.sh typos --force-exclude --write-changes {{files}}"
+  }
+
+  // Secrets, in two steps, because they answer different questions:
+  // `detect-private-key` finds key blocks only, ripsecrets finds token
+  // shapes. The repo is public from its first push (SPEC V6, V12).
+  ["no-private-key"] {
+    glob = List("**/*")
+    check = "hk util detect-private-key {{files}}"
+  }
+  ["ripsecrets"] {
+    glob = List("**/*")
+    check = "scripts/hk/run-tool.sh ripsecrets {{files}}"
+  }
+
+  // The cheap hygiene family from `hk util`: no extra binary to pin.
+  ["trailing-whitespace"] {
+    glob = List("**/*")
+    check = "hk util trailing-whitespace {{files}}"
+    fix = "hk util trailing-whitespace --fix {{files}}"
+  }
+  ["final-newline"] {
+    glob = List("**/*")
+    check = "hk util end-of-file-fixer {{files}}"
+    fix = "hk util end-of-file-fixer --fix {{files}}"
+  }
+  ["line-endings"] {
+    glob = List("**/*")
+    check = "hk util mixed-line-ending {{files}}"
+    fix = "hk util mixed-line-ending --fix {{files}}"
+  }
+  ["no-large-files"] {
+    glob = List("**/*")
+    check = "hk util check-added-large-files {{files}}"
+  }
+  ["no-merge-conflict"] {
+    glob = List("**/*")
+    check = "hk util check-merge-conflict --assume-in-merge {{files}}"
+  }
+}
+
+/// LAYER TWO: everything above plus the steps that judge the branch rather
+/// than one commit. A TDD RED commit is red on purpose (SPEC C17), so the
+/// suite gates the push, not each commit.
+local all = (fast) {
+  // The whole suite, not the mirrored file: a change to any test must run
+  // beside the others it shares helpers with. Parallel through
+  // BATS_NUMBER_OF_PARALLEL_JOBS from the dev shell (C18).
+  ["bats"] {
+    glob = List("**/*.sh", "**/*.bats")
+    check = "scripts/hk/run-tool.sh bats --recursive tests/unit"
+  }
+}
+
+hooks {
+  /// `stash = "git"` is correctness: without it a partially staged file is
+  /// checked as it looks in the worktree, not as it is being committed.
+  ["pre-commit"] {
+    fix = true
+    stash = "git"
+    steps = fast
+  }
+  /// A message is not a file in the tree, so this step lives only here.
+  /// The script finds COMMIT_EDITMSG itself, keeping the step one command.
+  ["commit-msg"] {
+    steps {
+      ["commit-msg"] {
+        check = "scripts/guard/commit-msg.sh"
+      }
+    }
+  }
+  ["pre-push"] {
+    steps = all
+  }
+  /// The entry point for CI and for a full run by hand: `hk check --all`.
+  ["check"] {
+    steps = all
+  }
+  ["fix"] {
+    fix = true
+    steps = fast
+  }
+}
