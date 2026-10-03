@@ -46,7 +46,7 @@ functional Nix (flakes on, owner cachix) inside Claude Code cloud session VM + 1
 ## §V INVARIANTS
 V1: `setup.sh` exit 0 ⇒ `nix --version` works from Claude Bash tool shell w/o profile sourcing (nix linked into `/usr/local/bin`).
 V2: installer executed only after sha256 match; mismatch → exit ≠ 0, nothing executed.
-V3: `nix.conf` edit append-only behind marker line: flakes on, cachix substituter + key; installer lines (e.g. `build-users-group`) kept; rerun ⊥ duplicates, ⊥ reinstall.
+V3: `nix.conf` managed block between begin/end marker lines, replaced whole on rerun (⊥ append-only: a changed block w/ same marker never updated): flakes on, `accept-flake-config = true`, cachix substituter + key; lines outside the block (installer's) kept; rerun ⊥ duplicates, ⊥ reinstall.
 V4: Nix on PATH ≥ floor ⇒ ⊥ install. else `--daemon` iff systemd present; else `--no-daemon`. probe: image Nix found at `/nix/var/nix/profiles/default/bin` \& `~/.nix-profile` (root), no daemon, no systemd.
 V5: `setup.sh` wall time on fresh VM ≤ 5 min (cache window C1); measured, ⊥ assumed.
 V6: ⊥ secret in repo \| env vars; cachix read-only (⊥ `CACHIX_AUTH_TOKEN`).
