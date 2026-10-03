@@ -7,6 +7,7 @@
 //! claudinix-dev badges --write|--check [--root DIR]   README badge block
 //! claudinix-dev counts --write|--check [--root DIR]   docs/INTEGRATION.md step counts
 //! claudinix-dev notices --write|--check [--root DIR]  docs/THIRD-PARTY-NOTICES.md flake inputs
+//! claudinix-dev facts --check [--root DIR]            prose numbers = their owners
 //! ```
 //!
 //! Exit 0 clean, 1 drift, 2 usage or I/O.

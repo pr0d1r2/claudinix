@@ -4,9 +4,10 @@
 use std::fs;
 use std::path::Path;
 
-use claudinix_dev::{notices, region, splice};
+use claudinix_dev::prose::{self, Owners};
+use claudinix_dev::{facts, notices, region, splice};
 
-use super::{Failed, read};
+use super::{Failed, bats_tests, gate_steps, need, read};
 
 /// Write `doc`'s named block, or check it is `block`.
 fn update(
@@ -50,4 +51,61 @@ pub fn notices(root: &Path, check: bool) -> Result<(), Failed> {
     let doc = read(root, DOC)?;
     let block = notices::table(&inputs);
     update(root, DOC, notices::NAME, &doc, &block, "notices", check)
+}
+
+/// The docs whose prose numbers `facts --check` holds to their owners.
+const PROSE: [&str; 2] = ["README.md", "docs/LLM-DISCLAIMER.md"];
+
+/// Every owned number, each from its file (dev:V1).
+fn owners(root: &Path) -> Result<Owners, Failed> {
+    let setup = read(root, "setup.sh")?;
+    let (fast, all) = gate_steps(root)?;
+    let nonzero = |count: usize, what: &str| need((count > 0).then_some(count), what);
+    Ok(Owners {
+        fast,
+        all,
+        tests: nonzero(bats_tests(root)?, "tests/unit `@test` lines")?,
+        nodes: nonzero(
+            facts::spec_nodes(&read(root, "SPEC.md")?),
+            "SPEC.md §F rows",
+        )?,
+        probes: nonzero(
+            prose::probes(&read(root, "docs/FACTS.md")?),
+            "docs/FACTS.md probe sources",
+        )?,
+        nix_floor: need(facts::nix_floor(&setup), "setup.sh `min_version`")?,
+        nix_pinned: need(prose::nix_pinned(&setup), "setup.sh `version=`")?,
+    })
+}
+
+/// Check the numbers the prose states against their owners.
+pub fn facts(root: &Path, check: bool) -> Result<(), Failed> {
+    if !check {
+        return Err((2, "facts has no --write: fix the prose by hand".to_owned()));
+    }
+    let owners = owners(root)?;
+    let mut found = 0;
+    let mut stale = Vec::new();
+    for doc in PROSE {
+        let claims = prose::claims(&read(root, doc)?, &owners);
+        found += claims.len();
+        stale.extend(prose::drift(doc, &claims));
+    }
+    if found == 0 {
+        let docs = PROSE.join(" and ");
+        return Err((
+            2,
+            format!("{docs} state no owned number; nothing was checked"),
+        ));
+    }
+    if stale.is_empty() {
+        return Ok(());
+    }
+    Err((
+        1,
+        format!(
+            "prose numbers drifted from their owners; edit the prose:\n{}",
+            stale.join("\n")
+        ),
+    ))
 }

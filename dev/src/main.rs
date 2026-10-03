@@ -6,6 +6,7 @@
 //! claudinix-dev badges --write|--check [--root DIR]
 //! claudinix-dev counts --write|--check [--root DIR]
 //! claudinix-dev notices --write|--check [--root DIR]
+//! claudinix-dev facts --check [--root DIR]
 //! ```
 //!
 //! Exit 0 clean, 1 drift, 2 usage or I/O.
@@ -19,7 +20,8 @@ use claudinix_dev::{counts, facts, splice};
 
 mod verbs;
 
-const USAGE: &str = "usage: claudinix-dev <badges|counts|notices> <--write|--check> [--root DIR]";
+const USAGE: &str = "usage: claudinix-dev <badges|counts|notices> <--write|--check> [--root DIR]
+       claudinix-dev facts --check [--root DIR]";
 
 /// The CI workflow the badge links to.
 const WORKFLOW: &str = "ci.yml";
@@ -55,6 +57,7 @@ fn dispatch(args: &[String]) -> Result<(), Failed> {
         "badges" => badges(root, check),
         "counts" => step_counts(root, check),
         "notices" => verbs::notices(root, check),
+        "facts" => verbs::facts(root, check),
         _ => Err(usage()),
     }
 }
