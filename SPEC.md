@@ -139,7 +139,7 @@ T77|x|ARCHIVED to SPEC-ARCHIVE.md|V27,V28,V19,V31,C14
 T86|x|ARCHIVED to SPEC-ARCHIVE.md|V32,V17,C27,V28
 T87|x|ARCHIVED to SPEC-ARCHIVE.md|V33,C25,`nix:V15`
 T88|x|ARCHIVED to SPEC-ARCHIVE.md|V5,V1,`scripts:V13`
-T92|.|dogfood: this repo's `.claudinix.toml` (its real values) + gate step `config.sh check` (glob `.claudinix.toml`); CI \& local tools pick it up|C28,`scripts:V34`
+T92|x|dogfood: this repo's `.claudinix.toml` (its real values) + gate step `config.sh check` (glob `.claudinix.toml`); CI \& local tools pick it up|C28,`scripts:V34`
 T93|.|central cache job (after 1st push): `cache-targets.txt` (flake refs of owner repos) + nightly \| dispatch workflow job → `push-sources.sh <cache> <ref>` ∀ target whose `.claudinix.toml` says `push_sources = true`, then `verify-cachix.sh --sources <ref>`; sources only, ⊥ build outputs of other repos (trust)|C28,`.:V30`,C19,V6
 
 ## §B BUGS
