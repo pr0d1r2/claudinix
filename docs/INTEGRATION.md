@@ -42,8 +42,10 @@ Every tool comes from the dev shell in [`flake.nix`](../flake.nix) and
 Entering the shell (`direnv allow`, or `nix develop`) runs
 [`scripts/dev/shell-hook.sh`](../scripts/dev/shell-hook.sh), which runs
 `hk install` and rewrites each installed hook to
-`nix develop -c hk run <hook>`. A commit therefore always uses the pinned
-tools, even from a terminal whose `PATH` is stale.
+`CLAUDINIX_HOOK=1 nix develop -c hk run <hook>`. A commit therefore always
+uses the pinned tools, even from a terminal whose `PATH` is stale.
+`CLAUDINIX_HOOK=1` tells the shell hook, when the hook enters the shell, not
+to reinstall the hooks again.
 
 Each external tool is called through
 [`scripts/hk/run-tool.sh`](../scripts/hk/run-tool.sh). If the tool is not
@@ -135,14 +137,32 @@ The subject must follow Conventional Commits and the body must have a
 | check | what it runs |
 |---|---|
 | `checks.<system>.xenolith` | [`scripts/nix/xenolith-check.sh`](../scripts/nix/xenolith-check.sh): `xnl check .` over the flake source |
+| `checks.x86_64-linux.cloud-home` | [`scripts/nix/cloud-home-check.sh`](../scripts/nix/cloud-home-check.sh): the agent home's activation package holds the cavekit skills, `FORMAT.md` and the set rules (only on `x86_64-linux`, the one system the agent home is built for) |
 
 ### In CI only
 
-On `main`, `cachix/cachix-action` pushes what the gate job built to
-`pr0d1r2.cachix.org`. A separate `verify cache` job then runs
-[`scripts/ci/verify-cachix.sh`](../scripts/ci/verify-cachix.sh), which asks
-the cache for each output's narinfo and fails on anything but HTTP 200. A
-push step that exits 0 is not proof that anything arrived.
+CI also builds the dev shell and the agent home
+(`nix build --no-link .#devShells.x86_64-linux.default
+.#homeConfigurations.cloud.activationPackage`), so their output paths exist
+to push and to verify.
+
+On `main`, and only on a push to `main`, `cachix/cachix-action` gets the
+write token (pull requests and manual runs get none and only read the cache)
+and pushes what the gate job built to `pr0d1r2.cachix.org`. The same job then
+runs [`scripts/ci/push-sources.sh`](../scripts/ci/push-sources.sh), which
+pushes every eval-time input source of the flake (`nix flake archive --json`,
+nested inputs included): a cloud session evaluates the agent home and the dev
+shell before it builds anything, and it cannot fetch a `github:` input from
+GitHub there, so each source must be substitutable by its `narHash`. The
+cachix action alone pushes only built paths.
+
+A separate `verify cache` job then runs
+[`scripts/ci/verify-cachix.sh`](../scripts/ci/verify-cachix.sh) with
+`--sources .`, the dev shell and the agent home. It asks the cache for each
+output's narinfo and fails on anything but HTTP 200, and for each input
+source it accepts the owner's cache or the upstream cache `UPSTREAM_URL`
+(`https://cache.nixos.org`, which serves nixpkgs) answering 200. A push step
+that exits 0 is not proof that anything arrived.
 
 ## Parallelism
 
