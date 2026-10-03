@@ -254,6 +254,13 @@ local fast = new Mapping<String, Step> {
     glob = List("docs/CLI.md", "setup.sh", "scripts/*.sh", "dev/**")
     check = "scripts/hk/run-tool.sh claudinix-dev cli --check"
   }
+  // docs/CONFIG.md's key table is generated from the one schema object
+  // in scripts/config.jq (dev:T108, scripts:V34).
+  ["config-keys"] {
+    glob = List("docs/CONFIG.md", "scripts/config.jq", "dev/**")
+    check = "scripts/hk/run-tool.sh claudinix-dev config --check"
+    fix = "scripts/hk/run-tool.sh claudinix-dev config --write"
+  }
 
   // This repo's own .claudinix.toml must pass the reader every tool uses
   // (T92, scripts:V34). The reader and its schema are data the check
