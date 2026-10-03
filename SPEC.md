@@ -132,7 +132,7 @@ T73|x|`setup.sh` opt-in agent home (C24: `--agent-home` arg \| `CLAUDINIX_AGENT_
 T74|x|CI: push eval-time input sources (`nix flake archive --json` paths) on main; `verify-cachix.sh` checks those + agent home + dev shell, drops the empty xenolith marker; cachix write token only on push to main (review R2-1,7,10)|V30,V22,C19
 T75|.|release: `scripts/release.sh [REV]` (maintainer): refuses unless CI green \& agent home narinfo 200; records `cloud-home.storepath` (commit); prints release notes; regenerates the README setup-line block between markers; gate checks block = `setup-line.sh` output for its recorded SHA|C25,`nix:V15`,V20
 T76|.|repo `.claude/settings.json` SessionStart hook → `scripts/dev/session-start.sh` (unshallow if shallow, `nix develop -c true`, quiet on success); bats|C27,V17,V29
-T77|.|gate: `pkl eval hk.pkl` step + `///`→`//` in `hooks` (V27); exec-bit step (V28) + chmod; `bats` glob covers data files tests read (SETUP.md, justfile, `*.jq`, `*.tsv`, `*.txt`) (V19); comment blocks above the right steps; `.envrc` `watch_file scripts/dev/shell-hook.sh`; quiet success for non-TTY (V31)|V27,V28,V19,V31,C14
+T77|x|gate: `pkl eval hk.pkl` step + `///`→`//` in `hooks` (V27); exec-bit step (V28) + chmod; `bats` glob covers data files tests read (SETUP.md, justfile, `*.jq`, `*.tsv`, `*.txt`) (V19); comment blocks above the right steps; `.envrc` `watch_file scripts/dev/shell-hook.sh`; quiet success for non-TTY (V31)|V27,V28,V19,V31,C14
 
 ## §B BUGS
 id|date|cause|fix
