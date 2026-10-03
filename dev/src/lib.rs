@@ -9,11 +9,13 @@
 //! claudinix-dev notices --write|--check [--root DIR]  docs/THIRD-PARTY-NOTICES.md flake inputs
 //! claudinix-dev facts --check [--root DIR]            prose numbers = their owners
 //! claudinix-dev changelog MESSAGE-FILE                commit-msg: feat|fix on session code stages CHANGELOG.md
+//! claudinix-dev steps --write|--check [--root DIR]    docs/INTEGRATION.md step table and counts
 //! ```
 //!
 //! Exit 0 clean, 1 drift, 2 usage or I/O.
 
 pub mod badges;
+pub mod block;
 pub mod changelog;
 pub mod counts;
 pub mod facts;
@@ -22,3 +24,4 @@ pub mod notices;
 pub mod prose;
 pub mod region;
 pub mod splice;
+pub mod steps;
