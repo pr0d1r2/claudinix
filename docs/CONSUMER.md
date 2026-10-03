@@ -12,6 +12,13 @@ script installs Nix and nothing that belongs to one project (`.:C3`,
 `.:V7`). Repository toolchains, linters, hooks and dependencies come from your
 flake's dev shell.
 
+## Optional: a config file
+
+Your repository can also keep claudinix defaults (the model, the dev shell
+`nix-dev` enters, extra allowed domains, the cache name) in a
+`.claudinix.toml` at its root. It is optional and most repositories need none;
+see [`CONFIG.md`](CONFIG.md).
+
 ## Checklist
 
 1. Your flake has a `devShells.<system>.default` and a complete, committed
