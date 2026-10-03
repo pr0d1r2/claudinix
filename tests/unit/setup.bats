@@ -183,3 +183,112 @@ image_nix() {
     [ "$status" -eq 0 ]
     [ "$(cat "$INSTALLER_LOG")" = "--no-daemon --yes" ]
 }
+
+# The agent home tail (T17, nix:V14, nix:V15). Image nix at the floor, so
+# no install; stub `nix` builds (or refuses) the activation package and
+# stub `nix-store` realises (or refuses) the recorded path.
+agent_home() {
+    image_nix 2.34.6
+    export HOME_PKG="$BATS_TEST_TMPDIR/activation"
+    export ACTIVATE_LOG="$BATS_TEST_TMPDIR/activate.log"
+    export NIX_LOG="$BATS_TEST_TMPDIR/nix.log"
+    export BUILD_OK=1 STORE_OK=1 ACTIVATE_OK=1
+    export CLOUD_HOME_STOREPATH="$BATS_TEST_TMPDIR/cloud-home.storepath"
+    export CLOUD_HOME_MARKER="$BATS_TEST_TMPDIR/state/agent-home.failed"
+    mkdir -p "$HOME_PKG"
+    cat >"$HOME_PKG/activate" <<'EOF'
+#!/usr/bin/env bash
+echo "HOME=$HOME USER=$USER" >>"$ACTIVATE_LOG"
+[ "$ACTIVATE_OK" = 1 ]
+EOF
+    cat >"$NIX_DEFAULT_PROFILE/bin/nix" <<'EOF'
+#!/usr/bin/env bash
+case "$1" in
+--version) echo "nix (Nix) 2.34.6" ;;
+build)
+    echo "nix $*" >>"$NIX_LOG"
+    [ "$BUILD_OK" = 1 ] || exit 1
+    echo "$HOME_PKG"
+    ;;
+esac
+EOF
+    cat >"$NIX_DEFAULT_PROFILE/bin/nix-store" <<'EOF'
+#!/usr/bin/env bash
+echo "nix-store $*" >>"$NIX_LOG"
+[ "$STORE_OK" = 1 ]
+EOF
+    chmod +x "$HOME_PKG/activate" "$NIX_DEFAULT_PROFILE/bin/nix" "$NIX_DEFAULT_PROFILE/bin/nix-store"
+}
+
+@test "agent home: tier 1 builds the flake over git+https and activates (nix:V15)" {
+    agent_home
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"tier 1"* ]]
+    grep -q 'build .*git+https://github.com/pr0d1r2/nix-claude-code-cloud.*#homeConfigurations.cloud.activationPackage' "$NIX_LOG"
+    run ! grep -q 'github:' "$NIX_LOG"
+    [ -s "$ACTIVATE_LOG" ]
+    [ ! -e "$CLOUD_HOME_MARKER" ]
+}
+
+@test "agent home: CLOUD_HOME_FLAKE seam picks the flake" {
+    agent_home
+    CLOUD_HOME_FLAKE="path:/tmp/elsewhere" run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    grep -q 'build .*path:/tmp/elsewhere#homeConfigurations.cloud.activationPackage' "$NIX_LOG"
+}
+
+@test "agent home: activates as the setup's user and HOME (nix:V14)" {
+    agent_home
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ "$(cat "$ACTIVATE_LOG")" = "HOME=$HOME USER=$USER" ]
+}
+
+@test "agent home: tier 1 fails, tier 2 realises the recorded path (nix:V15)" {
+    agent_home
+    echo "$HOME_PKG" >"$CLOUD_HOME_STOREPATH"
+    BUILD_OK=0 run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"tier 2"* ]]
+    grep -qx "nix-store -r $HOME_PKG" "$NIX_LOG"
+    [ -s "$ACTIVATE_LOG" ]
+    [ ! -e "$CLOUD_HOME_MARKER" ]
+}
+
+@test "agent home: both tiers fail, nix stays usable, loud warning and marker" {
+    agent_home
+    echo "$HOME_PKG" >"$CLOUD_HOME_STOREPATH"
+    BUILD_OK=0 STORE_OK=0 run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"WARNING"* ]]
+    [ -e "$CLOUD_HOME_MARKER" ]
+    [ ! -e "$ACTIVATE_LOG" ]
+    [ "$("$BIN_DIR/nix" --version)" = "nix (Nix) 2.34.6" ]
+}
+
+@test "agent home: no recorded path and tier 1 fails: warning and marker" {
+    agent_home
+    BUILD_OK=0 run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"WARNING"* ]]
+    [ -e "$CLOUD_HOME_MARKER" ]
+    run ! grep -q 'nix-store' "$NIX_LOG"
+}
+
+@test "agent home: activation itself fails: warning and marker, exit 0" {
+    agent_home
+    ACTIVATE_OK=0 run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"WARNING"* ]]
+    [ -e "$CLOUD_HOME_MARKER" ]
+}
+
+@test "agent home: a success clears an earlier failure marker" {
+    agent_home
+    mkdir -p "$(dirname "$CLOUD_HOME_MARKER")"
+    touch "$CLOUD_HOME_MARKER"
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ ! -e "$CLOUD_HOME_MARKER" ]
+}
