@@ -94,3 +94,10 @@ GitHub traffic goes through a GitHub proxy, separately from the allowlist.
   Claude starts? (T14, T56)
 - Is `raw.githubusercontent.com` reachable while the setup script runs?
   (T57)
+- Which git version does the image ship? Not recorded yet (noted
+  2026-10-03). Ubuntu 24.04 packages 2.43, but nobody has run
+  `git --version` in a session. It matters: a session commits with that
+  git, outside the dev shell, and only git 2.54 or newer runs the gate's
+  config-based hooks; an older one runs only the `.git/hooks` shims.
+  `probe.sh` now prints it as `git-version` and `git-config-hooks`.
+  (T86, V32)
