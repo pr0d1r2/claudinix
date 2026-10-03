@@ -93,10 +93,13 @@ in each new VM. This repository's environment installs Nix.
    - **Name**: `nix`.
    - **Network access**: **Custom**.
      - Check **Also include default list of common package managers**.
-       It covers `*.nixos.org`, where the Nix installer, its tarball and
-       `cache.nixos.org` live.
      - In **Allowed domains**, enter every non-comment line of
-       [`allowlist.txt`](../allowlist.txt), one domain per line.
+       [`allowlist.txt`](../allowlist.txt), one domain per line. It
+       lists `cache.nixos.org`, `channels.nixos.org` and
+       `releases.nixos.org` explicitly: the first probe (2026-10-03) got
+       a 403 from the proxy for `cache.nixos.org` and
+       `channels.nixos.org`, so do not rely on the default list for
+       them.
    - **Environment variables**: enter the names listed in
      [`env-names.txt`](../env-names.txt) with your values. If it lists
      none, leave the box empty. Anyone who can use the environment can
@@ -173,8 +176,9 @@ keeps its old VM; start a new session to pick up the change.
   checked.
 - **`nix: command not found`.** The session ran in another environment.
   Run `/remote-env`, pick `nix`, and start a new session.
-- **Downloads fail with a network or proxy error.** The host is not
-  allowed. Add it to **Allowed domains** here and in `allowlist.txt`.
+- **Downloads fail with a network or proxy error** such as
+  `CONNECT tunnel failed, response 403`. The host is not allowed. Add
+  it to **Allowed domains** here and in `allowlist.txt`.
 - **`nix develop` fails while fetching a `github:` input** with a 403
   saying the repository isn't enabled for this session. This is
   expected, not a misconfiguration: the GitHub proxy only lets the
