@@ -33,7 +33,7 @@ functional Nix (flakes on, owner cachix) inside Claude Code cloud session VM + 1
 - file: `hk.pkl` (+ `hk.pklith.pkl` ? C20), `xenolith.toml`, `.context-limits`, `scripts/guard/*.sh`, `scripts/hk/*.sh` — gate (C14-C18, C20).
 - file: `.github/workflows/ci.yml` — gate + cachix push + verify; `fetch-depth: 0`, SHA-pinned actions, `permissions: contents: read`, `persist-credentials: false`, push only on default branch.
 - file: `allowlist.txt` — Allowed domains, 1 per line, `#` comments ⊥ entered.
-- file: `env-names.txt` — env var names only, ⊥ values.
+- file: `env-names.txt` — env vars for the env dialog: secrets as names only, ⊥ values; non-secret settings w/ value, e.g. `ANTHROPIC_MODEL=claude-sonnet-5-5` (model for ∀ sessions in env, ⊥ local; `--model` overrides per session).
 - cmd: `nix-dev [args]` — installed by `setup.sh` to `/usr/local/bin`; `nix develop` w/ V13 failover, args passed through.
 - file: `probe.sh` — run inside cloud session; prints session facts (C8) + nix health.
 - file: `docs/SETUP.md` — browser steps to create \& update env from repo files (only UI-bound part, C2) + terminal env pick.
@@ -97,7 +97,7 @@ T22|.|pklith ?: `.pklith` → `hk.pklith.pkl` imported by `hk.pkl`, `pklith chec
 T23|.|CI `.github/workflows/ci.yml`: gate + `nix flake check` + cachix push on default branch + verify job (narinfo 200); kcov line-coverage job ? w/ ratchet|C19,V22,C16
 T24|.|UI line: `setup.sh` takes `<sha>` arg; docs/SETUP.md shows exact 1-line script; `just`\|script prints line for HEAD after CI green; bats|V20,C19,V10
 T25|.|`apps.inputs` (+ `just inputs`) + `scripts/inputs.sh`, default dir = cwd (jq over `flake.lock`, narinfo check via curl); bats w/ fixture lock files (nested, deduped, non-github skipped, cached vs attach); `--check` mode|I.cmd,V8,V13,C6
-T26|.|`apps.guide` (+ `just guide`, `update` flow) + `scripts/guide.sh`, default dir = cwd: steps from 1 data file shared w/ `docs/SETUP.md` (step ids, titles, URLs, paste values) ∴ ⊥ drift; bats via stdin answers \& stubbed `open`/clipboard/`claude`; parity test: guide steps == SETUP.md headings|I.cmd,C2,V10,T13,T25
+T26|.|`apps.guide` (+ `just guide`, `update` flow) + `scripts/guide.sh`, default dir = cwd; explicit model step: explain Sonnet 5.5 default vs Opus 5.5 (prices from `docs/MODEL.md`), ask choice, copy `ANTHROPIC_MODEL=<id>` to clipboard for Environment variables, say how to override per session \& check via commit trailer; steps from 1 data file shared w/ `docs/SETUP.md` (step ids, titles, URLs, paste values) ∴ ⊥ drift; bats via stdin answers \& stubbed `open`/clipboard/`claude`; parity test: guide steps == SETUP.md headings|I.cmd,C2,V10,T13,T25
 T27|.|`apps.domains` (+ `just domains`) + `scripts/domains.sh`, default dir = cwd: base + per-ecosystem detectors (1 script per ecosystem under `scripts/domains/`, xenolith-pure) + `--from-log`; bats per detector w/ fixture projects (sherd-like Cargo + flake, npm, py, go, gitmodules), dedup, `--why`, clipboard stubbed \& optional|I.cmd,C2,V10,C15,C16
 T28|.|`apps.probe` + `scripts/probe-launch.sh` (TTY via `script`, branch-by-prefix wait, report print, `--cleanup`); reuses T3 prompt; bats w/ stubbed `claude`\|`git`|I.cmd,T3,C8
 T29|.|open question: does `github.com` in Allowed domains (added 2026-10-03) or `add_repo` read let a session read 3rd-party public repos (`git ls-remote https://github.com/actions/checkout`)? answer → `allowlist.txt` keep\|drop + docs|C6,V10
