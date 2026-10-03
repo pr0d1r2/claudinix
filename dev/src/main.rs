@@ -8,6 +8,7 @@
 //! claudinix-dev facts --check [--root DIR]
 //! claudinix-dev changelog MESSAGE-FILE
 //! claudinix-dev steps --write|--check [--root DIR]
+//! claudinix-dev cli --check [--root DIR]
 //! ```
 //!
 //! Exit 0 clean, 1 drift, 2 usage or I/O.
@@ -17,12 +18,12 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
 use claudinix_dev::badges::{Facts, render};
-use claudinix_dev::{block, counts, facts, splice, steps};
+use claudinix_dev::{block, cli, counts, facts, splice, steps};
 
 mod verbs;
 
 const USAGE: &str = "usage: claudinix-dev <badges|notices|steps> <--write|--check> [--root DIR]
-       claudinix-dev facts --check [--root DIR]
+       claudinix-dev cli|facts --check [--root DIR]
        claudinix-dev changelog MESSAGE-FILE";
 
 /// The CI workflow the badge links to.
@@ -63,6 +64,7 @@ fn dispatch(args: &[String]) -> Result<(), Failed> {
         "notices" => verbs::notices(root, check),
         "facts" => verbs::facts(root, check),
         "steps" => step_table(root, check),
+        "cli" if check => cli_usages(root),
         _ => Err(usage()),
     }
 }
@@ -229,4 +231,49 @@ fn step_table(root: &Path, check: bool) -> Result<(), Failed> {
         ));
     }
     fs::write(root.join(DOC), fresh).map_err(|err| (2, format!("cannot write {DOC}: {err}")))
+}
+
+/// `setup.sh` and every `scripts/*.sh`, path and source, sorted by path.
+fn usage_scripts(root: &Path) -> Result<Vec<(String, String)>, Failed> {
+    let dir = root.join("scripts");
+    let entries =
+        fs::read_dir(&dir).map_err(|err| (2, format!("cannot read {}: {err}", dir.display())))?;
+    let mut names = vec!["setup.sh".to_owned()];
+    for entry in entries {
+        let path = entry
+            .map_err(|err| (2, format!("cannot read {}: {err}", dir.display())))?
+            .path();
+        if path.is_file() && path.extension().is_some_and(|ext| ext == "sh") {
+            let file = path.file_name().unwrap_or_default().to_string_lossy();
+            names.push(format!("scripts/{file}"));
+        }
+    }
+    names.sort();
+    names
+        .into_iter()
+        .map(|name| Ok((read(root, &name)?, name)).map(|(text, name)| (name, text)))
+        .collect()
+}
+
+/// Check every `usage:` line docs/CLI.md quotes against its script's
+/// own usage text (dev:T107).
+fn cli_usages(root: &Path) -> Result<(), Failed> {
+    const DOC: &str = "docs/CLI.md";
+    let doc = read(root, DOC)?;
+    let owned = usage_scripts(root)?;
+    let scripts: Vec<(&str, &str)> = owned
+        .iter()
+        .map(|(name, text)| (name.as_str(), text.as_str()))
+        .collect();
+    let stale = cli::drift(&doc, &scripts).map_err(|message| (2, message))?;
+    if stale.is_empty() {
+        return Ok(());
+    }
+    Err((
+        1,
+        format!(
+            "{DOC} quotes usage text its scripts do not print; fix the doc or the script\n{}",
+            stale.join("\n")
+        ),
+    ))
 }
