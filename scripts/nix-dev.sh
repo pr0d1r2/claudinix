@@ -6,7 +6,7 @@
 # dev shell of the flake in the current directory is reached through the
 # first tier that works, each one logged on stderr as `tier N`:
 #   1. plain: locked inputs substituted by narHash from a cache;
-#   2. every github input but nixpkgs as
+#   2. every github input but nixpkgs that no cache holds as
 #      `git+https://github.com/<o>/<r>?rev=<locked rev>&shallow=1`
 #      (a git read the proxy lets through; nixpkgs is too big for it);
 #   3. `github:` as locked: works only for repos attached to the session;
@@ -18,9 +18,15 @@
 # skipped. Each tier is tried with `nix print-dev-env`; the winner's
 # arguments go to `nix develop` with the caller's ARGS after them.
 #
+# Which inputs a cache holds comes from inputs.sh (scripts:T49, T25):
+# tier 1 runs only when every github input is cached, and tier 2
+# overrides only the uncached ones, so a flake needs no change. When the
+# status cannot be read, tier 1 is tried anyway and tier 2 overrides
+# every github input but nixpkgs.
+#
 # Usage: nix-dev [ARGS...]   (ARGS as for `nix develop`)
-# Env:   NCCC_SCRIPTS  dir holding nix-dev.jq (default: this script's
-#                      dir, symlinks followed)
+# Env:   NCCC_SCRIPTS  dir holding nix-dev.jq and inputs.sh (default:
+#                      this script's dir, symlinks followed)
 
 set -euo pipefail
 
@@ -48,6 +54,19 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 jq -r -f "$lib/nix-dev.jq" flake.lock >"$tmp/github"
 
+# `owner/repo rev cached|attach` per github input (scripts:T25).
+if bash "$lib/inputs.sh" >"$tmp/status" 2>"$tmp/status.err"; then
+    known=1
+else
+    known=0
+    log "cache status unknown (inputs.sh: $(tail -n 1 "$tmp/status.err")) -- trying every tier"
+fi
+
+# uncached NAME REV: no cache holds it, or nobody knows.
+uncached() {
+    [ "$known" = 0 ] || grep -qxF "$1 $2 attach" "$tmp/status"
+}
+
 git_overrides=()
 nixpkgs_paths=()
 channel=nixpkgs-unstable
@@ -57,7 +76,7 @@ while read -r path name rev ref; do
         case "$ref" in
         nixos-[0-9]*.[0-9]* | nixos-unstable | nixpkgs-unstable) channel="$ref" ;;
         esac
-    else
+    elif uncached "$name" "$rev"; then
         git_overrides+=(--override-input "$path" "git+https://github.com/$name?rev=$rev&shallow=1")
     fi
 done <"$tmp/github"
@@ -90,7 +109,15 @@ attempt() {
     return 1
 }
 
-if attempt 1 "locked inputs from a cache"; then
+missing=0
+if [ "$known" = 1 ]; then
+    missing="$(grep -c ' attach$' "$tmp/status" || true)"
+fi
+
+if [ "$missing" -gt 0 ]; then
+    log "tier 1 skipped: $missing github input(s) in no cache"
+fi
+if [ "$missing" = 0 ] && attempt 1 "locked inputs from a cache"; then
     :
 elif [ "${#git_overrides[@]}" -gt 0 ] &&
     attempt 2 "github inputs as git+https at the locked rev" \
