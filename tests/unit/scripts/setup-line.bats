@@ -21,7 +21,11 @@ setup() {
     export GH_RC=0
     mkdir -p "$STUBS"
     # shellcheck disable=SC2016 # expands inside the stub, not here
+    # `gh auth status` exits GH_AUTH_RC (default GH_RC); other calls print
+    # GH_ERR, when set, on stderr.
     printf '%s\n' '#!/usr/bin/env bash' 'echo "gh $*" >>"$GH_LOG"' \
+        '[ "$1" != auth ] || exit "${GH_AUTH_RC:-$GH_RC}"' \
+        '[ -z "${GH_ERR:-}" ] || echo "$GH_ERR" >&2' \
         'printf "%s\n" "$GH_JSON"' 'exit "$GH_RC"' >"$STUBS/gh"
     chmod +x "$STUBS/gh"
     export PATH="$STUBS:$PATH"
@@ -151,4 +155,33 @@ line_for() {
 @test "--force with more than one revision is still a usage error" {
     run bash "$SCRIPT" --force a b
     [ "$status" -eq 2 ]
+}
+
+# scripts:T81 (review R3-21): tell why gh could not answer.
+
+@test "gh not signed in: says so and how to sign in, not a 404" {
+    GH_AUTH_RC=1 run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"not signed in"* ]]
+    [[ "$output" == *"gh auth login"* ]]
+    [[ "$output" != *"404"* ]]
+    [[ "$output" != *"curl"* ]]
+}
+
+@test "gh answers 404: names the repo and workflow, not the sign-in" {
+    GH_AUTH_RC=0 GH_RC=1 GH_ERR='HTTP 404: Not Found (https://api.github.com/repos/pr0d1r2/claudinix/actions/workflows/ci.yml/runs)' \
+        run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"404"* ]]
+    [[ "$output" == *"pr0d1r2/claudinix"* ]]
+    [[ "$output" == *"ci.yml"* ]]
+    [[ "$output" != *"signed in"* ]]
+    [[ "$output" != *"curl"* ]]
+}
+
+@test "gh fails another way: shows its own error line" {
+    GH_AUTH_RC=0 GH_RC=1 GH_ERR='error connecting to api.github.com' run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"error connecting to api.github.com"* ]]
+    [[ "$output" != *"signed in"* ]]
 }
