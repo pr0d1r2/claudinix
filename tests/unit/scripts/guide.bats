@@ -177,6 +177,7 @@ titles() {
     [[ "$output" == *'claude --cloud "<task>" --model sonnet'* ]]
     [[ "$output" == *"Co-Authored-By"* ]]
     [[ "$output" == *"ANTHROPIC_MODEL"* ]]
+    run ! grep -q "(probe 6)" <<<"$output"
     run bash "$SCRIPT" --from 5 <<<$'y\ny\nopus\n'
     [[ "$output" == *'claude --cloud "<task>" --model opus'* ]]
 }
@@ -340,7 +341,7 @@ model_doc() {
 
 @test "step 3 with the repo's env-names.txt shows the optional Bash timeout (T48)" {
     CLAUDINIX_ENV_NAMES="$REPO/env-names.txt" run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
-    grep -qx '  ANTHROPIC_MODEL=claude-sonnet-5-5' <<<"$output"
+    run ! grep -q 'ANTHROPIC_MODEL=' <<<"$output"
     grep -qx '  BASH_DEFAULT_TIMEOUT_MS=600000   (optional)' <<<"$output"
 }
 

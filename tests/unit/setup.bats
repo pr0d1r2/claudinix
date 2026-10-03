@@ -121,9 +121,8 @@ EOF
     done <"$ENV_DIR/allowlist.txt"
 }
 
-@test "env vars keep ANTHROPIC_MODEL, marked as not choosing the model (probe 6)" {
-    grep -qx 'ANTHROPIC_MODEL=claude-sonnet-5-5' "$ENV_DIR/env-names.txt"
-    grep -q 'Does NOT choose the session model' "$ENV_DIR/env-names.txt"
+@test "env vars leave out ANTHROPIC_MODEL: it does not choose the session model" {
+    run ! grep -q '^ANTHROPIC_MODEL=' "$ENV_DIR/env-names.txt"
 }
 
 @test "env vars offer BASH_DEFAULT_TIMEOUT_MS=600000, marked optional (T48, V24)" {
