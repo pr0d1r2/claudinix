@@ -421,3 +421,38 @@ fetch_stub() {
     [ -x "$BIN_DIR/nix" ]
     [ ! -e "$BIN_DIR/nix-dev" ]
 }
+
+# The fork config block (C11, T68): the owner's values live only between
+# its markers, so a fork edits that block and nothing else.
+OWNER_KEY='pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM='
+
+@test "fork config: owner values appear in setup.sh only inside the block (C11)" {
+    grep -qx '# BEGIN fork config (SPEC C11)' "$SCRIPT"
+    grep -qx '# END fork config (SPEC C11)' "$SCRIPT"
+    outside="$(sed '/^# BEGIN fork config/,/^# END fork config/d' "$SCRIPT")"
+    run ! grep -n 'pr0d1r2' <<<"$outside"
+    inside="$(sed -n '/^# BEGIN fork config/,/^# END fork config/p' "$SCRIPT")"
+    grep -qF 'pr0d1r2.cachix.org' <<<"$inside"
+    grep -qF "$OWNER_KEY" <<<"$inside"
+    grep -qF 'pr0d1r2/nix-claude-code-cloud' <<<"$inside"
+}
+
+@test "fork config: editing only the block retargets the cache and the repo (C11, T68)" {
+    agent_home
+    fetch_stub
+    mkdir -p "$BATS_TEST_TMPDIR/fork"
+    sed -e '/^# BEGIN fork config/,/^# END fork config/{' \
+        -e "s|$OWNER_KEY|fork.cachix.org-1:Zm9yaw==|" \
+        -e 's|pr0d1r2\.cachix\.org|fork.cachix.org|' \
+        -e 's|pr0d1r2/nix-claude-code-cloud|forker/nccc|' \
+        -e '}' "$SCRIPT" >"$BATS_TEST_TMPDIR/fork/setup.sh"
+    BUILD_OK=0 run bash "$BATS_TEST_TMPDIR/fork/setup.sh" "$SHA"
+    [ "$status" -eq 0 ]
+    conf="$NIX_CONF_DIR/nix.conf"
+    grep -qx 'extra-substituters = https://fork.cachix.org' "$conf"
+    grep -qx 'extra-trusted-public-keys = fork.cachix.org-1:Zm9yaw==' "$conf"
+    grep -qx "https://raw.githubusercontent.com/forker/nccc/$SHA/scripts/nix-dev.sh" "$FETCH_LOG"
+    grep -qx "https://raw.githubusercontent.com/forker/nccc/$SHA/cloud-home.storepath" "$FETCH_LOG"
+    grep -qF "git+https://github.com/forker/nccc?rev=$SHA&shallow=1#" "$NIX_LOG"
+    run ! grep -r 'pr0d1r2' "$conf" "$FETCH_LOG" "$NIX_LOG"
+}
