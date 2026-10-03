@@ -14,8 +14,8 @@ setup() {
 case "$3" in
 *broken*) echo "error: attribute missing" >&2; exit 1 ;;
 esac
-name="${3##*.}"
-name="${name%.outPath}"
+name="${3%.outPath}"
+name="${name##*.}"
 printf '/nix/store/%s-%s' "aaaabbbbccccddddeeeeffffgggghhh${#name}" "$name"
 STUB
     chmod +x "$BIN/nix"
