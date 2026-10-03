@@ -213,26 +213,12 @@ appear. [`docs/FORKING.md`](docs/FORKING.md) has the full walkthrough.
 
 In [`setup.sh`](setup.sh) they sit in one fork config block at the top
 (`cache_host`, `cache_key` and `repo`), and a fork edits only that block
-there. They also appear in these files:
-
-| file | what to change |
-|---|---|
-| [`allowlist.txt`](allowlist.txt) | the cache host |
-| [`flake.nix`](flake.nix) | `nixConfig` |
-| [`probe.sh`](probe.sh) | the `CACHIX_URL` default |
-| [`scripts/ci/verify-cachix.sh`](scripts/ci/verify-cachix.sh) | nothing if you set `cache.name` (below) |
-| [`scripts/inputs.sh`](scripts/inputs.sh) | the fallback `name=` for an old install (the default comes from `cache.name`) |
-| [`scripts/config.jq`](scripts/config.jq) | the default `cache.name` |
-| [`scripts/nix/record-storepath.sh`](scripts/nix/record-storepath.sh) | the `CACHIX_URL` default |
-| [`scripts/setup-line.sh`](scripts/setup-line.sh) | the `repo=` line |
-| [`scripts/ci/push-sources.sh`](scripts/ci/push-sources.sh) and [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | the cachix cache name (in the workflow's cachix action and its `push-sources.sh` call) and the `CACHIX_AUTH_TOKEN` secret |
-
-The bats tests assert these values too and need the same change.
+there. A few other files hold them too (the allowlist, `flake.nix`, `probe.sh`,
+some scripts, the CI workflow and the bats tests that assert them), and
+[`docs/FORKING.md`](docs/FORKING.md) lists each one and what to change.
 
 A fork can also set `cache.name` in its own `.claudinix.toml`; `inputs` and the
-cache check then use it ([`docs/CONFIG.md`](docs/CONFIG.md)). The `pr0d1r2`
-default still lives in `scripts/config.jq`, and the old-install fallback in
-`scripts/inputs.sh`.
+cache check then use it ([`docs/CONFIG.md`](docs/CONFIG.md)).
 
 Your cache needs a push token, and that token lives only in your CI secrets.
 It is never put on a session VM; from the VM the cache is read-only.
