@@ -91,6 +91,12 @@ Measured in real sessions: root, `HOME=/root`, `CLAUDE_CODE_REMOTE=true`.
   `git fetch --unshallow` and `nix develop -c true` (installs the hooks).
   It is silent on success. If it warns, do what it says before you
   commit; `tdd-order` refuses a shallow clone.
+- Hooks and session start enter the dev shell through `nix-dev` when it is
+  installed (every cloud session), else `nix develop`.
+- git 2.54 or newer runs the config-based hooks. An older git, such as a
+  cloud image's, runs the `.git/hooks` shims copied from
+  `scripts/dev/legacy-hook.sh`, which run the same command.
+  `scripts/dev/shell-hook.sh` never overwrites a hook that is not its own.
 - Commits are authored as `Claude <noreply@anthropic.com>` with a
   `Claude-Session:` trailer; `commit-msg` accepts that.
 - The pushed branch gets a random suffix (`claude/<name>-<suffix>`).
@@ -99,7 +105,9 @@ Measured in real sessions: root, `HOME=/root`, `CLAUDE_CODE_REMOTE=true`.
 
 ## Choosing the model
 
-Cloud jobs default to Sonnet. Put the task text first, the model after:
+This project launches cloud jobs with `--model sonnet`; without it,
+sessions ran on Opus ([`docs/FACTS.md`](docs/FACTS.md)). Put the task text
+first, the model after:
 
 ```sh
 claude --cloud "<task>" --model sonnet
