@@ -10,7 +10,8 @@
 #
 # Usage: verify-cachix.sh [--sources FLAKE] [FLAKE_ATTR...]
 #   e.g. verify-cachix.sh --sources . .#devShells.x86_64-linux.default
-# Env:   CACHIX_URL (default https://pr0d1r2.cachix.org)
+# Env:   CACHIX_URL (default https://<cache.name>.cachix.org, cache.name
+#        from the project's .claudinix.toml, else pr0d1r2)
 #        UPSTREAM_URL (default https://cache.nixos.org; sources only)
 
 set -euo pipefail
@@ -30,7 +31,19 @@ if [ "$#" -eq 0 ] && [ -z "$sources" ]; then
     exit 2
 fi
 
-cache="${CACHIX_URL:-https://pr0d1r2.cachix.org}"
+# CACHIX_URL wins; else the cachix `cache.name` names in the project's
+# .claudinix.toml (scripts:T91, V34): the --sources flake dir's when it
+# is a local dir, else the cwd's repo. A bad file exits 2 here.
+if [ -n "${CACHIX_URL:-}" ]; then
+    cache="$CACHIX_URL"
+else
+    config=(bash "$(dirname "${BASH_SOURCE[0]}")/../config.sh")
+    if [ -n "$sources" ] && [ -d "$sources" ]; then
+        config+=(--dir "$sources")
+    fi
+    name="$("${config[@]}" get cache.name)" || exit "$?"
+    cache="https://$name.cachix.org"
+fi
 upstream="${UPSTREAM_URL:-https://cache.nixos.org}"
 status=0
 
