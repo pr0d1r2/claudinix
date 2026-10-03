@@ -18,7 +18,7 @@ The steps are defined in [`hk.pkl`](../hk.pkl) and explained in
 | `.nix` | nixfmt, xenolith, `nix flake check` | no shell inside nix strings |
 | `.pkl` | none beyond hygiene | `hk` evaluates `hk.pkl` on every run, so a broken file stops the gate; `pkl/Config.pkl` is hk's schema, vendored verbatim and excluded from `typos` |
 | `.yml` | actionlint, zizmor (`--offline`, pedantic) | GitHub workflows only |
-| `.md` | none beyond hygiene | `SPEC.md` also gets `mth fmt`, `mth check`, `itok check`, `sherd validate` and `sherd budget` |
+| `.md` | none beyond hygiene | every `SPEC.md` also gets `mth fmt`, `mth check`, `itok check` and `sherd validate`, `sync --check`, `check`, `budget`; `SPEC-ARCHIVE.md` files are sinks with hygiene only |
 | `.toml` | xenolith (`xenolith.toml` only) | `.typos.toml` is config for `typos` itself |
 | `.txt` | `setup.sh`'s bats | `allowlist.txt` and `env-names.txt`: tests check the hosts they name and that no value looks like a secret |
 | `.context-limits` | `itok check`, `sherd validate`, `sherd budget` | token ceilings for `SPEC.md` |
