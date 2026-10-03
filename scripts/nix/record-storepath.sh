@@ -40,12 +40,28 @@ esac
 
 base="${path#/nix/store/}"
 hash="${base%%-*}"
-code="$(curl -s -o /dev/null -w '%{http_code}' "$cache/$hash.narinfo")"
+# An unreachable cache is HTTP 000 (curl prints it, then fails): reported
+# below like any other code, not a silent `set -e` exit.
+code="$(curl -s -o /dev/null -w '%{http_code}' --connect-timeout 10 --max-time 30 \
+    "$cache/$hash.narinfo" || true)"
 if [ "$code" != 200 ]; then
     echo "record-storepath: $path is not in $cache (narinfo HTTP $code) -- push it first, nothing was recorded" >&2
     exit 1
 fi
 
+old=""
+if [ -f "$file" ]; then
+    old="$(cat "$file")"
+fi
+if [ "$old" = "$path" ]; then
+    echo "record-storepath: $file unchanged ($path)"
+    exit 0
+fi
+
 printf '%s\n' "$path" >"$file.tmp"
 mv "$file.tmp" "$file"
-echo "record-storepath: $file = $path"
+if [ -n "$old" ]; then
+    echo "record-storepath: $file updated: $old -> $path -- commit it"
+else
+    echo "record-storepath: $file created: $path -- commit it"
+fi
