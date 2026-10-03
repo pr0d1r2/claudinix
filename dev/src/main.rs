@@ -1,8 +1,200 @@
-//! The I/O shell over `claudinix_dev` (dev:C31). Not implemented yet.
+//! `claudinix-dev`: the I/O shell over `claudinix_dev` (dev:C31). It alone
+//! reads the repository, runs `pkl` and writes; every rule is a pure
+//! function in the library.
+//!
+//! ```text
+//! claudinix-dev badges --write|--check [--root DIR]
+//! claudinix-dev counts --write|--check [--root DIR]
+//! ```
+//!
+//! Exit 0 clean, 1 drift, 2 usage or I/O.
 
-use std::process::ExitCode;
+use std::fs;
+use std::path::{Path, PathBuf};
+use std::process::{Command, ExitCode};
+
+use claudinix_dev::badges::{Facts, render};
+use claudinix_dev::{counts, facts, splice};
+
+const USAGE: &str = "usage: claudinix-dev <badges|counts> <--write|--check> [--root DIR]";
+
+/// The CI workflow the badge links to.
+const WORKFLOW: &str = "ci.yml";
+
+/// An exit code and the message to print with it.
+type Failed = (u8, String);
 
 fn main() -> ExitCode {
-    eprintln!("claudinix-dev: not implemented yet");
-    ExitCode::from(2)
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    match dispatch(&args) {
+        Ok(()) => ExitCode::SUCCESS,
+        Err((code, message)) => {
+            eprintln!("claudinix-dev: {message}");
+            ExitCode::from(code)
+        }
+    }
+}
+
+fn dispatch(args: &[String]) -> Result<(), Failed> {
+    let words: Vec<&str> = args.iter().map(String::as_str).collect();
+    let (verb, mode, root) = match words.as_slice() {
+        [verb, mode] => (*verb, *mode, "."),
+        [verb, mode, "--root", root] => (*verb, *mode, *root),
+        _ => return Err(usage()),
+    };
+    let check = match mode {
+        "--check" => true,
+        "--write" => false,
+        _ => return Err(usage()),
+    };
+    let root = Path::new(root);
+    match verb {
+        "badges" => badges(root, check),
+        "counts" => step_counts(root, check),
+        _ => Err(usage()),
+    }
+}
+
+fn usage() -> Failed {
+    (2, USAGE.to_owned())
+}
+
+/// A file's text, or exit 2 naming it.
+fn read(root: &Path, name: &str) -> Result<String, Failed> {
+    fs::read_to_string(root.join(name)).map_err(|err| (2, format!("cannot read {name}: {err}")))
+}
+
+/// A fact, or exit 2 naming the file it should have come from (dev:V1).
+fn need<T>(value: Option<T>, what: &str) -> Result<T, Failed> {
+    value.ok_or_else(|| (2, format!("{what} read empty or zero; fix the source")))
+}
+
+/// Steps in one hk.pkl hook, as the official evaluator counts them.
+fn hook_steps(root: &Path, hook: &str) -> Result<usize, Failed> {
+    let expr = format!("hooks[\"{hook}\"].steps.length");
+    let out = Command::new("pkl")
+        .arg("eval")
+        .arg("hk.pkl")
+        .arg("-x")
+        .arg(&expr)
+        .current_dir(root)
+        .output()
+        .map_err(|err| (2, format!("pkl could not run ({err}); enter the dev shell")))?;
+    if !out.status.success() {
+        let stderr = String::from_utf8_lossy(&out.stderr);
+        return Err((2, format!("pkl eval hk.pkl -x '{expr}' failed: {stderr}")));
+    }
+    let text = String::from_utf8_lossy(&out.stdout);
+    need(facts::step_count(&text), &format!("hk.pkl {hook} steps"))
+}
+
+/// The `fast` and `all` step counts: pre-commit and check.
+fn gate_steps(root: &Path) -> Result<(usize, usize), Failed> {
+    Ok((hook_steps(root, "pre-commit")?, hook_steps(root, "check")?))
+}
+
+/// Every `*.bats` file under `dir`, recursively.
+fn bats_files(dir: &Path, found: &mut Vec<PathBuf>) -> Result<(), Failed> {
+    let entries =
+        fs::read_dir(dir).map_err(|err| (2, format!("cannot read {}: {err}", dir.display())))?;
+    for entry in entries {
+        let path = entry
+            .map_err(|err| (2, format!("cannot read {}: {err}", dir.display())))?
+            .path();
+        if path.is_dir() {
+            bats_files(&path, found)?;
+        } else if path.extension().is_some_and(|ext| ext == "bats") {
+            found.push(path);
+        }
+    }
+    Ok(())
+}
+
+/// `@test` lines across `tests/unit/**/*.bats`.
+fn bats_tests(root: &Path) -> Result<usize, Failed> {
+    let mut files = Vec::new();
+    bats_files(&root.join("tests/unit"), &mut files)?;
+    let mut total = 0;
+    for file in files {
+        let text = fs::read_to_string(&file)
+            .map_err(|err| (2, format!("cannot read {}: {err}", file.display())))?;
+        total += facts::bats_tests(&text);
+    }
+    Ok(total)
+}
+
+/// Every badge fact, each from the file that owns it (dev:V1).
+fn gather(root: &Path, readme: &str) -> Result<Facts, Failed> {
+    let setup = read(root, "setup.sh")?;
+    if !root.join(".github/workflows").join(WORKFLOW).is_file() {
+        return Err((2, format!(".github/workflows/{WORKFLOW} is missing")));
+    }
+    let cache = need(
+        facts::cache_name(&read(root, ".claudinix.toml")?),
+        ".claudinix.toml `cache.name`",
+    )?;
+    Facts {
+        slug: need(facts::fork_repo(&setup), "setup.sh fork block `repo=`")?,
+        workflow: WORKFLOW.to_owned(),
+        license: need(
+            facts::license(&read(root, "LICENSE")?),
+            "LICENSE first line",
+        )?,
+        status: facts::status(readme),
+        cache: format!("{cache}.cachix.org"),
+        nix_floor: need(facts::nix_floor(&setup), "setup.sh `min_version`")?,
+        steps: gate_steps(root)?,
+        tests: bats_tests(root)?,
+        nodes: facts::spec_nodes(&read(root, "SPEC.md")?),
+    }
+    .checked()
+    .map_err(|message| (2, message))
+}
+
+/// Write the README badge block, or check it is what the facts render.
+fn badges(root: &Path, check: bool) -> Result<(), Failed> {
+    let readme = read(root, "README.md")?;
+    let block = render(&gather(root, &readme)?);
+    let fresh = need(
+        splice::splice(&readme, &block),
+        "README.md title (`# `) or badge markers",
+    )?;
+    if fresh == readme {
+        return Ok(());
+    }
+    if check {
+        let old = splice::current(&readme).unwrap_or_default();
+        let diff = splice::diff(old, &block);
+        return Err((
+            1,
+            format!(
+                "README.md badges are stale; run: claudinix-dev badges --write\n{}",
+                diff.trim_end()
+            ),
+        ));
+    }
+    fs::write(root.join("README.md"), fresh)
+        .map_err(|err| (2, format!("cannot write README.md: {err}")))
+}
+
+/// Write the step counts docs/INTEGRATION.md states, or check them.
+fn step_counts(root: &Path, check: bool) -> Result<(), Failed> {
+    const DOC: &str = "docs/INTEGRATION.md";
+    let doc = read(root, DOC)?;
+    let (fast, all) = gate_steps(root)?;
+    let stale = counts::drift(&doc, fast, all).map_err(|message| (2, message))?;
+    if stale.is_empty() {
+        return Ok(());
+    }
+    if check {
+        return Err((
+            1,
+            format!(
+                "{DOC} step counts drifted from hk.pkl (fast {fast}, all {all}); run: claudinix-dev counts --write\n{}",
+                stale.join("\n")
+            ),
+        ));
+    }
+    fs::write(root.join(DOC), counts::rewrite(&doc, fast, all))
+        .map_err(|err| (2, format!("cannot write {DOC}: {err}")))
 }
