@@ -126,6 +126,13 @@ EOF
     grep -q 'Does NOT choose the session model' "$ENV_DIR/env-names.txt"
 }
 
+@test "env vars offer BASH_DEFAULT_TIMEOUT_MS=600000, marked optional (T48, V24)" {
+    grep -qx 'BASH_DEFAULT_TIMEOUT_MS=600000' "$ENV_DIR/env-names.txt"
+    # The comment block right above the line says it is optional.
+    above="$(awk '/^#/ { blk = blk $0 "\n"; next } /^BASH_DEFAULT_TIMEOUT_MS=/ { printf "%s", blk; exit } { blk = "" }' "$ENV_DIR/env-names.txt")"
+    grep -q '^# Optional' <<<"$above"
+}
+
 @test "env vars carry no secret-looking values (V6)" {
     run ! grep -E -i '(TOKEN|SECRET|KEY|PASSWORD)=' "$ENV_DIR/env-names.txt"
 }
