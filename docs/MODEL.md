@@ -13,8 +13,12 @@ date it was read. Prices change, so an old date is a warning.
 | What does not choose it | the `ANTHROPIC_MODEL` environment variable on the cloud environment | 2026-10-03 (probe 6) |
 | When to pick another | design, spec writing, ambiguous bugs, cross-repository changes: Claude Opus 5.5 (`claude-opus-5-5`) | 2026-10-03 |
 
-The probe launcher planned in `scripts/SPEC.md` T28 passes `--model sonnet` by
-default. It does not exist yet; until it does, pass the flag yourself.
+The probe launcher (`nix run github:pr0d1r2/claudinix#probe`, built under
+`scripts:T28`) exists and passes `--model sonnet` by default; `--model M`
+picks another. A session started without `--model` ran on Opus 5.5 (probe 6,
+`FACTS.md`), and seven of the eight sessions in the cost reading ran on Opus
+5.5 (`FACTS.md`, "Cost"). So pass the flag yourself whenever you start a
+session by hand.
 
 ## How to choose, and how to check
 
