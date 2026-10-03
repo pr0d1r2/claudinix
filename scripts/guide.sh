@@ -16,9 +16,12 @@
 # The setup line is pinned to CLAUDINIX_SETUP_REV, else to HEAD of the clone
 # the guide runs from; setup-line.sh refuses a SHA whose CI on main is
 # not green, and the guide stops with it unless --force is given (T69).
+# --agent-home asks the setup line for the opt-in agent home (.:C24).
 #
-# Usage: guide.sh [--force] [--from STEP] [FLAKE_DIR]   steps 0-5 (dir: .)
-#        guide.sh update [--force] [FLAKE_DIR]          the "Updating" flow
+# Usage: guide.sh [--force] [--agent-home] [--from STEP] [FLAKE_DIR]
+#                 steps 0-5 (dir: .)
+#        guide.sh update [--force] [--agent-home] [FLAKE_DIR]
+#                 the "Updating" flow
 # Env:   CLAUDINIX_SCRIPTS    dir with guide-steps.tsv, inputs.sh, domains.sh,
 #                             setup-line.sh
 #        CLAUDINIX_SETUP_REV  full SHA of this repo to pin the setup line to
@@ -31,7 +34,7 @@
 set -euo pipefail
 
 usage() {
-    echo "usage: guide.sh [--force] [--from STEP] [FLAKE_DIR] | guide.sh update [--force] [FLAKE_DIR]" >&2
+    echo "usage: guide.sh [--force] [--agent-home] [--from STEP] [FLAKE_DIR] | guide.sh update [--force] [--agent-home] [FLAKE_DIR]" >&2
     exit 2
 }
 
@@ -39,10 +42,12 @@ flow=setup
 from=0
 dir=
 force=()
+agent_home=()
 while [ "$#" -gt 0 ]; do
     case "$1" in
     update) flow=update ;;
     --force) force=(--force) ;;
+    --agent-home) agent_home=(--agent-home) ;;
     --from)
         [ "$#" -ge 2 ] || usage
         from="$2"
@@ -124,7 +129,7 @@ setup_line() {
     if [ -z "$rev" ] && ! rev="$(git -C "$lib/.." rev-parse --verify --quiet HEAD 2>/dev/null)"; then
         stop "cannot tell which revision to pin the setup line to: set CLAUDINIX_SETUP_REV to a full SHA of claudinix"
     fi
-    bash "$lib/setup-line.sh" ${force[@]+"${force[@]}"} "$rev" ||
+    bash "$lib/setup-line.sh" ${force[@]+"${force[@]}"} ${agent_home[@]+"${agent_home[@]}"} "$rev" ||
         stop "no setup line for $rev (see above); pick a SHA CI passed, or run the guide with --force"
 }
 

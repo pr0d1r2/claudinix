@@ -8,15 +8,17 @@
 # a line: CI is what pushes its agent home to cachix (C19). No run, a run
 # still going, a failed one, or a gh that cannot answer all refuse;
 # `--force` prints the line anyway and says why it should not have.
+# The agent home is opt-in (.:C24): `--agent-home` appends `--agent-home`
+# to the line, which asks setup.sh for it; without it, Nix and nix-dev only.
 #
-# Usage: setup-line.sh [--force] [REV]   (default: HEAD)
+# Usage: setup-line.sh [--force] [--agent-home] [REV]   (default: HEAD)
 # Env:   GH_BIN   the GitHub CLI (default: gh); used read-only
 # Needs: git, gh (signed in), jq
 
 set -euo pipefail
 
 usage() {
-    echo "usage: setup-line.sh [--force] [REV]" >&2
+    echo "usage: setup-line.sh [--force] [--agent-home] [REV]" >&2
     exit 2
 }
 
@@ -26,10 +28,12 @@ workflow=ci.yml
 gh="${GH_BIN:-gh}"
 
 force=0
+agent_home=
 rev=
 while [ "$#" -gt 0 ]; do
     case "$1" in
     --force) force=1 ;;
+    --agent-home) agent_home=" --agent-home" ;;
     -*) usage ;;
     *)
         [ -z "$rev" ] || usage
@@ -98,4 +102,4 @@ fi
 
 raw="https://raw.githubusercontent.com/$repo/$sha/setup.sh"
 # shellcheck disable=SC2016 # printed for the UI shell to expand, not here
-printf 'd=$(mktemp -d) && curl -fsSL %s -o "$d/setup.sh" && bash "$d/setup.sh" %s\n' "$raw" "$sha"
+printf 'd=$(mktemp -d) && curl -fsSL %s -o "$d/setup.sh" && bash "$d/setup.sh" %s%s\n' "$raw" "$sha" "$agent_home"
