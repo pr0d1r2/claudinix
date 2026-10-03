@@ -21,7 +21,11 @@ if ! command -v hk >/dev/null 2>&1; then
     exit 0
 fi
 
-if ! hk install >/dev/null; then
+# Success is silence (V31): hk install reports every hook it writes, and
+# that would print on every shell entry, gate run and agent command. Its
+# output is shown only when it failed.
+if ! install_log="$(hk install 2>&1)"; then
+    [ -z "$install_log" ] || printf '%s\n' "$install_log" >&2
     echo "shell-hook: hk install failed -- hooks may be stale, run 'hk install' by hand" >&2
 fi
 
