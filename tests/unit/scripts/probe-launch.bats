@@ -29,10 +29,19 @@ setup() {
         '  while [ "$1" != -c ]; do shift; done; exec sh -c "$2"' \
         'fi' \
         'while [ "$1" != /dev/null ]; do shift; done; shift; exec "$@"' >"$STUBS/script"
-    # git: a work tree whose remote holds the branches in $STATE/branches.
+    # git: a work tree on branch main, pushed to origin/main, whose remote
+    # holds the branches in $STATE/branches. NO_REMOTE, DETACHED,
+    # NO_UPSTREAM and BEHIND each break one of those.
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "$*" >>"$STATE/git.log"' \
+        'case "$*" in' \
+        'remote\ get-url\ *) [ -z "${NO_REMOTE:-}" ] || { echo "error: No such remote" >&2; exit 2; }; echo https://github.com/o/p ; exit 0 ;;' \
+        'symbolic-ref*) [ -z "${DETACHED:-}" ] || exit 1; echo main; exit 0 ;;' \
+        '*--symbolic-full-name*) [ -z "${NO_UPSTREAM:-}" ] || exit 128; echo origin/main; exit 0 ;;' \
+        'rev-parse\ HEAD) echo aaaa; exit 0 ;;' \
+        'rev-parse\ @{u}) if [ -n "${BEHIND:-}" ]; then echo bbbb; else echo aaaa; fi; exit 0 ;;' \
+        'esac' \
         'case "$1" in' \
         'rev-parse) [ -z "${NOT_A_REPO:-}" ] || exit 128; echo true ;;' \
         'ls-remote) while read -r b; do printf "0000\trefs/heads/%s\n" "$b"; done <"$STATE/branches" ;;' \
@@ -46,7 +55,7 @@ setup() {
 }
 
 @test "launch: claude --cloud TASK --model sonnet, in that order, under script" {
-    run bash "$SCRIPT"
+    run bash "$SCRIPT" --yes
     [ "$status" -eq 0 ]
     [ "$(cat "$STATE/claude.1")" = "--cloud" ]
     [ "$(cat "$STATE/claude.rest")" = "--model sonnet" ]
@@ -54,7 +63,7 @@ setup() {
 }
 
 @test "the task carries probe.sh, the report file and the branch prefix (.:T3)" {
-    run bash "$SCRIPT"
+    run bash "$SCRIPT" --yes
     [ "$status" -eq 0 ]
     grep -qF 'report nix-version' "$STATE/claude.task"
     grep -qF 'nix-probe-report.txt' "$STATE/claude.task"
@@ -62,14 +71,14 @@ setup() {
 }
 
 @test "--model picks the model" {
-    run bash "$SCRIPT" --model opus
+    run bash "$SCRIPT" --yes --model opus
     [ "$status" -eq 0 ]
     [ "$(cat "$STATE/claude.rest")" = "--model opus" ]
 }
 
 @test "finds the new probe branch by prefix and prints its report" {
     echo claude/nix-probe-old111 >"$STATE/branches"
-    run bash "$SCRIPT"
+    run bash "$SCRIPT" --yes
     [ "$status" -eq 0 ]
     [[ "$output" == *"claude/nix-probe-x7k2q9"* ]]
     [[ "$output" == *"nix-dev: tier 2"* ]]
@@ -78,20 +87,20 @@ setup() {
 }
 
 @test "no new branch within the tries: exit 1, says where to look" {
-    NO_PUSH=1 run bash "$SCRIPT"
+    NO_PUSH=1 run bash "$SCRIPT" --yes
     [ "$status" -eq 1 ]
     [[ "$output" == *"no new claude/nix-probe"* ]]
     [ "$(grep -c '^ls-remote' "$STATE/git.log")" -eq 4 ]
 }
 
 @test "a branch without the report fails" {
-    NO_REPORT=1 run bash "$SCRIPT"
+    NO_REPORT=1 run bash "$SCRIPT" --yes
     [ "$status" -eq 1 ]
     [[ "$output" == *"nix-probe-report.txt"* ]]
 }
 
 @test "util-linux script: the same claude args through script -c" {
-    STUB_LINUX=1 run bash "$SCRIPT" --model opus
+    STUB_LINUX=1 run bash "$SCRIPT" --model opus --yes
     [ "$status" -eq 0 ]
     [ "$(cat "$STATE/claude.1")" = "--cloud" ]
     [ "$(cat "$STATE/claude.rest")" = "--model opus" ]
@@ -115,6 +124,70 @@ setup() {
 
 @test "outside a git repository: fails before starting a session" {
     NOT_A_REPO=1 run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [ ! -e "$STATE/claude.1" ]
+}
+
+# scripts:T81 (review R3-15,16): check before a billed session starts.
+
+@test "no remote origin: says to push to GitHub first, starts no session" {
+    NO_REMOTE=1 run bash "$SCRIPT" --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"probe: no remote origin -- push the project to GitHub first"* ]]
+    [ ! -e "$STATE/claude.1" ]
+}
+
+@test "no remote named by PROBE_REMOTE: names that remote" {
+    NO_REMOTE=1 PROBE_REMOTE=upstream run bash "$SCRIPT" --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"probe: no remote upstream -- push the project to GitHub first"* ]]
+}
+
+@test "--cleanup with no remote origin: same message, nothing pushed" {
+    NO_REMOTE=1 run bash "$SCRIPT" --cleanup
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"no remote origin"* ]]
+    run ! grep -q '^push' "$STATE/git.log"
+}
+
+@test "a branch with no upstream: says to push it, starts no session" {
+    NO_UPSTREAM=1 run bash "$SCRIPT" --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"main"*"not pushed"* ]]
+    [ ! -e "$STATE/claude.1" ]
+}
+
+@test "a branch that differs from its upstream: says so, starts no session" {
+    BEHIND=1 run bash "$SCRIPT" --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"main"*"origin/main"* ]]
+    [[ "$output" == *"not up to date"* ]]
+    [ ! -e "$STATE/claude.1" ]
+}
+
+@test "a detached HEAD: says to check out a branch, starts no session" {
+    DETACHED=1 run bash "$SCRIPT" --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"detached"* ]]
+    [ ! -e "$STATE/claude.1" ]
+}
+
+@test "without --yes: asks y/N about a billed session; y starts it" {
+    run bash "$SCRIPT" <<<y
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"billed"* ]]
+    [[ "$output" == *"[y/N]"* ]]
+    [ "$(cat "$STATE/claude.1")" = "--cloud" ]
+}
+
+@test "without --yes: Enter, n or no input starts nothing" {
+    run bash "$SCRIPT" <<<''
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"not started"* ]]
+    [ ! -e "$STATE/claude.1" ]
+    run bash "$SCRIPT" <<<n
+    [ "$status" -eq 1 ]
+    run bash "$SCRIPT" </dev/null
     [ "$status" -eq 1 ]
     [ ! -e "$STATE/claude.1" ]
 }
