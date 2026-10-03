@@ -1,0 +1,37 @@
+[package]
+name = "claudinix-dev"
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+description = "Development-only tooling for the claudinix repository; never published"
+# It maintains files in THIS repository (README badges, the step counts in
+# docs/INTEGRATION.md) and means nothing to anyone who uses claudinix, so it
+# can never be published and never lands in a session (dev:C30).
+publish = false
+
+[lib]
+name = "claudinix_dev"
+path = "src/lib.rs"
+
+# A thin shell over the library: main.rs alone reads and writes the
+# repository, every rule is a pure function in the library (dev:C31).
+[[bin]]
+name = "claudinix-dev"
+path = "src/main.rs"
+
+# None, on purpose (dev:C30): std only, so the crate builds offline, in the
+# Nix sandbox and in a cloud session without a crates.io fetch.
+[dependencies]
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+indexing_slicing = "deny"
+todo = "deny"
+dbg_macro = "deny"
