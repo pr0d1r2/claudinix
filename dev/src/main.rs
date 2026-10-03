@@ -8,6 +8,7 @@
 //! claudinix-dev notices --write|--check [--root DIR]
 //! claudinix-dev facts --check [--root DIR]
 //! claudinix-dev changelog MESSAGE-FILE
+//! claudinix-dev steps --write|--check [--root DIR]
 //! ```
 //!
 //! Exit 0 clean, 1 drift, 2 usage or I/O.
@@ -17,11 +18,12 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
 use claudinix_dev::badges::{Facts, render};
-use claudinix_dev::{counts, facts, splice};
+use claudinix_dev::{block, counts, facts, splice, steps};
 
 mod verbs;
 
-const USAGE: &str = "usage: claudinix-dev <badges|counts|notices> <--write|--check> [--root DIR]
+const USAGE: &str =
+    "usage: claudinix-dev <badges|counts|notices|steps> <--write|--check> [--root DIR]
        claudinix-dev facts --check [--root DIR]
        claudinix-dev changelog MESSAGE-FILE";
 
@@ -63,6 +65,7 @@ fn dispatch(args: &[String]) -> Result<(), Failed> {
         "counts" => step_counts(root, check),
         "notices" => verbs::notices(root, check),
         "facts" => verbs::facts(root, check),
+        "steps" => step_table(root, check),
         _ => Err(usage()),
     }
 }
@@ -81,14 +84,13 @@ fn need<T>(value: Option<T>, what: &str) -> Result<T, Failed> {
     value.ok_or_else(|| (2, format!("{what} read empty or zero; fix the source")))
 }
 
-/// Steps in one hk.pkl hook, as the official evaluator counts them.
-fn hook_steps(root: &Path, hook: &str) -> Result<usize, Failed> {
-    let expr = format!("hooks[\"{hook}\"].steps.length");
+/// What `pkl eval hk.pkl -x EXPR` prints.
+fn pkl(root: &Path, expr: &str) -> Result<String, Failed> {
     let out = Command::new("pkl")
         .arg("eval")
         .arg("hk.pkl")
         .arg("-x")
-        .arg(&expr)
+        .arg(expr)
         .current_dir(root)
         .output()
         .map_err(|err| (2, format!("pkl could not run ({err}); enter the dev shell")))?;
@@ -96,7 +98,12 @@ fn hook_steps(root: &Path, hook: &str) -> Result<usize, Failed> {
         let stderr = String::from_utf8_lossy(&out.stderr);
         return Err((2, format!("pkl eval hk.pkl -x '{expr}' failed: {stderr}")));
     }
-    let text = String::from_utf8_lossy(&out.stdout);
+    Ok(String::from_utf8_lossy(&out.stdout).into_owned())
+}
+
+/// Steps in one hk.pkl hook, as the official evaluator counts them.
+fn hook_steps(root: &Path, hook: &str) -> Result<usize, Failed> {
+    let text = pkl(root, &format!("hooks[\"{hook}\"].steps.length"))?;
     need(facts::step_count(&text), &format!("hk.pkl {hook} steps"))
 }
 
@@ -209,4 +216,42 @@ fn step_counts(root: &Path, check: bool) -> Result<(), Failed> {
     }
     fs::write(root.join(DOC), counts::rewrite(&doc, fast, all))
         .map_err(|err| (2, format!("cannot write {DOC}: {err}")))
+}
+
+/// Write the step table and the step counts docs/INTEGRATION.md states,
+/// or check them; one `pkl` run gives both (dev:T106).
+fn step_table(root: &Path, check: bool) -> Result<(), Failed> {
+    const DOC: &str = "docs/INTEGRATION.md";
+    let doc = read(root, DOC)?;
+    let rows = pkl(root, steps::ROWS)?;
+    let found = steps::parse(&rows).map_err(|message| (2, message))?;
+    let (fast, all) = steps::counts(&found);
+    let table = steps::table(&found);
+    let spliced = block::splice(&doc, steps::NAME, &table).ok_or_else(|| {
+        (
+            2,
+            format!("{DOC} has no <!-- BEGIN steps --> ... <!-- END steps --> block"),
+        )
+    })?;
+    let stale = counts::drift(&doc, fast, all).map_err(|message| (2, message))?;
+    let fresh = counts::rewrite(&spliced, fast, all);
+    if fresh == doc {
+        return Ok(());
+    }
+    if check {
+        let old = block::current(&doc, steps::NAME).unwrap_or_default();
+        let mut report = splice::diff(old, &table);
+        for line in stale {
+            report.push_str(&line);
+            report.push('\n');
+        }
+        return Err((
+            1,
+            format!(
+                "{DOC} step table drifted from hk.pkl; run: claudinix-dev steps --write\n{}",
+                report.trim_end()
+            ),
+        ));
+    }
+    fs::write(root.join(DOC), fresh).map_err(|err| (2, format!("cannot write {DOC}: {err}")))
 }

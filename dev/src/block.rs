@@ -5,8 +5,19 @@
 /// Byte range of block `name` in `doc`: from the opening marker through
 /// the closing marker and the newline after it.
 fn span(doc: &str, name: &str) -> Option<(usize, usize)> {
-    let _ = (doc, name);
-    None
+    let begin = format!("<!-- BEGIN {name}");
+    let end = format!("<!-- END {name} -->");
+    let start = doc.match_indices(&begin).find_map(|(at, _)| {
+        let next = doc.get(at + begin.len()..)?.chars().next()?;
+        (next == ' ' || next == ':').then_some(at)
+    })?;
+    let stop = doc.get(start..)?.find(&end)? + start + end.len();
+    let stop = if doc.get(stop..)?.starts_with('\n') {
+        stop + 1
+    } else {
+        stop
+    };
+    Some((start, stop))
 }
 
 /// Block `name` in `doc`, markers and the closing newline included.
@@ -21,8 +32,8 @@ pub fn current<'doc>(doc: &'doc str, name: &str) -> Option<&'doc str> {
 /// `splice(splice(x)) == splice(x)` (dev:V3).
 #[must_use]
 pub fn splice(doc: &str, name: &str, block: &str) -> Option<String> {
-    let _ = (doc, name, block);
-    None
+    let (start, stop) = span(doc, name)?;
+    Some(format!("{}{block}{}", doc.get(..start)?, doc.get(stop..)?))
 }
 
 #[cfg(test)]
