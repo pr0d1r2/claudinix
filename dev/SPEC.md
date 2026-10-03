@@ -33,6 +33,13 @@ V3: render is idempotent: splice(splice(x)) == splice(x) ∴ `--check` is equali
 ## §T TASKS
 
 id|status|task|cites
+T106|.|`steps --write\|--check`: the whole hk step table in `docs/INTEGRATION.md` (name, layer, glob, by-hand command) from `hk.pkl` via `pkl eval -x`, replacing the counts-only check (pklith `agents`)|V1,V3,`.:T105`
+T107|.|`cli --check`: each `usage:` line `docs/CLI.md` quotes = the script's own usage text (read from `scripts/*.sh`, `setup.sh`) (pklith `cli`)|V1,V3
+T108|.|`config --write\|--check`: `docs/CONFIG.md` key table (key, type, default, readers) from `scripts/config.jq`'s schema (pklith `catalog`)|V1,V3,`scripts:V34`
+T109|.|`notices --write\|--check`: `docs/THIRD-PARTY-NOTICES.md` inputs table (name, source, locked rev) from `flake.lock` (pklith/xenolith `notices`)|V1,V3
+T110|.|`facts --check`: numbers README \& `docs/LLM-DISCLAIMER.md` quote in prose (gate steps, tests, nodes, probe count) = their owning files (pklith `facts`)|V1
+T111|.|`changelog FILE` (commit-msg hook step): a `feat`\|`fix` commit touching session code (`setup.sh`, `scripts/**`, `nix/cloud-home.nix`, `nix/cloud-permissions.json`) adds a `CHANGELOG.md` entry in the same commit, else refuse w/ the rule; `docs`/`test`/`refactor` exempt (pklith `changelog`)|`.:V20`,`docs:T37`
+T112|.|? `select`: run only the generated outputs a changed file can affect (xenolith `select`) — when the gate gets slow|V3
 
 ## §B BUGS
 
