@@ -20,7 +20,11 @@ measurements are in [`FACTS.md`](FACTS.md), dated.
    fixed for this VM.
 5. **The setup script runs, as root, if there is no snapshot.** This is
    [`setup.sh`](../setup.sh): it makes sure a Nix of at least 2.34 is present,
-   writes the managed `nix.conf` block and links `nix` into `/usr/local/bin`.
+   writes the managed `nix.conf` block, links `nix` into `/usr/local/bin`, and
+   installs `nix-dev` (`nix develop` with a failover for the GitHub proxy).
+   Only with `--agent-home` (or `CLAUDINIX_AGENT_HOME=1`) does it also activate the
+   agent home, the owner's Claude rules and skills; otherwise it prints that
+   the agent home was skipped.
 6. **A snapshot is saved** if the script finished within about five minutes.
    Later sessions in the same environment start from that snapshot and skip
    the script. A change to the script or the allowed domains, or about seven
@@ -43,6 +47,7 @@ starts is still running when Claude does. This repository starts nothing.
 | part | where it lives | runs when |
 |---|---|---|
 | Nix, `nix.conf` block | the VM image plus `setup.sh` | setup, once per snapshot |
+| `nix-dev`, and with `--agent-home` the agent home | `setup.sh` | setup, once per snapshot |
 | Allowed domains | the environment (set in the browser) | fixed for each VM at creation |
 | Environment variables | the environment | each session |
 | Your repository | cloned from GitHub | each session |
