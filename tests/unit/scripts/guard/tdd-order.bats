@@ -92,3 +92,85 @@ commit_file() {
     [ "$status" -eq 1 ]
     [[ "$output" == *"nothing was checked"* ]]
 }
+
+# clone_from ORIGIN DEST [GIT_CLONE_ARG...]: a fixture clone that can commit.
+clone_from() {
+    local origin="$1" dest="$2"
+    shift 2
+    git clone -q "$@" "file://$origin" "$dest"
+    git -C "$dest" config user.email t@example.invalid
+    git -C "$dest" config user.name t
+    git -C "$dest" config commit.gpgsign false
+}
+
+@test "a shallow clone fails, says so and names the fix (B7, V29)" {
+    commit_file tests/unit/scripts/x/a.bats one
+    commit_file scripts/x/a.sh one
+    clone_from "$REPO" "$BATS_TEST_TMPDIR/shallow" --depth 1
+    cd "$BATS_TEST_TMPDIR/shallow"
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"this clone is shallow"* ]]
+    [[ "$output" == *"run: git fetch --unshallow"* ]]
+    # It must not blame the graft commit for adding every script.
+    [[ "$output" != *"commit the failing test first"* ]]
+}
+
+@test "no upstream: checks only merge-base HEAD origin/HEAD..HEAD (V29)" {
+    # An old violation on the default branch is history, not this branch.
+    commit_file scripts/x/old.sh one
+    commit_file tests/unit/scripts/x/old.bats one
+    clone_from "$REPO" "$BATS_TEST_TMPDIR/clone"
+    cd "$BATS_TEST_TMPDIR/clone"
+    git rev-parse --verify --quiet refs/remotes/origin/HEAD >/dev/null
+    git switch -q --no-track -c feature
+    commit_file tests/unit/scripts/x/new.bats one
+    commit_file scripts/x/new.sh one
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+}
+
+@test "no upstream: a violation on the branch is still caught" {
+    clone_from "$REPO" "$BATS_TEST_TMPDIR/clone"
+    cd "$BATS_TEST_TMPDIR/clone"
+    git switch -q --no-track -c feature
+    commit_file scripts/x/new.sh one
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"scripts/x/new.sh"* ]]
+}
+
+@test "refusal prints a split recipe that needs no interactive rebase" {
+    mkdir -p scripts/x tests/unit/scripts/x
+    echo one >scripts/x/a.sh
+    echo one >tests/unit/scripts/x/a.bats
+    git add .
+    git commit -q -m "feat: both at once"
+    bad="$(git rev-parse --short HEAD)"
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"git switch -c tdd-split $bad^"* ]]
+    [[ "$output" == *"git restore --source=$bad --staged --worktree -- tests/unit/scripts/x/a.bats"* ]]
+    [[ "$output" == *"git commit -C $bad"* ]]
+    [[ "$output" != *"rebase -i"* ]]
+}
+
+@test "the split recipe, run as printed, satisfies the guard" {
+    commit_file README one
+    mkdir -p scripts/x tests/unit/scripts/x
+    echo one >scripts/x/a.sh
+    echo one >tests/unit/scripts/x/a.bats
+    git add .
+    git commit -q -m "feat: both at once"
+    commit_file README two
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    recipe="$BATS_TEST_TMPDIR/recipe.sh"
+    printf '%s\n' "$output" | sed -n 's/^    \(git .*\)$/\1/p' >"$recipe"
+    [ -s "$recipe" ]
+    run bash -e "$recipe"
+    [ "$status" -eq 0 ]
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ "$(cat README)" = "$(printf 'one\ntwo')" ]
+}
