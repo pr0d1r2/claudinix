@@ -139,6 +139,7 @@ the platform at any time.
 |---|---|
 | [`docs/SETUP.md`](docs/SETUP.md) | browser and terminal steps, updating, troubleshooting |
 | [`docs/CONSUMER.md`](docs/CONSUMER.md) | what your repository does to work well in a session |
+| [`docs/CACHE-CI.md`](docs/CACHE-CI.md) | the CI job that fills the binary cache from your repository |
 | [`docs/EXAMPLE.md`](docs/EXAMPLE.md) | a real repository from zero to a green test run, with timings |
 | [`docs/SESSION.md`](docs/SESSION.md) | what happens between `claude --cloud` and the first prompt |
 | [`docs/FACTS.md`](docs/FACTS.md) | what a cloud session looks like, measured and dated |
