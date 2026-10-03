@@ -2,10 +2,9 @@
 # Enter non-comment lines in claude.ai/code -> environment ->
 # Environment variables. Anyone using the env can read them, so secrets
 # appear here as names only; non-secret settings carry their value.
-# Does NOT choose the session model (probe 6: session ran on Opus 5.5);
-# launch with `claude --cloud "<task>" --model sonnet` instead (T67).
-# Kept until E3b shows whether it has any other effect.
-ANTHROPIC_MODEL=claude-sonnet-5-5
+# The session's model is NOT set here: ANTHROPIC_MODEL on the environment
+# does not choose it (docs/FACTS.md). Launch with
+# `claude --cloud "<task>" --model sonnet` instead.
 # Optional: the Bash tool's default timeout, in ms. Without it a command
 # past 120 s moves to the background and still finishes (V24, probe 6);
 # 600000 (10 min) keeps gate runs in the foreground. Not a secret.

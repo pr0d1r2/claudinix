@@ -289,7 +289,7 @@ price() {
 }
 
 step_5() {
-    echo "Pick the session's model. It is fixed at launch: ANTHROPIC_MODEL on the environment does not set it (probe 6)."
+    echo "Pick the session's model. It is fixed at launch: ANTHROPIC_MODEL on the environment does not set it (measured, see docs/FACTS.md)."
     echo "  sonnet  Claude Sonnet 5.5, the default here: $(price 'Claude Sonnet 5.5')."
     echo "  opus    Claude Opus 5.5, for harder work: $(price 'Claude Opus 5.5')."
     ask "Model [sonnet/opus] (Enter: sonnet):"
