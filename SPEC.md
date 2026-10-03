@@ -86,6 +86,8 @@ V28: every tracked `*.sh` w/ a shebang is executable (mode 100755); gate step ch
 V29: a guard that reads history detects a shallow clone \& says so w/ the fix (`git fetch --unshallow`), ⊥ blame commits it cannot see; w/o upstream it checks `merge-base HEAD origin/HEAD..HEAD` (B7).
 V30: every input needed to EVALUATE an output a session builds (agent home, dev shell) is fetchable in the cloud: `git+https` \| narinfo in an allowed cache; CI verifies narinfo for pushed sources, ⊥ only built outputs (B8). cache.nixos.org counts for sources it already serves (nixpkgs).
 V31: gate output for a non-TTY caller (agent) on success ≤ a few lines; full log on failure only.
+V32: the gate's git hooks fire under the git that actually commits (cloud: image git, likely < 2.54, outside the dev shell): config-based hooks (git ≥ 2.54) + `.git/hooks` shims for older git; bats proves a bad commit is refused by an old git (B9).
+V33: a released SHA contains `cloud-home.storepath` for its own agent home, \& every eval-time input source has narinfo 200 (`verify-cachix.sh --sources`) before the line is published (B10).
 
 ## §T TASKS
 id|status|task|cites
@@ -133,6 +135,9 @@ T74|x|ARCHIVED to SPEC-ARCHIVE.md|V30,V22,C19
 T75|x|ARCHIVED to SPEC-ARCHIVE.md|C25,`nix:V15`,V20
 T76|x|ARCHIVED to SPEC-ARCHIVE.md|C27,V17,V29
 T77|x|ARCHIVED to SPEC-ARCHIVE.md|V27,V28,V19,V31,C14
+T86|.|hooks under old git (V32): shell-hook adds `.git/hooks` shims when the committing git < 2.54; hook \& session-start use `nix-dev` if present; settings.json via `$CLAUDE_PROJECT_DIR`; exec-bit reads paths w/ spaces; probe + FACTS record cloud git version|V32,V17,C27,V28
+T87|.|release order (V33): record `cloud-home.storepath`, maintainer commits it, line \& README pin THAT commit; refuse unless `verify-cachix.sh --sources .` passes; bats proves the released SHA has the file|V33,C25,`nix:V15`
+T88|.|setup robustness: bound nix downloads (`connect-timeout`, `stalled-download-timeout`, `timeout` on installer \& tier builds, V5); `CLAUDINIX_AGENT_HOME` ∉ {0,1} → exit 2; nix-dev staged in `$lib_dir.new`, swapped once; `inputs.sh` curl bounded|V5,V1,`scripts:V13`
 
 ## §B BUGS
 id|date|cause|fix
@@ -143,3 +148,5 @@ B5|2026-10-03|`hk.pkl` put `///` doc comments inside `hooks {}`: official `pkl e
 B6|2026-10-03|`scripts/setup-line.sh` committed mode 100644; docs say run it directly → `permission denied`; tests call it via `bash` ∴ never caught (review R3-1, R5-1)|V28
 B7|2026-10-03|`tdd-order` in a shallow clone (every cloud session) counted the graft commit as adding all 27 scripts \& refused the push w/o saying the clone is shallow (review R4-1)|V29
 B8|2026-10-03|agent home tier 1 needs home-manager, nix-home-manager-claude-code \& set-and-setting sources at EVAL time; `github:` inputs ⊥ cached (cachix-action daemon pushes only built paths) → 403 in cloud; tier 2 `cloud-home.storepath` never written → agent home never activates (review R2-1, R2-2, R1-3)|V30
+B9|2026-10-03|hk 1.58 installs only config-based hooks under git ≥ 2.54 (dev shell); system git 2.50 committed a bad message unchecked ⇒ in cloud (image git) no hook fires (re-review RR-1)|V32
+B10|2026-10-03|`release.sh` pinned the line to REV, then asked to commit `cloud-home.storepath` after it ⇒ the released SHA lacks the file, tier 2 404s; release ⊥ checked input sources (re-review RR-2, RR-3)|V33
