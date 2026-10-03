@@ -53,12 +53,12 @@ V4: Nix on PATH ≥ floor ⇒ ⊥ install. else `--daemon` iff systemd present; 
 V5: `setup.sh` wall time on fresh VM ≤ 5 min (cache window C1); measured, ⊥ assumed.
 V6: ⊥ secret in repo \| env vars; cachix read-only (⊥ `CACHIX_AUTH_TOKEN`).
 V7: `setup.sh` = Nix install + agent-home activation only (C3); ⊥ target-repo step (devShell warm-up, hooks, cargo).
-V8: in session, `nix develop` on target flake w/ complete `flake.lock` succeeds w/o GitHub fetch: ∀ locked input (by `narHash`) \& devShell closure substituted from `pr0d1r2.cachix.org`.
+V8: in session, `nix develop` on target flake w/ complete `flake.lock` succeeds w/o GitHub tarball fetch: locked inputs substituted by `narHash` from `cache.nixos.org` (nixpkgs, probe 4) \| `pr0d1r2.cachix.org` (pushed by target CI, T54); devShell closure from either cache.
 V9: nix store usable by session uid (whatever it is): write via daemon \| ownership.
 V10: ∀ env in claude.ai UI ↔ files in this repo; mismatch = bug (§B).
 V11: Nix version \& installer sha256 change together, 1 commit.
 V12: ⊥ private info in repo \| history: ⊥ private hostnames, LAN, self-hosted forge paths, tokens. public-safe from 1st push.
-V13: input failover order, each tier logged: (1) substitute locked input by `narHash` from cachix (V8); (2) fetch as locked (`github:` via proxy); (3) `nixpkgs` → `https://channels.nixos.org/<channel>/nixexprs.tar.xz` via `--override-input` + `--no-write-lock-file` (degraded: rev ≠ lock, ⊥ commit lock). tier 3 used → warn in session, ⊥ silent.
+V13: input failover order, each tier logged: (1) substitute locked input by `narHash` from a cache (V8); (2) `git+https://github.com/<o>/<r>?rev=<locked rev>&shallow=1` via `--override-input` (proven probe 4: nix-hk, nixpkgs-lock; ⊥ for nixpkgs: 90k objects); (3) `github:` as locked (works only for session-attached repos); (4) `nixpkgs` → `https://channels.nixos.org/<channel>/nixexprs.tar.xz` via `--override-input` (degraded: rev ≠ lock). ∀ overrides w/ `--no-write-lock-file`, ⊥ commit lock; tier ≥ 3 → warn in session, ⊥ silent.
 V14: activation runs in `setup.sh` (before Claude launches) as the uid \& `$HOME` Claude runs as ∴ skills present at launch \& kept in snapshot.
 V15: activation failover, tier logged: (1) `nix build github:pr0d1r2/nix-claude-code-cloud#homeConfigurations.cloud.activationPackage`; (2) `nix-store -r $(cat cloud-home.storepath)` from cachix (⊥ GitHub). both fail → Nix stays usable, setup exit 0, loud warning + marker file; consumer preflight sees missing skills, ⊥ silent.
 V16: agent home = agent-level tools \& skills only (what skills shell out to); ⊥ language toolchains (target devShell owns, C3).
