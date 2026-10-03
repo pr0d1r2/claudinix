@@ -23,3 +23,7 @@ probe *args:
 # Pin setup.sh to another Nix release: version and installer sha256 together.
 bump-nix ver:
     scripts/bump-nix.sh {{ ver }}
+
+# Cut a release (maintainer): CI green and agent home cached, then notes.
+release rev="HEAD":
+    scripts/release.sh {{ rev }}
