@@ -13,6 +13,7 @@ has a bug.
 | [`domains`](#domains) | prints the allowed domains the environment needs | your machine, in the project |
 | [`guide`](#guide) | walks the setup steps of [`SETUP.md`](SETUP.md) | your machine, in the project |
 | [`probe`](#probe) | starts a billed cloud session that probes the project and prints its report | your machine, in the project's git checkout |
+| [`cloud`](#cloud) | builds one task of this repository's spec in a billed cloud session | your machine, in the project's git checkout |
 | [`config.sh`](#configsh) | reads and checks a project's optional [`.claudinix.toml`](CONFIG.md) | your machine or a session, in the project |
 | [`nix-dev`](#nix-dev) | `nix develop` that survives the GitHub proxy | inside a cloud session |
 | [`setup.sh`](#setupsh) | the environment's setup script | a cloud session's VM, through the setup line |
@@ -380,6 +381,105 @@ session; its logic is tested with stubbed `claude` and `git`.
 | 1 | a refusal above, or the answer was not yes; no new branch after the last check; or the branch has no `nix-probe-report.txt` |
 | 2 | a usage error |
 
+## cloud
+
+Builds one task of this repository's spec in a fresh cloud session, started
+from your terminal. **It starts a billed session**, so it asks first.
+
+```text
+usage: cloud-task.sh <node:Tn | Tn> [--model M] [--yes] [--dry-run]
+```
+
+Run it as `scripts/cloud-task.sh ...` or `just cloud ...`.
+
+| argument | meaning |
+|---|---|
+| `Tn` or `node:Tn` | the task to build, for example `T100` or `scripts:T98` |
+| `--model M` | the model alias; see the order below |
+| `--yes` | skip the billed y/N question; every other check still runs |
+| `--dry-run` | run the same checks, then print the command instead of asking or launching |
+
+| variable | meaning |
+|---|---|
+| `CLOUD_TASK_REMOTE` | the remote that must hold the branch; default `origin` |
+| `CLAUDINIX_SCRIPTS` | directory holding `cloud-task-prompt.txt` and `config.sh`; default the script's own |
+
+**How a task is found.** Tasks live in the `§T` table of each node's
+`SPEC.md`. A bare `Tn` is looked up in the root `SPEC.md` and in every node
+that the root `§F` table lists. `node:Tn` looks only in that node's
+`SPEC.md`; `root:Tn` and `.:Tn` mean the root. Exactly one row must match,
+and its status must be `.` (open).
+
+**The model.** `--model` wins, then `session.model` from
+[`.claudinix.toml`](CONFIG.md), then `sonnet`. A bad file exits 2 before
+anything starts.
+
+**The refusals.** Each is printed on stderr and exits 1 (the task is shown
+as you typed it):
+
+```text
+cloud: not inside a git work tree -- run it from the project the session clones
+cloud: no SPEC.md at <top> -- the tasks live in the project's spec
+cloud: no node <node> in SPEC.md §F (nodes: <list>)
+cloud: no task <arg> in <node>/SPEC.md
+cloud: no task <arg> in any node's SPEC.md (<list>)
+cloud: <arg> is in more than one node (<nodes>) -- name one, e.g. <node>:<Tn>
+cloud: <arg> is done (x) in <spec> -- nothing to build
+cloud: <arg> is in progress (~) in <spec> -- finish or reset it first
+cloud: <arg> has status <s> in <spec>, not . (open) -- nothing to build
+cloud: no remote origin -- push the project to GitHub first
+cloud: HEAD is detached -- check out the branch the session should clone
+cloud: branch <branch> is not pushed (no upstream) -- push it first: git push -u origin <branch>
+cloud: branch <branch> is not up to date with <upstream> -- push (or pull) first
+```
+
+A bad task argument exits 2 with `cloud: bad task <arg> -- want Tn or
+node:Tn (e.g. T100, scripts:T98)`. An unknown flag, a missing task or a
+second task exits 2 with `usage: cloud-task.sh <node:Tn | Tn> [--model M]
+[--yes] [--dry-run]`. The session clones GitHub, not your disk, which is
+why the branch must be pushed and equal to its upstream.
+
+Then it asks:
+
+```text
+cloud: this starts a billed Claude Code cloud session (model sonnet) for <node>:<Tn> from <branch>. Start it? [y/N]
+```
+
+Anything but `y`, `Y` or `yes` prints `cloud: not started` and exits 1.
+
+**`--dry-run`** prints one shell-quoted line you can paste, and launches
+nothing:
+
+```text
+claude --cloud <prompt> --model <M>
+```
+
+**What the session is told.** The prompt is
+[`cloud-task-prompt.txt`](../scripts/cloud-task-prompt.txt) with the task,
+node, branch and the spec row filled in. It says: follow `AGENTS.md`, build
+exactly this task (RED, GREEN, status flip), run the gate, push the branch
+and report. The session pushes `claude/<node>-<task>`, with `root` as the
+node name for the root, for example `claude/scripts-T98` or
+`claude/root-T103`. The harness may add a suffix. It opens no pull request.
+
+**It does not wait.** After the session starts it prints:
+
+```text
+cloud: started <node>:<Tn>; it pushes claude/<node>-<Tn> (the harness may add a suffix) -- follow it at claude.ai/code
+```
+
+A build outlasts a launcher, so follow the session at
+[claude.ai/code](https://claude.ai/code).
+
+Unattended runs may still hit permission prompts; see
+[`FACTS.md`](FACTS.md) once measured.
+
+| exit | meaning |
+|---|---|
+| 0 | the session was started, or `--dry-run` printed the command |
+| 1 | a refusal above, or the answer was not yes |
+| 2 | a usage error, a bad task argument, or a bad `.claudinix.toml` |
+
 ## config.sh
 
 The one reader of a project's optional [`.claudinix.toml`](CONFIG.md); every
@@ -658,8 +758,9 @@ Arguments pass through, and each recipe is one plain command.
 | `just domains [args]` | `scripts/domains.sh` |
 | `just guide [args]` | `scripts/guide.sh`; `just guide update` for the update flow |
 | `just probe [args]` | `scripts/probe-launch.sh` |
+| `just cloud <task> [args]` | `scripts/cloud-task.sh` |
 | `just bump-nix <version>` | `scripts/bump-nix.sh` |
 | `just release [args]` | `scripts/release.sh` (maintainer) |
 
-`just` on its own (or `just --list`) lists the six; it never runs one by default. There is no recipe for `nix-dev` or
+`just` on its own (or `just --list`) lists them; it never runs one by default. There is no recipe for `nix-dev` or
 `setup-line.sh`: run `scripts/setup-line.sh` directly.
