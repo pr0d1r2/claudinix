@@ -80,7 +80,7 @@ setup() {
 @test "before the first release the block may hold only the placeholder" {
     # shellcheck disable=SC2016 # literal Markdown backticks
     printf '# t\n\n<!-- BEGIN setup-line -->\n%s\n<!-- END setup-line -->\n' \
-        'No release yet: the maintainer publishes the line with `scripts/release.sh REV`.' >"$README_FILE"
+        'No release yet: the maintainer publishes the line with `scripts/release.sh record`, then `scripts/release.sh publish`.' >"$README_FILE"
     run bash "$SCRIPT"
     [ "$status" -eq 0 ]
     [ -z "$output" ]
@@ -89,7 +89,7 @@ setup() {
 @test "the placeholder plus anything else is not the placeholder" {
     # shellcheck disable=SC2016 # literal Markdown and shell text
     printf '# t\n\n<!-- BEGIN setup-line -->\n%s\nd=$(mktemp -d)\n<!-- END setup-line -->\n' \
-        'No release yet: the maintainer publishes the line with `scripts/release.sh REV`.' >"$README_FILE"
+        'No release yet: the maintainer publishes the line with `scripts/release.sh record`, then `scripts/release.sh publish`.' >"$README_FILE"
     run bash "$SCRIPT"
     [ "$status" -eq 1 ]
 }

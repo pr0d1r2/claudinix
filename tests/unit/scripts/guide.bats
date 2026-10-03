@@ -51,7 +51,7 @@ setup() {
 no_release() {
     # shellcheck disable=SC2016 # literal Markdown backticks, not a command
     printf '%s\n' '<!-- BEGIN setup-line -->' \
-        'No release yet: the maintainer publishes the line with `scripts/release.sh REV`.' \
+        'No release yet: the maintainer publishes the line with `scripts/release.sh record`, then `scripts/release.sh publish`.' \
         '<!-- END setup-line -->' >"$CLAUDINIX_README"
 }
 
