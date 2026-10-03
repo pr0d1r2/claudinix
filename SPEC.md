@@ -32,7 +32,7 @@ V4: `--daemon` iff systemd present; else `--no-daemon`.
 V5: `setup.sh` wall time on fresh VM ≤ 5 min (cache window C1); measured, ⊥ assumed.
 V6: ⊥ secret in repo \| env vars; cachix read-only (⊥ `CACHIX_AUTH_TOKEN`).
 V7: `setup.sh` does Nix only (C3); ⊥ target-repo step (devShell warm-up, hooks, cargo).
-V8: in session, `nix develop` on target flake w/ `github:` inputs succeeds; else documented fallback input form.
+V8: in session, `nix develop` on target flake w/ complete `flake.lock` succeeds w/o GitHub fetch: ∀ locked input (by `narHash`) \& devShell closure substituted from `pr0d1r2.cachix.org`.
 V9: nix store usable by session uid (whatever it is): write via daemon \| ownership.
 V10: ∀ env in claude.ai UI ↔ files in this repo; mismatch = bug (§B).
 V11: Nix version \& installer sha256 change together, 1 commit.
@@ -42,10 +42,10 @@ V12: ⊥ private info in repo \| history: ⊥ private hostnames, LAN, self-hoste
 id|status|task|cites
 T1|.|`flake.nix` devShell (bats, shellcheck, shfmt, just, coreutils) + `justfile` `check` + pre-commit hook running `just check`|C7,I.cmd
 T2|.|import seed from the owner's private seed repo `a35942b` `cloud/envs/nix/` → repo root (`setup.sh`, `allowlist.txt`, `env-names.txt`, `tests/unit/setup.bats`); fix paths; `just check` green|V1,V2,V3,V4,V6,V7,I.file
-T3|.|`probe.sh`: `id`, PID 1 comm, systemd dir, `unshare -Ur true`, profile sourcing, `nix --version`, `nix config show substituters`, `nix flake metadata github:NixOS/nixpkgs`, cachix narinfo hit, elapsed; bats w/ stubs|C8,V8,V9,I.file
+T3|.|`probe.sh`: `id`, PID 1 comm, systemd dir, `unshare -Ur true`, profile sourcing, `nix --version`, `nix config show substituters`, `nix flake metadata github:NixOS/nixpkgs` (direct fetch via proxy ok ?), locked-input substitution from cachix (input source w/ `narHash` pushed, ⊥ GitHub), cachix narinfo hit, elapsed; bats w/ stubs|C8,V8,V9,I.file
 T4|.|MANUAL create env `nix` at claude.ai/code from repo files; run 1 probe session; record facts → resolve C8 `?`, C6 `?`|C8,C6,V10,I.ext.env
 T5|.|if probe: session uid ≠ root ∧ no systemd → make store usable (V9) \| switch install mode; bats|V9,V4
-T6|.|if probe: `github:` inputs 403 → document fallback (`https://channels.nixos.org/...` tarball \| `git+https`) for target flakes|V8,C6
+T6|.|target-repo CI snippet (doc only, targets adopt via own spec): on push to default branch `nix flake archive --json` + devShell closure → `cachix push pr0d1r2`; push token in CI secrets only, ⊥ VM|V8,V6,C5,C6,C3
 T7|.|measure setup wall time on fresh VM; record; > 5 min → trim|V5,C1
 T8|.|SessionStart hook snippet for target repos: enter devShell once (warm), install git hooks; doc only, target repos adopt via own spec|C3,V7,C9
 T9|.|`LICENSE` (MIT), `README.md` (what, paste steps, fork block C11, known limits); V12 scan of tree \& history before 1st push|C10,C11,V12
