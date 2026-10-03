@@ -16,5 +16,6 @@ pub mod counts;
 pub mod facts;
 pub mod json;
 pub mod notices;
+pub mod prose;
 pub mod region;
 pub mod splice;
