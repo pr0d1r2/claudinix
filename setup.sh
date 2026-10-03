@@ -24,7 +24,7 @@ set -euo pipefail
 # BEGIN fork config (SPEC C11)
 cache_host=pr0d1r2.cachix.org
 cache_key=pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM=
-repo=pr0d1r2/nix-claude-code-cloud
+repo=pr0d1r2/claudinix
 # END fork config (SPEC C11)
 
 # The SHA the UI line fetched this file at (V20). A short or mistyped id

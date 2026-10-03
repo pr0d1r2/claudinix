@@ -11,5 +11,5 @@ releases.nixos.org
 github.com
 # This is the base, Nix only (SPEC T30). A target project's own hosts
 # (crates.io for cargo, PyPI, npm, ...) come from its files: run
-#   nix run github:pr0d1r2/nix-claude-code-cloud#domains
+#   nix run github:pr0d1r2/claudinix#domains
 # in the project for the full list, base included.

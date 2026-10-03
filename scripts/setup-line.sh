@@ -20,7 +20,7 @@ usage() {
     exit 2
 }
 
-repo=pr0d1r2/nix-claude-code-cloud
+repo=pr0d1r2/claudinix
 branch=main
 workflow=ci.yml
 gh="${GH_BIN:-gh}"

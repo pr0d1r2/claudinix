@@ -1,7 +1,7 @@
 # Flake apps: the target-project tools, run FROM the project you will send
 # to the cloud (SPEC I.cmd):
 #
-#   nix run github:pr0d1r2/nix-claude-code-cloud#inputs
+#   nix run github:pr0d1r2/claudinix#inputs
 #
 # Each app is its bats-covered script read verbatim, never shell written
 # here (C15). The scripts find their data files (`*.jq`, detectors)
