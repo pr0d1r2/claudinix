@@ -12,6 +12,10 @@ inputs *args:
 domains *args:
     scripts/domains.sh {{ args }}
 
+# Walk the setup steps; `just guide update` for the update flow.
+guide *args:
+    scripts/guide.sh {{ args }}
+
 # Start a cloud session that probes this project; print its report.
 probe *args:
     scripts/probe-launch.sh {{ args }}

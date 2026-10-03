@@ -54,6 +54,23 @@ in
     description = "Print the allowed domains a cloud environment needs for a project";
   };
 
+  # claude, the opener and the clipboard come from the caller's PATH.
+  guide = app {
+    name = "guide";
+    runtimeInputs = [
+      pkgs.jq
+      pkgs.curl
+      pkgs.coreutils
+      pkgs.gnugrep
+      pkgs.gnused
+    ];
+    runtimeEnv = {
+      NCCC_SETUP = "${../setup.sh}";
+      NCCC_ALLOWLIST = "${../allowlist.txt}";
+    };
+    description = "Walk the cloud environment setup steps from the terminal";
+  };
+
   # git, claude and `script` come from the caller's PATH: their own
   # credentials and the TTY form of `script` this OS has.
   probe = app {
