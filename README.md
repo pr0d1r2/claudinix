@@ -1,4 +1,10 @@
-# nix-claude-code-cloud
+# claudinix
+
+*Claude in cloud on Nix.*
+
+> **Unofficial.** claudinix is a community project. It is not affiliated
+> with, endorsed by, or sponsored by Anthropic. "Claude" and "Claude Code"
+> are trademarks of Anthropic.
 
 Read [LLM-DISCLAIMER](docs/LLM-DISCLAIMER.md) first.
 
@@ -15,6 +21,11 @@ uses for `github:` flake inputs. Getting `nix develop` to work there took
 seven probe sessions, and the results are in [`docs/FACTS.md`](docs/FACTS.md)
 so you do not have to repeat them.
 
+## The name
+
+"claud" reads as Claude or as cloud. "i nix" is Polish for "and nix". The
+working name was `nix-claude-code-cloud`; the git history keeps it.
+
 ## What you get
 
 - **A setup script** ([`setup.sh`](setup.sh)). It uses the Nix the image
@@ -30,7 +41,7 @@ so you do not have to repeat them.
   commit and runs it.
 - **Commands for your project** ([`docs/CLI.md`](docs/CLI.md)), run from
   the project you will send to the cloud with
-  `nix run github:pr0d1r2/nix-claude-code-cloud#<app>`:
+  `nix run github:pr0d1r2/claudinix#<app>`:
   `inputs` lists which of your flake's `github:` inputs a session can get
   from a binary cache and which must be attached; `domains` prints the
   allowed domains your project needs; `guide` walks you through the setup
@@ -74,7 +85,7 @@ In short:
    name `nix`, network access **Custom** with the default package-manager
    list included, as allowed domains every non-comment line of
    `allowlist.txt` plus your project's hosts from
-   `nix run github:pr0d1r2/nix-claude-code-cloud#domains`, and as the setup
+   `nix run github:pr0d1r2/claudinix#domains`, and as the setup
    script the one line `scripts/setup-line.sh` prints once CI on `main` is
    green for the commit (not the contents of `setup.sh`).
 5. **Choose it in your terminal** with `/remote-env` (once per machine).
