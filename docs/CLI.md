@@ -129,7 +129,7 @@ every host not on the list. `domains` prints, one per line and each once:
    (`pypi.org`, `files.pythonhosted.org` and any other index), Ruby (the
    `remote:` hosts of `Gemfile.lock`) and Go (`proxy.golang.org`,
    `sum.golang.org`);
-3. each project's `network.extra_domains` from its [`.claudinix.toml`](CONFIG.md), sorted in with 2;
+3. each project's `network.extra_domains` from its own [`.claudinix.toml`](CONFIG.md) (with several project directories, each one's file), sorted in with 2;
 4. with `--from-log`, hosts a session's proxy refused.
 
 ```text
@@ -145,6 +145,7 @@ usage: domains.sh [--why] [--from-log FILE]... [PROJECT_DIR...]
 | variable | meaning |
 |---|---|
 | `CLAUDINIX_ALLOWLIST` | base list; default `allowlist.txt` beside `scripts/` |
+| `CLAUDINIX_CONFIG_JSON` | internal: a config a caller already read; used only when one project directory is given, so with several directories each project's own file is read |
 | `CLAUDINIX_SCRIPTS` | directory holding the `domains/` detectors and `config.sh`; default the script's own |
 | `CLIPBOARD_TOOLS` | clipboard programs to try in order; default `pbcopy wl-copy xclip` |
 
@@ -209,6 +210,7 @@ usage: guide.sh [--force] [--[no-]agent-home] [--rev SHA] [--from STEP] [FLAKE_D
 
 | variable | meaning |
 |---|---|
+| `CLAUDINIX_CONFIG_JSON` | internal: `guide` sets it from the file it read, so the tools it calls do not read it again |
 | `CLAUDINIX_SCRIPTS` | directory holding `guide-steps.tsv`, `inputs.sh`, `domains.sh`, `setup-line.sh` and `config.sh`; default the script's own |
 | `CLAUDINIX_README` | the `README.md` whose setup-line block holds the release's line; default the one beside `scripts/` (the flake app sets it to the README of the commit it was built from) |
 | `CLAUDINIX_SETUP_REV` | the maintainer path: a full SHA of this repository to print the line for with `setup-line.sh`, as `--rev` does; `--rev` wins over it; unset by default |
@@ -222,7 +224,7 @@ Keys read from [`.claudinix.toml`](CONFIG.md) in `FLAKE_DIR`, before step 0:
 `session.model` (the default answer in step 5), `session.agent_home` (the
 default for `--agent-home`; `--agent-home` and `--no-agent-home` win) and
 `devshell.installable` (the first check runs `nix-dev <installable> -c true`
-instead of `nix-dev -c true`). A bad file stops the guide with exit 2.
+instead of `nix-dev -c true`; the installable is shell-quoted when it needs it, so `.#ci` prints unchanged). A bad file stops the guide with exit 2.
 
 Step titles and URLs come from
 [`scripts/guide-steps.tsv`](../scripts/guide-steps.tsv), and a bats test keeps
@@ -322,7 +324,7 @@ usage: probe-launch.sh [--model M] [--yes] [--cleanup]
 
 Keys read from [`.claudinix.toml`](CONFIG.md) (at the top level of the git
 repository you run it in): `session.model`, `probe.branch_prefix` and
-`devshell.installable`. `--model` wins. The task text,
+`devshell.installable`. `--model` wins. The installable and the branch prefix are quoted with `printf %q` before they go into the task text. The task text,
 [`probe-prompt.txt`](../scripts/probe-prompt.txt), is a template with three
 placeholders that the launcher fills before it sends the task:
 
@@ -390,14 +392,15 @@ usage: config.sh [--dir DIR] get TABLE.KEY | json | check
 
 | argument | meaning |
 |---|---|
-| `--dir DIR` | read `DIR/.claudinix.toml`; default the git top level of the current directory, else the current directory |
+| `--dir DIR` | read `.claudinix.toml` at the git top level of DIR, else in DIR itself; default `CLAUDINIX_CONFIG`, else the git top level of the current directory, else the current directory |
 | `get TABLE.KEY` | print one value, for example `session.model`; a list prints one item per line |
 | `json` | print the effective config (the file over the defaults) as JSON |
 | `check` | print nothing; exit 0 when the file is valid or absent |
 
 | variable | meaning |
 |---|---|
-| `CLAUDINIX_CONFIG` | the file to read instead; wins over `--dir` |
+| `CLAUDINIX_CONFIG_JSON` | internal: the effective config a calling tool already read (`json`'s output); used as it is after the same checks, with no file read and no `nix` call, and it comes before `--dir` |
+| `CLAUDINIX_CONFIG` | the file to read when no `--dir` is given; it is not consulted with `--dir` |
 | `CLAUDINIX_SCRIPTS` | directory holding `config.jq`; default the script's own |
 
 Which tool reads which key:
@@ -487,6 +490,7 @@ nix-dev: using tier 2: github inputs as git+https at the locked rev
 
 | variable | meaning |
 |---|---|
+| `CLAUDINIX_CONFIG_JSON` | internal: `nix-dev` sets it for `inputs.sh`, so the file is read once |
 | `CLAUDINIX_SCRIPTS` | directory holding `nix-dev.jq`, `inputs.sh` and `config.sh`; default the script's own, symlinks followed |
 
 | exit | meaning |
