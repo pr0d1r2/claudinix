@@ -35,34 +35,51 @@ access. That makes the following the classes worth reporting:
 1. **Code you did not read reaching the VM.** The setup script downloads
    the Nix installer only when the image's Nix is older than the floor, and
    it refuses to run an installer whose sha256 does not match the pinned
-   one (`SPEC.md` V2). A path that runs downloaded code without that check,
+   one (`SPEC.md` V2). A path that runs a downloaded installer without that check,
    or that lets the URL or hash be changed from outside the script, is a
    defect.
-2. **A binary cache you did not choose.** The script adds
+   **Downloads that are not hash-checked.** Besides the installer, `setup.sh`
+   downloads these files from `raw.githubusercontent.com` at the commit the
+   setup line is pinned to: `nix-dev.sh`, `nix-dev.jq`, `inputs.sh` and
+   `inputs.jq` (installed under `/usr/local/lib/claudinix`, with `nix-dev`
+   linked into `/usr/local/bin`), and, only with the agent home,
+   `cloud-home.storepath`. None has a hash of its own. They are trusted only
+   through the pinned commit SHA and TLS, so the setup line you paste is
+   what you trust: read it, and read the files at that commit. `nix-dev`
+   runs as whatever user runs it in the session, which is root.
+   A fetch that fails only warns, and setup carries on without `nix-dev`.
+2. **The agent home is opt-in, and it changes Claude's behaviour.** Without
+   `--agent-home` (or `CLAUDINIX_AGENT_HOME=1`), setup does not activate it.
+   With it, setup builds `homeConfigurations.cloud` from this repository's
+   flake and its pinned inputs, activates it as root, and writes the owner's
+   rules, skills and a claude-code configuration into `/root/.claude`
+   ([`README.md`](../README.md#the-agent-home-is-opt-in)). Opt in only if
+   you trust those rules and skills to steer your sessions.
+3. **A binary cache you did not choose.** The script adds
    `pr0d1r2.cachix.org` and its public key next to `cache.nixos.org`.
    Anything signed with that key can land in the session's `/nix/store`
    and run there. The cache is public and read-only from the VM: no push
    token is ever needed or stored (`SPEC.md` V6). If you do not trust the
    owner's cache, fork this repository and change the cache host and key
    at the top of `setup.sh`.
-3. **Flake settings from the cloned repository.** The script sets
+4. **Flake settings from the cloned repository.** The script sets
    `accept-flake-config = true` (`SPEC.md` V25). That makes Nix apply the
    `nixConfig` of any flake the session evaluates, including extra
    substituters and keys. A repository whose owner you do not trust can
    therefore point Nix at its own cache. Substituters outside the
    environment's allowed domains are unreachable, which limits but does not
    remove this. **Use the environment only with repositories you trust.**
-4. **The GitHub proxy.** Cloud sessions reach GitHub through a proxy that
+5. **The GitHub proxy.** Cloud sessions reach GitHub through a proxy that
    injects credentials, and tools that read `GH_TOKEN` see the placeholder
    `proxy-injected`. A step here that sends that token, or a token of its
    own, to a host other than GitHub is a defect.
-5. **Secrets in the environment.** Environment variables set in the cloud
+6. **Secrets in the environment.** Environment variables set in the cloud
    environment dialog are readable by anyone who can use that environment.
    [`env-names.txt`](../env-names.txt) holds names only for anything
    secret, and its tests reject values that look like tokens, keys or
    passwords. A change that asks you to paste a secret value into the
    dialog is a defect.
-6. **Private information in a public repository.** This repository is
+7. **Private information in a public repository.** This repository is
    public from its first push. A private hostname, LAN address, self-hosted
    forge path or token in the tree or in its history is a defect
    (`SPEC.md` V12); the gate runs `ripsecrets` and `detect-private-key` on
