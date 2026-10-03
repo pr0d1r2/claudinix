@@ -32,7 +32,7 @@ scripts/SPEC.md  3150
 nix/SPEC.md      1000
 docs/SPEC.md     1800
 experiments/SPEC.md 1200
-dev/SPEC.md       750
+dev/SPEC.md      1250
 
 scripts 11050
 nix      8950
