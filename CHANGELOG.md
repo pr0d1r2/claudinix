@@ -107,6 +107,21 @@ Run from the project you will send to the cloud, as
   `nix`, `docs`), so separate agents can work on each in parallel.
 - `just bump-nix <version>` rewrites the pinned Nix version and its sha256
   together.
+- Releases: `just release REV` (maintainer) refuses unless CI is green and
+  the agent home is in the cache, records `cloud-home.storepath`, writes the
+  setup line into the README and prints the release notes and the git
+  commands to run. Until the first release the README block says so.
+- A green gate is quiet (a few lines instead of about 350 when no terminal
+  is attached); failures still print in full. `hk.pkl` is now valid for the
+  official Pkl evaluator, and a gate step checks it.
+- Commit messages must carry `Why:` and `Refs:` lines; the hook lists every
+  problem at once, with an example.
+- `tdd-order` refuses to judge a shallow clone and says to run
+  `git fetch --unshallow`; a refusal prints how to split the commit.
+- Every shell script with a shebang must be executable; a gate step checks.
+- Cloud sessions working on this repository run a SessionStart hook that
+  fetches the full history and installs the git hooks before the first
+  commit.
 - Docs: `README.md`, `LICENSE` (MIT), `AGENTS.md`, and under `docs/`:
   SETUP, CLI, CONSUMER, CACHE-CI, EXAMPLE, SESSION, FORKING, MODEL, FACTS,
   RUNBOOK, SECURITY, INTEGRATION, linter-coverage, LLM-DISCLAIMER,
