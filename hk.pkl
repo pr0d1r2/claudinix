@@ -18,6 +18,13 @@ fail_fast = true
 /// Success is silence: output that always appears is output nobody reads.
 env {
   ["HK_HIDE_WHEN_DONE"] = "true"
+  // Without a terminal hk prints every step's start as a log line: a
+  // green `hk check --all` piped to a file was 350 lines an agent pays
+  // for and nobody reads (V31). `--quiet` would do it but is a CLI flag
+  // only, and every caller would have to remember it; clx (hk's output
+  // library) reads this variable once hk has applied this block. Failing
+  // steps still print their output and the fix command.
+  ["CLX_NO_PROGRESS"] = "1"
 }
 
 /// LAYER ONE: every commit. Scoped by glob, so a doc-only commit never
