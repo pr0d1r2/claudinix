@@ -17,10 +17,14 @@ setup() {
     # print-dev-env: plain, git+https overrides, or a channel override
     # each succeed only when the test says so; a leading installable is
     # set aside first. A failure prints NIX_ERR_FILE, when set, on stderr.
-    # develop: echoes its args.
+    # develop: echoes its args. eval (config.sh parsing a
+    # .claudinix.toml, scripts:T91) is the real nix.
+    REAL_NIX="$(command -v nix)"
+    export REAL_NIX
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "$*" >>"$NIX_LOG"' \
+        '[ "$1" != eval ] || exec "$REAL_NIX" "$@"' \
         'cmd="$1"; shift' \
         'case "$cmd" in' \
         'develop) echo "develop $*"; exit 0 ;;' \
@@ -40,6 +44,8 @@ setup() {
         'exit 1' >"$STUBS/nix"
     chmod +x "$STUBS/nix"
     export PATH="$STUBS:$PATH"
+    unset CLAUDINIX_CONFIG CLAUDINIX_SCRIPTS
+    export GIT_CEILING_DIRECTORIES="$BATS_TEST_TMPDIR"
     cd "$PROJECT" || return 1
 }
 
@@ -266,4 +272,53 @@ N=6666666666666666666666666666666666666666
     [[ "$output" == *"tier 1"*"github:o/r#ci is not a local flake dir"* ]]
     [[ "$output" == *"develop github:o/r#ci -c true"* ]]
     run ! grep -q '^print-dev-env' "$NIX_LOG"
+}
+
+# .claudinix.toml (scripts:T91, scripts:V34): devshell.installable is the
+# installable when none is given.
+
+@test "no installable given: devshell.installable from .claudinix.toml, logged" {
+    printf '%s\n' 'version = 1' '[devshell]' 'installable = ".#ci"' >"$PROJECT/.claudinix.toml"
+    NIX_OK_PLAIN=1 run bash "$SCRIPT" --command true
+    [ "$status" -eq 0 ]
+    grep -qx 'print-dev-env .#ci' "$NIX_LOG"
+    [[ "$output" == *"develop .#ci --command true"* ]]
+    [[ "$output" == *".#ci"*".claudinix.toml"* ]]
+}
+
+@test "an installable given still wins over .claudinix.toml" {
+    printf '%s\n' 'version = 1' '[devshell]' 'installable = ".#ci"' >"$PROJECT/.claudinix.toml"
+    NIX_OK_PLAIN=1 run bash "$SCRIPT" '.#other' --command true
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"develop .#other --command true"* ]]
+    run ! grep -q '#ci' "$NIX_LOG"
+}
+
+@test "devshell.installable = . is a bare nix develop, as without a file" {
+    printf '%s\n' 'version = 1' '[devshell]' 'installable = "."' >"$PROJECT/.claudinix.toml"
+    NIX_OK_PLAIN=1 run bash "$SCRIPT" --command true
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"develop --command true"* ]]
+}
+
+@test "a bad .claudinix.toml: exit 2 naming the file and key, no nix develop" {
+    printf '%s\n' 'version = 1' '[devshell]' 'installable = 1' >"$PROJECT/.claudinix.toml"
+    NIX_OK_PLAIN=1 run bash "$SCRIPT" --command true
+    [ "$status" -eq 2 ]
+    [[ "$output" == *".claudinix.toml"* ]]
+    [[ "$output" == *"devshell.installable"* ]]
+    run ! grep -q '^develop' "$NIX_LOG"
+}
+
+@test "an install without config.sh (older setup): no config, still works" {
+    lib="$BATS_TEST_TMPDIR/lib"
+    mkdir -p "$lib"
+    for f in nix-dev.sh nix-dev.jq inputs.sh inputs.jq; do
+        cp "$BATS_TEST_DIRNAME/../../../scripts/$f" "$lib/"
+    done
+    printf '%s\n' 'version = 1' '[devshell]' 'installable = ".#ci"' >"$PROJECT/.claudinix.toml"
+    NIX_OK_PLAIN=1 run bash "$lib/nix-dev.sh" --command true
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"develop --command true"* ]]
+    run ! grep -q '#ci' "$NIX_LOG"
 }
