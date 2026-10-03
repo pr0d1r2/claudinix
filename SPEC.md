@@ -72,7 +72,7 @@ V23: hk ≥ 1.55 (silent `--no-fail-fast` + `depends` bug, itok B21), pinned via
 ## §T TASKS
 id|status|task|cites
 T1|.|GUARDRAILS FIRST: `flake.nix` (inputs `nixpkgs-lock`, `nix-hk`, `xenolith` w/ `follows`) devShell (hk, bats, `parallel`, shellcheck, shfmt, nixfmt, coreutils, kcov ?) + shellHook from file (`hk install`); `hk.pkl` from owner infra repo `hk.pkl` template (vendored `pkl/Config.pkl`, fast ⊂ all, commit-msg) w/ hk util hygiene, shellcheck, shfmt, nixfmt, typos, ripsecrets, actionlint, zizmor; parallel. ⊥ other task before T1,T19-T23 green|C7,C14,C18,V17,V18,V23
-T2|.|import seed from the owner's private seed repo `a35942b` `cloud/envs/nix/` → repo root (`setup.sh`, `allowlist.txt`, `env-names.txt`, `tests/unit/setup.bats`); fix paths; `just check` green|V1,V2,V3,V4,V6,V7,I.file
+T2|.|import seed from the owner's private seed repo `fab6db5` `cloud/envs/nix/` (13 bats; adds `accept-flake-config`, nixos.org \& crates.io hosts after probes 1-4) → repo root (`setup.sh`, `allowlist.txt`, `env-names.txt`, `tests/unit/setup.bats`); fix paths; `just check` green|V1,V2,V3,V4,V6,V7,I.file
 T3|.|`probe.sh`: `id`, PID 1 comm, systemd dir, `unshare -Ur true`, profile sourcing, `nix --version`, `nix config show substituters`, `nix flake metadata github:NixOS/nixpkgs` (direct fetch via proxy ok ?), locked-input substitution from cachix (input source w/ `narHash` pushed, ⊥ GitHub), `channels.nixos.org` tarball fetch, `nix-dev` tier reached, cachix narinfo hit, elapsed; bats w/ stubs|C8,V8,V9,I.file
 T4|.|MANUAL create env `nix` at claude.ai/code from repo files; run 1 probe session; record facts → resolve C8 `?`, C6 `?`|C8,C6,V10,I.ext.env
 T5|.|if probe: session uid ≠ root ∧ no systemd → make store usable (V9) \| switch install mode; bats|V9,V4
