@@ -536,7 +536,7 @@ by [`setup.sh`](#setupsh) as `/usr/local/bin/nix-dev`, so Claude's Bash
 tool finds it. It is not a flake app.
 
 ```text
-usage: nix-dev [INSTALLABLE] [ARGS...]    (as for `nix develop`)
+usage: nix-dev [INSTALLABLE] [ARGS...]   (as for `nix develop`)
 ```
 
 A first argument that does not start with `-` is the installable (for example
