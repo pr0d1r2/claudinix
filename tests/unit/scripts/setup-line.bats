@@ -128,6 +128,26 @@ line_for() {
     [ "$output" = "$(line_for "$FIRST")" ]
 }
 
+@test "a full SHA outside any clone is used as is; CI decides (guide app)" {
+    mkdir "$BATS_TEST_TMPDIR/plain"
+    cd "$BATS_TEST_TMPDIR/plain" || exit 1
+    sha=0123456789abcdef0123456789abcdef01234567
+    GIT_CEILING_DIRECTORIES="$BATS_TEST_TMPDIR" run bash "$SCRIPT" "$sha"
+    [ "$status" -eq 0 ]
+    [ "$output" = "$(line_for "$sha")" ]
+    grep -q -- "--commit $sha " "$GH_LOG"
+    GH_JSON='[]' GIT_CEILING_DIRECTORIES="$BATS_TEST_TMPDIR" run bash "$SCRIPT" "$sha"
+    [ "$status" -eq 1 ]
+}
+
+@test "a short SHA outside any clone still fails to resolve" {
+    mkdir "$BATS_TEST_TMPDIR/plain"
+    cd "$BATS_TEST_TMPDIR/plain" || exit 1
+    GIT_CEILING_DIRECTORIES="$BATS_TEST_TMPDIR" run bash "$SCRIPT" 0123456
+    [ "$status" -eq 1 ]
+    [[ "$output" != *"curl"* ]]
+}
+
 @test "--force with more than one revision is still a usage error" {
     run bash "$SCRIPT" --force a b
     [ "$status" -eq 2 ]
