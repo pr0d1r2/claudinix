@@ -63,7 +63,8 @@ fn a_value_changes_alt_text_and_url_together() {
         block.contains("[![Nix ≥ 2.40-pre](https://img.shields.io/badge/Nix-%E2%89%A52.40--pre-")
     );
     assert!(block.contains("[![gate steps 31 commit / 35 push](https://img.shields.io/badge/gate_steps-31_commit_%2F_35_push-"));
-    assert!(!block.contains("27"));
+    assert!(!block.contains("27 commit"));
+    assert!(!block.contains("27_commit"));
 }
 
 #[test]

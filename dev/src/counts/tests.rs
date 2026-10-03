@@ -26,6 +26,7 @@ fn every_stale_number_is_named_with_hk_pkls() {
             "line 3: `fast`, 27 steps; hk.pkl has 31".to_owned(),
             "line 4: `all`, 30 steps; hk.pkl has 35".to_owned(),
             "line 5: `all`, 30 steps; hk.pkl has 35".to_owned(),
+            "line 7: `all` is `fast` plus three steps; hk.pkl has four".to_owned(),
         ]
     );
     let problems = drift(DOC, 26, 30).unwrap_or_default();
