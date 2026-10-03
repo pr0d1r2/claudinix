@@ -14,6 +14,8 @@ pkgs.mkShellNoCC {
     # The target-project apps read flake.lock with jq (scripts:T25).
     pkgs.jq
     pkgs.just
+    # setup-line.sh asks GitHub whether CI passed (read-only).
+    pkgs.gh
     pkgs.bats
     pkgs.parallel
     pkgs.coreutils
