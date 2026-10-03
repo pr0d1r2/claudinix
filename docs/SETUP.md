@@ -1,14 +1,21 @@
 # Setup
 
-This guide takes you from nothing to a Claude Code cloud session that
-can run `nix develop` in your repository. It assumes no earlier
-experience with Claude Code cloud sessions.
+**Fastest path:** in your project, run
 
-Most of the work happens in your terminal. Two parts happen in the
-browser, because Claude Code has no API or CLI for them: account
-settings and the cloud environment itself. The files in this repository
-are the source of truth for the environment: copy from them, and never
-change the environment in the browser without a matching commit here.
+```sh
+nix run github:pr0d1r2/claudinix#guide
+```
+
+The guide walks the steps below in your terminal, opens the pages you need,
+copies each value you have to paste, and checks what it can. This page is the
+same walkthrough written out, for when you want to see every click or do it
+by hand. It takes you from nothing to a Claude Code cloud session that can
+run `nix develop` in your repository, and it assumes no earlier experience
+with Claude Code cloud sessions.
+
+Most of the work happens in your terminal. Two parts happen in the browser,
+because Claude Code has no API or CLI for them: account settings and the
+cloud environment itself.
 
 Steps at a glance:
 
@@ -18,6 +25,10 @@ Steps at a glance:
 3. Create the environment (browser, once).
 4. Choose the environment in your terminal (once per machine).
 5. Run a first session and check that it works.
+
+If you run this repository yourself (your own cache, your own names), the
+owner-side steps are in [`FORKING.md`](FORKING.md) and
+[`RUNBOOK.md`](RUNBOOK.md), not here.
 
 ## 0. Before your first cloud session: protect your money
 
@@ -43,9 +54,14 @@ Steps at a glance:
 
 ## 1. Prerequisites
 
+- **Nix with flakes on your own machine.** The guide and the other
+  commands run with `nix run`. The first `nix run github:pr0d1r2/claudinix#...`
+  asks whether to trust the extra binary cache `pr0d1r2.cachix.org` (the
+  `extra-substituters` setting of this flake): answer `y`, or pass
+  `--accept-flake-config`.
 - **A claude.ai plan with cloud sessions**: Pro, Max, Team, or
   Enterprise with a Claude Code seat.
-- **Claude Code installed and signed in with that claude.ai account.**
+- **The `claude` CLI, signed in with that claude.ai account.**
   Run `claude auth login` (or `/login` inside Claude Code). An API key
   is not enough: `claude --cloud` needs a claude.ai sign-in.
 - **Your repository on GitHub.** Cloud sessions clone from GitHub and
@@ -56,6 +72,10 @@ Steps at a glance:
 - **Your branch is pushed.** A session clones the GitHub copy of your
   current branch, not your local checkout, so local commits it should
   see must be pushed first.
+- **The GitHub CLI `gh`, signed in, only if you want the guide to print
+  the setup line.** It asks GitHub whether CI passed for the commit the
+  line is pinned to. Without it, paste the line published in the
+  [README](../README.md) and in the release notes instead (see step 3).
 
 ## 2. Connect GitHub (browser, once)
 
@@ -92,71 +112,57 @@ in each new VM. This repository's environment installs Nix.
    for it. In the Desktop app, the same selector is in the prompt box
    once you choose **Cloud**.
 3. Select **Cloud**, then **Add cloud environment**.
-4. Fill in the dialog:
-   - **Name**: `nix`.
+4. Fill in the dialog, field by field, in this order:
+   - **Name**: `nix`. It is only a label; pick another if you like, and
+     choose that one in step 4.
    - **Network access**: **Custom**.
      - Check **Also include default list of common package managers**.
-     - In **Allowed domains**, enter the base list plus the hosts of the
-       project you will work on, one domain per line:
-       - The base is every non-comment line of
-         [`allowlist.txt`](../allowlist.txt): the Nix hosts
-         (`pr0d1r2.cachix.org`, `cache.nixos.org`, `channels.nixos.org`,
-         `releases.nixos.org`) and `github.com`. It lists the nixos.org
-         hosts explicitly: the first probe (2026-10-03) got a 403 from the
-         proxy for `cache.nixos.org` and `channels.nixos.org`, so do not
-         rely on the default list for them.
-       - The project's own hosts (`index.crates.io` for Cargo, PyPI, npm
-         and so on) are not in the base. Run the `domains` app inside the
-         project: `nix run github:pr0d1r2/claudinix#domains`.
-         It prints the base list followed by the hosts the project's files
-         name, each once, and copies them to the clipboard when a clipboard
-         tool is available. `--why` shows which file named each host. See
+       It does not cover everything Nix needs, so you add hosts below.
+     - In **Allowed domains**, enter one domain per line:
+       - The base list: every non-comment line of
+         [`allowlist.txt`](../allowlist.txt): `pr0d1r2.cachix.org`,
+         `cache.nixos.org`, `channels.nixos.org`, `releases.nixos.org` and
+         `github.com`. The default list does **not** cover the nixos.org
+         hosts: the proxy refused `cache.nixos.org` and `channels.nixos.org`
+         until they were named (probes 1-3, [`FACTS.md`](FACTS.md)).
+       - Your project's own hosts (`index.crates.io` for Cargo, PyPI, npm
+         and so on). Run the `domains` app inside your project:
+         `nix run github:pr0d1r2/claudinix#domains`. It prints the base
+         list followed by the hosts your project's files name, each once,
+         and copies them to the clipboard when a clipboard tool is
+         available. `--why` shows which file named each host. See
          [`CLI.md`](CLI.md).
-     - **The model is not chosen here.** Probe 6 (2026-10-03) had
-       `ANTHROPIC_MODEL=claude-sonnet-5-5` set on the environment, and the
-       session still ran on Claude Opus 5.5: the model is fixed when the
-       session is created. Choose it at launch instead, with
-       `claude --cloud "<task>" --model sonnet` (the task must come right after `--cloud`; `claude --cloud --model sonnet "<task>"` fails with `--cloud requires a description`) or the model picker when you
-       start a session in the browser. Claude Sonnet 5.5 costs half of
-       Claude Opus 5.5 per token; see [`MODEL.md`](MODEL.md).
-     - Add any other names listed in [`env-names.txt`](../env-names.txt).
-       One is optional: `BASH_DEFAULT_TIMEOUT_MS=600000`. A Bash command
-       that runs past 120 seconds in a session moves to the background and
-       keeps running, and its real exit status arrives only with the
-       completion notice. A timeout of 600000 ms (10 minutes) means fewer
-       runs of the gate are backgrounded (`SPEC.md` V24). It is not a secret.
-     - Anyone who can use the environment can read these values, so
-       never put secrets here.
-   - **Setup script**: the one line that `scripts/setup-line.sh` prints,
-     pinned to a commit SHA. Wait until CI on `main` is green for that
-     commit first: CI is what pushes the agent home to the binary cache, so
-     the script refuses a commit whose newest `ci.yml` run on `main` is not
-     completed and successful. From a checkout of this repository:
-
-     ```sh
-     scripts/setup-line.sh
-     ```
-
-     `scripts/setup-line.sh [--force] [REV]` takes a revision to pin
-     another commit; a full 40-character SHA needs no checkout. `--force`
-     prints the line even when CI is not green, with a warning. The guide
-     (`guide`, step 3) runs it for you and pastes the same line. It prints
-     a single line of this shape (the SHA is the commit it resolved):
+   - **Environment variables**: none are required. One is optional:
+     `BASH_DEFAULT_TIMEOUT_MS=600000`. A Bash command that runs past 120
+     seconds in a session moves to the background and keeps running, and
+     its real exit status arrives only with the completion notice. A
+     timeout of 600000 ms (10 minutes) means fewer long runs are
+     backgrounded. It is not a secret. Anyone who can use the environment
+     can read these values, so never put secrets here.
+   - **Setup script**: the one line published for the release you chose,
+     in the [README](../README.md) and in that release's notes. Paste that
+     line, not the contents of [`setup.sh`](../setup.sh). It looks like
+     this (`<sha>` is the commit the release is pinned to):
 
      ```text
      d=$(mktemp -d) && curl -fsSL https://raw.githubusercontent.com/pr0d1r2/claudinix/<sha>/setup.sh -o "$d/setup.sh" && bash "$d/setup.sh" <sha>
      ```
 
-     Paste that line, not the contents of [`setup.sh`](../setup.sh). The
-     line downloads `setup.sh` at exactly that commit and runs it with the
-     same SHA, which pins the agent home to the commit as well, so the same
-     line always gives the same VM. Use a SHA that is pushed to GitHub:
-     the VM fetches it from there. To use your own binary cache, edit the
-     config block at the top of `setup.sh`, push, and print a new line.
-     `setup.sh` itself takes the SHA as its one optional argument and
-     refuses anything that is not a full 40-character commit id.
-     The fetch from `raw.githubusercontent.com` during setup has not yet
-     been tried in a real cloud session (`SPEC.md` T57).
+     The line downloads `setup.sh` at exactly that commit and runs it with
+     the same SHA, so the same line always gives the same VM. Each release
+     publishes a SHA whose CI was green and whose binary cache is filled;
+     do not make up a SHA. The guide (`guide`, step 3) copies a line to
+     your clipboard for you.
+
+     By default the script installs Nix and `nix-dev` only. To also install
+     the agent home (the owner's Claude rules and skills; it changes how
+     Claude behaves, see the [README](../README.md#the-agent-home-is-opt-in)),
+     add ` --agent-home` at the end of the line.
+
+     Maintainers, or anyone pinning another commit, can print a line with
+     [`scripts/setup-line.sh`](../scripts/setup-line.sh) (see
+     [`CLI.md`](CLI.md)); it needs `gh`, because it refuses a commit whose
+     CI on `main` is not green.
 5. Select **Create environment**.
 
 The setup script runs as root on the first session in the environment.
@@ -166,37 +172,43 @@ running the script again, so the first session is the slow one.
 
 ### GitHub repositories your flake fetches
 
-A session can read from GitHub only the repositories attached to it.
-Any other `github:` flake input, even a public one, fails with a 403
-that says GitHub access to the repository "is not enabled for this
-session". The first probe hit this for `github:NixOS/nixpkgs` and for
-`github:pr0d1r2/nix-hk`.
+A session can read from GitHub only the repositories attached to it. Any
+other `github:` flake input, even a public one, fails with a 403 that says
+GitHub access to the repository "is not enabled for this session". Nix
+downloads a `github:` input as an archive tarball
+(`https://github.com/<owner>/<repo>/archive/<rev>.tar.gz`), and the proxy
+refuses it. Plain git reads of public repositories do pass
+(`git ls-remote https://github.com/<owner>/<repo>` works). Attaching a
+public repository with `add_repo` read access does not help: it answers
+"read access is already available" and attaches nothing. Evidence and dates:
+probes 1, 2 and 5 in [`FACTS.md`](FACTS.md).
 
-Plain git reads of public repositories do pass the proxy
-(`git ls-remote https://github.com/<owner>/<repo>` works), but the
-archive tarballs Nix downloads for `github:` inputs
-(`https://github.com/<owner>/<repo>/archive/<rev>.tar.gz`) get the 403.
-Attaching a public repository with `add_repo` read access does not
-help: it answers "read access is already available" and attaches
-nothing (probe 2, 2026-10-03).
+`nix run github:pr0d1r2/claudinix#inputs`, run in your project, lists every
+`github:` input of its `flake.lock` and whether it is `cached` (a binary
+cache has it, so a session never contacts GitHub) or `uncached` (a session
+would have to fetch it from GitHub). For every `uncached` input, use one of
+these, best first:
 
-For every repository your flake fetches straight from GitHub, either:
+1. **`nix-dev`.** Setup installs it in the session. Run `nix-dev` where you
+   would run `nix develop` (`nix-dev -c cargo test`). It fetches uncached
+   inputs over git at the locked revision and never writes `flake.lock`, so
+   your flake needs no change. It logs which tier it used.
+2. **Cache the inputs.** Push the locked input and everything built from it
+   to your binary cache from CI ([`CACHE-CI.md`](CACHE-CI.md)). Nix then
+   substitutes it by `narHash` and never contacts GitHub. Do this for large
+   repositories such as `NixOS/nixpkgs`.
+3. **Fetch the input with git.** Write it as
+   `git+https://github.com/<owner>/<repo>` instead of
+   `github:<owner>/<repo>`. Fine for small repositories; avoid it for
+   `NixOS/nixpkgs`, whose history is huge.
+4. **Last resort for nixpkgs:** point it at a nixos.org tarball,
+   `https://channels.nixos.org/<channel>/nixexprs.tar.xz`. The default
+   network list does not allow that host; it is in `allowlist.txt`, so it
+   works with the base list above. The revision then differs from your
+   lock; `nix-dev` does this as its last tier and warns.
 
-- **Cache it.** Push the locked input and everything built from it to
-  your binary cache from CI. Nix then substitutes it by `narHash` and
-  never contacts GitHub. Do this for large repositories such as
-  `NixOS/nixpkgs`.
-- **Fetch it with git.** Write the input as
-  `git+https://github.com/<owner>/<repo>` instead of
-  `github:<owner>/<repo>`, so Nix uses a git fetch, which the proxy
-  allows for public repositories. Fine for small repositories such as
-  `pr0d1r2/nix-hk`; avoid it for `NixOS/nixpkgs`, whose git history is
-  huge.
-
-`nix run github:pr0d1r2/claudinix#inputs`, run in your
-project, lists every `github:` input of its `flake.lock` and whether it
-is already cached (`cached`) or must be attached to the session
-(`attach`). See [`CLI.md`](CLI.md).
+Attaching `NixOS/nixpkgs` to the session is not a fix: the session would
+clone the whole repository.
 
 ## 4. Choose the environment in your terminal (once per machine)
 
@@ -220,11 +232,17 @@ setting the same key in its committed `.claude/settings.json`. Copy the
 
 ## 5. Run a first session and check that it works
 
-From a checkout of your repository, with your branch pushed:
+From a checkout of your repository, with your branch pushed. The task text
+comes right after `--cloud`, and the model after it:
 
 ```sh
-claude --cloud "Run: nix --version && nix develop -c true && echo DEVSHELL-OK. Report the output."
+claude --cloud "Run: nix --version && nix-dev -c true && echo DEVSHELL-OK. Report the output." --model sonnet
 ```
+
+The model is fixed when the session starts, and the environment cannot
+choose it. Sessions started without `--model` ran on Opus (measured
+2026-10-03); see [`MODEL.md`](MODEL.md) for the models and their prices. In
+the browser, use the model picker when you start a session.
 
 While the VM starts, the terminal shows a checklist of setup steps,
 including the setup script. Expect the first start to take a few
@@ -241,20 +259,23 @@ claude -p "<message>" --cloud <session-id>
 
 ## Updating the environment (after a change here)
 
+When a new release publishes a new setup line, or your project needs other
+hosts:
+
 1. Open the environment selector as in step 3: start page of
    [claude.ai/code](https://claude.ai/code), cloud icon above the message
    box, then **Cloud**.
 2. Hover over `nix` and select the settings (gear) icon on the right.
-3. Change only what the commit changed:
+3. Change only what changed:
    - **Setup script**: select all of the old script and paste the new
-     line over it (`scripts/setup-line.sh [--force] [REV]` prints it, once CI
-     is green for that commit; `guide update` pastes the same line). A bump
-     is a new SHA in that line and nothing else.
+     line over it (the one published in the [README](../README.md) and the
+     release notes; `guide update` pastes a line for you). An update is a
+     new SHA in that line and nothing else.
    - **Allowed domains**: one domain per line; run
-     `nix run github:pr0d1r2/claudinix#domains` in your
-     project for the full list.
-   - **Environment variables**: names from `env-names.txt`, including the
-     optional `BASH_DEFAULT_TIMEOUT_MS=600000`.
+     `nix run github:pr0d1r2/claudinix#domains` in your project for the
+     full list.
+   - **Environment variables**: the optional
+     `BASH_DEFAULT_TIMEOUT_MS=600000`, if you use it.
 4. Save, then check the change in a **new** session (see below).
 
 A change to the setup script or the allowed domains rebuilds the
@@ -265,37 +286,29 @@ keeps its old VM; start a new session to pick up the change.
 
 - **The session fails to start, or stops during setup.** The setup
   script exited with an error. The setup checklist in your terminal
-  shows which step failed. Check that you pasted the whole line, that the SHA in it is pushed to
-  GitHub, and that **Also include default list of common package managers** is
-  checked.
+  shows which step failed. Check that you pasted the whole line, that the SHA
+  in it is a commit pushed to GitHub, and that **Also include default list of
+  common package managers** is checked.
 - **`nix: command not found`.** The session ran in another environment.
   Run `/remote-env`, pick `nix`, and start a new session.
 - **Downloads fail with a network or proxy error** such as
   `CONNECT tunnel failed, response 403`. The host is not allowed. Add
-  it to **Allowed domains** here and in `allowlist.txt`.
+  it to **Allowed domains** in the environment dialog, and start a new
+  session.
 - **`warning: ignoring untrusted flake configuration setting
   'extra-substituters'`.** Nix ignores the caches your flake declares in
   `nixConfig` unless told to trust them. The setup script sets
   `accept-flake-config = true` in `/etc/nix/nix.conf`; only use
-  environments with repositories whose flake settings you trust.
+  environments with repositories whose flake settings you trust. On your own
+  machine, answer `y` to the prompt, or pass `--accept-flake-config`.
 - **`nix develop` fails while fetching a `github:` input** with a 403
-  saying the repository isn't enabled for this session. This is
-  expected, not a misconfiguration: the GitHub proxy only lets the
-  GitHub API reach repositories attached to the session, so an input
-  such as `github:NixOS/nixpkgs` is refused (seen 2026-10-03). Ways
-  around it, best first:
-  1. Keep `flake.lock` committed and complete, and push every locked
-     input to your binary cache from CI. Nix then substitutes each
-     input by its `narHash` from the cache and never asks GitHub.
-  2. Point `nixpkgs` at a nixos.org tarball, which the default network
-     list allows:
-     `https://channels.nixos.org/<channel>/nixexprs.tar.xz`.
-  Attaching `NixOS/nixpkgs` to the session is not a fix: the session
-  would clone the whole repository.
+  saying the repository isn't enabled for this session. This is expected, not
+  a misconfiguration: see "GitHub repositories your flake fetches" in
+  step 3 for the one list of remedies, `nix-dev` first.
 - **Sessions run on a different model than expected.** Check the
   `Co-Authored-By` trailer of a commit the session made. The model comes
   from how the session was started (`--model`, or the browser's picker),
-  not from the environment's variables.
+  not from the environment.
 - **Every session is slow to start.** The setup script takes longer
   than about five minutes, so no snapshot is saved.
 - **`Unable to get organization UUID`.** You are signed in with an API
@@ -306,6 +319,8 @@ keeps its old VM; start a new session to pick up the change.
 
 - Sessions push to branches named `claude/...`. A session cannot delete
   branches, so delete ones you no longer need from your own machine:
-  `git push origin --delete claude/<name>`.
+  `git push origin --delete claude/<name>`. Probe branches
+  (`claude/nix-probe*`) can be removed in one go with
+  `nix run github:pr0d1r2/claudinix#probe -- --cleanup`.
 - Archive finished sessions from the sidebar at
   [claude.ai/code](https://claude.ai/code) to keep the list short.
