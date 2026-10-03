@@ -6,7 +6,7 @@ workflow or script does it) or needs a **human**, and what is planned to
 automate it.
 
 The cloud environment itself lives in the claude.ai web UI and has no API
-(`SPEC.md` C2), so every change to it is made by hand in the browser.
+(`.:C2`), so every change to it is made by hand in the browser.
 [`SETUP.md`](SETUP.md) has the exact clicks.
 
 ## Keep the environment and the files in step
@@ -30,7 +30,7 @@ either file.
 ## Bump the pinned Nix version
 
 **Automated, with a human review.** `just bump-nix <version>` does the
-rewrite (`SPEC.md` T10); you review the diff, run the gate and commit.
+rewrite (`.:T10`); you review the diff, run the gate and commit.
 
 The image already ships a Nix (2.34.6, measured 2026-10-03), and
 `setup.sh` uses it whenever it is at least the floor `NIX_MIN_VERSION`
@@ -42,7 +42,7 @@ floor on purpose.
 2. Run `just bump-nix <version>` (for example `just bump-nix 2.36.0`). It
    fetches `install.sha256` for that version from releases.nixos.org and
    rewrites `version=` and the default `sha256` in `setup.sh` together
-   (`SPEC.md` V11), then prints
+   (`.:V11`), then prints
    `bump-nix: setup.sh now pins Nix <version>, installer sha256 <hash>`. It
    changes nothing else, and if it cannot fetch or parse the hash it leaves
    `setup.sh` unchanged and exits 1. A version without its hash, or the
@@ -56,23 +56,34 @@ floor on purpose.
 ## Update the setup script in the environment
 
 **Human.** The environment holds one line, pinned to a commit SHA, so an
-update is a new SHA and nothing else (`SPEC.md` T24, V20). Its fetch of
+update is a new SHA and nothing else (`.:T24`, `.:V20`). Its fetch of
 `setup.sh` from `raw.githubusercontent.com` has not yet been tried in a real
-cloud session (`SPEC.md` T57).
+cloud session (`.:T57`).
 
 1. Make sure the change is merged, pushed and CI on `main` is green. The line
    checks this too: `setup-line.sh` refuses a SHA whose newest `ci.yml` run on
    `main` is not completed and successful, because that run pushes the agent
-   home to the cache (`SPEC.md` C19).
-2. Print the new line from a checkout: `scripts/setup-line.sh`, or
+   home to the cache (`.:C19`).
+2. Record the agent home's store path. From a checkout of `main`, after that
+   CI run has pushed it to the cache, run
+   `scripts/nix/record-storepath.sh` (set `CACHIX_URL` if you use your own
+   cache). It writes `cloud-home.storepath` only when the cache answers 200
+   for the path's narinfo, so a path that is not in the cache is never
+   recorded. Commit the file, push, and wait for CI on that commit to go
+   green too: the file does not change the activation package, so the same
+   path stays in the cache, and `setup.sh` realises it when it cannot build
+   the flake.
+3. Print the new line from a checkout: `scripts/setup-line.sh`, or
    `scripts/setup-line.sh <rev>` for another commit (a full SHA needs no
    checkout). `--force` prints it despite a red or missing run, with a
-   warning; use it only on purpose ([`CLI.md`](CLI.md)).
-3. Follow "Updating the environment" in [`SETUP.md`](SETUP.md): open the
+   warning; use it only on purpose. `--agent-home` appends the opt-in flag to
+   the line ([`CLI.md`](CLI.md)). The line goes into the README block between
+   the `setup-line` markers and the release notes; users paste that one.
+4. Follow "Updating the environment" in [`SETUP.md`](SETUP.md): open the
    `nix` environment's settings, select all of the old setup script, paste
    the new line over it, save.
-4. Start a **new** session. A running session keeps its old VM.
-5. Run `probe.sh` in that session and check every line.
+5. Start a **new** session. A running session keeps its old VM.
+6. Run `probe.sh` in that session and check every line.
 
 A changed setup script rebuilds the snapshot on the next session, so expect
 that start to be slower.
@@ -88,21 +99,29 @@ output's narinfo answers HTTP 200.
 1. Re-run the latest `main` workflow from the Actions tab. It rebuilds and
    pushes.
 2. Or push by hand from a machine that holds the push token (never from a
-   cloud VM, `SPEC.md` V6):
+   cloud VM, `.:V6`):
 
    ```sh
-   nix build --no-link --print-out-paths .#devShells.x86_64-linux.default .#checks.x86_64-linux.xenolith
+   nix build --no-link --print-out-paths .#devShells.x86_64-linux.default .#homeConfigurations.cloud.activationPackage
    cachix push pr0d1r2 <path>...
+   scripts/ci/push-sources.sh pr0d1r2
    ```
+
+   The first command builds the dev shell and the agent home, and the last
+   pushes every eval-time input source (a session evaluates them before it
+   builds, and cannot fetch `github:` inputs from GitHub).
 
 3. Confirm the push the same way CI does:
 
    ```sh
-   bash scripts/ci/verify-cachix.sh .#checks.x86_64-linux.xenolith .#devShells.x86_64-linux.default
+   bash scripts/ci/verify-cachix.sh --sources . .#devShells.x86_64-linux.default .#homeConfigurations.cloud.activationPackage
    ```
 
+   It exits 1, and says which path, when an output or an input source is in
+   neither `pr0d1r2.cachix.org` nor the upstream `cache.nixos.org`.
+
 Target repositories fill the cache with their own locked inputs and dev
-shells from their own CI (`SPEC.md` T6, T54).
+shells from their own CI (`docs:T6`, `.:T54`).
 
 ## A probe comes back red
 
@@ -118,8 +137,8 @@ been run end to end against a real cloud session.
 | `nix-path: FAIL` | the setup script did not run, or failed before linking `nix` into `/usr/local/bin` | check the session is in the `nix` environment (`/remote-env`), then read the setup step in the session's checklist |
 | `substituters: FAIL` | the managed block in `/etc/nix/nix.conf` is missing | the setup script did not finish; check the pasted line and start a new session |
 | `cachix: FAIL HTTP 403` | `pr0d1r2.cachix.org` is not in the allowed domains | add it (see `allowlist.txt`), start a new session |
-| `channels: FAIL HTTP 403` | `channels.nixos.org` or `releases.nixos.org` is not allowed | add both, start a new session (`SPEC.md` B1) |
-| `cachix-input: FAIL HTTP 404` | the target repository's CI has not pushed that input | run the target's CI on its default branch (`SPEC.md` T54) |
+| `channels: FAIL HTTP 403` | `channels.nixos.org` or `releases.nixos.org` is not allowed | add both, start a new session (`.:B1`) |
+| `cachix-input: FAIL HTTP 404` | the target repository's CI has not pushed that input | run the target's CI on its default branch (`.:T54`) |
 | `github-fetch: refused` | expected: the GitHub proxy refuses `github:` archive fetches | nothing to fix here; see `SETUP.md` troubleshooting for target flakes |
 
 Record anything new in [`FACTS.md`](FACTS.md) with the date, and in
@@ -140,10 +159,12 @@ Record anything new in [`FACTS.md`](FACTS.md) with the date, and in
 
 ## Clean up probe branches
 
-**Human.** Planned: `nix run …#probe --cleanup` (`SPEC.md` T28).
+**Human.** `nix run github:pr0d1r2/claudinix#probe -- --cleanup`, run in the
+project, deletes every `claude/nix-probe*` branch on the remote and prints
+`probe: deleted <branches>` (`scripts:T28`).
 
 A cloud session cannot delete branches, and every probe pushes one named
-`claude/nix-probe-<suffix>`. From your own machine:
+`claude/nix-probe-<suffix>`. To do it by hand, from your own machine:
 
 ```sh
 git fetch --prune origin
