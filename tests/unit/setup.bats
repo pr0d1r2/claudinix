@@ -689,3 +689,25 @@ OWNER_KEY='pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM='
     [[ "$output" == *"CLAUDINIX_NIX_TIMEOUT"* ]]
     [ ! -e "$NIX_CONF_DIR/nix.conf" ]
 }
+
+# CLAUDINIX_AGENT_HOME is 0 or 1 (T88, C24): any other value is a typo
+# that would silently drop the agent home, so it is refused like a flag.
+
+@test "CLAUDINIX_AGENT_HOME other than 0 or 1: usage error, nothing touched (T88, C24)" {
+    agent_home
+    for value in yes true 2 on; do
+        CLAUDINIX_AGENT_HOME="$value" run bash "$SCRIPT"
+        [ "$status" -eq 2 ]
+        [[ "$output" == *"usage"* ]]
+        [[ "$output" == *"CLAUDINIX_AGENT_HOME"* ]]
+        [ ! -e "$NIX_CONF_DIR/nix.conf" ]
+        [ ! -e "$NIX_LOG" ]
+    done
+}
+
+@test "CLAUDINIX_AGENT_HOME empty counts as unset: agent home off (T88, C24)" {
+    agent_home
+    CLAUDINIX_AGENT_HOME='' run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ ! -e "$NIX_LOG" ]
+}
