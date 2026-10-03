@@ -1,94 +1,110 @@
 # AGENTS.md
 
-This repository sets up Nix, and an agent home built with home-manager,
-inside a Claude Code cloud session before Claude starts. You are probably
-one of the agents it serves, so the rules below apply to you twice: once as
-a contributor here, and once as the session the setup script prepares.
+This repository sets up Nix and an agent home (home-manager) in a Claude
+Code cloud session before Claude starts. You are a contributor here, and
+probably also a session it prepared.
 
-## Start from the spec
+## Spec workflow here
 
-[`SPEC.md`](SPEC.md) is the law and the backlog. Read it before you change
-anything, and cite it in every commit.
+`SPEC.md` is the law and the backlog. It is caveman-encoded
+(`→` leads to, `∴` therefore, `∀` for all, `!` must, `⊥` never). Read it
+before you change anything. These rules override the cavekit skill
+defaults.
 
-- Work on one `§T` task at a time. Its `cites` column names the invariants
-  (`§V`) and interfaces (`§I`) your change must keep.
-- Change the spec only through `/ck:spec`, and never in the same commit as
-  code. `/ck:build` may only flip a task's status cell.
-- A failing test or a bug you find goes into `§B` with the invariant that
-  would have caught it (`/ck:backprop`). Do not fix the root cause silently.
+- One `§T` task at a time. Its `cites` column names the invariants (`§V`)
+  and interfaces (`§I`) you must keep.
+- Commits are Conventional Commits (`feat(scope): ...`), never `T<n>: ...`.
+  The body needs a `Why:` line and a `Refs:` line, which `commit-msg`
+  checks:
 
-`SPEC.md` is caveman-encoded. The symbols carry meaning:
+  ```
+  fix(setup): refuse a bad installer hash
 
-```
-→ leads to    ∴ therefore    ∀ for all      ! must
-⊥ never       ? open/optional ≤ at most     ∈ in
-```
+  Why: a mismatched hash would run an unverified installer.
+  Refs: §T.73, `scripts:T79`, `.:C15`
+  ```
+
+- One topic per commit. A spec change is never in a code commit.
+- Test first, in separate commits: RED (`test:`, a failing bats file),
+  GREEN (`feat:`/`fix:`), then REFACTOR (`refactor:`, tests unchanged).
+  `tdd-order` and `bats-mirror` check this.
+- The status flip is its own commit after GREEN:
+  `docs(spec): mark T<n> done`. Then run `mth archive <node>/SPEC.md` when
+  the node nears its ceiling (`.context-limits`).
+- Never raise a ceiling to get green. Move rows down to the node that owns
+  them.
+- A failing test or a bug goes into `§B` with the invariant that would
+  have caught it (backprop). Do not fix the root cause silently.
+- Skills: `/ck:spec`, `/ck:build`, `/ck:check`, `/ck:backprop`; in cloud
+  sessions `/spec`, `/build`, `/check`, `/backprop`, `/caveman`. If they
+  are not installed, edit `SPEC.md` by hand in the caveman format
+  (`~/.claude/FORMAT.md` once the agent home is installed).
+- Cavekit asks the user before applying a spec change. An unattended run
+  must not stall on that: record the change and say so in your report.
+
+## Federation
+
+Root `SPEC.md` §F lists the nodes. Work under the spec of the node that
+owns the files you touch (`scripts/SPEC.md`, `nix/SPEC.md`,
+`docs/SPEC.md`); repo-wide rules live in root `SPEC.md`.
+
+- Ids are unique across all nodes. The next id is the highest over every
+  `SPEC*.md`, plus 1 (same for `V`, `B`, `C`).
+- Cite a parent as `` `.:C15` `` and a sibling as `` `docs:T13` ``.
 
 ## The gate
 
-The gate is [hk](https://github.com/jdx/hk), defined once in
-[`hk.pkl`](hk.pkl). [`docs/INTEGRATION.md`](docs/INTEGRATION.md) lists every
-step and how to run it by hand.
+[hk](https://github.com/jdx/hk), defined in [`hk.pkl`](hk.pkl). Every step
+and how to run it by hand: [`docs/INTEGRATION.md`](docs/INTEGRATION.md).
 
-- **Commit from inside the dev shell** (`direnv allow`, or `nix develop`).
-  Entering it installs the git hooks, and each hook re-enters the pinned
-  shell itself.
-- **Never use `--no-verify`.** A refusing gate is the system working.
-- **Never raise a ceiling, weaken a check or edit a test to get green.**
-  Fix the code, or record why the rule is wrong through `/ck:spec`.
-- **A tool that could not run is a failure, not a pass.** Every external
-  tool runs through `scripts/hk/run-tool.sh`, which says so out loud.
-- Run the whole gate by hand with `hk check --all`.
+- Commit from inside the dev shell (`direnv allow` or `nix develop`). It
+  installs the git hooks, and each hook re-enters the pinned shell.
+- Run the whole gate: `hk check --all >gate.log 2>&1; echo rc=$?`. Read
+  the log only when `rc` is not 0; a green gate is quiet.
+- A Bash command past 120 seconds moves to the background and keeps
+  going. Wait for the completion notice, which carries the real exit
+  status; do not read the 120-second return as the result.
+- Never use `--no-verify`. Never weaken a check or edit a test to get
+  green: fix the code, or record why the rule is wrong in the spec.
+- A tool that could not run is a failure, not a pass.
+- Every tracked `*.sh` with a shebang must be executable. Use
+  `git update-index --chmod=+x <file>`; `perl -pi` and `sed -i` drop the
+  bit, and `core.fileMode` may be false.
+- Shell lives in `scripts/**/*.sh` (or root `setup.sh`), with
+  `set -euo pipefail`, shellcheck-clean and `shfmt -i 4`. Never embed
+  shell in a nix string, an hk step or a heredoc. Every `*.sh` needs
+  `tests/unit/<same path>.bats` and the reverse.
+- Tests must be parallel-safe: own `BATS_TEST_TMPDIR`, unset `GIT_*` in
+  git fixtures, no wall-clock assertions.
 
-## Commits
+## Docs
 
-Humans read the history, so each commit is about one thing.
+If you change an app's behaviour (`nix-dev`, `inputs`, `domains`,
+`guide`, ...), add a follow-up `docs:` commit that updates
+[`docs/CLI.md`](docs/CLI.md) and any other doc that names it.
 
-- Conventional Commits subject, then a body with a `Why:` line and the spec
-  ids it touches (`Refs: §T.19, §V.17`). The `commit-msg` hook checks the
-  subject and the `Why:` line.
-- One topic per commit. Two docs are two commits. A spec change is never in
-  the same commit as code.
-- Test first, in separate commits: RED (`test:`, a failing bats file), then
-  GREEN (`feat:` or `fix:`), then any REFACTOR (`refactor:`, tests
-  unchanged and green). The `tdd-order` guard checks that every script's
-  test landed in an earlier commit, and `bats-mirror` checks that every
-  `*.sh` has `tests/unit/<same path>.bats` and the reverse.
-- Shell lives in `scripts/**/*.sh` (or a root script such as `setup.sh`),
-  with `set -euo pipefail`, shellcheck-clean and `shfmt -i 4`. Never embed
-  shell in a nix string, an hk step or a heredoc; xenolith (`xnl check`)
-  refuses it.
-- Tests must be safe to run in parallel: each works in its own
-  `BATS_TEST_TMPDIR`, unsets `GIT_*` variables in git fixtures, and never
-  asserts on wall-clock time.
+## Cloud sessions
 
-## Working inside a cloud session
+Measured in real sessions: root, `HOME=/root`, `CLAUDE_CODE_REMOTE=true`.
 
-These facts were measured in real sessions (`SPEC.md` C8):
-
-- The session runs as root with `HOME=/root`, and sets
-  `CLAUDE_CODE_REMOTE=true`.
-- The clone is shallow. Run `git fetch --unshallow` before pushing, or
-  `tdd-order` cannot see the RED commits.
-- Your commits are authored as `Claude <noreply@anthropic.com>` with a
-  `Claude-Session:` trailer; the `commit-msg` hook accepts that.
-- The branch you push gets a random suffix (`claude/<name>-<suffix>`).
-- A Bash command that runs past 120 seconds moves to the background and
-  keeps going. Its real exit status arrives only with the completion
-  notice, so wait for it; do not read the 120-second return as the result.
-- GitHub traffic goes through a proxy. Nix `github:` inputs that are not
-  in a binary cache fail with 403; fetching the same repository as
-  `git+https://github.com/<owner>/<repo>` works.
+- A SessionStart hook (`scripts/dev/session-start.sh`) runs
+  `git fetch --unshallow` and `nix develop -c true` (installs the hooks).
+  It is silent on success. If it warns, do what it says before you
+  commit; `tdd-order` refuses a shallow clone.
+- Commits are authored as `Claude <noreply@anthropic.com>` with a
+  `Claude-Session:` trailer; `commit-msg` accepts that.
+- The pushed branch gets a random suffix (`claude/<name>-<suffix>`).
+- GitHub goes through a proxy. A `github:` flake input missing from a
+  binary cache fails with 403; use `git+https://github.com/<owner>/<repo>`.
 
 ## Choosing the model
 
-Cloud jobs default to Sonnet 5.5. Launch them with the task text first and
-the model after it:
+Cloud jobs default to Sonnet. Put the task text first, the model after:
 
 ```sh
 claude --cloud "<task>" --model sonnet
 ```
 
-`--model` before the task fails with `--cloud requires a description`. The
-`ANTHROPIC_MODEL` environment variable does not choose the session's model.
-Check which model ran from the `Co-Authored-By` trailer of its commits.
+`--model` first fails with `--cloud requires a description`. The
+`ANTHROPIC_MODEL` variable does not choose the model. The `Co-Authored-By`
+trailer of a session's commits shows which model ran.
