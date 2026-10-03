@@ -18,7 +18,9 @@
 #        NIX_INSTALL_URL, NIX_INSTALL_SHA256; agent home (T17):
 #        CLOUD_HOME_FLAKE, CLOUD_HOME_STOREPATH (file), CLOUD_HOME_MARKER;
 #        nix-dev: CLAUDINIX_LIB_DIR, CLAUDINIX_RAW_URL, CLAUDINIX_REV
-#        (default: the SHA argument, else main).
+#        (default: the SHA argument, else main); CLAUDINIX_NIX_TIMEOUT
+#        (seconds each of the installer and the two agent home tiers may
+#        take, default 120: T88, V5).
 
 set -euo pipefail
 
@@ -58,11 +60,20 @@ if [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "${BASH_SOURCE[0]}" ]; then
     here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 fi
 
+# Every network step is bounded: a stalled host must not eat the ~5 min
+# the snapshot is cached within (C1, V5, T88). curl gets a connect and a
+# total limit; Nix gets a connect and a stall limit on every download,
+# and the installer and both agent home tiers run under `timeout`.
+nix_timeout="${CLAUDINIX_NIX_TIMEOUT:-120}"
+if ! [[ "$nix_timeout" =~ ^[1-9][0-9]*$ ]]; then
+    echo "setup: CLAUDINIX_NIX_TIMEOUT must be a whole number of seconds, not '$nix_timeout'" >&2
+    exit 2
+fi
+nix_net=(--option connect-timeout 10 --option stalled-download-timeout 30)
+
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 
-# Every download is bounded: a stalled host must not eat the ~5 min the
-# snapshot is cached within (C1, V5).
 fetch() {
     curl -fsSL --connect-timeout 10 --max-time 60 "$1" -o "$2"
 }
@@ -105,7 +116,7 @@ installed=no
 if [ "$mode" != none ] && ! meets_floor "$profile_bin"; then
     fetch "$url" "$work/install"
     echo "$sha256  $work/install" | sha256sum -c --quiet -
-    sh "$work/install" "$mode" --yes
+    timeout "$nix_timeout" sh "$work/install" "$mode" --yes
     installed=yes
 fi
 
@@ -230,10 +241,12 @@ fetch_storepath() {
 }
 
 home=""
-if home="$("$bin_dir/nix" build --no-link --print-out-paths "$home_attr")" && [ -x "$home/activate" ]; then
+if home="$(timeout "$nix_timeout" "$bin_dir/nix" build "${nix_net[@]}" --no-link --print-out-paths "$home_attr")" &&
+    [ -x "$home/activate" ]; then
     echo "agent home: tier 1 (flake build) $home"
 elif fetch_storepath && home="$(cat "$home_storepath")" &&
-    "$bin_dir/nix-store" -r "$home" >/dev/null && [ -x "$home/activate" ]; then
+    timeout "$nix_timeout" "$bin_dir/nix-store" -r "${nix_net[@]}" "$home" >/dev/null &&
+    [ -x "$home/activate" ]; then
     echo "agent home: tier 2 (recorded store path) $home"
 else
     home=""
