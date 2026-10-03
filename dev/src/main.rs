@@ -7,6 +7,7 @@
 //! claudinix-dev counts --write|--check [--root DIR]
 //! claudinix-dev notices --write|--check [--root DIR]
 //! claudinix-dev facts --check [--root DIR]
+//! claudinix-dev changelog MESSAGE-FILE
 //! ```
 //!
 //! Exit 0 clean, 1 drift, 2 usage or I/O.
@@ -21,7 +22,8 @@ use claudinix_dev::{counts, facts, splice};
 mod verbs;
 
 const USAGE: &str = "usage: claudinix-dev <badges|counts|notices> <--write|--check> [--root DIR]
-       claudinix-dev facts --check [--root DIR]";
+       claudinix-dev facts --check [--root DIR]
+       claudinix-dev changelog MESSAGE-FILE";
 
 /// The CI workflow the badge links to.
 const WORKFLOW: &str = "ci.yml";
@@ -42,6 +44,9 @@ fn main() -> ExitCode {
 
 fn dispatch(args: &[String]) -> Result<(), Failed> {
     let words: Vec<&str> = args.iter().map(String::as_str).collect();
+    if let ["changelog", file] = words.as_slice() {
+        return verbs::changelog(file);
+    }
     let (verb, mode, root) = match words.as_slice() {
         [verb, mode] => (*verb, *mode, "."),
         [verb, mode, "--root", root] => (*verb, *mode, *root),

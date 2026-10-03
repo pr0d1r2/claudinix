@@ -3,7 +3,9 @@
 
 use std::fs;
 use std::path::Path;
+use std::process::Command;
 
+use claudinix_dev::changelog::{self, Head};
 use claudinix_dev::prose::{self, Owners};
 use claudinix_dev::{facts, notices, region, splice};
 
@@ -108,4 +110,32 @@ pub fn facts(root: &Path, check: bool) -> Result<(), Failed> {
             stale.join("\n")
         ),
     ))
+}
+
+/// What `git ARGS` prints, or `None` when it fails (no HEAD yet).
+fn git(args: &[&str]) -> Result<Option<String>, Failed> {
+    let out = Command::new("git")
+        .args(args)
+        .output()
+        .map_err(|err| (2, format!("git could not run ({err})")))?;
+    Ok(out
+        .status
+        .success()
+        .then(|| String::from_utf8_lossy(&out.stdout).into_owned()))
+}
+
+/// The commit-msg rule: a feat or fix touching session code stages
+/// CHANGELOG.md (dev:T111). `file` is the message file git hands the hook.
+pub fn changelog(file: &str) -> Result<(), Failed> {
+    let message =
+        fs::read_to_string(file).map_err(|err| (2, format!("cannot read {file}: {err}")))?;
+    let staged = git(&["diff", "--cached", "--name-only"])?
+        .ok_or_else(|| (2, "git diff --cached --name-only failed".to_owned()))?;
+    let subject = git(&["log", "-1", "--format=%s"])?.unwrap_or_default();
+    let files = git(&["show", "--name-only", "--format=", "HEAD"])?.unwrap_or_default();
+    let head = Head {
+        subject: subject.trim_end(),
+        files: &files,
+    };
+    changelog::check(&message, &staged, Some(&head)).map_err(|message| (1, message))
 }
