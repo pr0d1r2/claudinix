@@ -563,5 +563,5 @@ Arguments pass through, and each recipe is one plain command.
 | `just bump-nix <version>` | `scripts/bump-nix.sh` |
 | `just release [args]` | `scripts/release.sh` (maintainer) |
 
-`just --list` shows the six. There is no recipe for `nix-dev` or
+`just` on its own (or `just --list`) lists the six; it never runs one by default. There is no recipe for `nix-dev` or
 `setup-line.sh`: run `scripts/setup-line.sh` directly.
