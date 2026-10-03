@@ -70,6 +70,8 @@ V20: UI setup script = 1 line: fetch `setup.sh` at fixed GIT SHA from `raw.githu
 V21: tests parallel-safe: own `BATS_TEST_TMPDIR`; ⊥ write-then-exec same path across forks (ETXTBSY: rekall B26, sherd B32, xenolith B3); ⊥ wall-clock asserts (rekall B5); fixtures unset `GIT_*` env (xenolith B1, sherd B25).
 V22: CI proves what it claims: same `hk check --all` as local; `nix flake check --all-systems` (bare form skips systems silently, nix-hk T14); cachix push verified by narinfo 200 for built paths, empty \| 403 push = red (nix-hk B3-B5); pre-push peels annotated tags `^{commit}` (microlith B22, rekall B18, sherd B27).
 V23: hk ≥ 1.55 (silent `--no-fail-fast` + `depends` bug, itok B21), pinned via `nix-hk`.
+V24: Bash tool timeouts cover the slowest gate: env sets `BASH_DEFAULT_TIMEOUT_MS` \& `BASH_MAX_TIMEOUT_MS` (sherd `hk check --all` = 2m45s > 2 min default).
+V25: `accept-flake-config = true` trusts cloned repo `nixConfig` ∴ env used only w/ owner-trusted repos; extra substituters outside allowlist unreachable anyway; documented in SECURITY (T36).
 
 ## §T TASKS
 id|status|task|cites
