@@ -126,3 +126,12 @@ fn a_pipe_in_a_command_is_escaped() {
     let steps = [step("p", Layer::Fast, &["x"], "a | b", "")];
     assert!(table(&steps).contains("| `a \\| b` |"), "{}", table(&steps));
 }
+
+/// The commit-msg hook hands a step the message file.
+#[test]
+fn the_message_file_placeholder_is_named_by_hand() {
+    assert_eq!(
+        by_hand("scripts/hk/run-tool.sh claudinix-dev changelog {{commit_msg_file}}"),
+        "claudinix-dev changelog <message-file>"
+    );
+}
