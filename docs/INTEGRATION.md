@@ -116,7 +116,7 @@ the `integration-steps` step fails when it no longer matches.
 | `dev-fmt` | fast | `dev/**` | `cargo fmt --check --manifest-path dev/Cargo.toml` | `cargo fmt --manifest-path dev/Cargo.toml` |
 | `dev-clippy` | fast | `dev/**` | `cargo clippy --quiet --all-targets --manifest-path dev/Cargo.toml -- -D warnings` | - |
 | `readme-badges` | fast | `README.md` `LICENSE` `setup.sh` `.claudinix.toml` `hk.pkl` `pkl/*.pkl` `SPEC.md` `.github/workflows/ci.yml` `tests/unit/**/*.bats` `dev/**` | `claudinix-dev badges --check` | `claudinix-dev badges --write` |
-| `integration-counts` | fast | `docs/INTEGRATION.md` `hk.pkl` `pkl/*.pkl` `dev/**` | `claudinix-dev counts --check` | `claudinix-dev counts --write` |
+| `integration-steps` | fast | `docs/INTEGRATION.md` `hk.pkl` `pkl/*.pkl` `dev/**` | `claudinix-dev steps --check` | `claudinix-dev steps --write` |
 | `third-party-notices` | fast | `docs/THIRD-PARTY-NOTICES.md` `flake.lock` `dev/**` | `claudinix-dev notices --check` | `claudinix-dev notices --write` |
 | `prose-facts` | fast | `README.md` `docs/LLM-DISCLAIMER.md` `docs/FACTS.md` `setup.sh` `hk.pkl` `pkl/*.pkl` `SPEC.md` `tests/unit/**/*.bats` `dev/**` | `claudinix-dev facts --check` | - |
 | `claudinix-config` | fast | `.claudinix.toml` `scripts/config.sh` `scripts/config.jq` | `scripts/config.sh check` | - |

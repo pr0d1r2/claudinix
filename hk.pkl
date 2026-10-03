@@ -215,11 +215,14 @@ local fast = new Mapping<String, Step> {
     check = "scripts/hk/run-tool.sh claudinix-dev badges --check"
     fix = "scripts/hk/run-tool.sh claudinix-dev badges --write"
   }
-  // The step counts docs/INTEGRATION.md states equal hk.pkl's (T105).
-  ["integration-counts"] {
+  // docs/INTEGRATION.md's step table and the step counts its prose
+  // states are generated from this file (dev:T106): one `pkl eval` gives
+  // both. It runs the built binary from the dev shell, not cargo, so it
+  // needs no place in the cargo chain.
+  ["integration-steps"] {
     glob = List("docs/INTEGRATION.md", "hk.pkl", "pkl/*.pkl", "dev/**")
-    check = "scripts/hk/run-tool.sh claudinix-dev counts --check"
-    fix = "scripts/hk/run-tool.sh claudinix-dev counts --write"
+    check = "scripts/hk/run-tool.sh claudinix-dev steps --check"
+    fix = "scripts/hk/run-tool.sh claudinix-dev steps --write"
   }
   // The flake inputs table in the notices is generated from flake.lock
   // (dev:T109), so an input bump reruns it (V19).
