@@ -77,6 +77,31 @@ cloud() {
     [[ "$output" == *"hooks"* ]]
 }
 
+@test "nix-dev on PATH: the dev shell is entered through it, silent (C6 403s)" {
+    stub_nix 0
+    # shellcheck disable=SC2016 # $* and $NIX_LOG expand inside the stub
+    printf '#!%s\necho "nix-dev $*" >>"$NIX_LOG"\necho "nix-dev: tier 1" >&2\n' "$BASH_BIN" >"$STUB_BIN/nix-dev"
+    chmod +x "$STUB_BIN/nix-dev"
+    git clone -q "file://$ORIGIN" "$REPO"
+    cd "$REPO"
+    cloud
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+    [ "$(cat "$NIX_LOG")" = "nix-dev -c true" ]
+}
+
+@test "nix-dev failing: warns with its output, exits 0" {
+    stub_nix 0
+    printf '#!%s\necho "nix-dev: tier 4 failed" >&2\nexit 1\n' "$BASH_BIN" >"$STUB_BIN/nix-dev"
+    chmod +x "$STUB_BIN/nix-dev"
+    git clone -q "file://$ORIGIN" "$REPO"
+    cd "$REPO"
+    cloud
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"nix-dev -c true"* ]]
+    [[ "$output" == *"tier 4 failed"* ]]
+}
+
 @test "nix missing: warns and exits 0" {
     git clone -q "file://$ORIGIN" "$REPO"
     cd "$REPO"

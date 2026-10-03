@@ -182,6 +182,39 @@ STUB
     git config --local --get-regexp '^hook\.hk-' >/dev/null
 }
 
+@test "nix-dev on PATH: hooks enter the dev shell through it (cloud 403s)" {
+    stub_hk_installer
+    printf '#!/bin/sh\nexit 0\n' >"$STUB_BIN/nix-dev"
+    chmod +x "$STUB_BIN/nix-dev"
+    make_repo
+    cd "$REPO"
+    run env PATH="$STUB_BIN" "$BASH_BIN" "$SCRIPT"
+    [ "$status" -eq 0 ]
+    for e in pre-commit pre-push commit-msg; do
+        # shellcheck disable=SC2016 # ${HK:-1} is literal hook text, not expanded here
+        [ "$(git config --local "hook.hk-$e.command")" = 'test "${HK:-1}" = "0" || CLAUDINIX_HOOK=1 nix-dev -c hk run '"$e"' --from-hook' ]
+    done
+}
+
+@test "a nix develop wrap is rewrapped to nix-dev once it appears, and back, never nested" {
+    stub_hk
+    make_repo
+    cd "$REPO"
+    # shellcheck disable=SC2016 # ${HK:-1} is literal hook text, not expanded here
+    git config --local hook.hk-pre-push.command 'test "${HK:-1}" = "0" || CLAUDINIX_HOOK=1 nix develop -c hk run pre-push --from-hook'
+    printf '#!/bin/sh\nexit 0\n' >"$STUB_BIN/nix-dev"
+    chmod +x "$STUB_BIN/nix-dev"
+    run env PATH="$STUB_BIN" "$BASH_BIN" "$SCRIPT"
+    [ "$status" -eq 0 ]
+    # shellcheck disable=SC2016 # ${HK:-1} is literal hook text, not expanded here
+    [ "$(git config --local hook.hk-pre-push.command)" = 'test "${HK:-1}" = "0" || CLAUDINIX_HOOK=1 nix-dev -c hk run pre-push --from-hook' ]
+    rm "$STUB_BIN/nix-dev"
+    run env PATH="$STUB_BIN" "$BASH_BIN" "$SCRIPT"
+    [ "$status" -eq 0 ]
+    # shellcheck disable=SC2016 # ${HK:-1} is literal hook text, not expanded here
+    [ "$(git config --local hook.hk-pre-push.command)" = 'test "${HK:-1}" = "0" || CLAUDINIX_HOOK=1 nix develop -c hk run pre-push --from-hook' ]
+}
+
 # hooks_dir: where git looks for script hooks in the fixture repo.
 hooks_dir() {
     (cd "$REPO" && cd "$(git rev-parse --git-path hooks)" && pwd)
