@@ -115,7 +115,8 @@ raw="${NCCC_RAW_URL:-https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-c
 here="$(dirname "${BASH_SOURCE[0]:-.}")"
 mkdir -p "$lib_dir"
 nix_dev=ok
-for file in nix-dev.sh nix-dev.jq; do
+# inputs.* tell nix-dev which inputs a cache holds (scripts:T49).
+for file in nix-dev.sh nix-dev.jq inputs.sh inputs.jq; do
     if [ -f "$here/scripts/$file" ]; then
         cp "$here/scripts/$file" "$lib_dir/$file"
     elif ! curl -fsSL "$raw/scripts/$file" -o "$lib_dir/$file"; then
