@@ -23,6 +23,7 @@ sib|experiments|cloud-session experiments: prompts, dated results, setup timing,
 
 - cmd: `claudinix-dev badges --write\|--check [--root DIR]` — splices `<!-- BEGIN badges -->`…`<!-- END badges -->` in README.md; `--check` exit 1 on drift w/ a diff.
 - cmd: `claudinix-dev steps --write\|--check [--root DIR]` — splices `<!-- BEGIN steps -->` in `docs/INTEGRATION.md` (step, layer, files, check, fix) \& sets the step counts its prose states, from one `pkl eval -x`; replaces `counts`.
+- cmd: `claudinix-dev cli --check [--root DIR]` — `usage:` lines in `docs/CLI.md` code blocks = their script's usage text; exit 1 names doc line \& script.
 
 ## §V INVARIANTS
 
