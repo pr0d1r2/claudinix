@@ -22,7 +22,9 @@ a cache for the dev shell, crates.io, and GitHub reads for the gate.
    `setup.sh`, `allowlist.txt` and `env-names.txt`. Network access was
    **Custom** with the default package-manager list, plus the allowed domains
    from `allowlist.txt`, including the nixos.org hosts the default list did not
-   cover.
+   cover. The setup script in the dialog was then the contents of `setup.sh`
+   pasted in whole. The one-line setup script that [`SETUP.md`](SETUP.md)
+   now describes did not exist yet, so none of these sessions used it.
 2. **Choose it.** `/remote-env`, pick `nix`.
 3. **Start a session** from a checkout of `sherd` with the branch pushed. The
    probe prompt asked for the session facts, then for the dev shell and the
