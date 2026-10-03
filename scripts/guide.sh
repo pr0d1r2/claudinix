@@ -103,9 +103,19 @@ agent_home=()
 if [ "${agent_home_flag:-$file_agent_home}" = true ]; then
     agent_home=(--agent-home)
 fi
-# `.` is a bare nix-dev, as the check has always been written.
+# `.` is a bare nix-dev, as the check has always been written. The
+# installable is quoted twice (scripts:T95): `printf %q` for the
+# session's shell, then `\ $ `` "` escaped for the double quotes the
+# terminal's shell reads the task in. `.#ci` prints as it is.
 dev_shell="nix-dev -c true"
-[ "$installable" = . ] || dev_shell="nix-dev $installable -c true"
+if [ "$installable" != . ]; then
+    quoted="$(printf '%q' "$installable")"
+    quoted="${quoted//\\/\\\\}"
+    quoted="${quoted//\$/\\\$}"
+    quoted="${quoted//\`/\\\`}"
+    quoted="${quoted//\"/\\\"}"
+    dev_shell="nix-dev $quoted -c true"
+fi
 
 readme="${CLAUDINIX_README:-$lib/../README.md}"
 model_doc="${CLAUDINIX_MODEL_DOC:-$lib/../docs/MODEL.md}"

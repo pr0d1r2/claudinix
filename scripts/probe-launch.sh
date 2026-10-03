@@ -78,13 +78,16 @@ IFS="$(printf '\t')" read -r file_model prefix installable < <(
     jq -r '[.session.model, .probe.branch_prefix, .devshell.installable] | @tsv' <<<"$config"
 )
 model="${model:-$file_model}"
-# `.` is the bare command, as the prompt has always said it.
+# `.` is the bare command, as the prompt has always said it. Values go
+# into the prompt `printf %q`-quoted for the session's shell
+# (scripts:T95); `.#ci` and `claude/nix-probe` print as they are.
 nix_dev=nix-dev
 nix_develop="nix develop"
 if [ "$installable" != . ]; then
-    nix_dev="nix-dev $installable"
-    nix_develop="nix develop $installable"
+    nix_dev="nix-dev $(printf '%q' "$installable")"
+    nix_develop="nix develop $(printf '%q' "$installable")"
 fi
+prefix_quoted="$(printf '%q' "$prefix")"
 
 # The remote's probe branches, one per line.
 branches() {
@@ -137,7 +140,7 @@ fi
 task="$(cat "$lib/probe-prompt.txt" "$probe")"
 task="${task//@NIX_DEVELOP@/$nix_develop}"
 task="${task//@NIX_DEV@/$nix_dev}"
-task="${task//@BRANCH_PREFIX@/$prefix}"
+task="${task//@BRANCH_PREFIX@/$prefix_quoted}"
 before="$(branches)"
 
 # util-linux `script` takes the command as a string, BSD `script` as
