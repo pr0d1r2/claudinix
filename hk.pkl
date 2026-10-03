@@ -41,11 +41,6 @@ local fast = new Mapping<String, Step> {
     fix = "scripts/hk/run-tool.sh nixfmt {{files}}"
   }
 
-  // The workflow is the one file no other local step exercises. actionlint
-  // checks syntax and types; zizmor audits security posture. `--offline`
-  // because a gate must not need the network, and in a cloud session the
-  // injected GH_TOKEN placeholder makes online audits fail with 401
-  // (SPEC C6, C8).
   // One language per file (SPEC C15): no shell embedded in nix strings.
   // xnl skips files no host claims, so the glob only keeps the step off
   // commits that touch neither language.
@@ -70,6 +65,11 @@ local fast = new Mapping<String, Step> {
     check = "scripts/hk/run-tool.sh pkl eval --output-path /dev/null hk.pkl"
   }
 
+  // The workflow is the one file no other local step exercises. actionlint
+  // checks syntax and types; zizmor audits security posture. `--offline`
+  // because a gate must not need the network, and in a cloud session the
+  // injected GH_TOKEN placeholder makes online audits fail with 401
+  // (SPEC C6, C8).
   ["actionlint"] {
     glob = List(".github/workflows/*.yml", ".github/workflows/*.yaml")
     check = "scripts/hk/run-tool.sh actionlint {{files}}"
