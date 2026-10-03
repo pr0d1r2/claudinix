@@ -10,9 +10,6 @@ use crate::json::{self, Json};
 /// The block's name.
 pub const NAME: &str = "inputs";
 
-/// Characters of a revision the table shows, as `git log --oneline` does.
-const SHORT: usize = 7;
-
 /// One locked flake input.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Input {
@@ -23,7 +20,7 @@ pub struct Input {
     pub source: String,
     /// The branch or tag it follows, if the lock records one.
     pub reference: Option<String>,
-    /// The locked revision, short; `None` for an input without one.
+    /// The locked revision, whole; `None` for an input without one.
     pub rev: Option<String>,
     /// The lock's `type`: `git`, `github`, ...
     pub kind: String,
@@ -73,7 +70,7 @@ fn input(name: &str, node: &Json) -> Option<Input> {
         name: name.to_owned(),
         source,
         reference: reference.map(str::to_owned),
-        rev: text("rev").map(|rev| rev.chars().take(SHORT).collect()),
+        rev: text("rev").map(str::to_owned),
         kind: kind.to_owned(),
     })
 }
