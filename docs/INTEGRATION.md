@@ -11,9 +11,9 @@ right and this file has a bug.
 
 | caller | set | when |
 |---|---|---|
-| `pre-commit` hook | `fast`, 22 steps | every commit, on the staged files |
-| `pre-push` hook | `all`, 25 steps | every push |
-| `hk check --all` in CI | `all`, 25 steps | every push to `main` and every pull request |
+| `pre-commit` hook | `fast`, 26 steps | every commit, on the staged files |
+| `pre-push` hook | `all`, 29 steps | every push |
+| `hk check --all` in CI | `all`, 29 steps | every push to `main` and every pull request |
 
 A fourth hook, `commit-msg`, runs one step on the commit message.
 
@@ -82,6 +82,7 @@ hk hands the step; by hand, name the files yourself.
 | `nixfmt` | `*.nix` | `nixfmt --check <files>` (fix: drop `--check`) |
 | `xenolith` | `*.nix`, `*.sh`, `*.bats`, `xenolith.toml` | `xnl check <files>` |
 | `just` | `justfile` | `just --fmt --check --unstable` (fix: drop `--check`) |
+| `pkl-eval` | `hk.pkl`, `pkl/*.pkl` | `pkl eval --output-path /dev/null hk.pkl` |
 | `actionlint` | `.github/workflows/*.yml` | `actionlint <files>` |
 | `zizmor` | `.github/workflows/*.yml` | `zizmor --offline --no-progress --persona=pedantic <files>` |
 | `spec-fmt` | every `SPEC.md` | `mth fmt --check <node>/SPEC.md` (fix: `mth fmt`) |
@@ -99,6 +100,9 @@ hk hands the step; by hand, name the files yourself.
 | `line-endings` | every file | `hk util mixed-line-ending <files>` |
 | `no-large-files` | every file | `hk util check-added-large-files <files>` |
 | `no-merge-conflict` | every file | `hk util check-merge-conflict --assume-in-merge <files>` |
+| `readme-setup-line` | `README.md`, `scripts/setup-line.sh`, `scripts/guard/readme-setup-line.sh` | `scripts/guard/readme-setup-line.sh` |
+| `claudinix-config` | `.claudinix.toml`, `scripts/config.sh`, `scripts/config.jq` | `scripts/config.sh check` |
+| `exec-bit` | every file | `scripts/guard/exec-bit.sh` |
 
 A few notes on why the steps look the way they do:
 
@@ -121,6 +125,13 @@ A few notes on why the steps look the way they do:
   `§F`. When a spec outgrows its ceiling, move rows down to the node that
   owns them; do not raise the number. Finished tasks move to
   `SPEC-ARCHIVE.md` with `mth archive`.
+- **claudinix-config** checks this repository's own
+  [`.claudinix.toml`](CONFIG.md) with the reader every tool uses, so a typo
+  in it fails the gate and not a later `probe` or `guide` run. It is in the
+  fast layer, and its glob includes the reader (`scripts/config.sh`,
+  `scripts/config.jq`), because a change to the schema must rerun the check
+  on the file. Like the reader, it needs `nix` and `jq` on `PATH` and fails
+  loudly without them; it never passes for a tool it could not run.
 - **Secrets** are checked twice because the two tools answer different
   questions: `detect-private-key` finds key blocks, `ripsecrets` finds token
   shapes. The repository is public from its first push.
