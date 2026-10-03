@@ -1,5 +1,23 @@
 # claudinix
 
+<!-- BEGIN badges -->
+[![CI](https://github.com/pr0d1r2/claudinix/actions/workflows/ci.yml/badge.svg)](https://github.com/pr0d1r2/claudinix/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![status alpha](https://img.shields.io/badge/status-alpha-orange)](docs/FACTS.md)
+
+[![nix flake](https://img.shields.io/badge/nix-flake-5277C3?logo=nixos&logoColor=white)](flake.nix)
+[![Nix ≥ 2.34](https://img.shields.io/badge/Nix-%E2%89%A52.34-5277C3?logo=nixos&logoColor=white)](setup.sh)
+[![cache pr0d1r2.cachix.org](https://img.shields.io/badge/cache-pr0d1r2.cachix.org-5277C3?logo=nixos&logoColor=white)](https://pr0d1r2.cachix.org)
+
+[![gate hk](https://img.shields.io/badge/gate-hk-6E4AFF)](hk.pkl)
+[![gate steps 27 commit / 30 push](https://img.shields.io/badge/gate_steps-27_commit_%2F_30_push-6E4AFF)](hk.pkl)
+[![bats tests 567](https://img.shields.io/badge/bats_tests-567-brightgreen)](tests/unit)
+[![federated nodes 6](https://img.shields.io/badge/federated_nodes-6-6E4AFF)](SPEC.md)
+
+[![built with Claude Code](https://img.shields.io/badge/built_with-Claude_Code-D97757)](https://claude.com/claude-code)
+[![built with SDD](https://img.shields.io/badge/built_with-spec--driven_development-D97757)](SPEC.md)
+<!-- END badges -->
+
 *Claude in cloud on Nix.*
 
 > **Unofficial.** claudinix is a community project. It is not affiliated
