@@ -122,23 +122,29 @@ that says GitHub access to the repository "is not enabled for this
 session". The first probe hit this for `github:NixOS/nixpkgs` and for
 `github:pr0d1r2/nix-hk`.
 
+Plain git reads of public repositories do pass the proxy
+(`git ls-remote https://github.com/<owner>/<repo>` works), but the
+archive tarballs Nix downloads for `github:` inputs
+(`https://github.com/<owner>/<repo>/archive/<rev>.tar.gz`) get the 403.
+Attaching a public repository with `add_repo` read access does not
+help: it answers "read access is already available" and attaches
+nothing (probe 2, 2026-10-03).
+
 For every repository your flake fetches straight from GitHub, either:
 
 - **Cache it.** Push the locked input and everything built from it to
   your binary cache from CI. Nix then substitutes it by `narHash` and
   never contacts GitHub. Do this for large repositories such as
-  `NixOS/nixpkgs`, which you should never attach.
-- **Attach it.** Add the repository to the session alongside your own:
-  in the repository picker at [claude.ai/code](https://claude.ai/code)
-  when you start a session, or in the routine's repository list. It
-  must also be allowed for the Claude GitHub App (step 2). Inside a
-  running session, Claude can request one with its `add_repo` tool.
-  Good for small repositories such as `pr0d1r2/nix-hk`. Note that a
-  session with several repositories starts above the clones and does
-  not read any repository's `.claude/settings.json`.
+  `NixOS/nixpkgs`.
+- **Fetch it with git.** Write the input as
+  `git+https://github.com/<owner>/<repo>` instead of
+  `github:<owner>/<repo>`, so Nix uses a git fetch, which the proxy
+  allows for public repositories. Fine for small repositories such as
+  `pr0d1r2/nix-hk`; avoid it for `NixOS/nixpkgs`, whose git history is
+  huge.
 
-Keep the list of repositories you attach next to your flake, so it
-stays in sync with `flake.lock`.
+`just inputs` lists every `github:` input of a flake and whether it is
+already cached.
 
 ## 4. Choose the environment in your terminal (once per machine)
 
