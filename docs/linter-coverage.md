@@ -20,10 +20,10 @@ The steps are defined in [`hk.pkl`](../hk.pkl) and explained in
 | `.pkl` | none beyond hygiene | `hk` evaluates `hk.pkl` on every run, so a broken file stops the gate; `pkl/Config.pkl` is hk's schema, vendored verbatim and excluded from `typos` |
 | `.yml` | actionlint, zizmor (`--offline`, pedantic) | GitHub workflows only |
 | `.md` | none beyond hygiene | every `SPEC.md` also gets `mth fmt`, `mth check`, `itok check` and `sherd validate`, `sync --check`, `check`, `budget`; `SPEC-ARCHIVE.md` files are sinks with hygiene only |
-| `.toml` | xenolith (`xenolith.toml` only) | `.typos.toml` is config for `typos` itself |
-| `.jq` | none beyond hygiene | `scripts/inputs.jq`, `scripts/nix-dev.jq`: jq programs read by `inputs.sh` and `nix-dev.sh`, so their bats tests run them on fixture `flake.lock` files |
+| `.toml` | xenolith (`xenolith.toml` only); `claudinix-config` (`.claudinix.toml` only) | `.typos.toml` is config for `typos` itself; `.claudinix.toml` is read by `scripts/config.sh check`, which refuses unknown keys, wrong types and a `version` other than 1 ([`CONFIG.md`](CONFIG.md)) |
+| `.jq` | none beyond hygiene | `scripts/inputs.jq`, `scripts/nix-dev.jq`: jq programs read by `inputs.sh` and `nix-dev.sh`, so their bats tests run them on fixture `flake.lock` files; `scripts/config.jq` is the schema and defaults of `.claudinix.toml`, run by `config.sh` and covered by `config.bats` on fixture files |
 | `.tsv` | none beyond hygiene | `scripts/guide-steps.tsv`: a bats test keeps its step titles equal to the `docs/SETUP.md` headings |
-| `.txt` | `setup.sh`'s bats | `allowlist.txt` and `env-names.txt`: tests check the hosts they name and that no value looks like a secret; `scripts/probe-prompt.txt` is the task text `probe-launch.sh` sends and gets hygiene only |
+| `.txt` | `setup.sh`'s bats | `allowlist.txt` and `env-names.txt`: tests check the hosts they name and that no value looks like a secret; `scripts/probe-prompt.txt` is a template: the task text `probe-launch.sh` sends, with `@NIX_DEV@`, `@NIX_DEVELOP@` and `@BRANCH_PREFIX@` placeholders it fills in; it gets hygiene only |
 | `.context-limits` | `itok check`, `sherd validate`, `sherd budget` | token ceilings for `SPEC.md` |
 | `.lock` | none beyond hygiene | `flake.lock`, written by `nix flake lock` |
 | `.gitignore` | none beyond hygiene | git config |
