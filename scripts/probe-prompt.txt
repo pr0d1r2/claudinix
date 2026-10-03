@@ -3,17 +3,17 @@ T3 and C8). Change no file of this project except the report below.
 
 1. Save the bash script at the end of this message as /tmp/probe.sh and
    run `bash /tmp/probe.sh` from the project root. Keep its whole output.
-2. Time the dev shell: `time nix-dev --command true` when nix-dev is on
-   PATH, else `time nix develop --command true`. Keep the output,
+2. Time the dev shell: `time @NIX_DEV@ --command true` when nix-dev is on
+   PATH, else `time @NIX_DEVELOP@ --command true`. Keep the output,
    including every `nix-dev:` line (they name the tier reached).
-3. If the project has Cargo.toml, time `nix-dev --command cargo test`.
-   If it has hk.pkl, time `nix-dev --command hk check --all`. (Use
-   `nix develop` when nix-dev is missing.) A command still running at
+3. If the project has Cargo.toml, time `@NIX_DEV@ --command cargo test`.
+   If it has hk.pkl, time `@NIX_DEV@ --command hk check --all`. (Use
+   `@NIX_DEVELOP@` when nix-dev is missing.) A command still running at
    120 s moves to the background: wait for its completion notice and
    record its real exit status, not the 120 s return.
 4. Write every output above, each under a heading naming its step, to
    `nix-probe-report.txt` at the project root.
-5. Create a branch named `claude/nix-probe`, commit only
+5. Create a branch named `@BRANCH_PREFIX@`, commit only
    `nix-probe-report.txt` on it, and push it. Reply with the branch name.
 
 The probe script:

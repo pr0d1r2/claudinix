@@ -11,17 +11,26 @@
 # so --cleanup deletes every `claude/nix-probe*` branch on the remote.
 # Follow-ups go through `claude -p MSG --cloud ID` (no TTY needed).
 #
+# The project's .claudinix.toml (scripts:T91, read by config.sh at the
+# repo's top level) sets the defaults: session.model for --model,
+# probe.branch_prefix for the branch, devshell.installable for the dev
+# shell the task runs (the prompt's @NIX_DEV@, @NIX_DEVELOP@ and
+# @BRANCH_PREFIX@). --model still wins (scripts:V34); a bad file exits 2
+# before anything starts.
+#
 # Before a session starts (scripts:T81): the remote must exist, the
 # current branch must be pushed and equal to its upstream (the session
 # clones GitHub, not this disk), and a y/N answer must confirm that a
 # billed cloud session starts; --yes skips only that question.
 #
-# Usage: probe-launch.sh [--model M] [--yes] [--cleanup]   (model: sonnet)
+# Usage: probe-launch.sh [--model M] [--yes] [--cleanup]
+#        (model: session.model, else sonnet)
 # Env:   PROBE_REMOTE        remote the session pushes to (default origin)
 #        PROBE_POLL_SECONDS  wait between branch checks (default 20)
 #        PROBE_POLL_TRIES    checks before giving up (default 90: 30 min)
 #        PROBE_SCRIPT        probe.sh to send (default: beside scripts/)
-#        CLAUDINIX_SCRIPTS   dir holding probe-prompt.txt (default: here)
+#        CLAUDINIX_SCRIPTS   dir holding probe-prompt.txt and config.sh
+#                            (default: here)
 
 set -euo pipefail
 
@@ -30,7 +39,7 @@ usage() {
     exit 2
 }
 
-model=sonnet
+model=
 cleanup=0
 yes=0
 while [ "$#" -gt 0 ]; do
@@ -52,7 +61,6 @@ probe="${PROBE_SCRIPT:-$lib/../probe.sh}"
 remote="${PROBE_REMOTE:-origin}"
 poll="${PROBE_POLL_SECONDS:-20}"
 tries="${PROBE_POLL_TRIES:-90}"
-prefix=claude/nix-probe
 report=nix-probe-report.txt
 
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -62,6 +70,20 @@ fi
 if ! git remote get-url "$remote" >/dev/null 2>&1; then
     echo "probe: no remote $remote -- push the project to GitHub first" >&2
     exit 1
+fi
+
+# The project's .claudinix.toml, read once (scripts:T91, V34).
+config="$(bash "$lib/config.sh" json)" || exit "$?"
+IFS="$(printf '\t')" read -r file_model prefix installable < <(
+    jq -r '[.session.model, .probe.branch_prefix, .devshell.installable] | @tsv' <<<"$config"
+)
+model="${model:-$file_model}"
+# `.` is the bare command, as the prompt has always said it.
+nix_dev=nix-dev
+nix_develop="nix develop"
+if [ "$installable" != . ]; then
+    nix_dev="nix-dev $installable"
+    nix_develop="nix develop $installable"
 fi
 
 # The remote's probe branches, one per line.
@@ -113,6 +135,9 @@ if [ "$yes" = 0 ]; then
 fi
 
 task="$(cat "$lib/probe-prompt.txt" "$probe")"
+task="${task//@NIX_DEVELOP@/$nix_develop}"
+task="${task//@NIX_DEV@/$nix_dev}"
+task="${task//@BRANCH_PREFIX@/$prefix}"
 before="$(branches)"
 
 # util-linux `script` takes the command as a string, BSD `script` as
