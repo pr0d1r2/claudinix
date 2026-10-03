@@ -4,6 +4,11 @@
 # Each recipe is one plain command; the logic lives in bats-covered
 # scripts (C15).
 
+# Bare `just` lists the recipes instead of running the first one.
+[private]
+default:
+    @just --list --unsorted
+
 # List a flake's github inputs: cached, or uncached (nix-dev fetches those over git).
 inputs *args:
     scripts/inputs.sh {{ args }}
