@@ -652,6 +652,22 @@ d=$(mktemp -d) && curl -fsSL https://raw.githubusercontent.com/pr0d1r2/claudinix
 | 1 | `REV` is not a commit (`setup-line: cannot resolve <REV> to a commit -- no line printed`), or CI is not green and `--force` was not given |
 | 2 | a usage error: an unknown flag or more than one `REV` |
 
+## session-start.sh
+
+The project's SessionStart hook, run by Claude Code in a cloud session on this
+repository; it is not run by hand. It does nothing unless
+`CLAUDE_CODE_REMOTE=true`. It fetches the full history, enters the dev shell
+once, and always exits 0.
+
+| variable | meaning |
+|---|---|
+| `CLAUDINIX_SESSION_PERMISSIONS` | `1` to merge `nix/cloud-permissions.json` into the gitignored `.claude/settings.local.json`, a fallback to the agent home's route. Off by default |
+
+Rules and keys already in that file stay. The agent home now also writes the
+same list into `~/.claude/settings.json` before Claude starts (see the
+[README](../README.md#the-agent-home-is-opt-in)). Whether the fallback applies
+in the session that wrote it is not measured yet (experiment T104).
+
 ## setup.sh
 
 The setup script itself, fetched and run by the setup line. It is not run by
@@ -664,7 +680,8 @@ usage: setup.sh [SHA] [--agent-home] -- SHA is a full 40-hex commit id; --agent-
 `SHA` is the commit the file was fetched at; it pins `nix-dev` and the agent
 home to it. Anything that is not a full 40-hex id, or a second SHA, exits 2
 with the usage line above. `--agent-home`, or `CLAUDINIX_AGENT_HOME=1`,
-activates the agent home; without it setup stops after Nix and `nix-dev` and
+activates the agent home, which also writes the cloud permissions into
+`~/.claude/settings.json`; without it setup stops after Nix and `nix-dev` and
 prints:
 
 ```text
