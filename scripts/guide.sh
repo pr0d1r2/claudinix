@@ -21,6 +21,7 @@
 #                          setup-line.sh
 #        NCCC_SETUP_REV    full SHA of this repo to pin the setup line to
 #        NCCC_MODEL_DOC    MODEL.md with the prices (default: ../docs/)
+#        NCCC_ENV_NAMES    env-names.txt to list (default: beside scripts/)
 #        CLAUDE_SETTINGS   user settings (default ~/.claude/settings.json)
 #        CLIPBOARD_TOOLS   tried in order (default: pbcopy wl-copy xclip)
 #        GUIDE_OPEN_TOOLS  tried in order (default: open xdg-open)
@@ -61,6 +62,7 @@ dir="${dir:-.}"
 
 lib="${NCCC_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 model_doc="${NCCC_MODEL_DOC:-$lib/../docs/MODEL.md}"
+env_names="${NCCC_ENV_NAMES:-$lib/../env-names.txt}"
 settings="${CLAUDE_SETTINGS:-$HOME/.claude/settings.json}"
 env_name=nix
 
@@ -145,6 +147,32 @@ paste() {
     ask "Press Enter when it is pasted."
 }
 
+# env_vars: each variable line of env-names.txt, marked when the comment
+# block right above it starts with "# Optional" (T48).
+env_vars() {
+    local line optional=0
+    if [ ! -f "$env_names" ]; then
+        echo "Environment variables: the lines of env-names.txt in this repository; never secrets."
+        return 0
+    fi
+    echo "Environment variables, one per line (never secrets):"
+    while IFS= read -r line || [ -n "$line" ]; do
+        case "$line" in
+        '# Optional'*) optional=1 ;;
+        '#'*) ;;
+        '') optional=0 ;;
+        *)
+            if [ "$optional" = 1 ]; then
+                echo "  $line   (optional)"
+            else
+                echo "  $line"
+            fi
+            optional=0
+            ;;
+        esac
+    done <"$env_names"
+}
+
 step_0() {
     echo "Do both before any cloud session, a test or probe session included."
     ask "Claimed any cloud credit you were offered (/claim-credit), and the usage page shows it? Type y:"
@@ -181,7 +209,7 @@ step_3() {
     for kind in ${1//,/ }; do
         paste "$kind"
     done
-    echo "Environment variables: only the names in env-names.txt; never secrets."
+    env_vars
     echo "Then select Create environment."
     echo
     echo "GitHub repositories the flake fetches (a session gets only attached ones):"
