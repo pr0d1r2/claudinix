@@ -7,10 +7,13 @@
 #   1. the base list, `allowlist.txt` (the Nix hosts), in its order;
 #   2. hosts each project's files name, one detector per ecosystem
 #      under `domains/` (Cargo, Nix, git, npm, Python, Ruby, Go), sorted;
-#   3. with --from-log, hosts a session's proxy refused.
+#   3. with --from-log, hosts a session's proxy refused;
+#   4. each project's `network.extra_domains` from its .claudinix.toml
+#      (scripts:T91, through config.sh), sorted in with 2.
 # Plain output is paste-ready and also copied to the clipboard when a
 # clipboard tool is there. --why tags each host with its source (`base`,
-# the file that named it, or `log`). Reads files only, never the network.
+# the file that named it, `log`, or `config`). Reads files only, never
+# the network. A bad .claudinix.toml exits 2 (scripts:V34).
 #
 # Usage: domains.sh [--why] [--from-log FILE]... [PROJECT_DIR...]
 #        (default PROJECT_DIR: the current directory)
@@ -77,6 +80,11 @@ for dir in "${dirs[@]}"; do
             printf '%s\t%s\n' "$host" "$prefix$file"
         done >>"$tmp/found"
     done
+    # A bad file stops here: config.sh named the file and the key (V34).
+    bash "$lib/config.sh" --dir "$dir" get network.extra_domains >"$tmp/extra" || exit "$?"
+    while IFS= read -r host; do
+        [ -z "$host" ] || printf '%s\tconfig\n' "$host"
+    done <"$tmp/extra" >>"$tmp/found"
 done
 for log in "${logs[@]+"${logs[@]}"}"; do
     bash "$lib/domains/log.sh" "$log" >>"$tmp/found"
