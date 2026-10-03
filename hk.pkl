@@ -181,6 +181,15 @@ local fast = new Mapping<String, Step> {
     check = "scripts/guard/readme-setup-line.sh"
   }
 
+  // This repo's own .claudinix.toml must pass the reader every tool uses
+  // (T92, scripts:V34). The reader and its schema are data the check
+  // depends on, so a change to them reruns it (V19). config.sh needs nix
+  // and jq and fails loudly without them, never passes (V18).
+  ["claudinix-config"] {
+    glob = List(".claudinix.toml", "scripts/config.sh", "scripts/config.jq")
+    check = "scripts/config.sh check"
+  }
+
   // A shebang script tracked as 100644 answers "permission denied" (B6).
   // Whole-repo glob: a mode-only change is still a change (V19, V28).
   ["exec-bit"] {
