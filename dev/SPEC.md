@@ -38,7 +38,7 @@ T106|.|`steps --write\|--check`: the whole hk step table in `docs/INTEGRATION.md
 T107|.|`cli --check`: each `usage:` line `docs/CLI.md` quotes = the script's own usage text (read from `scripts/*.sh`, `setup.sh`) (pklith `cli`)|V1,V3
 T108|.|`config --write\|--check`: `docs/CONFIG.md` key table (key, type, default, readers) from `scripts/config.jq`'s schema (pklith `catalog`)|V1,V3,`scripts:V34`
 T109|x|`notices --write\|--check`: `docs/THIRD-PARTY-NOTICES.md` inputs table (name, source, ref, whole locked rev ∵ typos splits short hex, type) from `flake.lock` (pklith/xenolith `notices`)|V1,V3
-T110|.|`facts --check`: numbers README \& `docs/LLM-DISCLAIMER.md` quote in prose (gate steps, tests, nodes, probe count) = their owning files (pklith `facts`)|V1
+T110|x|`facts --check`: numbers README \& `docs/LLM-DISCLAIMER.md` quote in prose (gate steps, tests, nodes, probe count, pinned Nix \& floor) = their owning files; probe owner = distinct `probe N` in `docs/FACTS.md` table rows (pklith `facts`)|V1
 T111|.|`changelog FILE` (commit-msg hook step): a `feat`\|`fix` commit touching session code (`setup.sh`, `scripts/**`, `nix/cloud-home.nix`, `nix/cloud-permissions.json`) adds a `CHANGELOG.md` entry in the same commit, else refuse w/ the rule; `docs`/`test`/`refactor` exempt (pklith `changelog`)|`.:V20`,`docs:T37`
 T112|.|? `select`: run only the generated outputs a changed file can affect (xenolith `select`) — when the gate gets slow|V3
 
