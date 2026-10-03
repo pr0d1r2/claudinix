@@ -123,3 +123,6 @@ T10|.|`just bump-nix <ver>`: fetch installer + `.sha256`, rewrite pin pair, run 
 
 ## §B BUGS
 id|date|cause|fix
+B1|2026-10-03|assumed "include default list" covers `*.nixos.org` (docs); proxy refused `cache.nixos.org` \& `channels.nixos.org` → `nix develop` built from source \& failed|C6 names hosts explicitly; probe checks each host (T3)
+B2|2026-10-03|seed `setup.sh` appended `nix.conf` block only when marker absent ∴ adding `accept-flake-config` never reached a VM w/ old block|V3 managed block rewritten whole
+B3|2026-10-03|spec V15/V20 fetched own repo via `github:` → would 403 in cloud (caught before build)|V15, V20 use `git+https`
