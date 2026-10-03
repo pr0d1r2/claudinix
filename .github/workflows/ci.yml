@@ -1,0 +1,72 @@
+# The gate, run exactly the way it runs locally: `nix develop` supplies the
+# toolchain pinned in flake.lock, and `hk check` runs the steps defined in
+# hk.pkl (SPEC V22). This file installs no linters of its own.
+#
+# On the default branch it also fills the binary cache that cloud sessions
+# substitute from (SPEC C19), then proves the push in a separate job: a
+# push step that exits 0 is not evidence that anything arrived.
+
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Nothing here writes to the repository, so read is the whole requirement.
+permissions:
+  contents: read
+
+# A newer push makes the older run's verdict worthless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: gate
+    # x86_64-linux: the system of the cloud session VM (SPEC C1).
+    runs-on: ubuntu-latest
+    steps:
+      # Actions pinned to commit SHAs; tags are mutable. `fetch-depth: 0`
+      # because tdd-order reads history; `persist-credentials: false`
+      # because nothing here pushes to git.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31.11.0
+
+      # Pushes from the default branch only. Pull requests (forks get no
+      # secrets) still read the cache; they cannot fill it.
+      - uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866 # v17
+        with:
+          name: pr0d1r2
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          skipPush: ${{ github.ref != 'refs/heads/main' || github.event_name == 'pull_request' }}
+
+      # `--check`: CI reports, never rewrites. `--no-fail-fast`: a round
+      # trip costs minutes, so report every failure at once.
+      - run: nix develop --command hk check --all --check --no-fail-fast
+
+      # `--all-systems`: the bare form skips other systems silently.
+      - run: nix flake check --all-systems
+
+      # The dev shell itself, so its output path is pushed and verifiable.
+      - run: nix build --no-link .#devShells.x86_64-linux.default
+
+  verify-cache:
+    name: verify cache
+    needs: gate
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31.11.0
+
+      - run: bash scripts/ci/verify-cachix.sh .#checks.x86_64-linux.xenolith .#devShells.x86_64-linux.default
