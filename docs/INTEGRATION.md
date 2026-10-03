@@ -18,10 +18,10 @@ right and this file has a bug.
 A fourth hook, `commit-msg`, runs one step on the commit message.
 
 `all` is `fast` plus three steps that judge the branch rather than a single
-commit: the bats suite, `bats-mirror` and `tdd-order`. They stay off
-`pre-commit` on purpose. A RED commit adds a failing test before its script
-exists, so running the suite or the mirror check on every commit would make
-the RED commit impossible.
+commit: the bats suite, the dev crate's `cargo test`, `bats-mirror` and
+`tdd-order`. They stay off `pre-commit` on purpose. A RED commit adds a
+failing test before its code exists, so running the suites or the mirror
+check on every commit would make the RED commit impossible.
 
 [`ci.yml`](../.github/workflows/ci.yml) does not list any step. It enters
 the pinned dev shell and delegates:
@@ -110,6 +110,10 @@ hk hands the step; by hand, name the files yourself.
 | `claudinix-config` | `.claudinix.toml`, `scripts/config.sh`, `scripts/config.jq` | `scripts/config.sh check` |
 | `cloud-permissions` | `nix/cloud-permissions.json`, `.claude/settings.json`, `scripts/guard/cloud-permissions.sh` | `scripts/guard/cloud-permissions.sh` |
 | `exec-bit` | every file | `scripts/guard/exec-bit.sh` |
+| `dev-fmt` | `dev/**` | `cargo fmt --check --manifest-path dev/Cargo.toml` (fix: drop `--check`) |
+| `dev-clippy` | `dev/**` | `cargo clippy --quiet --all-targets --manifest-path dev/Cargo.toml -- -D warnings` |
+| `readme-badges` | `README.md`, `LICENSE`, `setup.sh`, `.claudinix.toml`, `hk.pkl`, `pkl/*.pkl`, `SPEC.md`, `ci.yml`, `tests/unit/**/*.bats`, `dev/**` | `claudinix-dev badges --check` (fix: `--write`) |
+| `integration-counts` | `docs/INTEGRATION.md`, `hk.pkl`, `pkl/*.pkl`, `dev/**` | `claudinix-dev counts --check` (fix: `--write`) |
 
 A few notes on why the steps look the way they do:
 
@@ -139,6 +143,14 @@ A few notes on why the steps look the way they do:
   `scripts/config.jq`), because a change to the schema must rerun the check
   on the file. Like the reader, it needs `nix` and `jq` on `PATH` and fails
   loudly without them; it never passes for a tool it could not run.
+- **readme-badges** and **integration-counts** run `claudinix-dev`, the
+  repository's own Rust tool in `dev/` (std only, never published, built by
+  Nix into the dev shell). The README badges and the step counts in the
+  table above are generated from the files that own them (`hk.pkl` through
+  `pkl eval`, the `@test` lines, `setup.sh`, `.claudinix.toml`, `LICENSE`,
+  the root `§F`), so adding a gate step or a bats test means running
+  `claudinix-dev badges --write` and `claudinix-dev counts --write` in the
+  same commit.
 - **Secrets** are checked twice because the two tools answer different
   questions: `detect-private-key` finds key blocks, `ripsecrets` finds token
   shapes. The repository is public from its first push.
@@ -148,6 +160,7 @@ A few notes on why the steps look the way they do:
 | step | by hand |
 |---|---|
 | `bats` | `bats --recursive tests/unit` |
+| `dev-test` | `cargo test --quiet --manifest-path dev/Cargo.toml` |
 | `bats-mirror` | `scripts/guard/bats-mirror.sh` |
 | `tdd-order` | `scripts/guard/tdd-order.sh [range]` |
 
@@ -171,6 +184,7 @@ The subject must follow Conventional Commits and the body must have a
 | check | what it runs |
 |---|---|
 | `checks.<system>.xenolith` | [`scripts/nix/xenolith-check.sh`](../scripts/nix/xenolith-check.sh): `xnl check .` over the flake source |
+| `checks.<system>.claudinix-dev` | builds `packages.<system>.claudinix-dev` from `dev/` and runs its `cargo test` |
 | `checks.x86_64-linux.cloud-home` | [`scripts/nix/cloud-home-check.sh`](../scripts/nix/cloud-home-check.sh): the agent home's activation package holds the cavekit skills, `FORMAT.md` and the set rules (only on `x86_64-linux`, the one system the agent home is built for) |
 
 ### In CI only
@@ -202,7 +216,9 @@ that exits 0 is not proof that anything arrived.
 
 hk runs independent steps in parallel. `depends` is used only where one
 step must wait for another: `spec-check` waits for `spec-fmt`, and
-`budget`, `nav` and `spec-structure` wait for `federation`.
+`budget`, `nav` and `spec-structure` wait for `federation`, and the cargo
+steps run in a chain (`dev-fmt`, then `dev-clippy`, then `dev-test`)
+because cargo locks its target directory.
 
 The dev shell sets `HK_JOBS=4` and `BATS_NUMBER_OF_PARALLEL_JOBS=4`, so hk
 and the bats suite (through GNU `parallel`) each run four jobs at once. Four
