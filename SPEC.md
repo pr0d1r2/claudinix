@@ -93,19 +93,19 @@ T3|x|ARCHIVED to SPEC-ARCHIVE.md|C8,V8,V9,I.file
 T4|x|ARCHIVED to SPEC-ARCHIVE.md|C8,C6,V10,I.ext.env — done 2026-10-03: env `nix` created; probes 1-5 on sherd
 T5|x|ARCHIVED to SPEC-ARCHIVE.md|V9,V4 — not needed: session uid = root (probe 1)
 T7|.|measure setup wall time on fresh VM; record; > 5 min → trim|V5,C1
-T10|x|`just bump-nix <ver>`: fetch `install.sha256`, rewrite pin pair in `setup.sh`; owner reviews diff \& runs gate|V11,C4
+T10|x|ARCHIVED to SPEC-ARCHIVE.md|V11,C4
 T11|.|MANUAL create public GitHub repo `pr0d1r2/nix-claude-code-cloud`, add remote, push after `docs:T9`|C10,V12
 T14|.|probe ext: `echo $HOME`, `id`, `ls -la ~/.claude`, `settings.json` owner \& content before/after launch; setup places 1 test skill in `~/.claude/skills` → visible to Claude (`/` list) ?|C13,`nix:V14`,I.file
-T17|x|`setup.sh` tail: activate agent home w/ `nix:V15` failover as Claude's uid; seams `CLOUD_HOME_FLAKE`, `CLOUD_HOME_STOREPATH`; bats w/ stub `nix`|`nix:V14`,`nix:V15`,V7,I.file
+T17|x|ARCHIVED to SPEC-ARCHIVE.md|`nix:V14`,`nix:V15`,V7,I.file
 T19|x|ARCHIVED to SPEC-ARCHIVE.md|C16,C17,V17,V19
 T20|x|ARCHIVED to SPEC-ARCHIVE.md|C15,V18
 T21|x|ARCHIVED to SPEC-ARCHIVE.md|C20,V18
 T22|x|ARCHIVED to SPEC-ARCHIVE.md|C20,C15,V19 — decided 2026-10-03: ⊥ adopt; pklith v0.1.0 (`4aa83e0`) still emits inline `command -v … \|\| {…}` per step ⇒ C15 breach; keep hand `hk.pkl`; upstream issue (emit `scripts/hk/*.sh` calls) pending owner OK to file
 T23|x|ARCHIVED to SPEC-ARCHIVE.md|C19,V22,C16
-T24|x|UI line: `setup.sh` takes `<sha>` arg; `scripts/setup-line.sh` prints line for HEAD; bats. split 2026-10-03: SETUP.md half → `docs:T70`, CI-green gate → T69|V20,C19,V10
+T24|x|ARCHIVED to SPEC-ARCHIVE.md|V20,C19,V10
 T29|x|ARCHIVED to SPEC-ARCHIVE.md|C6,V10 — answered: `github.com` allowed ⇒ 3rd-party git reads pass; `add_repo` read = no-op
-T30|x|base `allowlist.txt` = Nix-only hosts (cachix, `cache.nixos.org`, `channels.nixos.org`, `releases.nixos.org`); ecosystem hosts (crates.io…) come from `apps.domains` per target, ⊥ hardcoded; SETUP shows both|C6,I.cmd,`scripts:T27`
-T48|x|`env-names.txt`: optional `BASH_DEFAULT_TIMEOUT_MS=600000` (E4: default backgrounds at 120 s, ⊥ kills); SETUP + guide show them|V24,I.file
+T30|x|ARCHIVED to SPEC-ARCHIVE.md|C6,I.cmd,`scripts:T27`
+T48|x|ARCHIVED to SPEC-ARCHIVE.md|V24,I.file
 T50|.|decide env strategy: 1 shared env `nix` w/ union of target domains vs 1 env per ecosystem (`nix-rust`, …); criteria: allowlist size \& review, snapshot reuse, model per env; record decision in C6|C6,V10,I.ext.env
 T51|.|unattended runs: permission mode for routines \& long jobs; what a job does while a prompt waits (timeout, report, ⊥ hang); extends `docs:T47`|`docs:T47`,C9
 T52|.|record VM resources (`nproc`, `free`, `df /`, store growth) in FACTS; set bats `--jobs`, hk jobs, cargo jobs from them|C18,`docs:T34` — measured: 4 vCPU ∴ hk \& bats jobs = 4, cargo default
@@ -123,8 +123,8 @@ T64|.|EXP E9 `nix-dev` auto-overrides prototype on itok \| microlith w/o changin
 T65|.|EXP E10 unattended routine: API-triggered routine on env `nix`, trivial task; watch prompts \& errors|T51
 T66|.|EXP E11 cost per session: usage page before/after E1-E5; confirms credit charged at API rates ?|I.file,`docs:T42` — first reading 2026-10-03: $7 for 8 short sessions (7 probes + 1 job, 7 on Opus 5.5) ≈ $0.90/session; per-session split still unmeasured
 T67|x|ARCHIVED to SPEC-ARCHIVE.md|T58,`scripts:T28`,I.cmd — answered 2026-10-03 (probe 7): `claude --cloud "<task>" --model sonnet` ⇒ configured, served \& trailer = Sonnet 5.5; `--model` before the task fails (`--cloud requires a description`)
-T68|x|C11 config block: cachix host + key + repo slug as variables at top of `setup.sh`, used by every later line; `docs/FORKING.md` → 1 place; bats: block edit alone retargets cache \& repo|C11,V3,I.file
-T69|x|setup line safety: `scripts/setup-line.sh` refuses a REV whose CI run on default branch is not green (`gh run list --commit`) unless `--force`; `setup.sh` fetches nix-dev at its SHA arg (⊥ `main`); bats w/ stubbed `gh`\|`curl`|V20,C19,I.file
+T68|x|ARCHIVED to SPEC-ARCHIVE.md|C11,V3,I.file
+T69|x|ARCHIVED to SPEC-ARCHIVE.md|V20,C19,I.file
 
 ## §B BUGS
 id|date|cause|fix
