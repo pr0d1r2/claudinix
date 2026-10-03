@@ -8,6 +8,28 @@ environment in the browser without a matching commit here.
 You need a claude.ai account with cloud sessions (Pro, Max, Team, or
 Enterprise with a Claude Code seat) and GitHub connected to it.
 
+## 0. Before your first cloud session: protect your money
+
+> **Important:** do both steps before you start any cloud session,
+> including a test or probe session. Skipping them can spend your plan
+> quota or charge your card.
+
+1. **Claim any cloud credit first.** If your account was offered
+   promotional credit for cloud sessions, claim it before the first
+   session: run `/claim-credit` in Claude Code, or claim it at
+   claude.ai. Then open
+   [claude.ai/settings/usage](https://claude.ai/settings/usage) and check
+   that it shows the credit amount and its expiry date. Credit has a
+   claim deadline; unclaimed credit is lost, and sessions run before the
+   claim use your plan quota instead.
+2. **Check that usage credits are OFF.** On the same page,
+   [claude.ai/settings/usage](https://claude.ai/settings/usage), make
+   sure the usage credits (metered overage) toggle is OFF. When it is
+   ON, cloud sessions and routines that go past your credit or plan
+   limits are billed to your card. Check it again before you add a
+   routine or run more sessions in parallel, and once a week while you
+   use cloud sessions.
+
 ## 1. Create the environment (browser, once)
 
 1. Open [claude.ai/code](https://claude.ai/code).
