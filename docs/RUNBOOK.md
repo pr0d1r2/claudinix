@@ -11,7 +11,8 @@ The cloud environment itself lives in the claude.ai web UI and has no API
 
 ## Bump the pinned Nix version
 
-**Human.** Planned: `just bump-nix <version>` (`SPEC.md` T10).
+**Automated, with a human review.** `just bump-nix <version>` does the
+rewrite (`SPEC.md` T10); you review the diff, run the gate and commit.
 
 The image already ships a Nix (2.34.6, measured 2026-10-03), and
 `setup.sh` uses it whenever it is at least the floor `NIX_MIN_VERSION`
@@ -20,16 +21,17 @@ matters only when the image falls behind the floor, or when you raise the
 floor on purpose.
 
 1. Pick the version from [releases.nixos.org](https://releases.nixos.org/?prefix=nix/).
-2. Fetch the installer's published hash:
-
-   ```sh
-   curl -fsSL https://releases.nixos.org/nix/nix-<version>/install.sha256
-   ```
-
-3. In `setup.sh`, change `version=` and the default `sha256` together, in
-   one commit (`SPEC.md` V11). A version without its hash, or the reverse,
-   makes `setup.sh` refuse to run the installer.
-4. Run the gate (`hk check --all`), push, and let CI go green.
+2. Run `just bump-nix <version>` (for example `just bump-nix 2.36.0`). It
+   fetches `install.sha256` for that version from releases.nixos.org and
+   rewrites `version=` and the default `sha256` in `setup.sh` together
+   (`SPEC.md` V11), then prints
+   `bump-nix: setup.sh now pins Nix <version>, installer sha256 <hash>`. It
+   changes nothing else, and if it cannot fetch or parse the hash it leaves
+   `setup.sh` unchanged and exits 1. A version without its hash, or the
+   reverse, would make `setup.sh` refuse to run the installer, which is why
+   the two are never edited by hand.
+3. Review `git diff setup.sh`: two lines should change, and nothing else.
+4. Run the gate (`hk check --all`), commit, push, and let CI go green.
 5. Update the environment's setup script in the browser (see below), then
    start a new session and run `probe.sh` to see the new version.
 
@@ -40,11 +42,14 @@ update is a new SHA and nothing else (`SPEC.md` T24, V20). Its fetch of
 `setup.sh` from `raw.githubusercontent.com` has not yet been tried in a real
 cloud session (`SPEC.md` T57).
 
-1. Make sure the change is merged, pushed and CI is green. The line does not
-   check this: use a SHA whose CI has pushed the agent home to the cache.
+1. Make sure the change is merged, pushed and CI on `main` is green. The line
+   checks this too: `setup-line.sh` refuses a SHA whose newest `ci.yml` run on
+   `main` is not completed and successful, because that run pushes the agent
+   home to the cache (`SPEC.md` C19).
 2. Print the new line from a checkout: `scripts/setup-line.sh`, or
-   `scripts/setup-line.sh <rev>` for another commit
-   ([`CLI.md`](CLI.md)).
+   `scripts/setup-line.sh <rev>` for another commit (a full SHA needs no
+   checkout). `--force` prints it despite a red or missing run, with a
+   warning; use it only on purpose ([`CLI.md`](CLI.md)).
 3. Follow "Updating the environment" in [`SETUP.md`](SETUP.md): open the
    `nix` environment's settings, select all of the old setup script, paste
    the new line over it, save.
