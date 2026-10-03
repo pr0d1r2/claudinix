@@ -152,3 +152,34 @@ EOF
     grep -qx 'max-jobs = 4' "$conf"
     [ "$(grep -c '^# BEGIN nix-claude-code-cloud' "$conf")" -eq 1 ]
 }
+
+# An image-shipped nix in the default profile, as probe 1 found it (C4, C8).
+image_nix() {
+    mkdir -p "$NIX_DEFAULT_PROFILE/bin"
+    printf '#!/bin/sh\necho "nix (Nix) %s"\n' "$1" >"$NIX_DEFAULT_PROFILE/bin/nix"
+    chmod +x "$NIX_DEFAULT_PROFILE/bin/nix"
+}
+
+@test "image nix at or above the floor: no install, linked and used (V4)" {
+    image_nix 2.34.6
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ ! -e "$INSTALLER_LOG" ]
+    [[ "$output" == *"nix (Nix) 2.34.6"* ]]
+    [ "$("$BIN_DIR/nix" --version)" = "nix (Nix) 2.34.6" ]
+}
+
+@test "image nix below the floor: pinned install wins the PATH dir (V4)" {
+    image_nix 2.18.1
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ "$(cat "$INSTALLER_LOG")" = "--no-daemon --yes" ]
+    [ "$("$BIN_DIR/nix" --version)" = "nix (Nix) 2.35.2" ]
+}
+
+@test "NIX_MIN_VERSION seam raises the floor (C4)" {
+    image_nix 2.34.6
+    NIX_MIN_VERSION=2.40 run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ "$(cat "$INSTALLER_LOG")" = "--no-daemon --yes" ]
+}
