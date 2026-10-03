@@ -11,6 +11,7 @@ up|.|-
 self|nix|flake outputs: dev shell, checks, agent home `homeConfigurations.cloud` \\& its activation package, cachix push of it
 sib|scripts|repo shell tools: gate guards, hk runners, dev shell hook, CI checks, target-project apps (`nix-dev`, `inputs`, `domains`, `guide`, probe launcher)
 sib|docs|human docs in plain English: setup walkthrough, facts, runbook, security, consumer \\& release docs
+sib|experiments|cloud-session experiments: prompts, dated results, setup timing, snapshot reuse, skill survival, self-build runs; results feed `docs/FACTS.md`
 
 ## §C CONSTRAINTS
 

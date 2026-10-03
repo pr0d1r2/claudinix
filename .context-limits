@@ -22,12 +22,18 @@
 # (§I file row, V34) and its reader tasks belong to the scripts node,
 # which owns scripts/config.sh. Measured with them in: file 2724. Same
 # ~15% margin.
+#
+# Set 2026-10-03 for the new experiments node: the cloud experiment rows
+# (T7, T14, T52, T55-T66, T102) and C23 move down from root, which drops
+# the root chain to 6.6k. Measured: file 1034, chain 7519. ~15% margin.
 
 SPEC.md          8700
 scripts/SPEC.md  3150
 nix/SPEC.md       850
 docs/SPEC.md     1800
+experiments/SPEC.md 1200
 
 scripts 11050
 nix      8950
 docs     9900
+experiments  8650
