@@ -164,16 +164,28 @@ there. They also appear in these files:
 | [`allowlist.txt`](allowlist.txt) | the cache host |
 | [`flake.nix`](flake.nix) | `nixConfig` |
 | [`probe.sh`](probe.sh) | the `CACHIX_URL` default |
-| [`scripts/ci/verify-cachix.sh`](scripts/ci/verify-cachix.sh) | the `CACHIX_URL` default |
-| [`scripts/inputs.sh`](scripts/inputs.sh) | the `INPUTS_CACHES` default |
+| [`scripts/ci/verify-cachix.sh`](scripts/ci/verify-cachix.sh) | nothing if you set `cache.name` (below) |
+| [`scripts/inputs.sh`](scripts/inputs.sh) | the fallback `name=` for an old install (the default comes from `cache.name`) |
+| [`scripts/config.jq`](scripts/config.jq) | the default `cache.name` |
 | [`scripts/nix/record-storepath.sh`](scripts/nix/record-storepath.sh) | the `CACHIX_URL` default |
 | [`scripts/setup-line.sh`](scripts/setup-line.sh) | the `repo=` line |
 | [`scripts/ci/push-sources.sh`](scripts/ci/push-sources.sh) and [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | the cachix cache name (in the workflow's cachix action and its `push-sources.sh` call) and the `CACHIX_AUTH_TOKEN` secret |
 
 The bats tests assert these values too and need the same change.
 
+A fork can also set `cache.name` in its own `.claudinix.toml`; `inputs` and the
+cache check then use it ([`docs/CONFIG.md`](docs/CONFIG.md)). The `pr0d1r2`
+default still lives in `scripts/config.jq`, and the old-install fallback in
+`scripts/inputs.sh`.
+
 Your cache needs a push token, and that token lives only in your CI secrets.
 It is never put on a session VM; from the VM the cache is read-only.
+
+## A config file, if you want one
+
+A repository can keep its choices (model, dev shell, extra domains, cache name)
+in an optional `.claudinix.toml` at its root. Most repositories need none; see
+[`docs/CONFIG.md`](docs/CONFIG.md).
 
 ## Known limits
 
@@ -208,6 +220,7 @@ the platform at any time.
 |---|---|
 | [`docs/SETUP.md`](docs/SETUP.md) | browser and terminal steps, updating, troubleshooting |
 | [`docs/CLI.md`](docs/CLI.md) | the commands: flags, exit codes, output |
+| [`docs/CONFIG.md`](docs/CONFIG.md) | the optional `.claudinix.toml`: every key, default and which tool reads it |
 | [`docs/CONSUMER.md`](docs/CONSUMER.md) | what your repository does to work well in a session |
 | [`docs/CACHE-CI.md`](docs/CACHE-CI.md) | the CI job that fills the binary cache from your repository |
 | [`docs/EXAMPLE.md`](docs/EXAMPLE.md) | a real repository from zero to a green test run, with timings |
