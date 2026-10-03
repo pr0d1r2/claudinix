@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # `nix develop` that survives a cloud session's GitHub proxy (SPEC
-# scripts:T12, scripts:V13, .:V8, I.cmd `nix-dev`).
+# scripts:T12, scripts:T79, scripts:V13, .:V8, I.cmd `nix-dev`).
 #
 # A `github:` input 403s in a session unless its repo is attached, so the
 # dev shell of the flake in the current directory is reached through the
@@ -10,21 +10,26 @@
 #      `git+https://github.com/<o>/<r>?rev=<locked rev>&shallow=1`
 #      (a git read the proxy lets through; nixpkgs is too big for it);
 #   3. `github:` as locked: works only for repos attached to the session;
-#   4. tier 2 plus nixpkgs from its channel tarball on channels.nixos.org
-#      (the lock's `nixos-<ver>` | `nixos-unstable` | `nixpkgs-unstable`
-#      ref, else nixpkgs-unstable): degraded, the rev differs from the lock.
-# Overrides are never written to flake.lock (--no-write-lock-file). Tiers
-# 3 and 4 warn. A tier whose command an earlier tier already ran is
-# skipped. Each tier is tried with `nix print-dev-env`; the winner's
-# arguments go to `nix develop` with the caller's ARGS after them.
+#   4. tier 2 plus each nixpkgs node from its channel tarball on
+#      channels.nixos.org (that node's `nixos-<ver>` | `nixos-unstable` |
+#      `nixpkgs-unstable` ref, else nixpkgs-unstable): degraded, the rev
+#      differs from the lock.
+# nixpkgs is matched case-insensitively (`nixos/nixpkgs` too). Overrides
+# are never written to flake.lock (--no-write-lock-file). Tiers 3 and 4
+# warn. A tier whose command an earlier tier already ran is skipped. Each
+# tier is tried with `nix print-dev-env`, and a failed one logs nix's
+# first `error:` line; the winner's arguments go to `nix develop` with the
+# caller's ARGS after them. A leading installable (first arg not starting
+# with `-`, e.g. `.#ci`) goes first to every one of those commands.
 #
 # Which inputs a cache holds comes from inputs.sh (scripts:T49, T25):
 # tier 1 runs only when every github input is cached, and tier 2
 # overrides only the uncached ones, so a flake needs no change. When the
 # status cannot be read, tier 1 is tried anyway and tier 2 overrides
-# every github input but nixpkgs.
+# every github input but nixpkgs. Without jq there is no failover at all,
+# and a loud warning says so.
 #
-# Usage: nix-dev [ARGS...]   (ARGS as for `nix develop`)
+# Usage: nix-dev [INSTALLABLE] [ARGS...]   (as for `nix develop`)
 # Env:   CLAUDINIX_SCRIPTS  dir holding nix-dev.jq and inputs.sh (default:
 #                           this script's dir, symlinks followed)
 
@@ -45,21 +50,51 @@ while [ -L "$self" ]; do
 done
 lib="${CLAUDINIX_SCRIPTS:-$(dirname "$self")}"
 
-if [ ! -f flake.lock ] || ! command -v jq >/dev/null 2>&1; then
-    log "tier 1: plain nix develop (no flake.lock or no jq here, so no failover)"
-    exec nix develop "$@"
+# A leading installable names the flake; its lock is the one that counts.
+installable=()
+flake=.
+case "${1:-}" in
+-* | "") ;;
+*)
+    installable=("$1")
+    flake="${1%%#*}"
+    flake="${flake:-.}"
+    shift
+    ;;
+esac
+
+if [ ! -d "$flake" ]; then
+    log "tier 1: plain nix develop (${installable[0]} is not a local flake dir, so no failover)"
+    exec nix develop "${installable[@]}" "$@"
+fi
+if [ ! -f "$flake/flake.lock" ]; then
+    log "tier 1: plain nix develop (no flake.lock here, so no failover)"
+    exec nix develop "${installable[@]+"${installable[@]}"}" "$@"
+fi
+if ! command -v jq >/dev/null 2>&1; then
+    log "WARNING: jq is not on PATH -- failover is off, running plain nix develop as tier 1 (install jq for the scripts:V13 tiers)"
+    exec nix develop "${installable[@]+"${installable[@]}"}" "$@"
 fi
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
-jq -r -f "$lib/nix-dev.jq" flake.lock >"$tmp/github"
+jq -r -f "$lib/nix-dev.jq" "$flake/flake.lock" >"$tmp/github"
 
-# `owner/repo rev cached|attach` per github input (scripts:T25).
-if bash "$lib/inputs.sh" >"$tmp/status" 2>"$tmp/status.err"; then
+# why FILE: nix's first `error:` line in FILE, else its last non-empty one.
+why() {
+    local line
+    line="$(grep -m 1 -E '^[[:space:]]*error:' "$1" || true)"
+    [ -n "$line" ] || line="$(grep -v '^[[:space:]]*$' "$1" | tail -n 1 || true)"
+    line="${line#"${line%%[![:space:]]*}"}"
+    printf '%s' "${line:-no output}"
+}
+
+# `owner/repo rev cached|uncached` per github input (scripts:T25).
+if bash "$lib/inputs.sh" "$flake" >"$tmp/status" 2>"$tmp/status.err"; then
     known=1
 else
     known=0
-    log "cache status unknown (inputs.sh: $(tail -n 1 "$tmp/status.err")) -- trying every tier"
+    log "cache status unknown (inputs.sh: $(why "$tmp/status.err")) -- trying every tier"
 fi
 
 # uncached NAME REV: no cache holds it, or nobody knows.
@@ -68,23 +103,24 @@ uncached() {
 }
 
 git_overrides=()
-nixpkgs_paths=()
-channel=nixpkgs-unstable
+channel_overrides=()
+channels=()
 while read -r path name rev ref; do
-    if [ "$name" = NixOS/nixpkgs ]; then
-        nixpkgs_paths+=("$path")
+    if [ "$(tr '[:upper:]' '[:lower:]' <<<"$name")" = nixos/nixpkgs ]; then
         case "$ref" in
         nixos-[0-9]*.[0-9]* | nixos-unstable | nixpkgs-unstable) channel="$ref" ;;
+        *) channel=nixpkgs-unstable ;;
+        esac
+        channel_overrides+=(--override-input "$path" "https://channels.nixos.org/$channel/nixexprs.tar.xz")
+        case " ${channels[*]-} " in
+        *" $channel "*) ;;
+        *) channels+=("$channel") ;;
         esac
     elif uncached "$name" "$rev"; then
         git_overrides+=(--override-input "$path" "git+https://github.com/$name?rev=$rev&shallow=1")
     fi
 done <"$tmp/github"
-
-channel_overrides=()
-for path in "${nixpkgs_paths[@]+"${nixpkgs_paths[@]}"}"; do
-    channel_overrides+=(--override-input "$path" "https://channels.nixos.org/$channel/nixexprs.tar.xz")
-done
+channel="${channels[*]-}"
 
 tried="$tmp/tried"
 : >"$tried"
@@ -100,12 +136,12 @@ attempt() {
         return 1
     fi
     echo "$key" >>"$tried"
-    if nix print-dev-env "$@" >/dev/null 2>"$tmp/err"; then
+    if nix print-dev-env "${installable[@]+"${installable[@]}"}" "$@" >/dev/null 2>"$tmp/err"; then
         chosen=("$@")
         log "using tier $tier: $what"
         return 0
     fi
-    log "tier $tier failed ($what): $(tail -n 1 "$tmp/err")"
+    log "tier $tier failed ($what): $(why "$tmp/err")"
     return 1
 }
 
@@ -136,4 +172,4 @@ fi
 
 # exec skips the EXIT trap, so clean up first.
 rm -rf "$tmp"
-exec nix develop "${chosen[@]+"${chosen[@]}"}" "$@"
+exec nix develop "${installable[@]+"${installable[@]}"}" "${chosen[@]+"${chosen[@]}"}" "$@"
