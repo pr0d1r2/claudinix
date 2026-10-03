@@ -43,11 +43,17 @@ a 403 (probe 2, 2026-10-03). Two ways round that, best first:
 Whichever you pick, the dev shell's closure should be in the cache too, or
 the session builds it from source.
 
-Planned, not built: a `nix-dev` wrapper that tries these tiers for you, and a
-`nix run github:pr0d1r2/nix-claude-code-cloud#inputs` command that lists which
-of your inputs are cached (`scripts/SPEC.md` T12, T25, T49). Until they exist,
-check an input by hand with the narinfo request in
-[`CACHE-CI.md`](CACHE-CI.md).
+Two commands do this for you ([`CLI.md`](CLI.md)):
+
+- `nix run github:pr0d1r2/nix-claude-code-cloud#inputs`, run in your project,
+  lists each `github:` input of `flake.lock` as `cached` or `attach`. To check
+  one by hand, use the narinfo request in [`CACHE-CI.md`](CACHE-CI.md).
+- `nix-dev` is installed in the session by the setup script. It runs
+  `nix develop` and tries these tiers in order: locked inputs from the cache,
+  uncached inputs fetched with git at the locked revision, `github:` as
+  locked, and last nixpkgs from its channel tarball. It logs the tier it used
+  and never writes `flake.lock`, so your flake needs no change. It has not
+  yet been run inside a real cloud session.
 
 ## A SessionStart hook
 
@@ -145,6 +151,8 @@ unattended session can wait on a prompt.
 
 Your ecosystem's package hosts must be in the environment's allowed domains.
 Cargo needs `index.crates.io` and `static.crates.io`, added by name (probe 4,
-2026-10-03). Allowlist edits reach only new sessions. Planned: `nix run
-github:pr0d1r2/nix-claude-code-cloud#domains` will list the hosts your
-project needs from its lock files (`scripts/SPEC.md` T27).
+2026-10-03). Allowlist edits reach only new sessions. Run `nix run
+github:pr0d1r2/nix-claude-code-cloud#domains` in your project: it lists the
+base hosts plus the hosts your lock files name (Cargo, npm, Python, Ruby, Go,
+git submodules, Nix), and `--why` says which file named each
+([`CLI.md`](CLI.md)).
