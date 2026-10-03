@@ -14,13 +14,16 @@ The steps are defined in [`hk.pkl`](../hk.pkl) and explained in
 |---|---|---|
 | `.sh` | shellcheck, shfmt (`-i 4`), xenolith, bats-mirror, tdd-order, bats | every script has `tests/unit/<same path>.bats` |
 | `.bats` | shellcheck, shfmt (`-i 4`), xenolith, bats-mirror, bats | tests; each needs its script |
+| `justfile` | just (`--fmt --check --unstable`) | one plain command per recipe; the logic is in the scripts |
 | `.envrc` | shellcheck | direnv runs it with bash |
 | `.nix` | nixfmt, xenolith, `nix flake check` | no shell inside nix strings |
 | `.pkl` | none beyond hygiene | `hk` evaluates `hk.pkl` on every run, so a broken file stops the gate; `pkl/Config.pkl` is hk's schema, vendored verbatim and excluded from `typos` |
 | `.yml` | actionlint, zizmor (`--offline`, pedantic) | GitHub workflows only |
 | `.md` | none beyond hygiene | every `SPEC.md` also gets `mth fmt`, `mth check`, `itok check` and `sherd validate`, `sync --check`, `check`, `budget`; `SPEC-ARCHIVE.md` files are sinks with hygiene only |
 | `.toml` | xenolith (`xenolith.toml` only) | `.typos.toml` is config for `typos` itself |
-| `.txt` | `setup.sh`'s bats | `allowlist.txt` and `env-names.txt`: tests check the hosts they name and that no value looks like a secret |
+| `.jq` | none beyond hygiene | `scripts/inputs.jq`, `scripts/nix-dev.jq`: jq programs read by `inputs.sh` and `nix-dev.sh`, so their bats tests run them on fixture `flake.lock` files |
+| `.tsv` | none beyond hygiene | `scripts/guide-steps.tsv`: a bats test keeps its step titles equal to the `docs/SETUP.md` headings |
+| `.txt` | `setup.sh`'s bats | `allowlist.txt` and `env-names.txt`: tests check the hosts they name and that no value looks like a secret; `scripts/probe-prompt.txt` is the task text `probe-launch.sh` sends and gets hygiene only |
 | `.context-limits` | `itok check`, `sherd validate`, `sherd budget` | token ceilings for `SPEC.md` |
 | `.lock` | none beyond hygiene | `flake.lock`, written by `nix flake lock` |
 | `.gitignore` | none beyond hygiene | git config |
