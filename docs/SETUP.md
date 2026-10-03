@@ -114,6 +114,32 @@ When it finishes within about five minutes, the VM's filesystem is
 snapshotted and later sessions start from that snapshot without
 running the script again, so the first session is the slow one.
 
+### GitHub repositories your flake fetches
+
+A session can read from GitHub only the repositories attached to it.
+Any other `github:` flake input, even a public one, fails with a 403
+that says GitHub access to the repository "is not enabled for this
+session". The first probe hit this for `github:NixOS/nixpkgs` and for
+`github:pr0d1r2/nix-hk`.
+
+For every repository your flake fetches straight from GitHub, either:
+
+- **Cache it.** Push the locked input and everything built from it to
+  your binary cache from CI. Nix then substitutes it by `narHash` and
+  never contacts GitHub. Do this for large repositories such as
+  `NixOS/nixpkgs`, which you should never attach.
+- **Attach it.** Add the repository to the session alongside your own:
+  in the repository picker at [claude.ai/code](https://claude.ai/code)
+  when you start a session, or in the routine's repository list. It
+  must also be allowed for the Claude GitHub App (step 2). Inside a
+  running session, Claude can request one with its `add_repo` tool.
+  Good for small repositories such as `pr0d1r2/nix-hk`. Note that a
+  session with several repositories starts above the clones and does
+  not read any repository's `.claude/settings.json`.
+
+Keep the list of repositories you attach next to your flake, so it
+stays in sync with `flake.lock`.
+
 ## 4. Choose the environment in your terminal (once per machine)
 
 Run `/remote-env` in Claude Code and pick `nix`. This saves the choice
