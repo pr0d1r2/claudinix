@@ -11,7 +11,8 @@
 # devShell installs them.
 # Usage: setup.sh
 # Seams: NIX_CONF_DIR, BIN_DIR, SYSTEMD_DIR, NIX_DEFAULT_PROFILE,
-#        NIX_INSTALL_URL, NIX_INSTALL_SHA256.
+#        NIX_INSTALL_URL, NIX_INSTALL_SHA256; agent home (T17):
+#        CLOUD_HOME_FLAKE, CLOUD_HOME_STOREPATH (file), CLOUD_HOME_MARKER.
 
 set -euo pipefail
 
@@ -95,3 +96,33 @@ mv "$conf.tmp" "$conf"
 mkdir -p "$bin_dir"
 ln -sf "$profile_bin"/* "$bin_dir/"
 "$bin_dir/nix" --version
+
+# The agent home (T17, nix:V14, nix:V15): activated here, before Claude
+# launches, as the user and HOME Claude runs as (root, /root: C8), so the
+# skills are in ~/.claude at launch and in the snapshot. Tier 1 builds it
+# from the flake over git+https (`github:` is a 403 in the cloud, C6, B3);
+# its closure is substituted from cachix. Tier 2 realises the recorded
+# store path from cachix without touching GitHub. If both fail, Nix stays
+# usable: warn loudly, leave a marker, exit 0.
+home_flake="${CLOUD_HOME_FLAKE:-git+https://github.com/pr0d1r2/nix-claude-code-cloud?shallow=1}"
+home_storepath="${CLOUD_HOME_STOREPATH:-$(dirname "$0")/cloud-home.storepath}"
+home_marker="${CLOUD_HOME_MARKER:-$HOME/.local/state/nix-claude-code-cloud/agent-home.failed}"
+home_attr="$home_flake#homeConfigurations.cloud.activationPackage"
+
+home=""
+if home="$("$bin_dir/nix" build --no-link --print-out-paths "$home_attr")" && [ -x "$home/activate" ]; then
+    echo "agent home: tier 1 (flake build) $home"
+elif [ -s "$home_storepath" ] && home="$(cat "$home_storepath")" &&
+    "$bin_dir/nix-store" -r "$home" >/dev/null && [ -x "$home/activate" ]; then
+    echo "agent home: tier 2 (recorded store path) $home"
+else
+    home=""
+fi
+
+if [ -n "$home" ] && PATH="$bin_dir:$PATH" "$home/activate"; then
+    rm -f "$home_marker"
+else
+    echo "WARNING: agent home NOT activated (tier 1 $home_attr, tier 2 $home_storepath): Nix works, ~/.claude skills are missing" >&2
+    mkdir -p "$(dirname "$home_marker")"
+    touch "$home_marker"
+fi
