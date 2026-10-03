@@ -6,3 +6,7 @@
 # launch with `claude --cloud "<task>" --model sonnet` instead (T67).
 # Kept until E3b shows whether it has any other effect.
 ANTHROPIC_MODEL=claude-sonnet-5-5
+# Optional: the Bash tool's default timeout, in ms. Without it a command
+# past 120 s moves to the background and still finishes (V24, probe 6);
+# 600000 (10 min) keeps gate runs in the foreground. Not a secret.
+BASH_DEFAULT_TIMEOUT_MS=600000
