@@ -243,7 +243,7 @@ EOF
     run bash "$SCRIPT"
     [ "$status" -eq 0 ]
     [[ "$output" == *"tier 1"* ]]
-    grep -q 'build .*git+https://github.com/pr0d1r2/nix-claude-code-cloud.*#homeConfigurations.cloud.activationPackage' "$NIX_LOG"
+    grep -q 'build .*git+https://github.com/pr0d1r2/claudinix.*#homeConfigurations.cloud.activationPackage' "$NIX_LOG"
     run ! grep -q 'github:' "$NIX_LOG"
     [ -s "$ACTIVATE_LOG" ]
     [ ! -e "$CLOUD_HOME_MARKER" ]
@@ -308,7 +308,7 @@ SHA=0123456789abcdef0123456789abcdef01234567
     agent_home
     run bash "$SCRIPT" "$SHA"
     [ "$status" -eq 0 ]
-    grep -qF "git+https://github.com/pr0d1r2/nix-claude-code-cloud?rev=$SHA&shallow=1#homeConfigurations.cloud.activationPackage" "$NIX_LOG"
+    grep -qF "git+https://github.com/pr0d1r2/claudinix?rev=$SHA&shallow=1#homeConfigurations.cloud.activationPackage" "$NIX_LOG"
 }
 
 @test "sha arg not a full commit id: usage error before anything runs (V20)" {
@@ -336,7 +336,7 @@ EOF
     BUILD_OK=0 run bash "$SCRIPT" "$SHA"
     [ "$status" -eq 0 ]
     [[ "$output" == *"tier 2"* ]]
-    grep -qx "https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/$SHA/cloud-home.storepath" "$CURL_LOG"
+    grep -qx "https://raw.githubusercontent.com/pr0d1r2/claudinix/$SHA/cloud-home.storepath" "$CURL_LOG"
     grep -qx "nix-store -r $HOME_PKG" "$NIX_LOG"
 }
 
@@ -380,8 +380,8 @@ fetch_stub() {
     cp "$SCRIPT" "$BATS_TEST_TMPDIR/setup.sh"
     run bash "$BATS_TEST_TMPDIR/setup.sh" "$SHA"
     [ "$status" -eq 0 ]
-    grep -qx "https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/$SHA/scripts/nix-dev.sh" "$FETCH_LOG"
-    grep -qx "https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/$SHA/scripts/nix-dev.jq" "$FETCH_LOG"
+    grep -qx "https://raw.githubusercontent.com/pr0d1r2/claudinix/$SHA/scripts/nix-dev.sh" "$FETCH_LOG"
+    grep -qx "https://raw.githubusercontent.com/pr0d1r2/claudinix/$SHA/scripts/nix-dev.jq" "$FETCH_LOG"
     run ! grep -q '/main/' "$FETCH_LOG"
     [ -x "$BIN_DIR/nix-dev" ]
 }
@@ -392,7 +392,7 @@ fetch_stub() {
     cp "$SCRIPT" "$BATS_TEST_TMPDIR/setup.sh"
     run bash "$BATS_TEST_TMPDIR/setup.sh"
     [ "$status" -eq 0 ]
-    grep -qx 'https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/main/scripts/nix-dev.sh' "$FETCH_LOG"
+    grep -qx 'https://raw.githubusercontent.com/pr0d1r2/claudinix/main/scripts/nix-dev.sh' "$FETCH_LOG"
     [ -x "$BIN_DIR/nix-dev" ]
 }
 
@@ -402,7 +402,7 @@ fetch_stub() {
     cp "$SCRIPT" "$BATS_TEST_TMPDIR/setup.sh"
     NCCC_REV=abc123 run bash "$BATS_TEST_TMPDIR/setup.sh" "$SHA"
     [ "$status" -eq 0 ]
-    grep -qx 'https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/abc123/scripts/nix-dev.sh' "$FETCH_LOG"
+    grep -qx 'https://raw.githubusercontent.com/pr0d1r2/claudinix/abc123/scripts/nix-dev.sh' "$FETCH_LOG"
 }
 
 @test "nix-dev's cache check (inputs.sh, inputs.jq) lands beside it (scripts:T49)" {
@@ -414,8 +414,8 @@ fetch_stub() {
     fetch_stub
     cp "$SCRIPT" "$BATS_TEST_TMPDIR/setup.sh"
     NCCC_REV=abc123 run bash "$BATS_TEST_TMPDIR/setup.sh"
-    grep -qx 'https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/abc123/scripts/inputs.sh' "$FETCH_LOG"
-    grep -qx 'https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/abc123/scripts/inputs.jq' "$FETCH_LOG"
+    grep -qx 'https://raw.githubusercontent.com/pr0d1r2/claudinix/abc123/scripts/inputs.sh' "$FETCH_LOG"
+    grep -qx 'https://raw.githubusercontent.com/pr0d1r2/claudinix/abc123/scripts/inputs.jq' "$FETCH_LOG"
 }
 
 @test "nix-dev fetch failing: setup still passes with nix, warns, links no nix-dev (V1)" {
@@ -441,7 +441,7 @@ OWNER_KEY='pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM='
     inside="$(sed -n '/^# BEGIN fork config/,/^# END fork config/p' "$SCRIPT")"
     grep -qF 'pr0d1r2.cachix.org' <<<"$inside"
     grep -qF "$OWNER_KEY" <<<"$inside"
-    grep -qF 'pr0d1r2/nix-claude-code-cloud' <<<"$inside"
+    grep -qF 'pr0d1r2/claudinix' <<<"$inside"
 }
 
 @test "fork config: editing only the block retargets the cache and the repo (C11, T68)" {
@@ -451,15 +451,15 @@ OWNER_KEY='pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM='
     sed -e '/^# BEGIN fork config/,/^# END fork config/{' \
         -e "s|$OWNER_KEY|fork.cachix.org-1:Zm9yaw==|" \
         -e 's|pr0d1r2\.cachix\.org|fork.cachix.org|' \
-        -e 's|pr0d1r2/nix-claude-code-cloud|forker/nccc|' \
+        -e 's|pr0d1r2/claudinix|forker/claudinix|' \
         -e '}' "$SCRIPT" >"$BATS_TEST_TMPDIR/fork/setup.sh"
     BUILD_OK=0 run bash "$BATS_TEST_TMPDIR/fork/setup.sh" "$SHA"
     [ "$status" -eq 0 ]
     conf="$NIX_CONF_DIR/nix.conf"
     grep -qx 'extra-substituters = https://fork.cachix.org' "$conf"
     grep -qx 'extra-trusted-public-keys = fork.cachix.org-1:Zm9yaw==' "$conf"
-    grep -qx "https://raw.githubusercontent.com/forker/nccc/$SHA/scripts/nix-dev.sh" "$FETCH_LOG"
-    grep -qx "https://raw.githubusercontent.com/forker/nccc/$SHA/cloud-home.storepath" "$FETCH_LOG"
-    grep -qF "git+https://github.com/forker/nccc?rev=$SHA&shallow=1#" "$NIX_LOG"
+    grep -qx "https://raw.githubusercontent.com/forker/claudinix/$SHA/scripts/nix-dev.sh" "$FETCH_LOG"
+    grep -qx "https://raw.githubusercontent.com/forker/claudinix/$SHA/cloud-home.storepath" "$FETCH_LOG"
+    grep -qF "git+https://github.com/forker/claudinix?rev=$SHA&shallow=1#" "$NIX_LOG"
     run ! grep -r 'pr0d1r2' "$conf" "$FETCH_LOG" "$NIX_LOG"
 }

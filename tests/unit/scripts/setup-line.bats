@@ -30,7 +30,7 @@ setup() {
 
 line_for() {
     # shellcheck disable=SC2016 # the line is printed, expanded later by the UI shell
-    printf 'd=$(mktemp -d) && curl -fsSL https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/%s/setup.sh -o "$d/setup.sh" && bash "$d/setup.sh" %s' "$1" "$1"
+    printf 'd=$(mktemp -d) && curl -fsSL https://raw.githubusercontent.com/pr0d1r2/claudinix/%s/setup.sh -o "$d/setup.sh" && bash "$d/setup.sh" %s' "$1" "$1"
 }
 
 @test "default: the line for HEAD, full SHA in both places" {
@@ -73,7 +73,7 @@ line_for() {
 @test "asks CI about that exact commit on the default branch (T69)" {
     run bash "$SCRIPT" HEAD~1
     [ "$status" -eq 0 ]
-    grep -qx "gh run list --repo pr0d1r2/nix-claude-code-cloud --commit $FIRST --branch main --workflow ci.yml --json conclusion,status" "$GH_LOG"
+    grep -qx "gh run list --repo pr0d1r2/claudinix --commit $FIRST --branch main --workflow ci.yml --json conclusion,status" "$GH_LOG"
 }
 
 @test "CI run failed: refuses, says why, prints no line (T69)" {
