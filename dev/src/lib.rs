@@ -10,6 +10,7 @@
 //! claudinix-dev changelog MESSAGE-FILE                commit-msg: feat|fix on session code stages CHANGELOG.md
 //! claudinix-dev steps --write|--check [--root DIR]    docs/INTEGRATION.md step table and counts
 //! claudinix-dev cli --check [--root DIR]               docs/CLI.md usage lines
+//! claudinix-dev config --write|--check [--root DIR]   docs/CONFIG.md key table
 //! ```
 //!
 //! Exit 0 clean, 1 drift, 2 usage or I/O.
@@ -18,6 +19,7 @@ pub mod badges;
 pub mod block;
 pub mod changelog;
 pub mod cli;
+pub mod config;
 pub mod counts;
 pub mod facts;
 pub mod json;
