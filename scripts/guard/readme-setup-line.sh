@@ -72,14 +72,14 @@ current="$(awk -v begin="$begin" -v end="$end" '
 ' "$readme")"
 # Before the first release the block holds this sentence and nothing else.
 # shellcheck disable=SC2016 # literal Markdown backticks, not a command
-placeholder='No release yet: the maintainer publishes the line with `scripts/release.sh REV`.'
+placeholder='No release yet: the maintainer publishes the line with `scripts/release.sh record`, then `scripts/release.sh publish`.'
 if [ "$current" = "$placeholder" ]; then
     exit 0
 fi
 # shellcheck disable=SC2016 # literal Markdown backticks, not a command
 sha="$(printf '%s\n' "$current" | grep -oE '`[0-9a-f]{40}`' | head -n 1 | tr -d '`' || true)"
 if [ -z "$sha" ]; then
-    echo "readme-setup-line: the setup-line block in $readme names no release SHA -- cut a release: scripts/release.sh REV" >&2
+    echo "readme-setup-line: the setup-line block in $readme names no release SHA -- cut a release: scripts/release.sh record, commit, then scripts/release.sh publish" >&2
     exit 1
 fi
 

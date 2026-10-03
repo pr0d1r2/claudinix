@@ -30,7 +30,7 @@ repeat them.
 > dates: [`docs/FACTS.md`](docs/FACTS.md).
 
 <!-- BEGIN setup-line -->
-No release yet: the maintainer publishes the line with `scripts/release.sh REV`.
+No release yet: the maintainer publishes the line with `scripts/release.sh record`, then `scripts/release.sh publish`.
 <!-- END setup-line -->
 
 ## The fastest path
