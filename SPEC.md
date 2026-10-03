@@ -125,6 +125,7 @@ T48|.|`env-names.txt`: `BASH_DEFAULT_TIMEOUT_MS=600000`, `BASH_MAX_TIMEOUT_MS=60
 T49|.|`nix-dev` auto-overrides: read target `flake.lock`; ∀ `github` input w/o cache hit (T25 status) add `--override-input <path> git+https://github.com/<o>/<r>?rev=<locked>&shallow=1`; consumers need ⊥ flake change; prototype = E9|V13,T12,T25
 T50|.|decide env strategy: 1 shared env `nix` w/ union of target domains vs 1 env per ecosystem (`nix-rust`, …); criteria: allowlist size \& review, snapshot reuse, model per env; record decision in C6|C6,V10,I.ext.env
 T51|.|unattended runs: permission mode for routines \& long jobs; what a job does while a prompt waits (timeout, report, ⊥ hang); extends T47|T47,C9
+T52|.|record VM resources (`nproc`, `free`, `df /`, store growth) in FACTS; set bats `--jobs`, hk jobs, cargo jobs from them|C18,T34
 T10|.|`just bump-nix <ver>`: fetch installer + `.sha256`, rewrite pin pair, run tests|V11,C4
 
 ## §B BUGS
