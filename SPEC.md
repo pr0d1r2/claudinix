@@ -98,7 +98,7 @@ T17|.|`setup.sh` tail: activate agent home w/ V15 failover as Claude's uid; seam
 T18|.|CI: build `activationPackage` → `cachix push pr0d1r2` → commit store path to `cloud-home.storepath` (token CI-only, V6)|V15,V6,C5
 T19|x|guard scripts: `bats-mirror` (unicoverage, both directions), `tdd-order` (RED in parent of GREEN, `-M`), `commit-msg` (Conventional + `Why:`); reused per C17; pre-push \| all; each w/ own bats (RED→GREEN)|C16,C17,V17,V19
 T20|x|xenolith step `xnl check {{files}}` + `checks.<sys>.xenolith`; `xenolith.toml` (languages nix, shell)|C15,V18
-T21|.|owner tools steps: `mth` on `SPEC.md`, `itok check` + `.context-limits`, `sherd validate`\|`budget`; pinned inputs w/ `follows`; via `scripts/hk/run-tool.sh` (V18)|C20,V18
+T21|x|owner tools steps: `mth` on `SPEC.md`, `itok check` + `.context-limits`, `sherd validate`\|`budget`; pinned inputs w/ `follows`; via `scripts/hk/run-tool.sh` (V18)|C20,V18
 T22|.|pklith ?: `.pklith` → `hk.pklith.pkl` imported by `hk.pkl`, `pklith check` step; adopt only if generated steps pass C15 purity (else upstream pklith issue: emit `scripts/hk/*.sh` calls) \& render C14-C20 steps ⊥ loss|C20,C15,V19
 T23|.|CI `.github/workflows/ci.yml`: gate + `nix flake check` + cachix push on default branch + verify job (narinfo 200); kcov line-coverage job ? w/ ratchet|C19,V22,C16
 T24|.|UI line: `setup.sh` takes `<sha>` arg; docs/SETUP.md shows exact 1-line script; `just`\|script prints line for HEAD after CI green; bats|V20,C19,V10
