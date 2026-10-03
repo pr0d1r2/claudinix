@@ -37,7 +37,8 @@ functional Nix (flakes on, owner cachix) inside Claude Code cloud session VM + 1
 - file: `probe.sh` — run inside cloud session; prints session facts (C8) + nix health.
 - file: `docs/SETUP.md` — browser steps to create \& update env from repo files (only UI-bound part, C2) + terminal env pick.
 - ext.env: claude.ai/code → environment dialog: name, network level, allowed domains, env vars, setup script.
-- cmd: `hk check --all` (local) = CI gate; `hk fix`; `just` ⊥ required.
+- cmd: `hk check --all` (local) = CI gate; `hk fix`.
+- cmd: `just inputs [flake-dir]` → `scripts/inputs.sh`: ∀ node in `flake.lock` (recursive, deduped) of type `github` → 1 line `owner/repo rev status`; status = `cached` (input source store path from `nix flake archive --dry-run --json` has narinfo in `pr0d1r2.cachix.org`) \| `attach` (⊥ cached ∴ must be attached to session \| routine, docs/SETUP.md). default flake-dir = `.`; works on any target flake (e.g. sherd). exit 1 iff any `attach` w/ `--check`.
 
 ## §V INVARIANTS
 V1: `setup.sh` exit 0 ⇒ `nix --version` works from Claude Bash tool shell w/o profile sourcing (nix linked into `/usr/local/bin`).
@@ -90,6 +91,7 @@ T21|.|owner tools steps: `mth` on `SPEC.md`, `itok check` + `.context-limits`, `
 T22|.|pklith ?: `.pklith` → `hk.pklith.pkl` imported by `hk.pkl`, `pklith check` step; adopt only if generated steps pass C15 purity (else upstream pklith issue: emit `scripts/hk/*.sh` calls) \& render C14-C20 steps ⊥ loss|C20,C15,V19
 T23|.|CI `.github/workflows/ci.yml`: gate + `nix flake check` + cachix push on default branch + verify job (narinfo 200); kcov line-coverage job ? w/ ratchet|C19,V22,C16
 T24|.|UI line: `setup.sh` takes `<sha>` arg; docs/SETUP.md shows exact 1-line script; `just`\|script prints line for HEAD after CI green; bats|V20,C19,V10
+T25|.|`just inputs` + `scripts/inputs.sh` (jq over `flake.lock`, narinfo check via curl); bats w/ fixture lock files (nested, deduped, non-github skipped, cached vs attach); `--check` mode|I.cmd,V8,V13,C6
 T10|.|`just bump-nix <ver>`: fetch installer + `.sha256`, rewrite pin pair, run tests|V11,C4
 
 ## §B BUGS
