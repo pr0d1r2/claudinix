@@ -43,19 +43,38 @@ if [ ! -x "$profile_bin/nix" ]; then
     sh "$tmp/install" "$mode" --yes
 fi
 
-# Append, never overwrite: the daemon installer writes build-users-group.
+# A managed block between BEGIN and END markers, replaced whole on every
+# run (V3, B2): a changed block reaches VMs that have the old one, and
+# lines outside it (the installer's build-users-group) are kept.
 mkdir -p "$conf_dir"
 conf="$conf_dir/nix.conf"
-marker="# nix-claude-code-cloud (SPEC V3)"
-if ! grep -qxF "$marker" "$conf" 2>/dev/null; then
-    cat >>"$conf" <<EOF
-$marker
-experimental-features = nix-command flakes
-accept-flake-config = true
-extra-substituters = https://pr0d1r2.cachix.org
-extra-trusted-public-keys = pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM=
-EOF
+begin="# BEGIN nix-claude-code-cloud (SPEC V3)"
+end="# END nix-claude-code-cloud (SPEC V3)"
+kept=()
+if [ -f "$conf" ]; then
+    inside=0
+    while IFS= read -r line || [ -n "$line" ]; do
+        if [ "$line" = "$begin" ]; then
+            inside=1
+        elif [ "$line" = "$end" ]; then
+            inside=0
+        elif [ "$inside" = 0 ]; then
+            kept+=("$line")
+        fi
+    done <"$conf"
 fi
+{
+    if [ "${#kept[@]}" -gt 0 ]; then
+        printf '%s\n' "${kept[@]}"
+    fi
+    printf '%s\n' "$begin" \
+        'experimental-features = nix-command flakes' \
+        'accept-flake-config = true' \
+        'extra-substituters = https://pr0d1r2.cachix.org' \
+        'extra-trusted-public-keys = pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM=' \
+        "$end"
+} >"$conf.tmp"
+mv "$conf.tmp" "$conf"
 
 # Claude's Bash tool may not source shell profiles, so put nix on a PATH
 # dir every shell already has.
