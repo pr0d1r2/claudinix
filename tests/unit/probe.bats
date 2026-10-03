@@ -120,6 +120,46 @@ code() {
     [[ "$output" == *"nix-dev: skip"* ]]
 }
 
+# stub_git VERSION_LINE: the PATH git answers `--version` with this line.
+stub_git() {
+    printf '#!/usr/bin/env bash\necho "%s"\n' "$1" >"$STUBS/git"
+    chmod +x "$STUBS/git"
+}
+
+@test "an image git older than 2.54: its version reported, config hooks no (V32)" {
+    stub_git "git version 2.43.0"
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"git-version: git version 2.43.0"* ]]
+    [[ "$output" == *"git-config-hooks: no (< 2.54"* ]]
+}
+
+@test "git 2.54 or newer runs config hooks" {
+    for v in "git version 2.54.0" "git version 2.60.1" "git version 3.0.0"; do
+        stub_git "$v"
+        run bash "$SCRIPT"
+        [ "$status" -eq 0 ]
+        [[ "$output" == *"git-version: $v"* ]]
+        [[ "$output" == *"git-config-hooks: yes"* ]]
+    done
+}
+
+@test "an unreadable git version: config hooks unknown, not a failure" {
+    stub_git "something else"
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"git-config-hooks: unknown"* ]]
+}
+
+@test "a git that cannot run: reported, not a failure" {
+    printf '#!/usr/bin/env bash\nexit 127\n' >"$STUBS/git"
+    chmod +x "$STUBS/git"
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"git-version: unavailable"* ]]
+    [[ "$output" == *"git-config-hooks: unknown"* ]]
+}
+
 @test "ends with the elapsed time in whole seconds" {
     run bash "$SCRIPT"
     [[ "${lines[-1]}" =~ ^elapsed:\ [0-9]+s$ ]]
