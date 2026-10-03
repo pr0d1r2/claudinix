@@ -284,6 +284,44 @@ EOF
     [ -e "$CLOUD_HOME_MARKER" ]
 }
 
+SHA=0123456789abcdef0123456789abcdef01234567
+
+@test "sha arg: tier 1 builds that exact rev over git+https (V20)" {
+    agent_home
+    run bash "$SCRIPT" "$SHA"
+    [ "$status" -eq 0 ]
+    grep -qF "git+https://github.com/pr0d1r2/nix-claude-code-cloud?rev=$SHA&shallow=1#homeConfigurations.cloud.activationPackage" "$NIX_LOG"
+}
+
+@test "sha arg not a full commit id: usage error before anything runs (V20)" {
+    agent_home
+    run bash "$SCRIPT" abc123
+    [ "$status" -eq 2 ]
+    [[ "$output" == *"usage"* ]]
+    [ ! -e "$NIX_CONF_DIR/nix.conf" ]
+    [ ! -e "$NIX_LOG" ]
+}
+
+@test "sha arg, no recorded path beside the script: fetched at that sha (V20)" {
+    agent_home
+    export CURL_LOG="$BATS_TEST_TMPDIR/curl.log"
+    cat >"$BATS_TEST_TMPDIR/stubs/curl" <<'EOF'
+#!/bin/sh
+while [ $# -gt 0 ]; do
+    case "$1" in -o) out="$2" ;; https://*) url="$1" ;; esac
+    shift
+done
+echo "$url" >>"$CURL_LOG"
+echo "$HOME_PKG" >"$out"
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/stubs/curl"
+    BUILD_OK=0 run bash "$SCRIPT" "$SHA"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"tier 2"* ]]
+    grep -qx "https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/$SHA/cloud-home.storepath" "$CURL_LOG"
+    grep -qx "nix-store -r $HOME_PKG" "$NIX_LOG"
+}
+
 @test "agent home: a success clears an earlier failure marker" {
     agent_home
     mkdir -p "$(dirname "$CLOUD_HOME_MARKER")"
