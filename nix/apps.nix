@@ -53,4 +53,14 @@ in
     runtimeEnv.NCCC_ALLOWLIST = "${../allowlist.txt}";
     description = "Print the allowed domains a cloud environment needs for a project";
   };
+
+  # git, claude and `script` come from the caller's PATH: their own
+  # credentials and the TTY form of `script` this OS has.
+  probe = app {
+    name = "probe";
+    script = "probe-launch";
+    runtimeInputs = [ pkgs.coreutils ];
+    runtimeEnv.PROBE_SCRIPT = "${../probe.sh}";
+    description = "Start a cloud session that probes this project, print its report";
+  };
 }

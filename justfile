@@ -11,3 +11,7 @@ inputs *args:
 # Print the allowed domains a cloud environment needs for projects.
 domains *args:
     scripts/domains.sh {{ args }}
+
+# Start a cloud session that probes this project; print its report.
+probe *args:
+    scripts/probe-launch.sh {{ args }}
