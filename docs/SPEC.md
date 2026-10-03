@@ -27,7 +27,7 @@ sib|nix|flake outputs: dev shell, checks, agent home `homeConfigurations.cloud` 
 id|status|task|cites
 T6|x|target-repo CI snippet (doc only, targets adopt via own spec): on push to default branch `nix flake archive --json` + devShell closure → `cachix push pr0d1r2`; push token in CI secrets only, ⊥ VM; delivered as `docs/CACHE-CI.md`|`.:V8`,`.:V6`,C5,C6,C3
 T8|x|`docs/CONSUMER.md` + SessionStart hook snippet for target repos (doc only, targets adopt via own spec): `github:` inputs not in cachix → `git+https://github.com/<o>/<r>?ref=main&shallow=1` (sherd #96); tools that read 3rd-party GitHub (zizmor online audit) → in cloud (`CLAUDE_CODE_REMOTE=true`) unset `GH_TOKEN`/`GITHUB_TOKEN` (placeholder `proxy-injected` ⇒ 401) \| offline, report "could not run" ⊥ "finding"; hook: `git fetch --unshallow` (tdd-order needs history), `nix develop -c hk install`; commit author in cloud = `Claude <noreply@anthropic.com>` + `Claude-Session:` trailer ∴ commit-msg hooks must accept it; branch names get random suffix|C3,`.:V7`,C9,C8
-T9|~|`LICENSE` (MIT), `README.md` (what, paste steps, fork block C11, known limits); `.:V12` scan of tree \& history before 1st push|C10,C11,`.:V12`
+T9|x|`LICENSE` (MIT), `README.md` (what, paste steps, fork block C11, known limits); `.:V12` scan of tree \& history before 1st push|C10,C11,`.:V12`
 T13|x|ARCHIVED to SPEC-ARCHIVE.md|C2,`.:V10`,I.ext.env
 T31|x|ARCHIVED to SPEC-ARCHIVE.md|C22,C17,C21
 T32|x|ARCHIVED to SPEC-ARCHIVE.md|C22,C14,C18
