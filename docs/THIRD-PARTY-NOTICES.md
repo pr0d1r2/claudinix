@@ -114,7 +114,7 @@ Nominative use only; no affiliation or endorsement is implied.
 - **Claude** and **Anthropic** are trademarks of Anthropic PBC.
 - **Ubuntu** is a trademark of Canonical Ltd.
 
-## `nix-claude-code-cloud` itself
+## `claudinix` itself
 
 Everything not covered above is licensed under the MIT License. See
 [`LICENSE`](../LICENSE).

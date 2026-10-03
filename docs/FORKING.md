@@ -15,7 +15,7 @@ a root-run script trusts.
 |---|---|
 | `pr0d1r2.cachix.org` | the binary cache sessions read from |
 | `pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM=` | that cache's public signing key |
-| `pr0d1r2/nix-claude-code-cloud` | this repository, in GitHub URLs |
+| `pr0d1r2/claudinix` | this repository, in GitHub URLs |
 | `github:pr0d1r2/...` flake inputs | the owner's tools: nix-hk, xenolith, itok, microlith, sherd, nixpkgs-lock |
 
 The cache's public key is public on purpose. It is not a secret and appears in

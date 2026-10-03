@@ -91,7 +91,7 @@ shells from their own CI (`SPEC.md` T6, T54).
 **Human.** Run `bash probe.sh` (from a checkout of this repository) inside
 a session. Each line is one check; the exit status is 1 if any health
 check failed. To start a probe session from your terminal instead, run
-`nix run github:pr0d1r2/nix-claude-code-cloud#probe` in your project: it
+`nix run github:pr0d1r2/claudinix#probe` in your project: it
 prints the session's report ([`CLI.md`](CLI.md)). That launcher has not yet
 been run end to end against a real cloud session.
 

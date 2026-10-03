@@ -1,4 +1,4 @@
-# Contributing to nix-claude-code-cloud
+# Contributing to claudinix
 
 This repository is built **spec-first**. The design and the build queue live in
 [`SPEC.md`](../SPEC.md), and each child directory (`scripts`, `nix`, `docs`)

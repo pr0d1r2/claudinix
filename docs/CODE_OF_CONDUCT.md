@@ -50,7 +50,7 @@ representing this project.
 
 ## Enforcement
 
-Report to **pr0d1r2@gmail.com** with `nix-claude-code-cloud conduct` in the
+Report to **pr0d1r2@gmail.com** with `claudinix conduct` in the
 subject. Reports are handled privately and the reporter is not named without
 their consent. If the report concerns the maintainer, say so in the subject and
 it will be handled with that in mind.

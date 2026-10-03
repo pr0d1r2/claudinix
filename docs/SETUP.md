@@ -107,7 +107,7 @@ in each new VM. This repository's environment installs Nix.
          rely on the default list for them.
        - The project's own hosts (`index.crates.io` for Cargo, PyPI, npm
          and so on) are not in the base. Run the `domains` app inside the
-         project: `nix run github:pr0d1r2/nix-claude-code-cloud#domains`.
+         project: `nix run github:pr0d1r2/claudinix#domains`.
          It prints the base list followed by the hosts the project's files
          name, each once, and copies them to the clipboard when a clipboard
          tool is available. `--why` shows which file named each host. See
@@ -144,7 +144,7 @@ in each new VM. This repository's environment installs Nix.
      a single line of this shape (the SHA is the commit it resolved):
 
      ```text
-     d=$(mktemp -d) && curl -fsSL https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/<sha>/setup.sh -o "$d/setup.sh" && bash "$d/setup.sh" <sha>
+     d=$(mktemp -d) && curl -fsSL https://raw.githubusercontent.com/pr0d1r2/claudinix/<sha>/setup.sh -o "$d/setup.sh" && bash "$d/setup.sh" <sha>
      ```
 
      Paste that line, not the contents of [`setup.sh`](../setup.sh). The
@@ -193,7 +193,7 @@ For every repository your flake fetches straight from GitHub, either:
   `pr0d1r2/nix-hk`; avoid it for `NixOS/nixpkgs`, whose git history is
   huge.
 
-`nix run github:pr0d1r2/nix-claude-code-cloud#inputs`, run in your
+`nix run github:pr0d1r2/claudinix#inputs`, run in your
 project, lists every `github:` input of its `flake.lock` and whether it
 is already cached (`cached`) or must be attached to the session
 (`attach`). See [`CLI.md`](CLI.md).
@@ -251,7 +251,7 @@ claude -p "<message>" --cloud <session-id>
      is green for that commit; `guide update` pastes the same line). A bump
      is a new SHA in that line and nothing else.
    - **Allowed domains**: one domain per line; run
-     `nix run github:pr0d1r2/nix-claude-code-cloud#domains` in your
+     `nix run github:pr0d1r2/claudinix#domains` in your
      project for the full list.
    - **Environment variables**: names from `env-names.txt`, including the
      optional `BASH_DEFAULT_TIMEOUT_MS=600000`.
