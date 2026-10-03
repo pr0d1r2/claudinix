@@ -1,13 +1,20 @@
 #!/usr/bin/env bats
-# Unit tests for scripts/dev/shell-hook.sh (SPEC T1, V17, V21).
+# Unit tests for scripts/dev/shell-hook.sh (SPEC T1, T86, V17, V21, V32).
 
 setup() {
-    SCRIPT="$BATS_TEST_DIRNAME/../../../../scripts/dev/shell-hook.sh"
+    ROOT="$(cd "$BATS_TEST_DIRNAME/../../../.." && pwd)"
+    SCRIPT="$ROOT/scripts/dev/shell-hook.sh"
+    # The shim copied into the hooks dir for git older than 2.54 (V32).
+    CLAUDINIX_LEGACY_HOOK="$ROOT/scripts/dev/legacy-hook.sh"
+    export CLAUDINIX_LEGACY_HOOK
     BASH_BIN="$(command -v bash)"
     STUB_BIN="$BATS_TEST_TMPDIR/bin"
     HK_LOG="$BATS_TEST_TMPDIR/hk.log"
     mkdir -p "$STUB_BIN"
     ln -s "$(command -v git)" "$STUB_BIN/git"
+    for tool in cat chmod cmp mv rm; do
+        ln -s "$(command -v "$tool")" "$STUB_BIN/$tool"
+    done
     export HK_LOG
     # The suite itself runs inside a wrapped git hook, which sets this; left
     # set, every test would see the script's in-a-hook early exit.
@@ -173,4 +180,109 @@ STUB
     [[ "$output" == *"could not"* || "$output" == *"hook"* ]]
     rm -f "$REPO/.git/config.lock"
     git config --local --get-regexp '^hook\.hk-' >/dev/null
+}
+
+# hooks_dir: where git looks for script hooks in the fixture repo.
+hooks_dir() {
+    (cd "$REPO" && cd "$(git rev-parse --git-path hooks)" && pwd)
+}
+
+@test "writes the old-git shim for every hk event, executable, silently (V32)" {
+    stub_hk_installer
+    make_repo
+    cd "$REPO"
+    run env PATH="$STUB_BIN" "$BASH_BIN" "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+    for e in pre-commit pre-push commit-msg; do
+        [ -x "$(hooks_dir)/$e" ]
+        cmp -s "$CLAUDINIX_LEGACY_HOOK" "$(hooks_dir)/$e"
+    done
+}
+
+@test "the shim honours core.hooksPath" {
+    stub_hk_installer
+    make_repo
+    cd "$REPO"
+    git config --local core.hooksPath my-hooks
+    mkdir -p my-hooks
+    run env PATH="$STUB_BIN" "$BASH_BIN" "$SCRIPT"
+    [ "$status" -eq 0 ]
+    for e in pre-commit pre-push commit-msg; do
+        cmp -s "$CLAUDINIX_LEGACY_HOOK" "$REPO/my-hooks/$e"
+    done
+    [ ! -e "$REPO/.git/hooks/pre-commit" ]
+}
+
+@test "a hook that is not claudinix's is never overwritten: warns instead" {
+    stub_hk_installer
+    make_repo
+    cd "$REPO"
+    printf '#!/bin/sh\necho mine\n' >"$REPO/.git/hooks/pre-push"
+    run env PATH="$STUB_BIN" "$BASH_BIN" "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ "$(cat "$REPO/.git/hooks/pre-push")" = "$(printf '#!/bin/sh\necho mine\n')" ]
+    [[ "$output" == *"pre-push"* ]]
+    [[ "$output" == *"left alone"* ]]
+    cmp -s "$CLAUDINIX_LEGACY_HOOK" "$REPO/.git/hooks/pre-commit"
+}
+
+@test "an outdated claudinix shim is refreshed, a current one left as is" {
+    stub_hk_installer
+    make_repo
+    cd "$REPO"
+    printf '#!/usr/bin/env bash\n# claudinix-legacy-hook: an older copy\n' >"$REPO/.git/hooks/commit-msg"
+    run env PATH="$STUB_BIN" "$BASH_BIN" "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+    cmp -s "$CLAUDINIX_LEGACY_HOOK" "$REPO/.git/hooks/commit-msg"
+    run env PATH="$STUB_BIN" "$BASH_BIN" "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+    cmp -s "$CLAUDINIX_LEGACY_HOOK" "$REPO/.git/hooks/commit-msg"
+}
+
+@test "hk's own script shim (written under old git) is replaced: it skips the dev shell" {
+    stub_hk_installer
+    make_repo
+    cd "$REPO"
+    # shellcheck disable=SC2016 # literal hook text, as hk 1.58 writes it
+    printf '#!/bin/sh\ntest "${HK:-1}" = "0" || exec hk run pre-commit --from-hook "$@"\n' >"$REPO/.git/hooks/pre-commit"
+    run env PATH="$STUB_BIN" "$BASH_BIN" "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+    cmp -s "$CLAUDINIX_LEGACY_HOOK" "$REPO/.git/hooks/pre-commit"
+}
+
+@test "shim template missing: warns, keeps the config hooks, exits 0" {
+    stub_hk_installer
+    make_repo
+    cd "$REPO"
+    run env PATH="$STUB_BIN" CLAUDINIX_LEGACY_HOOK="$BATS_TEST_TMPDIR/none.sh" "$BASH_BIN" "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"2.54"* ]]
+    [ ! -e "$REPO/.git/hooks/pre-commit" ]
+    git config --local hook.hk-pre-commit.command >/dev/null
+}
+
+@test "installed commit-msg shim refuses a bad message under a git older than 2.54 (B9)" {
+    stub_hk_installer
+    make_repo
+    cd "$REPO"
+    run env PATH="$STUB_BIN" "$BASH_BIN" "$SCRIPT"
+    [ "$status" -eq 0 ]
+    # The real hook enters the dev shell; here the gate's own commit-msg
+    # guard stands in for `hk run commit-msg`.
+    # shellcheck disable=SC2016 # ${HK:-1} expands when the hook runs
+    git config --local hook.hk-commit-msg.command 'test "${HK:-1}" = "0" || bash '"$ROOT/scripts/guard/commit-msg.sh"
+    old="$BATS_TEST_TMPDIR/old-git"
+    mkdir -p "$old"
+    # shellcheck disable=SC2016 # $1 and $@ expand inside the stub, not here
+    printf '#!%s\nif [ "$1" = --version ]; then echo "git version 2.43.0"; exit 0; fi\nexec %s "$@"\n' \
+        "$BASH_BIN" "$(command -v git)" >"$old/git"
+    chmod +x "$old/git"
+    printf 'bad message no type\n' >"$BATS_TEST_TMPDIR/msg"
+    run env PATH="$old:$PATH" "$REPO/.git/hooks/commit-msg" "$BATS_TEST_TMPDIR/msg"
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"Conventional Commits"* ]]
 }
