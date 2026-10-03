@@ -39,6 +39,13 @@ repo=pr0d1r2/claudinix
 usage="usage: setup.sh [SHA] [--agent-home] -- SHA is a full 40-hex commit id; --agent-home (or CLAUDINIX_AGENT_HOME=1) also activates the agent home"
 sha=""
 agent_home="${CLAUDINIX_AGENT_HOME:-0}"
+case "$agent_home" in
+0 | 1) ;;
+*)
+    echo "$usage; CLAUDINIX_AGENT_HOME must be 0 or 1, not '$agent_home'" >&2
+    exit 2
+    ;;
+esac
 for arg in "$@"; do
     case "$arg" in
     --agent-home) agent_home=1 ;;
