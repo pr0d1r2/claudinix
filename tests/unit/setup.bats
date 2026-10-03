@@ -36,8 +36,22 @@ while [ $# -gt 0 ]; do [ "$1" = -o ] && out="$2"; shift; done
 cp "$FAKE_INSTALLER" "$out"
 EOF
     chmod +x "$BATS_TEST_TMPDIR/stubs/curl"
+
+    # timeout: logs the limit and the command, then runs it; a command
+    # whose words include $TIMEOUT_EXPIRE "times out" (124) without running.
+    export TIMEOUT_LOG="$BATS_TEST_TMPDIR/timeout.log"
+    # shellcheck disable=SC2016 # expands inside the stub, not here
+    printf '%s\n' '#!/usr/bin/env bash' \
+        'echo "$*" >>"$TIMEOUT_LOG"' \
+        'if [ -n "${TIMEOUT_EXPIRE:-}" ] && [[ " $* " == *" $TIMEOUT_EXPIRE "* ]]; then exit 124; fi' \
+        'shift' \
+        'exec "$@"' >"$BATS_TEST_TMPDIR/stubs/timeout"
+    chmod +x "$BATS_TEST_TMPDIR/stubs/timeout"
     export PATH="$BATS_TEST_TMPDIR/stubs:$PATH"
 }
+
+# The options every Nix network operation carries (T88, V5).
+NIX_NET='--option connect-timeout 10 --option stalled-download-timeout 30'
 
 @test "no systemd: single-user install, non-interactive" {
     run bash "$SCRIPT"
@@ -268,7 +282,7 @@ EOF
     BUILD_OK=0 run bash "$SCRIPT" --agent-home
     [ "$status" -eq 0 ]
     [[ "$output" == *"tier 2"* ]]
-    grep -qx "nix-store -r $HOME_PKG" "$NIX_LOG"
+    grep -qx "nix-store -r $NIX_NET $HOME_PKG" "$NIX_LOG"
     [ -s "$ACTIVATE_LOG" ]
     [ ! -e "$CLOUD_HOME_MARKER" ]
 }
@@ -348,7 +362,7 @@ EOF
     [ "$status" -eq 0 ]
     [[ "$output" == *"tier 2"* ]]
     grep -qx "https://raw.githubusercontent.com/pr0d1r2/claudinix/$SHA/cloud-home.storepath" "$CURL_LOG"
-    grep -qx "nix-store -r $HOME_PKG" "$NIX_LOG"
+    grep -qx "nix-store -r $NIX_NET $HOME_PKG" "$NIX_LOG"
 }
 
 @test "agent home: a success clears an earlier failure marker" {
@@ -610,4 +624,68 @@ OWNER_KEY='pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM='
     SYSTEMD_DIR="$BATS_TEST_TMPDIR/systemd" run bash "$SCRIPT"
     [ "$status" -eq 0 ]
     run ! grep -q 'WARNING' <<<"$output"
+}
+
+# Every Nix network operation is bounded (T88, V5): a stalled substituter
+# or installer must not eat the ~5 min the snapshot is cached within.
+
+@test "installer runs under timeout, its limit from CLAUDINIX_NIX_TIMEOUT (T88, V5)" {
+    CLAUDINIX_NIX_TIMEOUT=7 run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    grep -qE '^7 sh .*/install --no-daemon --yes$' "$TIMEOUT_LOG"
+}
+
+@test "installer timeout has a default limit in seconds (T88, V5)" {
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    grep -qE '^[1-9][0-9]* sh .*/install --no-daemon --yes$' "$TIMEOUT_LOG"
+}
+
+@test "installer timing out fails setup before nix.conf is written (T88, V5)" {
+    TIMEOUT_EXPIRE=--no-daemon run bash "$SCRIPT"
+    [ "$status" -ne 0 ]
+    [ ! -e "$INSTALLER_LOG" ]
+    [ ! -e "$NIX_CONF_DIR/nix.conf" ]
+}
+
+@test "tier 1 build: bounded connect and stall, under timeout (T88, nix:V15)" {
+    agent_home
+    CLAUDINIX_NIX_TIMEOUT=9 run bash "$SCRIPT" --agent-home
+    [ "$status" -eq 0 ]
+    grep -qF "nix build $NIX_NET --no-link --print-out-paths " "$NIX_LOG"
+    grep -qE "^9 .*/nix build " "$TIMEOUT_LOG"
+}
+
+@test "tier 2 realise: bounded connect and stall, under timeout (T88, nix:V15)" {
+    agent_home
+    echo "$HOME_PKG" >"$CLOUD_HOME_STOREPATH"
+    BUILD_OK=0 CLAUDINIX_NIX_TIMEOUT=9 run bash "$SCRIPT" --agent-home
+    [ "$status" -eq 0 ]
+    grep -qx "nix-store -r $NIX_NET $HOME_PKG" "$NIX_LOG"
+    grep -qE "^9 .*/nix-store -r " "$TIMEOUT_LOG"
+}
+
+@test "tier 1 timing out falls over to tier 2 (T88, nix:V15)" {
+    agent_home
+    echo "$HOME_PKG" >"$CLOUD_HOME_STOREPATH"
+    TIMEOUT_EXPIRE=build run bash "$SCRIPT" --agent-home
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"tier 2"* ]]
+    [ -s "$ACTIVATE_LOG" ]
+}
+
+@test "both tiers timing out: Nix usable, warning and marker, exit 0 (T88, V1)" {
+    agent_home
+    echo "$HOME_PKG" >"$CLOUD_HOME_STOREPATH"
+    TIMEOUT_EXPIRE=--option run bash "$SCRIPT" --agent-home
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"WARNING"* ]]
+    [ -e "$CLOUD_HOME_MARKER" ]
+}
+
+@test "CLAUDINIX_NIX_TIMEOUT not a positive integer: usage error, nothing touched (T88)" {
+    CLAUDINIX_NIX_TIMEOUT=soon run bash "$SCRIPT"
+    [ "$status" -eq 2 ]
+    [[ "$output" == *"CLAUDINIX_NIX_TIMEOUT"* ]]
+    [ ! -e "$NIX_CONF_DIR/nix.conf" ]
 }
