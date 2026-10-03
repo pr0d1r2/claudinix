@@ -221,6 +221,13 @@ local fast = new Mapping<String, Step> {
     check = "scripts/hk/run-tool.sh claudinix-dev counts --check"
     fix = "scripts/hk/run-tool.sh claudinix-dev counts --write"
   }
+  // The flake inputs table in the notices is generated from flake.lock
+  // (dev:T109), so an input bump reruns it (V19).
+  ["third-party-notices"] {
+    glob = List("docs/THIRD-PARTY-NOTICES.md", "flake.lock", "dev/**")
+    check = "scripts/hk/run-tool.sh claudinix-dev notices --check"
+    fix = "scripts/hk/run-tool.sh claudinix-dev notices --write"
+  }
 
   // This repo's own .claudinix.toml must pass the reader every tool uses
   // (T92, scripts:V34). The reader and its schema are data the check
