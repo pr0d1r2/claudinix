@@ -39,7 +39,7 @@ in
       pkgs.curl
       pkgs.coreutils
     ];
-    description = "List a flake's github inputs: cached, or attach to the session";
+    description = "List a flake's github inputs: cached, or uncached (nix-dev fetches those over git)";
   };
 
   domains = app {

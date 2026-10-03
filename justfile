@@ -4,7 +4,7 @@
 # Each recipe is one plain command; the logic lives in bats-covered
 # scripts (C15).
 
-# List a flake's github inputs: cached, or attach to the session.
+# List a flake's github inputs: cached, or uncached (nix-dev fetches those over git).
 inputs *args:
     scripts/inputs.sh {{ args }}
 
