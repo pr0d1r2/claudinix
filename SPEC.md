@@ -135,9 +135,9 @@ T74|x|ARCHIVED to SPEC-ARCHIVE.md|V30,V22,C19
 T75|x|ARCHIVED to SPEC-ARCHIVE.md|C25,`nix:V15`,V20
 T76|x|ARCHIVED to SPEC-ARCHIVE.md|C27,V17,V29
 T77|x|ARCHIVED to SPEC-ARCHIVE.md|V27,V28,V19,V31,C14
-T86|x|hooks under old git (V32): shell-hook adds `.git/hooks` shims when the committing git < 2.54; hook \& session-start use `nix-dev` if present; settings.json via `$CLAUDE_PROJECT_DIR`; exec-bit reads paths w/ spaces; probe + FACTS record cloud git version|V32,V17,C27,V28
-T87|x|release order (V33): record `cloud-home.storepath`, maintainer commits it, line \& README pin THAT commit; refuse unless `verify-cachix.sh --sources .` passes; bats proves the released SHA has the file|V33,C25,`nix:V15`
-T88|x|setup robustness: bound nix downloads (`connect-timeout`, `stalled-download-timeout`, `timeout` on installer \& tier builds, V5); `CLAUDINIX_AGENT_HOME` ∉ {0,1} → exit 2; nix-dev staged in `$lib_dir.new`, swapped once; `inputs.sh` curl bounded|V5,V1,`scripts:V13`
+T86|x|ARCHIVED to SPEC-ARCHIVE.md|V32,V17,C27,V28
+T87|x|ARCHIVED to SPEC-ARCHIVE.md|V33,C25,`nix:V15`
+T88|x|ARCHIVED to SPEC-ARCHIVE.md|V5,V1,`scripts:V13`
 
 ## §B BUGS
 id|date|cause|fix
