@@ -13,7 +13,8 @@
 #        at (V20); pins the agent home to it.
 # Seams: NIX_CONF_DIR, BIN_DIR, SYSTEMD_DIR, NIX_DEFAULT_PROFILE,
 #        NIX_INSTALL_URL, NIX_INSTALL_SHA256; agent home (T17):
-#        CLOUD_HOME_FLAKE, CLOUD_HOME_STOREPATH (file), CLOUD_HOME_MARKER.
+#        CLOUD_HOME_FLAKE, CLOUD_HOME_STOREPATH (file), CLOUD_HOME_MARKER;
+#        nix-dev: NCCC_LIB_DIR, NCCC_RAW_URL, NCCC_REV (default main).
 
 set -euo pipefail
 
@@ -104,6 +105,30 @@ mv "$conf.tmp" "$conf"
 # dir every shell already has.
 mkdir -p "$bin_dir"
 ln -sf "$profile_bin"/* "$bin_dir/"
+
+# nix-dev (I.cmd, scripts:T12): `nix develop` with the scripts:V13 input
+# failover, linked onto the same PATH dir. Its files come from the clone
+# beside this script, else from the repo at NCCC_REV. A failed fetch only
+# warns: nix itself still works (V1).
+lib_dir="${NCCC_LIB_DIR:-/usr/local/lib/nix-claude-code-cloud}"
+raw="${NCCC_RAW_URL:-https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/${NCCC_REV:-main}}"
+here="$(dirname "${BASH_SOURCE[0]:-.}")"
+mkdir -p "$lib_dir"
+nix_dev=ok
+for file in nix-dev.sh nix-dev.jq; do
+    if [ -f "$here/scripts/$file" ]; then
+        cp "$here/scripts/$file" "$lib_dir/$file"
+    elif ! curl -fsSL "$raw/scripts/$file" -o "$lib_dir/$file"; then
+        nix_dev=failed
+    fi
+done
+if [ "$nix_dev" = ok ]; then
+    chmod +x "$lib_dir/nix-dev.sh"
+    ln -sf "$lib_dir/nix-dev.sh" "$bin_dir/nix-dev"
+else
+    echo "setup: could not fetch nix-dev from $raw -- use plain nix develop" >&2
+fi
+
 "$bin_dir/nix" --version
 
 # The agent home (T17, nix:V14, nix:V15): activated here, before Claude
