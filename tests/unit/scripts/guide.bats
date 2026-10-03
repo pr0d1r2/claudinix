@@ -289,6 +289,22 @@ model_doc() {
     grep -qx "setup-line --force $CLAUDINIX_SETUP_REV" "$LOG"
 }
 
+@test "--agent-home reaches setup-line, in setup and update flows (.:C24)" {
+    run bash "$SCRIPT" --agent-home --from 3 <<<$'y\ny\n'
+    [ "$status" -eq 0 ]
+    grep -qx "setup-line --agent-home $CLAUDINIX_SETUP_REV" "$LOG"
+    : >"$LOG"
+    run bash "$SCRIPT" update --force --agent-home <<<''
+    [ "$status" -eq 0 ]
+    grep -qx "setup-line --force --agent-home $CLAUDINIX_SETUP_REV" "$LOG"
+}
+
+@test "without --agent-home, setup-line is not asked for it (.:C24)" {
+    run bash "$SCRIPT" update <<<''
+    [ "$status" -eq 0 ]
+    run ! grep -q -- '--agent-home' "$LOG"
+}
+
 @test "no CLAUDINIX_SETUP_REV: the line is for HEAD of the clone the guide runs from" {
     while read -r var; do unset "$var"; done < <(env | sed -n 's/^\(GIT_[A-Z_]*\)=.*/\1/p')
     unset CLAUDINIX_SETUP_REV

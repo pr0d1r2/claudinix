@@ -157,6 +157,29 @@ line_for() {
     [ "$status" -eq 2 ]
 }
 
+# .:C24: the agent home is opt-in; --agent-home asks setup.sh for it.
+
+@test "--agent-home appends --agent-home to the line (.:C24)" {
+    run bash "$SCRIPT" --agent-home
+    [ "$status" -eq 0 ]
+    [ "$output" = "$(line_for "$HEAD_SHA") --agent-home" ]
+    run bash "$SCRIPT" HEAD~1 --agent-home
+    [ "$status" -eq 0 ]
+    [ "$output" = "$(line_for "$FIRST") --agent-home" ]
+}
+
+@test "without --agent-home the line asks for no agent home (.:C24)" {
+    run bash "$SCRIPT"
+    [[ "$output" != *"--agent-home"* ]]
+}
+
+@test "--agent-home with --force still warns and prints the opt-in line (.:C24)" {
+    GH_JSON='[]' run --separate-stderr bash "$SCRIPT" --force --agent-home
+    [ "$status" -eq 0 ]
+    [ "$output" = "$(line_for "$HEAD_SHA") --agent-home" ]
+    [[ "$stderr" == *"no CI run"* ]]
+}
+
 # scripts:T81 (review R3-21): tell why gh could not answer.
 
 @test "gh not signed in: says so and how to sign in, not a 404" {
