@@ -13,18 +13,23 @@
 # for a credit never offered). Paths are printed absolute. Step titles and URLs come from guide-steps.tsv, which a test
 # keeps equal to the SETUP.md headings. No network writes, no secrets.
 #
-# The setup line is pinned to CLAUDINIX_SETUP_REV, else to HEAD of the clone
-# the guide runs from; setup-line.sh refuses a SHA whose CI on main is
-# not green, and the guide stops with it unless --force is given (T69).
+# The setup line is the one the release published in the README block
+# (.:C25): no gh, no clone. Before the first release the guide says so
+# and stops. --rev SHA (else CLAUDINIX_SETUP_REV, the maintainer path)
+# prints a line for that SHA with setup-line.sh instead, which refuses a
+# SHA whose CI on main is not green unless --force is given (T69).
 # --agent-home asks the setup line for the opt-in agent home (.:C24).
 #
-# Usage: guide.sh [--force] [--agent-home] [--from STEP] [FLAKE_DIR]
+# Usage: guide.sh [--force] [--agent-home] [--rev SHA] [--from STEP] [FLAKE_DIR]
 #                 steps 0-5 (dir: .)
-#        guide.sh update [--force] [--agent-home] [FLAKE_DIR]
+#        guide.sh update [--force] [--agent-home] [--rev SHA] [FLAKE_DIR]
 #                 the "Updating" flow
 # Env:   CLAUDINIX_SCRIPTS    dir with guide-steps.tsv, inputs.sh, domains.sh,
 #                             setup-line.sh
+#        CLAUDINIX_README     README.md with the release's setup-line block
+#                             (default: beside the scripts dir)
 #        CLAUDINIX_SETUP_REV  full SHA of this repo to pin the setup line to
+#                             with setup-line.sh; --rev wins over it
 #        CLAUDINIX_MODEL_DOC  MODEL.md with the prices (default: ../docs/)
 #        CLAUDINIX_ENV_NAMES  env-names.txt to list (default: beside scripts/)
 #        CLAUDE_SETTINGS      user settings (default ~/.claude/settings.json)
@@ -34,7 +39,7 @@
 set -euo pipefail
 
 usage() {
-    echo "usage: guide.sh [--force] [--agent-home] [--from STEP] [FLAKE_DIR] | guide.sh update [--force] [--agent-home] [FLAKE_DIR]" >&2
+    echo "usage: guide.sh [--force] [--agent-home] [--rev SHA] [--from STEP] [FLAKE_DIR] | guide.sh update [--force] [--agent-home] [--rev SHA] [FLAKE_DIR]" >&2
     exit 2
 }
 
@@ -43,11 +48,17 @@ from=0
 dir=
 force=()
 agent_home=()
+rev="${CLAUDINIX_SETUP_REV:-}"
 while [ "$#" -gt 0 ]; do
     case "$1" in
     update) flow=update ;;
     --force) force=(--force) ;;
     --agent-home) agent_home=(--agent-home) ;;
+    --rev)
+        [ "$#" -ge 2 ] && [[ "$2" =~ ^[0-9a-f]{40}$ ]] || usage
+        rev="$2"
+        shift
+        ;;
     --from)
         [ "$#" -ge 2 ] || usage
         from="$2"
@@ -74,6 +85,7 @@ if ! abs="$(cd "$given" 2>/dev/null && pwd)"; then
 fi
 
 lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
+readme="${CLAUDINIX_README:-$lib/../README.md}"
 model_doc="${CLAUDINIX_MODEL_DOC:-$lib/../docs/MODEL.md}"
 env_names="${CLAUDINIX_ENV_NAMES:-$lib/../env-names.txt}"
 settings="${CLAUDE_SETTINGS:-$HOME/.claude/settings.json}"
@@ -121,16 +133,37 @@ copy() {
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
-# setup_line: the one-line UI setup script (V20) for CLAUDINIX_SETUP_REV, else
-# for HEAD of the clone this guide runs from; stops when there is
-# neither, or when setup-line.sh refuses the SHA (T69).
+# setup_line: the one-line UI setup script (V20). With --rev (or
+# CLAUDINIX_SETUP_REV) setup-line.sh prints it for that SHA, and the
+# guide stops when it refuses (T69). Otherwise it is the line the release
+# published in the README block (.:C25), + --agent-home as setup-line.sh
+# appends it; the guide stops when there is no release yet or no block.
 setup_line() {
-    local rev="${CLAUDINIX_SETUP_REV:-}"
-    if [ -z "$rev" ] && ! rev="$(git -C "$lib/.." rev-parse --verify --quiet HEAD 2>/dev/null)"; then
-        stop "cannot tell which revision to pin the setup line to: set CLAUDINIX_SETUP_REV to a full SHA of claudinix"
+    local line
+    if [ -n "$rev" ]; then
+        bash "$lib/setup-line.sh" ${force[@]+"${force[@]}"} ${agent_home[@]+"${agent_home[@]}"} "$rev" ||
+            stop "no setup line for $rev (see above); pick a SHA CI passed, or run the guide with --force"
+        return 0
     fi
-    bash "$lib/setup-line.sh" ${force[@]+"${force[@]}"} ${agent_home[@]+"${agent_home[@]}"} "$rev" ||
-        stop "no setup line for $rev (see above); pick a SHA CI passed, or run the guide with --force"
+    if [ ! -f "$readme" ]; then
+        stop "no README at $readme to copy the release's setup line from; copy the line from https://github.com/pr0d1r2/claudinix#readme, or pass --rev SHA (a claudinix commit CI passed; needs gh signed in)"
+    fi
+    # The line inside the ```sh fence of the setup-line block.
+    line="$(awk '
+        $0 == "<!-- END setup-line -->" { inblock = 0 }
+        inblock && fence && $0 == "```" { exit }
+        inblock && fence { print; exit }
+        inblock && $0 == "```sh" { fence = 1 }
+        $0 == "<!-- BEGIN setup-line -->" { inblock = 1 }
+    ' "$readme")"
+    if [ -n "$line" ]; then
+        printf '%s%s\n' "$line" "${agent_home[@]+ ${agent_home[*]}}"
+        return 0
+    fi
+    if grep -q '^No release yet' "$readme"; then
+        stop "no release yet, so there is no published setup line to copy. Run the guide again after the first release, or pass --rev SHA (a claudinix commit CI passed; needs gh signed in) to print a line for that commit"
+    fi
+    stop "no setup line in the setup-line block of $readme; copy the line from https://github.com/pr0d1r2/claudinix#readme, or pass --rev SHA (a claudinix commit CI passed; needs gh signed in)"
 }
 
 # paste KIND: say where the value goes, copy it, print it, wait.

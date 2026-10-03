@@ -164,10 +164,7 @@
 
       apps = forAll (
         { pkgs, ... }:
-        import ./nix/apps.nix {
-          inherit pkgs;
-          rev = self.rev or "";
-        }
+        import ./nix/apps.nix { inherit pkgs; }
       );
 
       checks = forAll (

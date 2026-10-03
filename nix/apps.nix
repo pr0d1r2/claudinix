@@ -6,7 +6,7 @@
 # Each app is its bats-covered script read verbatim, never shell written
 # here (C15). The scripts find their data files (`*.jq`, detectors)
 # through CLAUDINIX_SCRIPTS, which points at a store copy of `scripts/`.
-{ pkgs, rev }:
+{ pkgs }:
 let
   app =
     {
@@ -54,10 +54,10 @@ in
     description = "Print the allowed domains a cloud environment needs for a project";
   };
 
-  # claude, gh, git, the opener and the clipboard come from the caller's
-  # PATH. CLAUDINIX_SETUP_REV pins the setup line to the commit this app was
-  # built from: the store copy is not a git clone, so without it the guide
-  # stops at step 3. A dirty tree has no rev, and the guide says so.
+  # claude, the opener and the clipboard come from the caller's PATH.
+  # The setup line is the release's, read from a store copy of the README
+  # (.:C25), so the app needs neither gh nor a clone; `--rev SHA` asks
+  # setup-line.sh instead, and that needs gh and git on the caller's PATH.
   guide = app {
     name = "guide";
     runtimeInputs = [
@@ -68,7 +68,7 @@ in
       pkgs.gnused
     ];
     runtimeEnv = {
-      CLAUDINIX_SETUP_REV = rev;
+      CLAUDINIX_README = "${../README.md}";
       CLAUDINIX_ALLOWLIST = "${../allowlist.txt}";
       CLAUDINIX_MODEL_DOC = "${../docs/MODEL.md}";
       CLAUDINIX_ENV_NAMES = "${../env-names.txt}";
