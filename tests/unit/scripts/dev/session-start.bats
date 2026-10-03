@@ -129,3 +129,13 @@ cloud() {
     [ ! -e "$NIX_LOG" ]
     [ "$(git rev-parse --is-shallow-repository)" = true ]
 }
+
+@test "the repo's SessionStart hook runs this script by \$CLAUDE_PROJECT_DIR (C27)" {
+    settings="$BATS_TEST_DIRNAME/../../../../.claude/settings.json"
+    # A relative path breaks when the session starts in a subdirectory;
+    # the hooks docs anchor project scripts on $CLAUDE_PROJECT_DIR.
+    run jq -r '.hooks.SessionStart[].hooks[] | "\(.type) \(.timeout) \(.command)"' "$settings"
+    [ "$status" -eq 0 ]
+    # shellcheck disable=SC2016 # the literal command text, expanded by Claude Code
+    [ "$output" = 'command 600 bash "$CLAUDE_PROJECT_DIR/scripts/dev/session-start.sh"' ]
+}
