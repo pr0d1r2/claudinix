@@ -10,3 +10,6 @@ result-*
 # every cloud session needs (SPEC C27), so that one file is tracked.
 /.claude/*
 !/.claude/settings.json
+
+# The gate log AGENTS.md tells agents to write; never committed.
+/gate.log
