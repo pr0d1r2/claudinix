@@ -101,11 +101,61 @@ titles() {
     [ "$(grep -c '^--- clip' "$LOG")" -eq 3 ]
 }
 
-@test "step 3 lists the github repos to attach, from inputs" {
-    run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
+@test "step 5 lists the uncached github inputs with the remedy, before the launch (T81)" {
+    run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
+    [ "$status" -eq 0 ]
     grep -qx 'inputs .' "$LOG"
-    [[ "$output" == *"pr0d1r2/a"* ]]
-    [[ "$output" != *"NixOS/nixpkgs 2222"* ]]
+    [[ "$output" == *"  pr0d1r2/a"* ]]
+    [[ "$output" != *"NixOS/nixpkgs"* ]]
+    [[ "$output" == *"nix-dev"* ]]
+    [[ "$output" == *"git+https://github.com/<owner>/<repo>"* ]]
+    inputs_at="$(grep -n '  pr0d1r2/a' <<<"$output" | head -n 1 | cut -d: -f1)"
+    launch_at="$(grep -n 'claude --cloud "<task>"' <<<"$output" | head -n 1 | cut -d: -f1)"
+    [ "$inputs_at" -lt "$launch_at" ]
+}
+
+@test "step 5 with every input cached: says nothing comes from GitHub (T81)" {
+    printf '%s\n' '#!/usr/bin/env bash' 'echo "NixOS/nixpkgs 2222 cached"' >"$LIB/inputs.sh"
+    run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"every github input is in a cache"* ]]
+}
+
+@test "step 5 when inputs cannot run: says so and goes on (T81)" {
+    printf '%s\n' '#!/usr/bin/env bash' 'echo "inputs: nix flake archive could not run" >&2' 'exit 1' >"$LIB/inputs.sh"
+    run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"could not run"* ]]
+    [[ "$output" == *"could not check the inputs"* ]]
+}
+
+@test "step 5's first check runs the dev shell through nix-dev on sonnet (T81)" {
+    run bash "$SCRIPT" --from 5 <<<$'y\ny\n'
+    [[ "$output" == *'claude --cloud "Run: nix --version && nix-dev -c true && echo DEVSHELL-OK. Report the output." --model sonnet'* ]]
+    [[ "$output" != *"nix develop -c true"* ]]
+}
+
+@test "step 0 accepts none for a credit you were never offered (T81)" {
+    run bash "$SCRIPT" --from 5 <<<$'none\ny\n'
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"none"* ]]
+    run bash "$SCRIPT" --from 5 <<<$'\ny\n'
+    [ "$status" -eq 1 ]
+}
+
+@test "step 1 prints the project dir absolute (T81)" {
+    run bash "$SCRIPT" --from 1 <<<$'y\ny\n'
+    [[ "$output" == *"todo: run nix flake lock in $P "* ]]
+    touch "$P/flake.lock"
+    run bash "$SCRIPT" --from 1 <<<$'y\ny\n'
+    [[ "$output" == *"ok: $P has a flake.lock"* ]]
+}
+
+@test "a missing project dir: stops before step 0, naming it as given (T81)" {
+    run bash "$SCRIPT" "$BATS_TEST_TMPDIR/nonexistent" <<<$'y\ny\n'
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"$BATS_TEST_TMPDIR/nonexistent"* ]]
+    [[ "$output" != *"== 0."* ]]
 }
 
 @test "step 1 checks the claude.ai sign-in" {
