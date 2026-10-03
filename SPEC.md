@@ -92,6 +92,7 @@ V31: gate output for a non-TTY caller (agent) on success ≤ a few lines; full l
 V32: the gate's git hooks fire under the git that actually commits (cloud: image git, likely < 2.54, outside the dev shell): config-based hooks (git ≥ 2.54) + `.git/hooks` shims for older git; bats proves a bad commit is refused by an old git (B9). impl: `scripts/dev/legacy-hook.sh` copied to `$(git rev-parse --git-path hooks)/{pre-commit,commit-msg,pre-push}`; exits 0 under git ≥ 2.54 (that git runs both, else gate twice), else runs `hook.hk-<event>.command`; ⊥ overwrite a foreign hook.
 V33: a released SHA contains `cloud-home.storepath` for its own agent home, \& every eval-time input source has narinfo 200 (`verify-cachix.sh --sources`) before the line is published (B10).
 V35: every setting the agent home writes into `~/.claude` is checked in the GENERATED file's shape (`checks.x86_64-linux.cloud-home` runs the merge script \& reads `.permissions`), ⊥ trusting a module option's name (B11).
+V36: a commit that changes `hk.pkl` stages it w/ every file its fix steps regenerate (README badges, INTEGRATION counts) in the SAME commit; ⊥ commit other work while `hk.pkl` has unstaged edits (hk reads the worktree `hk.pkl` before `stash = "git"`) (B12).
 
 ## §T TASKS
 id|status|task|cites
@@ -150,3 +151,4 @@ B8|2026-10-03|agent home tier 1 needs home-manager, nix-home-manager-claude-code
 B9|2026-10-03|hk 1.58 installs only config-based hooks under git ≥ 2.54 (dev shell); system git 2.50 committed a bad message unchecked ⇒ in cloud (image git) no hook fires (re-review RR-1)|V32
 B10|2026-10-03|`release.sh` pinned the line to REV, then asked to commit `cloud-home.storepath` after it ⇒ the released SHA lacks the file, tier 2 404s; release ⊥ checked input sources (re-review RR-2, RR-3)|V33
 B11|2026-10-03|nix-home-manager-claude-code `programs.claude-code.permissions.{allow,deny}` writes flat `"permissions.allow"` keys Claude Code ignores; caught by evaluating the generated JSON; workaround: freeform `programs.claude-code.settings.permissions` (pr0d1r2/nix-home-manager-claude-code#35)|V35
+B12|2026-10-03|hk loads worktree `hk.pkl` before stashing ∴ unstaged new fix steps rewrote README \& INTEGRATION in unrelated commits; 2 messages claimed numbers their diffs lacked (reworded pre-push)|V36

@@ -17,7 +17,7 @@ sib|experiments|cloud-session experiments: prompts, dated results, setup timing,
 ## §C CONSTRAINTS
 
 - C30: ⊥ published, ⊥ in any session closure; ⊥ dependencies (std only) ∴ builds offline \& in cloud w/o crates.io; built by Nix (`packages.<sys>.claudinix-dev`, in the dev shell).
-- C31: pure fns over `&str` ∀ parser \& renderer; `main.rs` alone reads the repo \& writes ∴ ∀ rule testable w/o a repository. exit 0 clean · 1 drift · 2 usage \| I/O. Rust gate: `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test` on `dev/**`.
+- C31: pure fns over `&str` ∀ parser \& renderer; `main.rs` alone reads the repo \& writes ∴ ∀ rule testable w/o a repository. exit 0 clean · 1 drift · 2 usage \| I/O. Rust gate: `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test` on `dev/**`. `dev-test` runs on push only (a RED commit fails on purpose, `.:C17`); the dev shell carries the package built w/o its tests; dev shell = `mkShell` (cargo needs a C linker).
 
 ## §I INTERFACES
 
@@ -29,6 +29,7 @@ sib|experiments|cloud-session experiments: prompts, dated results, setup timing,
 V1: every generated number comes from the file that OWNS it (`hk.pkl` steps, `@test` lines in `tests/unit/**/*.bats`, `setup.sh` `min_version`, root §F rows, `ci.yml` path, `.claudinix.toml` `cache.name`); a value that reads empty \| zero → exit 2 naming the file.
 V2: a badge's alt text \& URL come from ONE value ∴ they cannot disagree.
 V3: render is idempotent: splice(splice(x)) == splice(x) ∴ `--check` is equality.
+V4: the status badge follows the README's `> **Alpha|Beta|Preview, <date>.**` callout \& is absent w/o one; the CI slug comes from `setup.sh`'s fork block `repo=`, the cache from `.claudinix.toml` `cache.name`.
 
 ## §T TASKS
 
