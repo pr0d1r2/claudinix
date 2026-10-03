@@ -108,6 +108,22 @@ Measured in real sessions: root, `HOME=/root`, `CLAUDE_CODE_REMOTE=true`.
   a hand-written `claude --cloud`. A cloud agent pushes
   `claude/<node>-<task>` and opens no PR; the owner reviews and merges.
 
+## Cloud permissions
+
+Cloud sessions get one narrow rule list, `nix/cloud-permissions.json`: allow
+for the gate's own commands and for pushing `claude/*`, deny for pushing
+`main`. It is never committed into `.claude/settings.json`, which holds only
+the SessionStart hook. The agent home writes it into `~/.claude/settings.json`;
+with `CLAUDINIX_SESSION_PERMISSIONS=1` in the cloud environment,
+`scripts/dev/session-start.sh` also merges it into the gitignored
+`.claude/settings.local.json`. Local sessions get neither.
+
+To add a rule, name the inner command (`Bash(nix develop -c foo *)`), never
+a bare runner (`Bash(nix develop *)`). The `cloud-permissions` gate step
+refuses `Bash`, `Bash(*)`, any rule starting with `*`, a bare `nix develop`
+or `nix-dev` runner rule, a list missing the main-push deny rules, and a
+`permissions` block in `.claude/settings.json`.
+
 ## Choosing the model
 
 This project launches cloud jobs with `--model sonnet`; without it,
