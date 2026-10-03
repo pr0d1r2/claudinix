@@ -5,8 +5,8 @@
 Report privately, not in a public issue.
 
 - Preferred: [GitHub private vulnerability
-  reporting](https://github.com/pr0d1r2/nix-claude-code-cloud/security/advisories/new)
-- Or email **pr0d1r2@gmail.com** with `nix-claude-code-cloud security` in
+  reporting](https://github.com/pr0d1r2/claudinix/security/advisories/new)
+- Or email **pr0d1r2@gmail.com** with `claudinix security` in
   the subject.
 
 Include the commit you used, what you ran, and what happened. A reproducing
