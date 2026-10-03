@@ -4,17 +4,22 @@
 #
 # The cloud environment can only be made in the browser, so this does
 # the rest: for each step it says what to do and where, opens the URL,
-# copies the value to paste (env name, allowed domains, setup script) to
-# the clipboard, waits for you, and checks locally what it can: the
+# copies the value to paste (env name, allowed domains, the one-line
+# setup script from setup-line.sh) to the clipboard, waits for you, and checks locally what it can: the
 # claude.ai sign-in, `remote.defaultEnvironmentId`, the github inputs to
 # attach. Step 0 (money) always runs and needs an explicit `y` for each
 # check. Step titles and URLs come from guide-steps.tsv, which a test
 # keeps equal to the SETUP.md headings. No network writes, no secrets.
 #
-# Usage: guide.sh [--from STEP] [FLAKE_DIR]   steps 0-5 (default dir: .)
-#        guide.sh update [FLAKE_DIR]          the "Updating" flow
-# Env:   NCCC_SCRIPTS      dir with guide-steps.tsv, inputs.sh, domains.sh
-#        NCCC_SETUP        setup.sh to paste (default: beside scripts/)
+# The setup line is pinned to NCCC_SETUP_REV, else to HEAD of the clone
+# the guide runs from; setup-line.sh refuses a SHA whose CI on main is
+# not green, and the guide stops with it unless --force is given (T69).
+#
+# Usage: guide.sh [--force] [--from STEP] [FLAKE_DIR]   steps 0-5 (dir: .)
+#        guide.sh update [--force] [FLAKE_DIR]          the "Updating" flow
+# Env:   NCCC_SCRIPTS      dir with guide-steps.tsv, inputs.sh, domains.sh,
+#                          setup-line.sh
+#        NCCC_SETUP_REV    full SHA of this repo to pin the setup line to
 #        NCCC_MODEL_DOC    MODEL.md with the prices (default: ../docs/)
 #        CLAUDE_SETTINGS   user settings (default ~/.claude/settings.json)
 #        CLIPBOARD_TOOLS   tried in order (default: pbcopy wl-copy xclip)
@@ -23,16 +28,18 @@
 set -euo pipefail
 
 usage() {
-    echo "usage: guide.sh [--from STEP] [FLAKE_DIR] | guide.sh update [FLAKE_DIR]" >&2
+    echo "usage: guide.sh [--force] [--from STEP] [FLAKE_DIR] | guide.sh update [--force] [FLAKE_DIR]" >&2
     exit 2
 }
 
 flow=setup
 from=0
 dir=
+force=()
 while [ "$#" -gt 0 ]; do
     case "$1" in
     update) flow=update ;;
+    --force) force=(--force) ;;
     --from)
         [ "$#" -ge 2 ] || usage
         from="$2"
@@ -53,7 +60,6 @@ esac
 dir="${dir:-.}"
 
 lib="${NCCC_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
-setup_file="${NCCC_SETUP:-$lib/../setup.sh}"
 model_doc="${NCCC_MODEL_DOC:-$lib/../docs/MODEL.md}"
 settings="${CLAUDE_SETTINGS:-$HOME/.claude/settings.json}"
 env_name=nix
@@ -100,6 +106,18 @@ copy() {
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
+# setup_line: the one-line UI setup script (V20) for NCCC_SETUP_REV, else
+# for HEAD of the clone this guide runs from; stops when there is
+# neither, or when setup-line.sh refuses the SHA (T69).
+setup_line() {
+    local rev="${NCCC_SETUP_REV:-}"
+    if [ -z "$rev" ] && ! rev="$(git -C "$lib/.." rev-parse --verify --quiet HEAD 2>/dev/null)"; then
+        stop "cannot tell which revision to pin the setup line to: set NCCC_SETUP_REV to a full SHA of nix-claude-code-cloud"
+    fi
+    bash "$lib/setup-line.sh" ${force[@]+"${force[@]}"} "$rev" ||
+        stop "no setup line for $rev (see above); pick a SHA CI passed, or run the guide with --force"
+}
+
 # paste KIND: say where the value goes, copy it, print it, wait.
 paste() {
     local value="$tmp/value"
@@ -114,13 +132,13 @@ paste() {
         CLIPBOARD_TOOLS=none bash "$lib/domains.sh" "$dir" >"$value"
         ;;
     setup)
-        echo "Setup script: select all of the old one (if any) and paste the whole of setup.sh over it."
-        cat "$setup_file" >"$value"
+        echo "Setup script: select all of the old one (if any) and paste this one line over it."
+        setup_line >"$value"
         ;;
     esac
     if copy "$value"; then
         echo "(copied to the clipboard)"
-        [ "$1" = setup ] || sed 's/^/  /' "$value"
+        sed 's/^/  /' "$value"
     else
         sed 's/^/  /' "$value"
     fi
