@@ -94,7 +94,7 @@ T16|.|`homeConfigurations.cloud`: home-manager standalone, `nix-home-manager-cla
 T17|.|`setup.sh` tail: activate agent home w/ V15 failover as Claude's uid; seams `CLOUD_HOME_FLAKE`, `CLOUD_HOME_STOREPATH`; bats w/ stub `nix`|V14,V15,V7,I.file
 T18|.|CI: build `activationPackage` → `cachix push pr0d1r2` → commit store path to `cloud-home.storepath` (token CI-only, V6)|V15,V6,C5
 T19|x|guard scripts: `bats-mirror` (unicoverage, both directions), `tdd-order` (RED in parent of GREEN, `-M`), `commit-msg` (Conventional + `Why:`); reused per C17; pre-push \| all; each w/ own bats (RED→GREEN)|C16,C17,V17,V19
-T20|.|xenolith step `xnl check {{files}}` + `checks.<sys>.xenolith`; `xenolith.toml` (languages nix, shell)|C15,V18
+T20|x|xenolith step `xnl check {{files}}` + `checks.<sys>.xenolith`; `xenolith.toml` (languages nix, shell)|C15,V18
 T21|.|owner tools steps: `mth` on `SPEC.md`, `itok check` + `.context-limits`, `sherd validate`\|`budget`; pinned inputs w/ `follows`; via `scripts/hk/run-tool.sh` (V18)|C20,V18
 T22|.|pklith ?: `.pklith` → `hk.pklith.pkl` imported by `hk.pkl`, `pklith check` step; adopt only if generated steps pass C15 purity (else upstream pklith issue: emit `scripts/hk/*.sh` calls) \& render C14-C20 steps ⊥ loss|C20,C15,V19
 T23|.|CI `.github/workflows/ci.yml`: gate + `nix flake check` + cachix push on default branch + verify job (narinfo 200); kcov line-coverage job ? w/ ratchet|C19,V22,C16
