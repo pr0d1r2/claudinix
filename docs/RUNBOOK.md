@@ -35,17 +35,21 @@ floor on purpose.
 
 ## Update the setup script in the environment
 
-**Human.** Planned: a one-line setup script pinned to a commit SHA, so an
-update is a new SHA and nothing else (`SPEC.md` T24, V20).
+**Human.** The environment holds one line, pinned to a commit SHA, so an
+update is a new SHA and nothing else (`SPEC.md` T24, V20). Its fetch of
+`setup.sh` from `raw.githubusercontent.com` has not yet been tried in a real
+cloud session (`SPEC.md` T57).
 
-Today the environment holds a pasted copy of the whole `setup.sh`:
-
-1. Make sure the change is merged and CI is green.
-2. Follow "Updating the environment" in [`SETUP.md`](SETUP.md): open the
+1. Make sure the change is merged, pushed and CI is green. The line does not
+   check this: use a SHA whose CI has pushed the agent home to the cache.
+2. Print the new line from a checkout: `scripts/setup-line.sh`, or
+   `scripts/setup-line.sh <rev>` for another commit
+   ([`CLI.md`](CLI.md)).
+3. Follow "Updating the environment" in [`SETUP.md`](SETUP.md): open the
    `nix` environment's settings, select all of the old setup script, paste
-   the new one over it, save.
-3. Start a **new** session. A running session keeps its old VM.
-4. Run `probe.sh` in that session and check every line.
+   the new line over it, save.
+4. Start a **new** session. A running session keeps its old VM.
+5. Run `probe.sh` in that session and check every line.
 
 A changed setup script rebuilds the snapshot on the next session, so expect
 that start to be slower.
@@ -81,13 +85,15 @@ shells from their own CI (`SPEC.md` T6, T54).
 
 **Human.** Run `bash probe.sh` (from a checkout of this repository) inside
 a session. Each line is one check; the exit status is 1 if any health
-check failed. Planned: `nix run …#probe` launches a probe session from
-your terminal (`SPEC.md` T28).
+check failed. To start a probe session from your terminal instead, run
+`nix run github:pr0d1r2/nix-claude-code-cloud#probe` in your project: it
+prints the session's report ([`CLI.md`](CLI.md)). That launcher has not yet
+been run end to end against a real cloud session.
 
 | line | likely cause | fix |
 |---|---|---|
 | `nix-path: FAIL` | the setup script did not run, or failed before linking `nix` into `/usr/local/bin` | check the session is in the `nix` environment (`/remote-env`), then read the setup step in the session's checklist |
-| `substituters: FAIL` | the managed block in `/etc/nix/nix.conf` is missing | the setup script did not finish; re-paste it and start a new session |
+| `substituters: FAIL` | the managed block in `/etc/nix/nix.conf` is missing | the setup script did not finish; check the pasted line and start a new session |
 | `cachix: FAIL HTTP 403` | `pr0d1r2.cachix.org` is not in the allowed domains | add it (see `allowlist.txt`), start a new session |
 | `channels: FAIL HTTP 403` | `channels.nixos.org` or `releases.nixos.org` is not allowed | add both, start a new session (`SPEC.md` B1) |
 | `cachix-input: FAIL HTTP 404` | the target repository's CI has not pushed that input | run the target's CI on its default branch (`SPEC.md` T54) |
