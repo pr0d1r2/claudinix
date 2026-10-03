@@ -243,6 +243,27 @@ A repository can keep its choices (model, dev shell, extra domains, cache name)
 in an optional `.claudinix.toml` at its root. Most repositories need none; see
 [`docs/CONFIG.md`](docs/CONFIG.md).
 
+## What you can check
+
+Each claim here has a way to check it yourself.
+
+- **The Nix installer runs only after its sha256 matches.** Read the check in
+  [`setup.sh`](setup.sh) (`NIX_INSTALL_SHA256`); the bats tests in
+  `tests/unit/setup.bats` run it against a fake installer. It only runs at all
+  when the image's Nix is older than 2.34.
+- **The setup line in this README is generated, not typed.**
+  `scripts/guard/readme-setup-line.sh` regenerates the block between the
+  `setup-line` markers and compares it; it is a step of the gate.
+- **The agent home is off unless you ask.** Run `setup.sh` without
+  `--agent-home` and it prints the `agent home: skipped` line.
+- **The cache is read-only from the VM.** The push token `CACHIX_AUTH_TOKEN`
+  appears only in the CI workflow and the docs that describe it, never in a
+  setup script or an environment variable list.
+- **Every fact about the platform is dated** and comes from a probe. Run
+  [`probe.sh`](probe.sh) in a session to measure it again.
+- **The gate passes on this repository.** `hk check --all` inside
+  `nix develop` runs every check ([`docs/INTEGRATION.md`](docs/INTEGRATION.md)).
+
 ## Known limits
 
 Each limit has a source, and the dates matter, because Anthropic can change
