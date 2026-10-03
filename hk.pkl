@@ -54,6 +54,15 @@ local fast = new Mapping<String, Step> {
     check = "scripts/hk/run-tool.sh xnl check {{files}}"
   }
 
+  // The justfile holds one plain command per recipe (C15); just's own
+  // formatter keeps its layout. `--unstable` because `--fmt` still asks
+  // for it.
+  ["just"] {
+    glob = List("justfile")
+    check = "scripts/hk/run-tool.sh just --fmt --check --unstable"
+    fix = "scripts/hk/run-tool.sh just --fmt --unstable"
+  }
+
   ["actionlint"] {
     glob = List(".github/workflows/*.yml", ".github/workflows/*.yaml")
     check = "scripts/hk/run-tool.sh actionlint {{files}}"
