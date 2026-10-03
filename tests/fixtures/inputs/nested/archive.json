@@ -1,0 +1,35 @@
+{
+  "inputs": {
+    "a": {
+      "inputs": {
+        "nixpkgs": {
+          "inputs": {},
+          "path": "/nix/store/nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn-source"
+        }
+      },
+      "path": "/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-source"
+    },
+    "b": {
+      "inputs": {
+        "a": {
+          "inputs": {},
+          "path": "/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-source"
+        },
+        "c": {
+          "inputs": {},
+          "path": "/nix/store/cccccccccccccccccccccccccccccccc-source"
+        },
+        "d": {
+          "inputs": {},
+          "path": "/nix/store/dddddddddddddddddddddddddddddddd-source"
+        },
+        "e": {
+          "inputs": {},
+          "path": "/nix/store/ffffffffffffffffffffffffffffffff-source"
+        }
+      },
+      "path": "/nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-source"
+    }
+  },
+  "path": "/nix/store/rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr-source"
+}
