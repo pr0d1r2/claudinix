@@ -79,7 +79,7 @@ T4|.|MANUAL create env `nix` at claude.ai/code from repo files; run 1 probe sess
 T5|.|if probe: session uid ≠ root ∧ no systemd → make store usable (V9) \| switch install mode; bats|V9,V4
 T6|.|target-repo CI snippet (doc only, targets adopt via own spec): on push to default branch `nix flake archive --json` + devShell closure → `cachix push pr0d1r2`; push token in CI secrets only, ⊥ VM|V8,V6,C5,C6,C3
 T7|.|measure setup wall time on fresh VM; record; > 5 min → trim|V5,C1
-T8|.|SessionStart hook snippet for target repos: enter devShell once (warm), install git hooks; doc only, target repos adopt via own spec|C3,V7,C9
+T8|.|`docs/CONSUMER.md` + SessionStart hook snippet for target repos (doc only, targets adopt via own spec): `github:` inputs not in cachix → `git+https://github.com/<o>/<r>?ref=main&shallow=1` (sherd #96); tools that read 3rd-party GitHub (zizmor online audit) → offline in cloud, report "could not run" ⊥ "finding"; hook: `git fetch --unshallow` (tdd-order needs history), `nix develop -c hk install`; commit author in cloud = `Claude <noreply@anthropic.com>` + `Claude-Session:` trailer ∴ commit-msg hooks must accept it; branch names get random suffix|C3,V7,C9,C8
 T9|.|`LICENSE` (MIT), `README.md` (what, paste steps, fork block C11, known limits); V12 scan of tree \& history before 1st push|C10,C11,V12
 T11|.|MANUAL create public GitHub repo `pr0d1r2/nix-claude-code-cloud`, add remote, push after T9|C10,V12
 T12|.|`nix-dev` wrapper: try tiers V13 in order, log tier used, channel from target `flake.lock` nixpkgs ref (`nixos-<ver>` \| `nixpkgs-unstable`) else `nixpkgs-unstable`; installed by `setup.sh`; bats w/ stub `nix`|V13,V8,I.cmd
