@@ -121,6 +121,7 @@ T44|.|W4 SHOULD `docs/CLI.md`: `domains`, `inputs`, `guide`, `probe` flags, exit
 T45|.|W4 SHOULD `docs/SESSION.md`: session lifecycle `claude --cloud` → VM → clone → setup script \| snapshot → SessionStart → Claude; why edits ⊥ reach running session; model nixos-poe2 `usage.md` boot flow|C22,C1,C8
 T46|.|W4 SHOULD `docs/FORKING.md`: own cachix, domains, env name (C11 block); model nixos-poe2 `development.md`|C22,C11
 T47|.|cloud permission prompts (seen 2026-10-03: "Allow Claude to use add repo (claude-code-remote)?" blocked the sherd #96 session until answered): find exact tool ids (`add_repo` under server `claude-code-remote`, likely `mcp__claude-code-remote__add_repo` ?) from a session transcript; document 3 ways in `docs/SETUP.md` + `docs/CONSUMER.md`: (a) target repo committed `.claude/settings.json` `permissions.allow` (read in 1-repo sessions; user `~/.claude` ⊥ reaches cloud), (b) permission mode chosen at session start (mode dropdown \| CLI flag ?), (c) answer in UI ("Always allow" scope ?). `apps.guide` offers to write (a) into the target repo as its own commit; ⊥ allow write access by default (least privilege)|C2,C9,I.cmd,T26,T8
+T48|.|`env-names.txt`: `BASH_DEFAULT_TIMEOUT_MS=600000`, `BASH_MAX_TIMEOUT_MS=600000` (values via E4); SETUP + guide show them|V24,I.file
 T10|.|`just bump-nix <ver>`: fetch installer + `.sha256`, rewrite pin pair, run tests|V11,C4
 
 ## §B BUGS
