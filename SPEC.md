@@ -128,11 +128,11 @@ T67|x|ARCHIVED to SPEC-ARCHIVE.md|T58,`scripts:T28`,I.cmd — answered 2026-10-0
 T68|x|ARCHIVED to SPEC-ARCHIVE.md|C11,V3,I.file
 T69|x|ARCHIVED to SPEC-ARCHIVE.md|V20,C19,I.file
 T71|x|ARCHIVED to SPEC-ARCHIVE.md|C10,C11,V3,I.file,I.cmd
-T73|x|`setup.sh` opt-in agent home (C24: `--agent-home` arg \| `CLAUDINIX_AGENT_HOME=1`; default skips it, logs so); nix-dev files fetched to a temp dir \& moved only when all succeed, else stale link removed; curl `--connect-timeout`/`--max-time` on every fetch; 1 script-dir var from `BASH_SOURCE`, ⊥ cwd fallback; warn when resolved `nix --version` < floor after install (review R1-3,4,6,7,13)|C24,V1,V4,V5,`nix:V15`
-T74|x|CI: push eval-time input sources (`nix flake archive --json` paths) on main; `verify-cachix.sh` checks those + agent home + dev shell, drops the empty xenolith marker; cachix write token only on push to main (review R2-1,7,10)|V30,V22,C19
-T75|x|release: `scripts/release.sh [REV]` (maintainer): refuses unless CI green \& agent home narinfo 200; records `cloud-home.storepath` (commit); prints release notes; regenerates the README setup-line block between markers; gate checks block = `setup-line.sh` output for its recorded SHA|C25,`nix:V15`,V20
-T76|x|repo `.claude/settings.json` SessionStart hook → `scripts/dev/session-start.sh` (unshallow if shallow, `nix develop -c true`, quiet on success); bats|C27,V17,V29
-T77|x|gate: `pkl eval hk.pkl` step + `///`→`//` in `hooks` (V27); exec-bit step (V28) + chmod; `bats` glob covers data files tests read (SETUP.md, justfile, `*.jq`, `*.tsv`, `*.txt`) (V19); comment blocks above the right steps; `.envrc` `watch_file scripts/dev/shell-hook.sh`; quiet success for non-TTY (V31)|V27,V28,V19,V31,C14
+T73|x|ARCHIVED to SPEC-ARCHIVE.md|C24,V1,V4,V5,`nix:V15`
+T74|x|ARCHIVED to SPEC-ARCHIVE.md|V30,V22,C19
+T75|x|ARCHIVED to SPEC-ARCHIVE.md|C25,`nix:V15`,V20
+T76|x|ARCHIVED to SPEC-ARCHIVE.md|C27,V17,V29
+T77|x|ARCHIVED to SPEC-ARCHIVE.md|V27,V28,V19,V31,C14
 
 ## §B BUGS
 id|date|cause|fix
