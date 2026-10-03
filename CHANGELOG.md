@@ -71,7 +71,11 @@ does are summarised briefly; the git history has the detail.
 - `allowlist.txt` now holds only the Nix hosts and `github.com`. Hosts a
   target project needs (crates.io, PyPI, npm, ...) come from the `domains`
   command instead.
-- `env-names.txt` offers an optional `BASH_DEFAULT_TIMEOUT_MS=600000`.
+- `env-names.txt` offers an optional `BASH_DEFAULT_TIMEOUT_MS=600000` and
+  no longer lists `ANTHROPIC_MODEL`, which never chose the model.
+- Every Nix network operation in `setup.sh` is bounded (connect and stall
+  timeouts, and `CLAUDINIX_NIX_TIMEOUT` seconds per step, default 120);
+  `CLAUDINIX_AGENT_HOME` accepts only 0 or 1.
 
 ### Commands for target projects
 
@@ -84,7 +88,8 @@ Run from the project you will send to the cloud, as
 - `domains`: prints the allowed domains the project needs, detected from
   its lock files, optionally from a session log's proxy refusals.
 - `guide`: walks the browser setup steps from the terminal, copying each
-  value to paste.
+  value to paste. It copies the setup line from the README's release
+  block (no `gh` needed); `--rev SHA` prints a line for another commit.
 - `probe`: starts a cloud session that runs `probe.sh` on the project and
   prints its report. It refuses a project with no `origin` remote or an
   unpushed branch, and asks before starting a billed session (`--yes`
@@ -107,10 +112,13 @@ Run from the project you will send to the cloud, as
   `nix`, `docs`), so separate agents can work on each in parallel.
 - `just bump-nix <version>` rewrites the pinned Nix version and its sha256
   together.
-- Releases: `just release REV` (maintainer) refuses unless CI is green and
-  the agent home is in the cache, records `cloud-home.storepath`, writes the
-  setup line into the README and prints the release notes and the git
-  commands to run. Until the first release the README block says so.
+- Releases are two steps (maintainer): `just release record REV` refuses
+  unless CI is green and every input source and the agent home are in the
+  cache, then writes `cloud-home.storepath` to commit; `scripts/release.sh
+  publish REV2` refuses unless that commit holds the file for its own agent
+  home, then writes the setup line into the README and prints the release
+  notes and the tag and release commands. Until the first release the
+  README block says so.
 - A green gate is quiet (a few lines instead of about 350 when no terminal
   is attached); failures still print in full. `hk.pkl` is now valid for the
   official Pkl evaluator, and a gate step checks it.
@@ -121,7 +129,10 @@ Run from the project you will send to the cloud, as
 - Every shell script with a shebang must be executable; a gate step checks.
 - Cloud sessions working on this repository run a SessionStart hook that
   fetches the full history and installs the git hooks before the first
-  commit.
+  commit. The hooks also fire under git older than 2.54 (as a cloud image
+  may ship), through `.git/hooks` shims; a hook that is not claudinix's is
+  never overwritten. Hooks enter the dev shell through `nix-dev` when it is
+  installed.
 - Docs: `README.md`, `LICENSE` (MIT), `AGENTS.md`, and under `docs/`:
   SETUP, CLI, CONSUMER, CACHE-CI, EXAMPLE, SESSION, FORKING, MODEL, FACTS,
   RUNBOOK, SECURITY, INTEGRATION, linter-coverage, LLM-DISCLAIMER,
