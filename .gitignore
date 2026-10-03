@@ -5,5 +5,8 @@ result-*
 # direnv's materialized profile. The `.envrc` is tracked; what it builds is not.
 /.direnv/
 
-# Local agent state (Claude Code worktrees, scratch): never part of the tree.
-/.claude/
+# Local agent state (Claude Code worktrees, scratch, settings.local.json):
+# never part of the tree. The project settings carry the SessionStart hook
+# every cloud session needs (SPEC C27), so that one file is tracked.
+/.claude/*
+!/.claude/settings.json
