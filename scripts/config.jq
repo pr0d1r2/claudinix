@@ -12,7 +12,9 @@
 # The schema, ONE object: every key of every table, its type, its
 # default (what the tools do without a file, V34: no file = today's
 # behaviour), the rule its value must also meet, and the tools that read
-# it.
+# it. docs/CONFIG.md's key table is generated from it
+# (`claudinix-dev config --write`), so it stays a plain literal: no
+# expressions, no string interpolation.
 #   type:    "string", "boolean" or "strings" (a list of strings)
 #   values:  the only strings allowed
 #   pattern: a regex the string must match (with rule "cachix")

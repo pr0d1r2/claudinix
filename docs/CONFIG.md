@@ -40,6 +40,12 @@ config: no directory /nonexistent -- nothing was read
 
 Every key is optional, but a file that exists must say `version = 1`.
 
+The table is generated from the schema in
+[`scripts/config.jq`](../scripts/config.jq) by
+`claudinix-dev config --write`, and the gate fails when it no longer
+matches.
+
+<!-- BEGIN config: generated from scripts/config.jq by `claudinix-dev config --write`; do not edit -->
 | key | type | default | read by |
 |---|---|---|---|
 | `version` | the number `1` | none; required in a file | every reader (the file is refused without it) |
@@ -50,6 +56,7 @@ Every key is optional, but a file that exists must say `version = 1`.
 | `cache.name` | string matching `^[a-z0-9][a-z0-9-]*$` | `"pr0d1r2"` | `inputs` (the cache it asks), `ci/verify-cachix.sh` (the cache it verifies) |
 | `cache.push_sources` | `true` or `false` | `false` | nothing yet: reserved for the central cache job, which is not built |
 | `probe.branch_prefix` | string, no whitespace, quote, backtick or control character | `"claude/nix-probe"` | `probe` (the branch the session pushes its report on) |
+<!-- END config -->
 
 `.` as `devshell.installable` means a bare `nix develop`, which is what the
 tools did before the file existed. The per-tool detail is in
