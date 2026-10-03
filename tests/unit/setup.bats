@@ -367,15 +367,35 @@ fetch_stub() {
     [ "$(readlink "$BIN_DIR/nix-dev")" = "$NCCC_LIB_DIR/nix-dev.sh" ]
 }
 
-@test "setup.sh alone: nix-dev fetched from the repo at NCCC_REV" {
+@test "setup.sh alone with a SHA: nix-dev fetched at that SHA, not main (T69, V20)" {
     image_nix 2.34.6
     fetch_stub
     cp "$SCRIPT" "$BATS_TEST_TMPDIR/setup.sh"
-    NCCC_REV=abc123 run bash "$BATS_TEST_TMPDIR/setup.sh"
+    run bash "$BATS_TEST_TMPDIR/setup.sh" "$SHA"
+    [ "$status" -eq 0 ]
+    grep -qx "https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/$SHA/scripts/nix-dev.sh" "$FETCH_LOG"
+    grep -qx "https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/$SHA/scripts/nix-dev.jq" "$FETCH_LOG"
+    run ! grep -q '/main/' "$FETCH_LOG"
+    [ -x "$BIN_DIR/nix-dev" ]
+}
+
+@test "setup.sh alone without a SHA: nix-dev fetched from main (T69)" {
+    image_nix 2.34.6
+    fetch_stub
+    cp "$SCRIPT" "$BATS_TEST_TMPDIR/setup.sh"
+    run bash "$BATS_TEST_TMPDIR/setup.sh"
+    [ "$status" -eq 0 ]
+    grep -qx 'https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/main/scripts/nix-dev.sh' "$FETCH_LOG"
+    [ -x "$BIN_DIR/nix-dev" ]
+}
+
+@test "NCCC_REV seam still picks the revision nix-dev is fetched at" {
+    image_nix 2.34.6
+    fetch_stub
+    cp "$SCRIPT" "$BATS_TEST_TMPDIR/setup.sh"
+    NCCC_REV=abc123 run bash "$BATS_TEST_TMPDIR/setup.sh" "$SHA"
     [ "$status" -eq 0 ]
     grep -qx 'https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/abc123/scripts/nix-dev.sh' "$FETCH_LOG"
-    grep -qx 'https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/abc123/scripts/nix-dev.jq' "$FETCH_LOG"
-    [ -x "$BIN_DIR/nix-dev" ]
 }
 
 @test "nix-dev's cache check (inputs.sh, inputs.jq) lands beside it (scripts:T49)" {
