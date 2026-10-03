@@ -8,27 +8,69 @@
 
 Read [LLM-DISCLAIMER](docs/LLM-DISCLAIMER.md) first.
 
-**Nix inside a Claude Code cloud session, before Claude starts.** A Claude
-Code cloud environment lets you paste one setup script that runs as root on a
-fresh VM. This repository is that script, plus what you need to trust it,
-check it and fork it: a pinned and hash-checked Nix, a read-only binary cache,
-and the facts about what a cloud session allows, each measured and dated.
+**Who it is for.** Your repository is a Nix flake and you use Claude Code
+cloud sessions.
+
+**What it does.** It makes Nix, and `nix develop` in your repository, work
+inside those sessions, before Claude starts.
+
+**Why.** A cloud session is an Ubuntu VM with no toolchain for your
+repository, a network proxy that refuses hosts you did not list, and a GitHub
+proxy that returns a 403 for the archive downloads Nix uses for `github:`
+flake inputs. Getting `nix develop` to work there took seven probe sessions;
+the results are in [`docs/FACTS.md`](docs/FACTS.md) so you do not have to
+repeat them.
+
+> **Alpha, 2026-10-03.** Proven in real cloud sessions: Nix and the cache
+> work, the dev shell of a real Rust project builds in about 33 seconds, and
+> `claude --cloud "<task>" --model sonnet` runs on Sonnet 5.5. Not yet run in
+> a real session: the agent home, `nix-dev`, the probe launcher, and the
+> setup line's download of `setup.sh` from `raw.githubusercontent.com`
+> during setup. All of them are covered by tests with stubs. Evidence and
+> dates: [`docs/FACTS.md`](docs/FACTS.md).
 
 <!-- BEGIN setup-line -->
 No release yet: the maintainer publishes the line with `scripts/release.sh REV`.
 <!-- END setup-line -->
 
-The problem in one sentence: a cloud session is an Ubuntu VM with no
-toolchain for your repository, a network proxy that refuses hosts you did not
-list, and a GitHub proxy that returns a 403 for the archive downloads Nix
-uses for `github:` flake inputs. Getting `nix develop` to work there took
-seven probe sessions, and the results are in [`docs/FACTS.md`](docs/FACTS.md)
-so you do not have to repeat them.
+## The fastest path
 
-## The name
+In your project (a Nix flake with a committed `flake.lock`, on GitHub, branch
+pushed), with Nix and flakes on your machine and the `claude` CLI signed in
+to claude.ai:
 
-"claud" reads as Claude or as cloud. "i nix" is Polish for "and nix". The
-working name was `nix-claude-code-cloud`; the git history keeps it.
+```sh
+nix run github:pr0d1r2/claudinix#guide
+```
+
+The first `nix run` asks whether to trust the extra binary cache
+`pr0d1r2.cachix.org`: answer `y`, or pass `--accept-flake-config`. The guide
+walks you through every step in your terminal and the browser, copies each
+value you have to paste, and checks what it can. Creating the environment
+itself is the one part that has to happen by hand at
+[claude.ai/code](https://claude.ai/code), because it has no API. The setup
+script you paste there is the line published above (and in each release's
+notes). The same steps, written out, are in [`docs/SETUP.md`](docs/SETUP.md).
+
+## The agent home is opt-in
+
+By default the setup script installs Nix and `nix-dev` and nothing else. It
+also installs an **agent home** only if you ask for it, by adding
+`--agent-home` to the setup line (or setting `CLAUDINIX_AGENT_HOME=1`).
+Without it, setup prints
+`agent home: skipped -- opt in with setup.sh [SHA] --agent-home, or CLAUDINIX_AGENT_HOME=1`.
+
+The agent home is the owner's own Claude setup, activated for the session's
+user (root) before Claude starts. It installs:
+
+- the owner's set of rules, in `~/.claude/rules`;
+- the cavekit skills `spec`, `build`, `check`, `backprop` and `caveman`, and
+  the `FORMAT.md` they read;
+- a `claude-code` home-manager configuration.
+
+**It changes how Claude behaves in your sessions.** Read what it installs
+(`nix/cloud-home.nix`) before you opt in. It holds agent-level settings only:
+no language toolchain, which stays with your repository's own dev shell.
 
 ## What you get
 
@@ -37,29 +79,25 @@ working name was `nix-claude-code-cloud`; the git history keeps it.
   2.35.2 only if the image falls below the floor of 2.34. The installer runs
   only after its sha256 matches. It writes one managed block into
   `/etc/nix/nix.conf` (flakes on, `accept-flake-config = true`, the read-only
-  cache `pr0d1r2.cachix.org`) and links `nix` into `/usr/local/bin`, so the
-  Bash tool finds it without sourcing a profile. It also installs `nix-dev`
-  and tries to activate the agent home (below).
-  In the environment dialog you paste one line, pinned to a commit SHA, that
-  `scripts/setup-line.sh` prints; the line downloads `setup.sh` at that
-  commit and runs it.
+  cache `pr0d1r2.cachix.org`), links `nix` into `/usr/local/bin` so the Bash
+  tool finds it without sourcing a profile, and installs `nix-dev`. With
+  `--agent-home` it also activates the agent home (above). In the
+  environment dialog you paste one line, pinned to a commit SHA; the line
+  downloads `setup.sh` at that commit and runs it.
 - **Commands for your project** ([`docs/CLI.md`](docs/CLI.md)), run from
   the project you will send to the cloud with
   `nix run github:pr0d1r2/claudinix#<app>`:
   `inputs` lists which of your flake's `github:` inputs a session can get
-  from a binary cache and which must be attached; `domains` prints the
-  allowed domains your project needs; `guide` walks you through the setup
-  steps and checks what it can; `probe` starts a cloud session that probes
-  your project and prints its report. Inside a session, `nix-dev` is
-  `nix develop` with a failover for the GitHub proxy.
-- **An agent home** (`homeConfigurations.cloud`). The setup script activates
-  it before Claude starts, so the spec skills are in `~/.claude` at launch.
-  Agent-level only: no language toolchain, which stays with your repository's
-  own dev shell.
+  from a binary cache (`cached`) and which it would have to fetch from GitHub
+  (`uncached`); `domains` prints the allowed domains your project needs;
+  `guide` walks you through the setup steps and checks what it can; `probe`
+  starts a cloud session that probes your project and prints its report.
+  Inside a session, `nix-dev` is `nix develop` with a failover for the GitHub
+  proxy.
 - **The environment as files.** [`allowlist.txt`](allowlist.txt) is the list
   of allowed domains and [`env-names.txt`](env-names.txt) the environment
   variables. The claude.ai environment dialog has no API, so you paste from
-  these files by hand and the files stay the source of truth.
+  these files by hand.
 - **A probe** ([`probe.sh`](probe.sh)). Run it inside a session to print the
   session facts and the health of Nix, one line per check.
 - **The facts** ([`docs/FACTS.md`](docs/FACTS.md)): uid, network, proxy
@@ -72,10 +110,10 @@ is your repository's own flake dev shell (`nix develop`), not an apt step
 here. [`docs/CONSUMER.md`](docs/CONSUMER.md) says what your repository should
 do.
 
-## Set it up
+## Set it up by hand
 
-The full walkthrough, with every click, is [`docs/SETUP.md`](docs/SETUP.md).
-In short:
+The guide above does all of this for you. The full walkthrough, with every
+click, is [`docs/SETUP.md`](docs/SETUP.md). In short:
 
 1. **Protect your money.** Claim any cloud credit and check that usage
    credits (metered overage) are OFF at
@@ -89,24 +127,19 @@ In short:
    name `nix`, network access **Custom** with the default package-manager
    list included, as allowed domains every non-comment line of
    `allowlist.txt` plus your project's hosts from
-   `nix run github:pr0d1r2/claudinix#domains`, and as the setup
-   script the one line `scripts/setup-line.sh` prints once CI on `main` is
-   green for the commit (not the contents of `setup.sh`).
+   `nix run github:pr0d1r2/claudinix#domains`, and as the setup script the
+   one line published at the top of this page (not the contents of
+   `setup.sh`).
 5. **Choose it in your terminal** with `/remote-env` (once per machine).
 6. **Run a first session** and look for a Nix version and `DEVSHELL-OK`:
 
    ```sh
-   claude --cloud "Run: nix --version && nix develop -c true && echo DEVSHELL-OK. Report the output."
+   claude --cloud "Run: nix --version && nix-dev -c true && echo DEVSHELL-OK. Report the output." --model sonnet
    ```
 
 The model is chosen when you start the session, not in the environment, and
-the task text must come first:
-
-```sh
-claude --cloud "<task>" --model sonnet
-```
-
-Setting `ANTHROPIC_MODEL` on the environment does not choose it. See
+the task text must come first: `claude --cloud "<task>" --model sonnet`.
+Sessions started without `--model` ran on Opus (measured 2026-10-03). See
 [`docs/MODEL.md`](docs/MODEL.md). For a worked run on a real repository, with
 timings, see [`docs/EXAMPLE.md`](docs/EXAMPLE.md).
 
@@ -119,7 +152,7 @@ appear. [`docs/FORKING.md`](docs/FORKING.md) has the full walkthrough.
 
 In [`setup.sh`](setup.sh) they sit in one fork config block at the top
 (`cache_host`, `cache_key` and `repo`), and a fork edits only that block
-there (`SPEC.md` C11). They also appear in these files:
+there. They also appear in these files:
 
 | file | what to change |
 |---|---|
@@ -150,15 +183,12 @@ the platform at any time.
   network rules it started with.
 - **The snapshot is cached only if setup finishes in about five minutes.**
   Whether a second session really skips the setup script is not measured yet
-  (`SPEC.md` T55).
+  ([`docs/FACTS.md`](docs/FACTS.md), "Still open").
 - **Skills placed in `~/.claude/skills` by the setup script** may or may not
-  survive the session start. Not measured yet (`SPEC.md` T14).
-- **Not yet run in a real cloud session:** the agent home activation, `nix-dev`
-  inside a session, the `probe` launcher from start to finish, and the setup
-  line's fetch of `setup.sh` from `raw.githubusercontent.com` during setup.
-  Each is built and covered by bats tests with stubs, but treat it as
-  untested where it counts until a probe says otherwise (`SPEC.md` T57 for
-  the fetch).
+  survive the session start. Not measured yet (same list).
+- **Not yet run in a real cloud session:** see the alpha note at the top.
+  Treat each of those as untested where it counts until a probe says
+  otherwise.
 - **Trust.** `accept-flake-config = true` lets any repository's `nixConfig`
   apply, and the setup script runs as root. Use the environment only with
   repositories you trust, and read [`docs/SECURITY.md`](docs/SECURITY.md).
@@ -218,3 +248,8 @@ MIT, see [`LICENSE`](LICENSE).
 
 Two things this repository depends on are acknowledged in
 [`docs/THIRD-PARTY-NOTICES.md`](docs/THIRD-PARTY-NOTICES.md).
+
+## The name
+
+"claud" reads as Claude or as cloud. "i nix" is Polish for "and nix". The
+working name was `nix-claude-code-cloud`; the history keeps it.
