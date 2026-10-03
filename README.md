@@ -14,6 +14,10 @@ fresh VM. This repository is that script, plus what you need to trust it,
 check it and fork it: a pinned and hash-checked Nix, a read-only binary cache,
 and the facts about what a cloud session allows, each measured and dated.
 
+<!-- BEGIN setup-line -->
+No release yet: the maintainer publishes the line with `scripts/release.sh REV`.
+<!-- END setup-line -->
+
 The problem in one sentence: a cloud session is an Ubuntu VM with no
 toolchain for your repository, a network proxy that refuses hosts you did not
 list, and a GitHub proxy that returns a 403 for the archive downloads Nix
