@@ -5,10 +5,12 @@
 # The cloud environment can only be made in the browser, so this does
 # the rest: for each step it says what to do and where, opens the URL,
 # copies the value to paste (env name, allowed domains, the one-line
-# setup script from setup-line.sh) to the clipboard, waits for you, and checks locally what it can: the
-# claude.ai sign-in, `remote.defaultEnvironmentId`, the github inputs to
-# attach. Step 0 (money) always runs and needs an explicit `y` for each
-# check. Step titles and URLs come from guide-steps.tsv, which a test
+# setup script from setup-line.sh) to the clipboard, waits for you, and
+# checks locally what it can: the claude.ai sign-in,
+# `remote.defaultEnvironmentId`, and, before the launch in step 5, the
+# github inputs no cache holds with the remedy (T81). Step 0 (money)
+# always runs and needs an explicit answer for each check (`y`, or `none`
+# for a credit never offered). Paths are printed absolute. Step titles and URLs come from guide-steps.tsv, which a test
 # keeps equal to the SETUP.md headings. No network writes, no secrets.
 #
 # The setup line is pinned to CLAUDINIX_SETUP_REV, else to HEAD of the clone
@@ -58,7 +60,13 @@ case "$from" in
 [0-5]) ;;
 *) usage ;;
 esac
-dir="${dir:-.}"
+given="${dir:-.}"
+dir="$given"
+# Messages name the project absolute (T81); the tools get it as given.
+if ! abs="$(cd "$given" 2>/dev/null && pwd)"; then
+    echo "guide: no directory $given -- nothing was checked" >&2
+    exit 1
+fi
 
 lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 model_doc="${CLAUDINIX_MODEL_DOC:-$lib/../docs/MODEL.md}"
@@ -175,8 +183,11 @@ env_vars() {
 
 step_0() {
     echo "Do both before any cloud session, a test or probe session included."
-    ask "Claimed any cloud credit you were offered (/claim-credit), and the usage page shows it? Type y:"
-    [ "$answer" = y ] || stop "claim the credit and check claude.ai/settings/usage, then run the guide again"
+    ask "Claimed any cloud credit you were offered (/claim-credit), and the usage page shows it? Type y, or none if you were offered none:"
+    case "$answer" in
+    y | none) ;;
+    *) stop "claim the credit and check claude.ai/settings/usage (or answer none if you had none), then run the guide again" ;;
+    esac
     ask "On the same page the usage credits (metered overage) toggle is OFF? Type y:"
     [ "$answer" = y ] || stop "turn usage credits OFF, or sessions past your credit bill your card"
 }
@@ -187,10 +198,10 @@ step_1() {
     else
         echo "todo: sign in with claude auth login (an API key is not enough for claude --cloud)."
     fi
-    if [ -f "$dir/flake.lock" ]; then
-        echo "ok: $dir has a flake.lock."
+    if [ -f "$abs/flake.lock" ]; then
+        echo "ok: $abs has a flake.lock."
     else
-        echo "todo: run nix flake lock in $dir and commit flake.lock."
+        echo "todo: run nix flake lock in $abs and commit flake.lock."
     fi
     echo "Also: the project is on GitHub and your branch is pushed (a session clones GitHub, not your disk)."
     ask "Press Enter when done."
@@ -211,18 +222,23 @@ step_3() {
     done
     env_vars
     echo "Then select Create environment."
-    echo
-    echo "GitHub repositories the flake fetches (a session gets only attached ones):"
-    if bash "$lib/inputs.sh" "$dir" >"$tmp/inputs"; then
-        if grep -q ' uncached$' "$tmp/inputs"; then
-            grep ' uncached$' "$tmp/inputs" | sed 's/ uncached$//; s/^/  attach or cache: /'
-        else
-            echo "  every github input is in a cache: nothing to attach."
-        fi
-    else
-        echo "  could not check the inputs (see above); run the inputs app later."
-    fi
     ask "Press Enter when done."
+}
+
+# uncached_inputs: before the launch, the github inputs no cache holds
+# and what to do about them (T81).
+uncached_inputs() {
+    echo "Before you launch: GitHub inputs no cache holds (a session must fetch them from GitHub):"
+    if ! bash "$lib/inputs.sh" "$dir" >"$tmp/inputs" 2>"$tmp/inputs.err"; then
+        sed 's/^/  /' "$tmp/inputs.err"
+        echo "  could not check the inputs; run the inputs app in $abs later."
+    elif grep -q ' uncached$' "$tmp/inputs"; then
+        grep ' uncached$' "$tmp/inputs" | sed 's/ [^ ]* uncached$//; s/^/  /'
+        echo "  nix-dev fetches these over git, so start the dev shell with nix-dev;"
+        echo "  or rewrite each as git+https://github.com/<owner>/<repo> in flake.nix."
+    else
+        echo "  every github input is in a cache: nothing comes from GitHub."
+    fi
 }
 
 step_4() {
@@ -280,10 +296,11 @@ step_5() {
         model=sonnet
         ;;
     esac
-    echo "Launch from a checkout of the project, branch pushed (the task comes right after --cloud):"
+    uncached_inputs
+    echo "Launch from a checkout of the project ($abs), branch pushed (the task comes right after --cloud):"
     echo "  claude --cloud \"<task>\" --model $model"
     echo "First check, it works when the output shows a Nix version and DEVSHELL-OK:"
-    echo "  claude --cloud \"Run: nix --version && nix develop -c true && echo DEVSHELL-OK. Report the output.\" --model $model"
+    echo "  claude --cloud \"Run: nix --version && nix-dev -c true && echo DEVSHELL-OK. Report the output.\" --model $model"
     echo "In the browser, use the model picker when you start the session instead."
     echo "Which model ran: the Co-Authored-By trailer of the session's commits."
 }
