@@ -14,7 +14,8 @@ has a bug.
 | [`guide`](#guide) | walks the setup steps of [`SETUP.md`](SETUP.md) | your machine, in the project |
 | [`probe`](#probe) | starts a cloud session that probes the project and prints its report | your machine, in the project's git checkout |
 | [`nix-dev`](#nix-dev) | `nix develop` that survives the GitHub proxy | inside a cloud session |
-| [`setup-line.sh`](#setup-linesh) | prints the one-line setup script | your machine, in a checkout of this repository |
+| [`setup-line.sh`](#setup-linesh) | prints the one-line setup script, for a commit whose CI is green | your machine; a checkout of this repository, or any directory with a full SHA |
+| [`bump-nix.sh`](#bump-nixsh) | pins `setup.sh` to another Nix release | a checkout of this repository |
 | [`just` recipes](#just-recipes) | the same scripts, run on this repository | a checkout of this repository |
 
 ## How to run them
@@ -29,7 +30,7 @@ nix run github:pr0d1r2/nix-claude-code-cloud#probe -- --model opus
 ```
 
 Everything after `--` goes to the command. The apps are `inputs`, `domains`,
-`guide` and `probe`; `nix-dev` and `setup-line.sh` are not flake apps. Each
+`guide` and `probe`; `nix-dev`, `setup-line.sh` and `bump-nix.sh` are not flake apps. Each
 app is the script read verbatim, with its helper programs (`jq`, `curl` and
 so on) put on its `PATH`, so the apps behave the same on any machine with
 Nix.
@@ -90,6 +91,9 @@ to the session or routine, or push the input to your cache from CI
 | 0 | the list was printed (with `--check`: every input is cached) |
 | 1 | with `--check`, at least one input is `attach`; or nothing could be checked: no such directory, no `flake.lock`, or `nix flake archive` failed |
 | 2 | a usage error |
+
+The refusals name what they were given, so a typo is easy to spot, for
+example `inputs: no directory /nonexistent -- nothing was checked`.
 
 ## domains
 
@@ -167,7 +171,7 @@ settings, and the `github:` inputs to attach (through [`inputs`](#inputs)).
 It writes nothing and reads no secret.
 
 ```text
-usage: guide.sh [--from STEP] [FLAKE_DIR] | guide.sh update [FLAKE_DIR]
+usage: guide.sh [--force] [--from STEP] [FLAKE_DIR] | guide.sh update [--force] [FLAKE_DIR]
 ```
 
 | argument | meaning |
@@ -175,10 +179,14 @@ usage: guide.sh [--from STEP] [FLAKE_DIR] | guide.sh update [FLAKE_DIR]
 | `FLAKE_DIR` | the project, default the current directory |
 | `--from STEP` | resume at step 0 to 5; step 0 (protect your money) always runs first |
 | `update` | the "Updating the environment" flow instead of steps 0 to 5 |
+| `--force` | passed to [`setup-line.sh`](#setup-linesh), so the guide prints the setup line even when CI for that commit is not green |
 
 | variable | meaning |
 |---|---|
-| `NCCC_SETUP` | the setup script to copy; default `setup.sh` beside `scripts/` |
+| `NCCC_SCRIPTS` | directory holding `guide-steps.tsv`, `inputs.sh`, `domains.sh` and `setup-line.sh`; default the script's own |
+| `NCCC_SETUP_REV` | the full SHA of this repository to pin the setup line to; default `HEAD` of the clone the guide runs from |
+| `NCCC_MODEL_DOC` | the `MODEL.md` that step 5 reads prices from; default `docs/MODEL.md` beside `scripts/` |
+| `NCCC_ENV_NAMES` | the `env-names.txt` to list; default the one beside `scripts/` |
 | `CLAUDE_SETTINGS` | user settings to read; default `~/.claude/settings.json` |
 | `CLIPBOARD_TOOLS` | clipboard programs to try in order; default `pbcopy wl-copy xclip` |
 | `GUIDE_OPEN_TOOLS` | URL openers to try in order; default `open xdg-open` |
@@ -188,14 +196,17 @@ Step titles and URLs come from
 the titles equal to the `SETUP.md` headings, so the two cannot drift. Step 0
 asks you to type `y` for each money check; anything else stops the guide.
 Step 5 asks which model to launch with (`sonnet`, the default, or `opus`) and
-prints the launch form. Output of step 5, after answering the two money
+prints the launch form, with each model's price per million tokens read from
+the price table in [`MODEL.md`](MODEL.md) (never a number of the guide's own;
+if the file, the row or a dollar amount is missing it prints
+`price: see docs/MODEL.md`). Output of step 5, after answering the two money
 checks:
 
 ```text
 == 5. Run a first session and check that it works ==
 Pick the session's model. It is fixed at launch: ANTHROPIC_MODEL on the environment does not set it (probe 6).
-  sonnet  Claude Sonnet 5.5, the default here: half the per-token price of Opus 5.5 (docs/MODEL.md).
-  opus    Claude Opus 5.5, for harder work.
+  sonnet  Claude Sonnet 5.5, the default here: $2.00 input, $10.00 output per million tokens (docs/MODEL.md).
+  opus    Claude Opus 5.5, for harder work: $4.00 input, $20.00 output per million tokens (docs/MODEL.md).
 Model [sonnet/opus] (Enter: sonnet):
 Launch from a checkout of the project, branch pushed (the task comes right after --cloud):
   claude --cloud "<task>" --model sonnet
@@ -208,15 +219,18 @@ Which model ran: the Co-Authored-By trailer of the session's commits.
 Without a clipboard program or an opener, the guide prints the values and
 URLs and carries on.
 
-One thing to know: the setup-script value that step 3 copies is the whole of
-`setup.sh`. The environment's setup script should instead be the one line
-from [`setup-line.sh`](#setup-linesh), as [`SETUP.md`](SETUP.md) says. Paste
-that line.
+The setup-script value that step 3 copies, and that `update` copies, is the
+one line from [`setup-line.sh`](#setup-linesh), not the contents of
+`setup.sh`. The guide runs `setup-line.sh` for `NCCC_SETUP_REV`, else for
+`HEAD` of the clone it runs from. If neither gives a revision, or
+`setup-line.sh` refuses it because CI for that commit is not green, the guide
+stops with exit 1 (`guide: stop here -- ...`); pick a commit CI passed, or
+run the guide with `--force`.
 
 | exit | meaning |
 |---|---|
 | 0 | the steps ran to the end |
-| 1 | stopped at step 0: a money check was not `y` |
+| 1 | stopped: a money check at step 0 was not `y`, or there is no setup line to print (no revision, or CI not green and no `--force`) |
 | 2 | a usage error: an unknown flag, `--from` outside 0 to 5, or two directories |
 
 ## probe
@@ -320,13 +334,32 @@ downloads `setup.sh` at a fixed commit into a fresh temporary directory and
 runs it with the same SHA, which pins the agent home to that commit too.
 
 ```text
-usage: setup-line.sh [REV]    (default: HEAD)
+usage: setup-line.sh [--force] [REV]    (default: HEAD)
 ```
 
-It resolves `REV` in the git checkout it runs in, so it prints a full 40-hex
-SHA. It checks neither that the commit is on GitHub nor that its CI is green:
-use a SHA that is pushed and green. The output is one line (the `<sha>` is
-the 40-hex commit id):
+| argument | meaning |
+|---|---|
+| `REV` | the commit to pin, default `HEAD`; a full 40-hex SHA is used as given and needs no clone, anything else is resolved in the git checkout the script runs in |
+| `--force` | print the line even when CI is not green, with a `WARNING` on stderr that says why it should not have |
+
+| variable | meaning |
+|---|---|
+| `GH_BIN` | the GitHub CLI to ask about CI; default `gh`. It is used read-only |
+
+It needs `git`, `jq` and a signed-in `gh`. The CI rule: only a commit whose
+newest `ci.yml` run on `main` is `completed` with conclusion `success` gets a
+line, because that run is what pushes the agent home to the binary cache. No
+run, a run still going, a failed run, or a `gh` that cannot answer all
+refuse, so wait for green CI on `main` before you print the line. The
+refusals read:
+
+```text
+setup-line: no CI run on main for <sha> (is it pushed and merged?) -- no line printed; pass --force to print it anyway
+setup-line: CI on main for <sha> is not green (newest run: <status> <conclusion>) -- no line printed; pass --force to print it anyway
+setup-line: could not ask GitHub about CI for <sha> (is gh installed and signed in?) -- no line printed; pass --force to print it anyway
+```
+
+The output is one line (the `<sha>` is the 40-hex commit id):
 
 ```text
 d=$(mktemp -d) && curl -fsSL https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/<sha>/setup.sh -o "$d/setup.sh" && bash "$d/setup.sh" <sha>
@@ -334,15 +367,45 @@ d=$(mktemp -d) && curl -fsSL https://raw.githubusercontent.com/pr0d1r2/nix-claud
 
 | exit | meaning |
 |---|---|
-| 0 | the line was printed |
-| 1 | `REV` is not a commit: `setup-line: cannot resolve <REV> to a commit -- no line printed` |
-| 2 | more than one argument |
+| 0 | the line was printed (with `--force`, possibly after a warning) |
+| 1 | `REV` is not a commit (`setup-line: cannot resolve <REV> to a commit -- no line printed`), or CI is not green and `--force` was not given |
+| 2 | a usage error: an unknown flag or more than one `REV` |
 
 `setup.sh` itself is `setup.sh [SHA]`: the one optional argument must be a
 full 40-hex commit id, or it exits 2 with
-`usage: setup.sh [SHA] -- SHA is a full 40-hex commit id`. The fetch of
-`setup.sh` from `raw.githubusercontent.com` during a real cloud session's
-setup has not been tried yet.
+`usage: setup.sh [SHA] -- SHA is a full 40-hex commit id`. Everything
+owner-specific in it (`cache_host`, `cache_key` and `repo`) sits in the fork
+config block at its top ([`FORKING.md`](FORKING.md)). The fetch of `setup.sh`
+from `raw.githubusercontent.com` during a real cloud session's setup has not
+been tried yet.
+
+## bump-nix.sh
+
+Pins `setup.sh` to another Nix release. It fetches the installer hash that
+releases.nixos.org publishes for the version, and rewrites `version=` and the
+default installer `sha256` together, so they only ever change in one commit.
+It runs nothing else: you review the diff, run the gate and commit
+([`RUNBOOK.md`](RUNBOOK.md)).
+
+```text
+usage: bump-nix.sh VERSION   (MAJOR.MINOR.PATCH, e.g. 2.36.0)
+```
+
+| variable | meaning |
+|---|---|
+| `BUMP_SETUP` | the `setup.sh` to rewrite; default the one in the repository root |
+| `NIX_RELEASES_URL` | where releases are fetched from; default `https://releases.nixos.org/nix` |
+
+On success it prints `bump-nix: setup.sh now pins Nix <version>, installer sha256 <hash>`.
+A refusal prints `bump-nix: <reason> -- setup.sh not changed`: the file needs
+exactly one `version=` line and one default `sha256` line, the fetch failed,
+or the answer was not one 64-hex hash.
+
+| exit | meaning |
+|---|---|
+| 0 | `setup.sh` was rewritten |
+| 1 | it could not be rewritten, and `setup.sh` is unchanged |
+| 2 | a usage error: not exactly one argument, or a version that is not `MAJOR.MINOR.PATCH` |
 
 ## just recipes
 
@@ -355,6 +418,7 @@ Arguments pass through, and each recipe is one plain command.
 | `just domains [args]` | `scripts/domains.sh` |
 | `just guide [args]` | `scripts/guide.sh`; `just guide update` for the update flow |
 | `just probe [args]` | `scripts/probe-launch.sh` |
+| `just bump-nix <version>` | `scripts/bump-nix.sh` |
 
-`just --list` shows the four. There is no recipe for `nix-dev` or `setup-line.sh`: run
-`scripts/setup-line.sh` directly.
+`just --list` shows the five. There is no recipe for `nix-dev` or
+`setup-line.sh`: run `scripts/setup-line.sh` directly.
