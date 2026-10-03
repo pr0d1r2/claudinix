@@ -711,3 +711,53 @@ OWNER_KEY='pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM='
     [ "$status" -eq 0 ]
     [ ! -e "$NIX_LOG" ]
 }
+
+# nix-dev is staged in "$lib_dir.new" and swapped in with one mv (T88):
+# the staging dir sits beside the live one, so the swap never copies
+# across filesystems, and the live dir is replaced whole.
+
+@test "nix-dev: files are staged in the lib dir's .new sibling (T88)" {
+    image_nix 2.34.6
+    fetch_stub
+    cp "$SCRIPT" "$BATS_TEST_TMPDIR/setup.sh"
+    run bash "$BATS_TEST_TMPDIR/setup.sh"
+    [ "$status" -eq 0 ]
+    grep -qF -- "-o $CLAUDINIX_LIB_DIR.new/nix-dev.sh" "$FETCH_ARGS"
+    [ ! -e "$CLAUDINIX_LIB_DIR.new" ]
+    [ -x "$BIN_DIR/nix-dev" ]
+}
+
+@test "nix-dev: the lib dir is replaced whole, nothing stale kept (T88)" {
+    image_nix 2.34.6
+    mkdir -p "$CLAUDINIX_LIB_DIR"
+    echo stale >"$CLAUDINIX_LIB_DIR/old-helper.sh"
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ ! -e "$CLAUDINIX_LIB_DIR/old-helper.sh" ]
+    cmp "$CLAUDINIX_LIB_DIR/nix-dev.sh" "$ENV_DIR/scripts/nix-dev.sh"
+    [ ! -e "$CLAUDINIX_LIB_DIR.new" ]
+}
+
+@test "nix-dev: a staging dir left by a killed run is not installed (T88)" {
+    image_nix 2.34.6
+    mkdir -p "$CLAUDINIX_LIB_DIR.new"
+    echo junk >"$CLAUDINIX_LIB_DIR.new/junk"
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ ! -e "$CLAUDINIX_LIB_DIR/junk" ]
+    [ ! -e "$CLAUDINIX_LIB_DIR.new" ]
+}
+
+@test "nix-dev: a failed fetch leaves the old dir as it was and no staging dir (T88)" {
+    image_nix 2.34.6
+    fetch_stub
+    cp "$SCRIPT" "$BATS_TEST_TMPDIR/setup.sh"
+    mkdir -p "$CLAUDINIX_LIB_DIR"
+    echo old >"$CLAUDINIX_LIB_DIR/nix-dev.sh"
+    echo old >"$CLAUDINIX_LIB_DIR/inputs.jq"
+    FETCH_FAIL_ON=inputs.jq run bash "$BATS_TEST_TMPDIR/setup.sh"
+    [ "$status" -eq 0 ]
+    [ "$(cat "$CLAUDINIX_LIB_DIR/nix-dev.sh")" = old ]
+    [ "$(cat "$CLAUDINIX_LIB_DIR/inputs.jq")" = old ]
+    [ ! -e "$CLAUDINIX_LIB_DIR.new" ]
+}
