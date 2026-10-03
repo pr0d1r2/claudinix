@@ -13,6 +13,7 @@ setup() {
     export SYSTEMD_DIR="$BATS_TEST_TMPDIR/no-systemd"
     export NIX_DEFAULT_PROFILE="$BATS_TEST_TMPDIR/profiles/default"
     export INSTALLER_LOG="$BATS_TEST_TMPDIR/installer.args"
+    export NCCC_LIB_DIR="$BATS_TEST_TMPDIR/lib/nix-claude-code-cloud"
     mkdir -p "$HOME" "$BIN_DIR" "$BATS_TEST_TMPDIR/stubs"
 
     # Fake upstream installer: logs its args, lays down a nix binary where
@@ -339,4 +340,51 @@ EOF
     run bash "$SCRIPT"
     [ "$status" -eq 0 ]
     [ ! -e "$CLOUD_HOME_MARKER" ]
+}
+
+# A fetcher for nix-dev's files: logs each URL, writes a placeholder, or
+# fails when FETCH_FAIL is set. Ahead of the installer stub on PATH.
+fetch_stub() {
+    export FETCH_LOG="$BATS_TEST_TMPDIR/fetch.log"
+    mkdir -p "$BATS_TEST_TMPDIR/fetch"
+    # shellcheck disable=SC2016 # expands inside the stub, not here
+    printf '%s\n' '#!/bin/sh' 'url=' 'out=' \
+        'while [ $# -gt 0 ]; do case "$1" in -o) out="$2"; shift ;; -*) ;; *) url="$1" ;; esac; shift; done' \
+        'echo "$url" >>"$FETCH_LOG"' \
+        '[ -z "${FETCH_FAIL:-}" ] || exit 22' \
+        'echo "# fetched $url" >"$out"' >"$BATS_TEST_TMPDIR/fetch/curl"
+    chmod +x "$BATS_TEST_TMPDIR/fetch/curl"
+    PATH="$BATS_TEST_TMPDIR/fetch:$PATH"
+}
+
+@test "nix-dev installed from the clone beside setup.sh, linked onto PATH (scripts:T12)" {
+    image_nix 2.34.6
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ -x "$BIN_DIR/nix-dev" ]
+    cmp "$NCCC_LIB_DIR/nix-dev.sh" "$ENV_DIR/scripts/nix-dev.sh"
+    cmp "$NCCC_LIB_DIR/nix-dev.jq" "$ENV_DIR/scripts/nix-dev.jq"
+    [ "$(readlink "$BIN_DIR/nix-dev")" = "$NCCC_LIB_DIR/nix-dev.sh" ]
+}
+
+@test "setup.sh alone: nix-dev fetched from the repo at NCCC_REV" {
+    image_nix 2.34.6
+    fetch_stub
+    cp "$SCRIPT" "$BATS_TEST_TMPDIR/setup.sh"
+    NCCC_REV=abc123 run bash "$BATS_TEST_TMPDIR/setup.sh"
+    [ "$status" -eq 0 ]
+    grep -qx 'https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/abc123/scripts/nix-dev.sh' "$FETCH_LOG"
+    grep -qx 'https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/abc123/scripts/nix-dev.jq' "$FETCH_LOG"
+    [ -x "$BIN_DIR/nix-dev" ]
+}
+
+@test "nix-dev fetch failing: setup still passes with nix, warns, links no nix-dev (V1)" {
+    image_nix 2.34.6
+    fetch_stub
+    cp "$SCRIPT" "$BATS_TEST_TMPDIR/setup.sh"
+    FETCH_FAIL=1 run bash "$BATS_TEST_TMPDIR/setup.sh"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"nix-dev"* ]]
+    [ -x "$BIN_DIR/nix" ]
+    [ ! -e "$BIN_DIR/nix-dev" ]
 }
