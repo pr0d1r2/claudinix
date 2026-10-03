@@ -9,8 +9,11 @@
 # Git hooks are not installed here (V7): each session is a fresh clone and
 # this script does not run on a cached snapshot, so the target repo's
 # devShell installs them.
-# Usage: setup.sh [SHA]   SHA = the full commit id this file was fetched
-#        at (V20); pins the agent home to it.
+# Usage: setup.sh [SHA] [--agent-home]
+#        SHA = the full commit id this file was fetched at (V20); pins
+#        nix-dev and the agent home to it. --agent-home (or
+#        CLAUDINIX_AGENT_HOME=1) also activates the agent home, which is
+#        opt-in (C24): without it setup is Nix and nix-dev only.
 # Seams: NIX_CONF_DIR, BIN_DIR, SYSTEMD_DIR, NIX_DEFAULT_PROFILE,
 #        NIX_INSTALL_URL, NIX_INSTALL_SHA256; agent home (T17):
 #        CLOUD_HOME_FLAKE, CLOUD_HOME_STOREPATH (file), CLOUD_HOME_MARKER;
@@ -27,13 +30,42 @@ cache_key=pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM=
 repo=pr0d1r2/claudinix
 # END fork config (SPEC C11)
 
-# The SHA the UI line fetched this file at (V20). A short or mistyped id
-# would pin nothing, so refuse it before touching the system.
-sha="${1:-}"
-if [ "$#" -gt 1 ] || { [ -n "$sha" ] && ! [[ "$sha" =~ ^[0-9a-f]{40}$ ]]; }; then
-    echo "usage: setup.sh [SHA] -- SHA is a full 40-hex commit id" >&2
-    exit 2
+# The SHA the UI line fetched this file at (V20), and whether to add the
+# agent home (C24). A short or mistyped id would pin nothing and a
+# mistyped flag would silently drop the agent home, so anything else is
+# refused before touching the system.
+usage="usage: setup.sh [SHA] [--agent-home] -- SHA is a full 40-hex commit id; --agent-home (or CLAUDINIX_AGENT_HOME=1) also activates the agent home"
+sha=""
+agent_home="${CLAUDINIX_AGENT_HOME:-0}"
+for arg in "$@"; do
+    case "$arg" in
+    --agent-home) agent_home=1 ;;
+    *)
+        if [ -n "$sha" ] || ! [[ "$arg" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "$usage" >&2
+            exit 2
+        fi
+        sha="$arg"
+        ;;
+    esac
+done
+
+# The directory this file sits in, when it is a file. Read from stdin it
+# has none, and the cwd is not it: everything beside the script is then
+# fetched from the repo at the SHA instead.
+here=""
+if [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "${BASH_SOURCE[0]}" ]; then
+    here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 fi
+
+work="$(mktemp -d)"
+trap 'rm -rf "$work"' EXIT
+
+# Every download is bounded: a stalled host must not eat the ~5 min the
+# snapshot is cached within (C1, V5).
+fetch() {
+    curl -fsSL --connect-timeout 10 --max-time 60 "$1" -o "$2"
+}
 
 version=2.35.2
 min_version="${NIX_MIN_VERSION:-2.34}"
@@ -69,12 +101,12 @@ else
     profile_bin="$HOME/.nix-profile/bin"
 fi
 
+installed=no
 if [ "$mode" != none ] && ! meets_floor "$profile_bin"; then
-    tmp=$(mktemp -d)
-    trap 'rm -rf "$tmp"' EXIT
-    curl -fsSL "$url" -o "$tmp/install"
-    echo "$sha256  $tmp/install" | sha256sum -c --quiet -
-    sh "$tmp/install" "$mode" --yes
+    fetch "$url" "$work/install"
+    echo "$sha256  $work/install" | sha256sum -c --quiet -
+    sh "$work/install" "$mode" --yes
+    installed=yes
 fi
 
 # A managed block between BEGIN and END markers, replaced whole on every
@@ -115,32 +147,64 @@ mv "$conf.tmp" "$conf"
 mkdir -p "$bin_dir"
 ln -sf "$profile_bin"/* "$bin_dir/"
 
+# Claude's Bash tool finds the default profile's nix before this PATH dir
+# (C8). A single-user install lands elsewhere, so an older image nix can
+# still win there: say so rather than leave the session on it (V1, V4).
+if [ "$installed" = yes ]; then
+    first="$bin_dir"
+    if [ -x "$default_profile/bin/nix" ]; then
+        first="$default_profile/bin"
+    fi
+    if ! meets_floor "$first"; then
+        have="$("$first/nix" --version 2>/dev/null || echo "a nix that does not run")"
+        echo "WARNING: $first comes first on Claude's PATH and its nix ($have) is below $min_version -- the installed one is in $bin_dir" >&2
+    fi
+fi
+
 # nix-dev (I.cmd, scripts:T12): `nix develop` with the scripts:V13 input
 # failover, linked onto the same PATH dir. Its files come from the clone
 # beside this script, else from the repo at the SHA this script was
-# fetched at (T69, V20), or `main` when none was given. A failed fetch
-# only warns: nix itself still works (V1).
+# fetched at (T69, V20), or `main` when none was given. They are staged
+# and moved into place together (T73): a partial set would link a nix-dev
+# that cannot find its jq program. A failed fetch only warns and drops
+# any older link: nix itself still works (V1).
 lib_dir="${CLAUDINIX_LIB_DIR:-/usr/local/lib/claudinix}"
 raw="${CLAUDINIX_RAW_URL:-https://raw.githubusercontent.com/$repo/${CLAUDINIX_REV:-${sha:-main}}}"
-here="$(dirname "${BASH_SOURCE[0]:-.}")"
-mkdir -p "$lib_dir"
-nix_dev=ok
 # inputs.* tell nix-dev which inputs a cache holds (scripts:T49).
-for file in nix-dev.sh nix-dev.jq inputs.sh inputs.jq; do
-    if [ -f "$here/scripts/$file" ]; then
-        cp "$here/scripts/$file" "$lib_dir/$file"
-    elif ! curl -fsSL "$raw/scripts/$file" -o "$lib_dir/$file"; then
+nix_dev_files=(nix-dev.sh nix-dev.jq inputs.sh inputs.jq)
+stage="$work/nix-dev"
+mkdir -p "$stage"
+nix_dev=ok
+for file in "${nix_dev_files[@]}"; do
+    if [ -n "$here" ] && [ -f "$here/scripts/$file" ]; then
+        cp "$here/scripts/$file" "$stage/$file"
+    elif ! fetch "$raw/scripts/$file" "$stage/$file"; then
         nix_dev=failed
+        break
     fi
 done
 if [ "$nix_dev" = ok ]; then
-    chmod +x "$lib_dir/nix-dev.sh"
+    chmod +x "$stage/nix-dev.sh"
+    mkdir -p "$lib_dir"
+    for file in "${nix_dev_files[@]}"; do
+        mv -f "$stage/$file" "$lib_dir/$file"
+    done
     ln -sf "$lib_dir/nix-dev.sh" "$bin_dir/nix-dev"
 else
+    if [ -L "$bin_dir/nix-dev" ]; then
+        rm -f "$bin_dir/nix-dev"
+    fi
     echo "setup: could not fetch nix-dev from $raw -- use plain nix develop" >&2
 fi
 
 "$bin_dir/nix" --version
+
+# The agent home is opt-in (C24): it changes how Claude behaves, so a
+# setup that did not ask for it stops at Nix and nix-dev.
+if [ "$agent_home" != 1 ]; then
+    echo "agent home: skipped -- opt in with setup.sh [SHA] --agent-home, or CLAUDINIX_AGENT_HOME=1"
+    exit 0
+fi
 
 # The agent home (T17, nix:V14, nix:V15): activated here, before Claude
 # launches, as the user and HOME Claude runs as (root, /root: C8), so the
@@ -151,7 +215,7 @@ fi
 # usable: warn loudly, leave a marker, exit 0.
 # With a SHA (V20) both tiers are pinned to it.
 home_flake="${CLOUD_HOME_FLAKE:-git+https://github.com/$repo?${sha:+rev=$sha&}shallow=1}"
-home_storepath="${CLOUD_HOME_STOREPATH:-$(dirname "$0")/cloud-home.storepath}"
+home_storepath="${CLOUD_HOME_STOREPATH:-${here:-$work}/cloud-home.storepath}"
 home_marker="${CLOUD_HOME_MARKER:-$HOME/.local/state/claudinix/agent-home.failed}"
 home_attr="$home_flake#homeConfigurations.cloud.activationPackage"
 
@@ -160,8 +224,7 @@ home_attr="$home_flake#homeConfigurations.cloud.activationPackage"
 # leaves tier 2 with nothing to realise.
 fetch_storepath() {
     if [ ! -s "$home_storepath" ] && [ -n "$sha" ]; then
-        curl -fsSL --max-time 30 "https://raw.githubusercontent.com/$repo/$sha/cloud-home.storepath" \
-            -o "$home_storepath" || true
+        fetch "https://raw.githubusercontent.com/$repo/$sha/cloud-home.storepath" "$home_storepath" || true
     fi
     [ -s "$home_storepath" ]
 }
