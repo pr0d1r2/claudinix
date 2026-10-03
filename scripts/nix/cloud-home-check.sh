@@ -1,16 +1,21 @@
 #!/usr/bin/env bash
 # `checks.x86_64-linux.cloud-home`: the agent home's activation package
 # carries what a cloud session needs at launch (SPEC nix:T16, nix:V14,
-# C12): the cavekit skills, the FORMAT.md they read, and the set rules.
+# C12): the cavekit skills, the FORMAT.md they read, and the set rules;
+# and the settings.json its activation writes carries exactly the cloud
+# permissions in PERMISSIONS (T101). That file is not a home file: the
+# claude-code module merges settings into ~/.claude/settings.json from a
+# `run-merge-settings.sh` the `activate` script calls, so the check
+# runs that merge against a scratch HOME and reads what it wrote.
 # Every missing file is reported; empty files and dangling links count as
 # missing. OUT is created only when nothing is missing.
 #
-# Usage: cloud-home-check.sh ACTIVATION_PACKAGE OUT
+# Usage: cloud-home-check.sh ACTIVATION_PACKAGE PERMISSIONS OUT
 
 set -euo pipefail
 
-if [ "$#" -ne 2 ]; then
-    echo "usage: cloud-home-check.sh ACTIVATION_PACKAGE OUT" >&2
+if [ "$#" -ne 3 ]; then
+    echo "usage: cloud-home-check.sh ACTIVATION_PACKAGE PERMISSIONS OUT" >&2
     exit 2
 fi
 
@@ -42,7 +47,26 @@ if [ -z "$rules" ]; then
     status=1
 fi
 
+# The settings merge the activation runs, by its store name.
+merge="$(grep -oE '/[^[:space:]"]*-run-merge-settings\.sh' "$1/activate" 2>/dev/null | head -n 1 || true)"
+if [ -z "$merge" ] || [ ! -f "$merge" ]; then
+    echo "cloud-home-check: $1/activate runs no settings merge -- ~/.claude/settings.json would carry no permissions" >&2
+    status=1
+else
+    scratch="$(mktemp -d)"
+    trap 'rm -rf "$scratch"' EXIT
+    if ! HOME="$scratch" bash "$merge" >/dev/null 2>"$scratch/merge.log"; then
+        echo "cloud-home-check: the settings merge failed:" >&2
+        cat "$scratch/merge.log" >&2
+        status=1
+    elif ! jq -e --slurpfile want "$2" '.permissions == $want[0]' "$scratch/.claude/settings.json" >/dev/null 2>&1; then
+        echo "cloud-home-check: ~/.claude/settings.json permissions are not exactly $2 -- got:" >&2
+        jq -c '.permissions' "$scratch/.claude/settings.json" >&2 2>/dev/null || true
+        status=1
+    fi
+fi
+
 if [ "$status" -eq 0 ]; then
-    touch "$2"
+    touch "$3"
 fi
 exit "$status"

@@ -24,8 +24,9 @@ in
 }
 // pkgs.lib.optionalAttrs onHomeSystem {
   # The cavekit skills, FORMAT.md and the set rules are in the
-  # activation package (nix:T16, nix:V14).
+  # activation package (nix:T16, nix:V14), and its settings merge writes
+  # exactly the cloud permissions (T101).
   cloud-home =
-    pkgs.runCommand "cloud-home-check" { }
-      "bash ${../scripts/nix/cloud-home-check.sh} ${cloudHome.activationPackage} $out";
+    pkgs.runCommand "cloud-home-check" { nativeBuildInputs = [ pkgs.jq ]; }
+      "bash ${../scripts/nix/cloud-home-check.sh} ${cloudHome.activationPackage} ${./cloud-permissions.json} $out";
 }

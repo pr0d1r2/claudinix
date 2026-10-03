@@ -107,6 +107,12 @@ home-manager.lib.homeManagerConfiguration {
         enable = true;
         # The cloud harness installs Claude Code itself.
         package = null;
+        # The one narrow rule list unattended cloud tasks need (T101),
+        # merged into ~/.claude/settings.json at activation, before
+        # Claude starts. Through the freeform `settings`: the module's
+        # typed `permissions.allow` writes a literal "permissions.allow"
+        # key, which Claude Code does not read.
+        settings.permissions = builtins.fromJSON (builtins.readFile ./cloud-permissions.json);
       };
     }
   ];
