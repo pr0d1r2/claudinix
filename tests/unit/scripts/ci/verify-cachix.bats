@@ -10,8 +10,12 @@ setup() {
     # nix eval prints a store path named after the attribute's last part;
     # nix flake archive prints $ARCHIVE_JSON (or fails, ARCHIVE_FAIL).
     export ARCHIVE_LOG="$BATS_TEST_TMPDIR/archive.log"
+    # config.sh's `nix eval --impure` of a .claudinix.toml is the real nix.
+    REAL_NIX="$(command -v nix)"
+    export REAL_NIX
     cat >"$BIN/nix" <<'STUB'
 #!/usr/bin/env bash
+case "$*" in *--impure*) exec "$REAL_NIX" "$@" ;; esac
 if [ "$1 $2" = "flake archive" ]; then
     echo "$*" >>"$ARCHIVE_LOG"
     [ -z "${ARCHIVE_FAIL:-}" ] || exit 1
@@ -28,6 +32,12 @@ printf '/nix/store/%s-%s' "aaaabbbbccccddddeeeeffffgggghhh${#name}" "$name"
 STUB
     chmod +x "$BIN/nix"
     PATH="$BIN:$PATH"
+    # Out of this repo, whose own .claudinix.toml is not the test's.
+    unset CACHIX_URL CLAUDINIX_CONFIG
+    export GIT_CEILING_DIRECTORIES="$BATS_TEST_TMPDIR"
+    PROJECT="$BATS_TEST_TMPDIR/project"
+    mkdir -p "$PROJECT"
+    cd "$PROJECT" || return 1
 }
 
 stub_curl() {
@@ -170,4 +180,44 @@ stub_curl_by_host() {
     stub_curl_by_host 404 404
     ARCHIVE_JSON="$ARCHIVE" UPSTREAM_URL=https://up.example run bash "$SCRIPT" --sources .
     grep -q '^https://up.example/' "$CURL_LOG"
+}
+
+# .claudinix.toml (scripts:T91, scripts:V34): cache.name picks the cachix.
+
+@test "cache.name in the cwd's .claudinix.toml picks the cache to verify" {
+    stub_curl 200
+    printf '%s\n' 'version = 1' '[cache]' 'name = "forker"' >"$PROJECT/.claudinix.toml"
+    run bash "$SCRIPT" .#checks.x86_64-linux.xenolith
+    [ "$status" -eq 0 ]
+    grep -q '^https://forker.cachix.org/' "$CURL_LOG"
+    run grep -q 'pr0d1r2' "$CURL_LOG"
+    [ "$status" -ne 0 ]
+}
+
+@test "--sources DIR: that flake's .claudinix.toml names the cache" {
+    stub_curl_by_host 200 404
+    other="$BATS_TEST_TMPDIR/other"
+    mkdir -p "$other"
+    printf '%s\n' 'version = 1' '[cache]' 'name = "forker"' >"$other/.claudinix.toml"
+    ARCHIVE_JSON="$ARCHIVE" run bash "$SCRIPT" --sources "$other"
+    [ "$status" -eq 0 ]
+    grep -qx 'https://forker.cachix.org/1111a.narinfo' "$CURL_LOG"
+}
+
+@test "CACHIX_URL still wins over cache.name (V34)" {
+    stub_curl 200
+    printf '%s\n' 'version = 1' '[cache]' 'name = "forker"' >"$PROJECT/.claudinix.toml"
+    run env CACHIX_URL=https://other.cachix.org bash "$SCRIPT" .#checks.x86_64-linux.xenolith
+    [ "$status" -eq 0 ]
+    grep -q '^https://other.cachix.org/' "$CURL_LOG"
+}
+
+@test "a bad .claudinix.toml: exit 2 naming the file and key, nothing verified" {
+    stub_curl 200
+    printf '%s\n' 'version = 1' '[cache]' 'url = "https://forker.cachix.org"' >"$PROJECT/.claudinix.toml"
+    run bash "$SCRIPT" .#checks.x86_64-linux.xenolith
+    [ "$status" -eq 2 ]
+    [[ "$output" == *".claudinix.toml"* ]]
+    [[ "$output" == *"cache.url"* ]]
+    [ ! -e "$CURL_LOG" ]
 }
