@@ -11,12 +11,18 @@
 # gated by the root file's row. A raise is its own commit with the
 # measurement in `Why:`; the fix for an overage is to move rows down to
 # the node that owns them, not to raise the number.
+#
+# Raised 2026-10-03 for scripts: the §I rows of the target-project
+# commands (nix-dev, inputs, domains, guide, probe, bump-nix) move down
+# from root to the node that owns them, and the review round adds its
+# tasks there. Measured in the final state: file 2313, chain 9609. Same
+# ~15% margin; the root chain falls by about 1.1k for every node.
 
 SPEC.md          8700
-scripts/SPEC.md  1200
+scripts/SPEC.md  2650
 nix/SPEC.md       850
 docs/SPEC.md     1800
 
-scripts  9300
+scripts 11050
 nix      8950
 docs     9900
