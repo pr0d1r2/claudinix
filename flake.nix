@@ -60,7 +60,7 @@
     };
 
     sherd = {
-      url = "github:pr0d1r2/sherd/v0.5.2";
+      url = "github:pr0d1r2/sherd/v0.5.3";
       inputs = {
         nixpkgs-lock.follows = "nixpkgs-lock";
         nix-hk.follows = "nix-hk";
