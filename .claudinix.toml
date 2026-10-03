@@ -1,0 +1,25 @@
+# claudinix's own per-repo config (SPEC T92, .:C28, scripts:V34): the
+# tools read it when run on this repo (`just domains`, `just inputs`,
+# `just guide`, `just probe`, nix-dev in a session). A flag still wins.
+# Checked by the gate step `claudinix-config` (scripts/config.sh check).
+version = 1
+
+[session]
+# Cloud jobs here run on Sonnet (AGENTS.md "Choosing the model").
+model = "sonnet"
+# Sessions on this repo need Nix and nix-dev only (C24).
+agent_home = false
+
+[devshell]
+# The gate's shell (nix/dev-shell.nix).
+installable = ".#default"
+
+[cache]
+# The owner cache CI pushes to and verifies (C5, C19).
+name = "pr0d1r2"
+# CI already pushes this repo's eval-time sources (push-sources.sh);
+# the central cache job (T93) may do it too.
+push_sources = true
+
+[probe]
+branch_prefix = "claude/nix-probe"
