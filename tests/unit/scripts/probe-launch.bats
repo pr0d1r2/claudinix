@@ -9,7 +9,9 @@ setup() {
     STUBS="$BATS_TEST_TMPDIR/stubs"
     export STATE="$BATS_TEST_TMPDIR/state"
     export PROBE_POLL_SECONDS=0 PROBE_POLL_TRIES=3
-    mkdir -p "$STUBS" "$STATE"
+    export TOPLEVEL="$BATS_TEST_TMPDIR/project"
+    unset CLAUDINIX_CONFIG
+    mkdir -p "$STUBS" "$STATE" "$TOPLEVEL"
     : >"$STATE/branches"
     printf '%s\n' 'facts: ok' 'nix-dev: tier 2' >"$STATE/report"
 
@@ -19,7 +21,7 @@ setup() {
         'printf "%s\n" "$1" >"$STATE/claude.1"' \
         'printf "%s" "$2" >"$STATE/claude.task"' \
         'shift 2; echo "$*" >"$STATE/claude.rest"' \
-        '[ -n "${NO_PUSH:-}" ] || echo claude/nix-probe-x7k2q9 >>"$STATE/branches"' >"$STUBS/claude"
+        '[ -n "${NO_PUSH:-}" ] || echo "${PUSH_BRANCH:-claude/nix-probe-x7k2q9}" >>"$STATE/branches"' >"$STUBS/claude"
     # script: util-linux form when STUB_LINUX is set, else BSD form.
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
@@ -31,13 +33,15 @@ setup() {
         'while [ "$1" != /dev/null ]; do shift; done; shift; exec "$@"' >"$STUBS/script"
     # git: a work tree on branch main, pushed to origin/main, whose remote
     # holds the branches in $STATE/branches. NO_REMOTE, DETACHED,
-    # NO_UPSTREAM and BEHIND each break one of those.
+    # NO_UPSTREAM and BEHIND each break one of those. Its top level is
+    # $TOPLEVEL, where a test may put a .claudinix.toml (scripts:T91).
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "$*" >>"$STATE/git.log"' \
         'case "$*" in' \
         'remote\ get-url\ *) [ -z "${NO_REMOTE:-}" ] || { echo "error: No such remote" >&2; exit 2; }; echo https://github.com/o/p ; exit 0 ;;' \
         'symbolic-ref*) [ -z "${DETACHED:-}" ] || exit 1; echo main; exit 0 ;;' \
+        'rev-parse\ --show-toplevel) [ -z "${NOT_A_REPO:-}" ] || exit 128; echo "$TOPLEVEL"; exit 0 ;;' \
         '*--symbolic-full-name*) [ -z "${NO_UPSTREAM:-}" ] || exit 128; echo origin/main; exit 0 ;;' \
         'rev-parse\ HEAD) echo aaaa; exit 0 ;;' \
         'rev-parse\ @{u}) if [ -n "${BEHIND:-}" ]; then echo bbbb; else echo aaaa; fi; exit 0 ;;' \
@@ -197,4 +201,66 @@ setup() {
     [ "$status" -eq 2 ]
     run bash "$SCRIPT" --model
     [ "$status" -eq 2 ]
+}
+
+# .claudinix.toml (scripts:T91, scripts:V34): flag > file > default.
+
+# config LINE...: the project's .claudinix.toml.
+config() {
+    printf '%s\n' 'version = 1' "$@" >"$TOPLEVEL/.claudinix.toml"
+}
+
+@test "session.model picks the model; --model still wins" {
+    config '[session]' 'model = "opus"'
+    run bash "$SCRIPT" --yes
+    [ "$status" -eq 0 ]
+    [ "$(cat "$STATE/claude.rest")" = "--model opus" ]
+    run bash "$SCRIPT" --yes --model sonnet
+    [ "$(cat "$STATE/claude.rest")" = "--model sonnet" ]
+}
+
+# shellcheck disable=SC2016 # literal Markdown backticks, not a command
+@test "probe.branch_prefix: the task names it and the new branch is found by it" {
+    config '[probe]' 'branch_prefix = "claude/probe-me"'
+    echo claude/nix-probe-other >"$STATE/branches"
+    PUSH_BRANCH=claude/probe-me-abc123 run bash "$SCRIPT" --yes
+    [ "$status" -eq 0 ]
+    grep -qF 'Create a branch named `claude/probe-me`' "$STATE/claude.task"
+    run ! grep -qF 'claude/nix-probe' "$STATE/claude.task"
+    grep -q '^ls-remote --heads origin refs/heads/claude/probe-me\*' "$STATE/git.log"
+    grep -q '^fetch -q origin refs/heads/claude/probe-me-abc123' "$STATE/git.log"
+}
+
+@test "probe.branch_prefix: --cleanup looks only for its branches" {
+    config '[probe]' 'branch_prefix = "claude/probe-me"'
+    run bash "$SCRIPT" --cleanup
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"no claude/probe-me*"* ]]
+    grep -q '^ls-remote --heads origin refs/heads/claude/probe-me\*' "$STATE/git.log"
+}
+
+@test "devshell.installable: the task runs that dev shell" {
+    config '[devshell]' 'installable = ".#ci"'
+    run bash "$SCRIPT" --yes
+    [ "$status" -eq 0 ]
+    grep -qF 'time nix-dev .#ci --command true' "$STATE/claude.task"
+    grep -qF 'time nix develop .#ci --command true' "$STATE/claude.task"
+}
+
+# shellcheck disable=SC2016 # literal Markdown backticks, not a command
+@test "without a file the task is the prompt as written" {
+    run bash "$SCRIPT" --yes
+    [ "$status" -eq 0 ]
+    grep -qF 'time nix-dev --command true' "$STATE/claude.task"
+    grep -qF 'Create a branch named `claude/nix-probe`' "$STATE/claude.task"
+    run ! grep -qF '@NIX_' "$STATE/claude.task"
+}
+
+@test "a bad .claudinix.toml: exit 2 naming the file and key, no session" {
+    config '[probe]' 'branch_prefix = 1'
+    run bash "$SCRIPT" --yes
+    [ "$status" -eq 2 ]
+    [[ "$output" == *"$TOPLEVEL/.claudinix.toml"* ]]
+    [[ "$output" == *"probe.branch_prefix"* ]]
+    [ ! -e "$STATE/claude.1" ]
 }
