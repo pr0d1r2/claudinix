@@ -55,6 +55,19 @@ access. That makes the following the classes worth reporting:
    rules, skills and a claude-code configuration into `/root/.claude`
    ([`README.md`](../README.md#the-agent-home-is-opt-in)). Opt in only if
    you trust those rules and skills to steer your sessions.
+   **It also pre-approves commands.** It writes a narrow permission list
+   (`nix/cloud-permissions.json`) into `/root/.claude/settings.json`: the
+   gate's own commands (`hk`, `bats`, `mth`, `sherd`, `itok`, `scripts/*`,
+   `nix develop -c` or `nix-dev -c` followed by one of them), `git` commits,
+   fetches and reads, and pushing `claude/*` branches run without a prompt.
+   Pushing `main` is denied. These rules exist only in cloud sessions; they
+   are never in the committed `.claude/settings.json`, so a local session
+   never gets them. The `cloud-permissions` gate step refuses blanket rules
+   and a missing main-push deny. With `CLAUDINIX_SESSION_PERMISSIONS=1` the
+   SessionStart hook also writes the list into the gitignored
+   `.claude/settings.local.json`, only in a cloud session. Whether the
+   agent home's file survives to launch, and whether the fallback applies in
+   the same session, is not measured yet (experiment T104).
 3. **A binary cache you did not choose.** The script adds
    `pr0d1r2.cachix.org` and its public key next to `cache.nixos.org`.
    Anything signed with that key can land in the session's `/nix/store`
