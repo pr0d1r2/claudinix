@@ -160,8 +160,10 @@ there. They also appear in these files:
 | [`flake.nix`](flake.nix) | `nixConfig` |
 | [`probe.sh`](probe.sh) | the `CACHIX_URL` default |
 | [`scripts/ci/verify-cachix.sh`](scripts/ci/verify-cachix.sh) | the `CACHIX_URL` default |
+| [`scripts/inputs.sh`](scripts/inputs.sh) | the `INPUTS_CACHES` default |
+| [`scripts/nix/record-storepath.sh`](scripts/nix/record-storepath.sh) | the `CACHIX_URL` default |
 | [`scripts/setup-line.sh`](scripts/setup-line.sh) | the `repo=` line |
-| [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | the cachix cache name and the `CACHIX_AUTH_TOKEN` secret |
+| [`scripts/ci/push-sources.sh`](scripts/ci/push-sources.sh) and [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | the cachix cache name (in the workflow's cachix action and its `push-sources.sh` call) and the `CACHIX_AUTH_TOKEN` secret |
 
 The bats tests assert these values too and need the same change.
 
@@ -227,8 +229,8 @@ the platform at any time.
 ⊥ never       ? open/optional ≤ at most    ∈ in
 ```
 
-Sections run `§G` goal, `§F` federation, `§C` constraints, `§I` interfaces,
-`§V` invariants, `§T` tasks and `§B` bugs.
+Sections run `§G` goal, `§F` federation, `§N` navigation, `§C` constraints,
+`§I` interfaces, `§V` invariants, `§T` tasks and `§B` bugs.
 
 ## Contributing
 
