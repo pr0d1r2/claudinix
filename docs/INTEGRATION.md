@@ -11,9 +11,9 @@ right and this file has a bug.
 
 | caller | set | when |
 |---|---|---|
-| `pre-commit` hook | `fast`, 33 steps | every commit, on the staged files |
-| `pre-push` hook | `all`, 37 steps | every push |
-| `hk check --all` in CI | `all`, 37 steps | every push to `main` and every pull request |
+| `pre-commit` hook | `fast`, 34 steps | every commit, on the staged files |
+| `pre-push` hook | `all`, 38 steps | every push |
+| `hk check --all` in CI | `all`, 38 steps | every push to `main` and every pull request |
 
 A fourth hook, `commit-msg`, runs two steps on the commit message.
 
@@ -119,6 +119,7 @@ the `integration-steps` step fails when it no longer matches.
 | `integration-steps` | fast | `docs/INTEGRATION.md` `hk.pkl` `pkl/*.pkl` `dev/**` | `claudinix-dev steps --check` | `claudinix-dev steps --write` |
 | `third-party-notices` | fast | `docs/THIRD-PARTY-NOTICES.md` `flake.lock` `dev/**` | `claudinix-dev notices --check` | `claudinix-dev notices --write` |
 | `prose-facts` | fast | `README.md` `docs/LLM-DISCLAIMER.md` `docs/FACTS.md` `setup.sh` `hk.pkl` `pkl/*.pkl` `SPEC.md` `tests/unit/**/*.bats` `dev/**` | `claudinix-dev facts --check` | - |
+| `cli-usage` | fast | `docs/CLI.md` `setup.sh` `scripts/*.sh` `dev/**` | `claudinix-dev cli --check` | - |
 | `claudinix-config` | fast | `.claudinix.toml` `scripts/config.sh` `scripts/config.jq` | `scripts/config.sh check` | - |
 | `cloud-permissions` | fast | `nix/cloud-permissions.json` `.claude/settings.json` `scripts/guard/cloud-permissions.sh` | `scripts/guard/cloud-permissions.sh` | - |
 | `exec-bit` | fast | `**/*` | `scripts/guard/exec-bit.sh` | - |

@@ -248,6 +248,12 @@ local fast = new Mapping<String, Step> {
     )
     check = "scripts/hk/run-tool.sh claudinix-dev facts --check"
   }
+  // Every `usage:` line docs/CLI.md quotes is the text its script prints
+  // (dev:T107). The scripts are the source, so a usage change reruns it.
+  ["cli-usage"] {
+    glob = List("docs/CLI.md", "setup.sh", "scripts/*.sh", "dev/**")
+    check = "scripts/hk/run-tool.sh claudinix-dev cli --check"
+  }
 
   // This repo's own .claudinix.toml must pass the reader every tool uses
   // (T92, scripts:V34). The reader and its schema are data the check
