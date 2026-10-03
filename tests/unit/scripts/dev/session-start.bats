@@ -139,3 +139,108 @@ cloud() {
     # shellcheck disable=SC2016 # the literal command text, expanded by Claude Code
     [ "$output" = 'command 600 bash "$CLAUDE_PROJECT_DIR/scripts/dev/session-start.sh"' ]
 }
+
+# The opt-in fallback route for the cloud permissions (.:T101): the
+# SessionStart hook writes nix/cloud-permissions.json into the gitignored
+# .claude/settings.local.json.
+
+# with_jq: jq, and the coreutils a file write needs, on the stub PATH.
+with_jq() {
+    local tool
+    for tool in jq mkdir mv; do
+        ln -s "$(command -v "$tool")" "$STUB_BIN/$tool"
+    done
+}
+
+cloud_permissions() {
+    run env PATH="$STUB_BIN" CLAUDE_CODE_REMOTE=true CLAUDINIX_SESSION_PERMISSIONS=1 "$BASH_BIN" "$SCRIPT"
+}
+
+list() {
+    echo "$BATS_TEST_DIRNAME/../../../../nix/cloud-permissions.json"
+}
+
+@test "permissions fallback is off by default: no settings.local.json (.:T101)" {
+    stub_nix 0
+    with_jq
+    git clone -q "file://$ORIGIN" "$REPO"
+    cd "$REPO"
+    cloud
+    [ "$status" -eq 0 ]
+    [ ! -e "$REPO/.claude/settings.local.json" ]
+}
+
+@test "permissions fallback on in cloud: writes exactly the list, silent" {
+    stub_nix 0
+    with_jq
+    git clone -q "file://$ORIGIN" "$REPO"
+    cd "$REPO"
+    cloud_permissions
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+    run jq -e --slurpfile want "$(list)" '.permissions == $want[0]' "$REPO/.claude/settings.local.json"
+    [ "$status" -eq 0 ]
+}
+
+@test "permissions fallback never runs outside a cloud session" {
+    stub_nix 0
+    with_jq
+    git clone -q "file://$ORIGIN" "$REPO"
+    cd "$REPO"
+    run env -u CLAUDE_CODE_REMOTE PATH="$STUB_BIN" CLAUDINIX_SESSION_PERMISSIONS=1 "$BASH_BIN" "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ ! -e "$REPO/.claude/settings.local.json" ]
+}
+
+@test "permissions fallback merges: keeps keys and rules it did not write, no duplicates" {
+    stub_nix 0
+    with_jq
+    git clone -q "file://$ORIGIN" "$REPO"
+    mkdir -p "$REPO/.claude"
+    echo '{"env":{"A":"1"},"permissions":{"allow":["Bash(ls)","Bash(bats *)"],"ask":["Bash(rm *)"]}}' >"$REPO/.claude/settings.local.json"
+    cd "$REPO"
+    cloud_permissions
+    [ "$status" -eq 0 ]
+    cloud_permissions
+    [ "$status" -eq 0 ]
+    run jq -e --slurpfile want "$(list)" '
+        .env == {"A": "1"}
+        and .permissions.ask == ["Bash(rm *)"]
+        and (.permissions.allow | index("Bash(ls)")) != null
+        and (($want[0].allow - .permissions.allow) == [])
+        and (($want[0].deny - .permissions.deny) == [])
+        and (.permissions.allow | length == (unique | length))
+        and (.permissions.deny | length == (unique | length))
+    ' "$REPO/.claude/settings.local.json"
+    [ "$status" -eq 0 ]
+}
+
+@test "permissions fallback: an unreadable local file is left alone, warns, exits 0" {
+    stub_nix 0
+    with_jq
+    git clone -q "file://$ORIGIN" "$REPO"
+    mkdir -p "$REPO/.claude"
+    echo 'not json' >"$REPO/.claude/settings.local.json"
+    cd "$REPO"
+    cloud_permissions
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"settings.local.json"* ]]
+    [ "$(cat "$REPO/.claude/settings.local.json")" = "not json" ]
+}
+
+@test "permissions fallback without jq: warns, still enters the shell, exits 0" {
+    stub_nix 0
+    git clone -q "file://$ORIGIN" "$REPO"
+    cd "$REPO"
+    cloud_permissions
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"jq"* ]]
+    [ ! -e "$REPO/.claude/settings.local.json" ]
+    [ "$(cat "$NIX_LOG")" = "develop -c true" ]
+}
+
+@test "the fallback's file is gitignored in this repo (never committed)" {
+    cd "$BATS_TEST_DIRNAME/../../../.."
+    run git check-ignore -q .claude/settings.local.json
+    [ "$status" -eq 0 ]
+}
