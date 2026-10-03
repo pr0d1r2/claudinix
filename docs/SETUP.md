@@ -205,6 +205,11 @@ keeps its old VM; start a new session to pick up the change.
 - **Downloads fail with a network or proxy error** such as
   `CONNECT tunnel failed, response 403`. The host is not allowed. Add
   it to **Allowed domains** here and in `allowlist.txt`.
+- **`warning: ignoring untrusted flake configuration setting
+  'extra-substituters'`.** Nix ignores the caches your flake declares in
+  `nixConfig` unless told to trust them. The setup script sets
+  `accept-flake-config = true` in `/etc/nix/nix.conf`; only use
+  environments with repositories whose flake settings you trust.
 - **`nix develop` fails while fetching a `github:` input** with a 403
   saying the repository isn't enabled for this session. This is
   expected, not a misconfiguration: the GitHub proxy only lets the
