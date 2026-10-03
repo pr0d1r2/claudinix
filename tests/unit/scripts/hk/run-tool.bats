@@ -25,6 +25,21 @@ stub() {
     [[ "$output" == *"gate could not run"* ]]
 }
 
+@test "missing tool outside the dev shell: says to enter it" {
+    run env -u IN_NIX_SHELL PATH="$BIN:/usr/bin:/bin" bash "$SCRIPT" no-such-tool-here
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Enter the dev shell"* ]]
+    [[ "$output" != *"nix/dev-shell.nix"* ]]
+}
+
+@test "missing tool inside the dev shell: says to add it to nix/dev-shell.nix" {
+    run env IN_NIX_SHELL=impure PATH="$BIN:/usr/bin:/bin" bash "$SCRIPT" no-such-tool-here
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"gate could not run"* ]]
+    [[ "$output" == *"no-such-tool-here is missing from the dev shell -- add it to nix/dev-shell.nix"* ]]
+    [[ "$output" != *"Enter the dev shell"* ]]
+}
+
 @test "present tool runs with its arguments" {
     stub fake 'echo "args: $*"'
     run env PATH="$BIN:/usr/bin:/bin" bash "$SCRIPT" fake one two
