@@ -109,6 +109,15 @@ T34|.|W2 MUST `docs/FACTS.md`: dated cloud VM facts per probe (user, image Nix, 
 T35|.|W2 MUST `docs/RUNBOOK.md`: each procedure marked automated\|human: bump Nix pin, rotate SHA in UI, refill cachix, red probe, emergency stop of cloud spend, probe branch cleanup; model nix-hk `RUNBOOK.md`|C22,V20,V11,C19
 T36|.|W2 MUST `docs/SECURITY.md`: private reporting path + threat model (root setup script, cache trust, `accept-flake-config`, GitHub proxy, ⊥ secrets in env vars); model sherd|C22,V6,C5
 T37|.|W2 MUST `CHANGELOG.md`: per release \& per UI-pinned SHA what changed, so users know before bumping the setup line|C22,V20
+T38|.|W1 SHOULD `docs/linter-coverage.md`: file type → linter table (`.sh`, `.nix`, `.bats`, `.pkl`, `.yml`, `.md`, `.toml`); model nixos-poe2|C22,C15,C16
+T39|.|W3 SHOULD `docs/CONTRIBUTING.md`: run `hk check`, TDD order, commit format; model owner repos|C22,C17,C21
+T40|.|W3 SHOULD `docs/CODE_OF_CONDUCT.md`: same text as owner repos|C22
+T41|.|W3 SHOULD `docs/THIRD-PARTY-NOTICES.md`: Nix installer, nix-hk, xenolith, set-and-setting, cavekit (MIT)|C22,C12
+T42|.|W3 SHOULD `docs/MODEL.md`: why probe/launcher default to Sonnet 5.5, dated prices, when to change; generalized from the owner's private seed repo `docs/MODEL.md`|C22,I.cmd
+T43|.|W3 SHOULD `docs/EXAMPLE.md`: sherd from zero to green `cargo test` in cloud w/ real timings (devShell 34 s, tests 12.5 s, gate 2m45s); model rekall/pklith `EXAMPLE.md`|C22,C8
+T44|.|W4 SHOULD `docs/CLI.md`: `domains`, `inputs`, `guide`, `probe` flags, exit codes, output; model pklith `CLI.md`|C22,I.cmd
+T45|.|W4 SHOULD `docs/SESSION.md`: session lifecycle `claude --cloud` → VM → clone → setup script \| snapshot → SessionStart → Claude; why edits ⊥ reach running session; model nixos-poe2 `usage.md` boot flow|C22,C1,C8
+T46|.|W4 SHOULD `docs/FORKING.md`: own cachix, domains, env name (C11 block); model nixos-poe2 `development.md`|C22,C11
 T10|.|`just bump-nix <ver>`: fetch installer + `.sha256`, rewrite pin pair, run tests|V11,C4
 
 ## §B BUGS
