@@ -5,9 +5,8 @@ All notable changes to this repository are recorded here. The format follows
 
 ## How to read this file
 
-Your cloud environment runs a copy of `setup.sh`. Once the one-line setup
-script lands (`SPEC.md` T24), that line names a git commit SHA, and moving to
-a newer SHA is how you take an update. Before you change the SHA in the
+Your cloud environment's setup script is one line that names a git
+commit SHA; moving to a newer SHA is how you take an update. Before you change the SHA in the
 environment, read every entry between the SHA you run and the one you are
 moving to. Each entry says what changes **inside the session VM**, because
 that is what you are agreeing to run as root.
@@ -49,18 +48,24 @@ does are summarised briefly; the git history has the detail.
   `scripts/setup-line.sh`, that downloads `setup.sh` at that SHA and runs
   it. `setup-line.sh` refuses a commit whose CI run on `main` is not green
   unless you pass `--force`.
-- `setup.sh` activates an agent home (home-manager, as root) before Claude
-  starts: the claude-code module, the set rules, the cavekit skills
-  `spec`, `build`, `check`, `backprop`, `caveman`, and `FORMAT.md` in
-  `~/.claude`. It builds the home from this repository over `git+https` at
-  the SHA, falls back to the store path recorded in `cloud-home.storepath`,
-  and if both fail warns loudly, leaves a marker file and still exits 0.
-  Not yet run in a real cloud session.
-- `setup.sh` installs `nix-dev` into `/usr/local/lib/nix-claude-code-cloud`
-  and links it onto the PATH: `nix develop` with input failover (cache,
-  then `git+https` overrides for uncached `github:` inputs, then the
-  locked `github:` inputs, then a nixos.org channel tarball), logging the
-  tier it reached. Fetched at the same SHA; a failed fetch only warns.
+- **Opt-in:** with `--agent-home` (or `CLAUDINIX_AGENT_HOME=1`) `setup.sh`
+  activates an agent home (home-manager, as root) before Claude starts:
+  the owner's set rules, the cavekit skills `spec`, `build`, `check`,
+  `backprop`, `caveman`, `FORMAT.md` and a claude-code configuration in
+  `~/.claude`. This changes how Claude behaves. Without the flag, setup
+  says it skipped the home and how to opt in. The home is built from this
+  repository over `git+https` at the SHA (its inputs are fetched over
+  `git+https` too, never as `github:` tarballs), falls back to the store
+  path recorded in `cloud-home.storepath`, and if both fail warns loudly,
+  leaves a marker file and still exits 0. Its closure leaves out man-db
+  and systemd. Not yet run in a real cloud session.
+- `setup.sh` installs `nix-dev` into `/usr/local/lib/claudinix` and links
+  it onto the PATH: `nix develop` with input failover (cache, then
+  `git+https` overrides for uncached `github:` inputs, then the locked
+  `github:` inputs, then a nixos.org channel tarball), logging the tier it
+  reached. It takes an installable (`nix-dev .#ci`), matches nixpkgs in any
+  case, and warns when `jq` is missing. Fetched at the same SHA, all files
+  or none; every download has a timeout; a failed fetch only warns.
 - Owner-specific values (cache host, cache key, repository) sit in one
   fork config block at the top of `setup.sh`.
 - `allowlist.txt` now holds only the Nix hosts and `github.com`. Hosts a
@@ -71,16 +76,21 @@ does are summarised briefly; the git history has the detail.
 ### Commands for target projects
 
 Run from the project you will send to the cloud, as
-`nix run github:pr0d1r2/nix-claude-code-cloud#<app>`:
+`nix run github:pr0d1r2/claudinix#<app>`:
 
 - `inputs`: lists the flake's `github:` inputs and whether a binary cache
-  holds each, or whether it must be attached to the session.
+  holds each (`cached`), or whether a session must fetch it from GitHub
+  (`uncached`, with the fix: `nix-dev`, or `git+https` inputs).
 - `domains`: prints the allowed domains the project needs, detected from
   its lock files, optionally from a session log's proxy refusals.
 - `guide`: walks the browser setup steps from the terminal, copying each
   value to paste.
 - `probe`: starts a cloud session that runs `probe.sh` on the project and
-  prints its report.
+  prints its report. It refuses a project with no `origin` remote or an
+  unpushed branch, and asks before starting a billed session (`--yes`
+  skips the question).
+- `guide` checks the project's inputs before the first session, tests the
+  dev shell with `nix-dev`, and launches with `--model sonnet`.
 
 ### Repository
 
@@ -89,7 +99,9 @@ Run from the project you will send to the cloud, as
   sherd) and hygiene checks on every commit, and the bats suite plus the
   `bats-mirror` and `tdd-order` guards on every push.
 - CI runs the same gate and `nix flake check --all-systems`, fills the
-  binary cache on `main` (dev shell, checks and the agent home), and
+  binary cache on `main` (dev shell, checks, the agent home and the
+  source of every input it evaluates), uses the cache write token only on
+  pushes to `main`, and
   verifies the push.
 - The spec is federated with sherd into a root and three nodes (`scripts`,
   `nix`, `docs`), so separate agents can work on each in parallel.
