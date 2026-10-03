@@ -23,10 +23,10 @@ has a bug.
 From your own project, run the flake apps straight from GitHub:
 
 ```sh
-nix run github:pr0d1r2/nix-claude-code-cloud#inputs
-nix run github:pr0d1r2/nix-claude-code-cloud#domains -- --why
-nix run github:pr0d1r2/nix-claude-code-cloud#guide -- --from 3
-nix run github:pr0d1r2/nix-claude-code-cloud#probe -- --model opus
+nix run github:pr0d1r2/claudinix#inputs
+nix run github:pr0d1r2/claudinix#domains -- --why
+nix run github:pr0d1r2/claudinix#guide -- --from 3
+nix run github:pr0d1r2/claudinix#probe -- --model opus
 ```
 
 Everything after `--` goes to the command. The apps are `inputs`, `domains`,
@@ -123,7 +123,7 @@ usage: domains.sh [--why] [--from-log FILE]... [PROJECT_DIR...]
 
 | variable | meaning |
 |---|---|
-| `NCCC_ALLOWLIST` | base list; default `allowlist.txt` beside `scripts/` |
+| `CLAUDINIX_ALLOWLIST` | base list; default `allowlist.txt` beside `scripts/` |
 | `CLIPBOARD_TOOLS` | clipboard programs to try in order; default `pbcopy wl-copy xclip` |
 
 The plain output is paste-ready. When a clipboard program is on the machine
@@ -183,10 +183,10 @@ usage: guide.sh [--force] [--from STEP] [FLAKE_DIR] | guide.sh update [--force] 
 
 | variable | meaning |
 |---|---|
-| `NCCC_SCRIPTS` | directory holding `guide-steps.tsv`, `inputs.sh`, `domains.sh` and `setup-line.sh`; default the script's own |
-| `NCCC_SETUP_REV` | the full SHA of this repository to pin the setup line to; default `HEAD` of the clone the guide runs from |
-| `NCCC_MODEL_DOC` | the `MODEL.md` that step 5 reads prices from; default `docs/MODEL.md` beside `scripts/` |
-| `NCCC_ENV_NAMES` | the `env-names.txt` to list; default the one beside `scripts/` |
+| `CLAUDINIX_SCRIPTS` | directory holding `guide-steps.tsv`, `inputs.sh`, `domains.sh` and `setup-line.sh`; default the script's own |
+| `CLAUDINIX_SETUP_REV` | the full SHA of this repository to pin the setup line to; default `HEAD` of the clone the guide runs from |
+| `CLAUDINIX_MODEL_DOC` | the `MODEL.md` that step 5 reads prices from; default `docs/MODEL.md` beside `scripts/` |
+| `CLAUDINIX_ENV_NAMES` | the `env-names.txt` to list; default the one beside `scripts/` |
 | `CLAUDE_SETTINGS` | user settings to read; default `~/.claude/settings.json` |
 | `CLIPBOARD_TOOLS` | clipboard programs to try in order; default `pbcopy wl-copy xclip` |
 | `GUIDE_OPEN_TOOLS` | URL openers to try in order; default `open xdg-open` |
@@ -221,7 +221,7 @@ URLs and carries on.
 
 The setup-script value that step 3 copies, and that `update` copies, is the
 one line from [`setup-line.sh`](#setup-linesh), not the contents of
-`setup.sh`. The guide runs `setup-line.sh` for `NCCC_SETUP_REV`, else for
+`setup.sh`. The guide runs `setup-line.sh` for `CLAUDINIX_SETUP_REV`, else for
 `HEAD` of the clone it runs from. If neither gives a revision, or
 `setup-line.sh` refuses it because CI for that commit is not green, the guide
 stops with exit 1 (`guide: stop here -- ...`); pick a commit CI passed, or
@@ -318,7 +318,7 @@ nix-dev: using tier 2: github inputs as git+https at the locked rev
 
 | variable | meaning |
 |---|---|
-| `NCCC_SCRIPTS` | directory holding `nix-dev.jq` and `inputs.sh`; default the script's own, symlinks followed |
+| `CLAUDINIX_SCRIPTS` | directory holding `nix-dev.jq` and `inputs.sh`; default the script's own, symlinks followed |
 
 | exit | meaning |
 |---|---|
@@ -362,7 +362,7 @@ setup-line: could not ask GitHub about CI for <sha> (is gh installed and signed 
 The output is one line (the `<sha>` is the 40-hex commit id):
 
 ```text
-d=$(mktemp -d) && curl -fsSL https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/<sha>/setup.sh -o "$d/setup.sh" && bash "$d/setup.sh" <sha>
+d=$(mktemp -d) && curl -fsSL https://raw.githubusercontent.com/pr0d1r2/claudinix/<sha>/setup.sh -o "$d/setup.sh" && bash "$d/setup.sh" <sha>
 ```
 
 | exit | meaning |
