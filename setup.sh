@@ -14,7 +14,8 @@
 # Seams: NIX_CONF_DIR, BIN_DIR, SYSTEMD_DIR, NIX_DEFAULT_PROFILE,
 #        NIX_INSTALL_URL, NIX_INSTALL_SHA256; agent home (T17):
 #        CLOUD_HOME_FLAKE, CLOUD_HOME_STOREPATH (file), CLOUD_HOME_MARKER;
-#        nix-dev: NCCC_LIB_DIR, NCCC_RAW_URL, NCCC_REV (default main).
+#        nix-dev: NCCC_LIB_DIR, NCCC_RAW_URL, NCCC_REV (default: the SHA
+#        argument, else main).
 
 set -euo pipefail
 
@@ -108,10 +109,11 @@ ln -sf "$profile_bin"/* "$bin_dir/"
 
 # nix-dev (I.cmd, scripts:T12): `nix develop` with the scripts:V13 input
 # failover, linked onto the same PATH dir. Its files come from the clone
-# beside this script, else from the repo at NCCC_REV. A failed fetch only
-# warns: nix itself still works (V1).
+# beside this script, else from the repo at the SHA this script was
+# fetched at (T69, V20), or `main` when none was given. A failed fetch
+# only warns: nix itself still works (V1).
 lib_dir="${NCCC_LIB_DIR:-/usr/local/lib/nix-claude-code-cloud}"
-raw="${NCCC_RAW_URL:-https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/${NCCC_REV:-main}}"
+raw="${NCCC_RAW_URL:-https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/${NCCC_REV:-${sha:-main}}}"
 here="$(dirname "${BASH_SOURCE[0]:-.}")"
 mkdir -p "$lib_dir"
 nix_dev=ok
