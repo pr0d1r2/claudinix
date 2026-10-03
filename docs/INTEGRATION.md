@@ -11,13 +11,13 @@ right and this file has a bug.
 
 | caller | set | when |
 |---|---|---|
-| `pre-commit` hook | `fast`, 27 steps | every commit, on the staged files |
-| `pre-push` hook | `all`, 30 steps | every push |
-| `hk check --all` in CI | `all`, 30 steps | every push to `main` and every pull request |
+| `pre-commit` hook | `fast`, 31 steps | every commit, on the staged files |
+| `pre-push` hook | `all`, 35 steps | every push |
+| `hk check --all` in CI | `all`, 35 steps | every push to `main` and every pull request |
 
 A fourth hook, `commit-msg`, runs one step on the commit message.
 
-`all` is `fast` plus three steps that judge the branch rather than a single
+`all` is `fast` plus four steps that judge the branch rather than a single
 commit: the bats suite, the dev crate's `cargo test`, `bats-mirror` and
 `tdd-order`. They stay off `pre-commit` on purpose. A RED commit adds a
 failing test before its code exists, so running the suites or the mirror

@@ -181,6 +181,47 @@ local fast = new Mapping<String, Step> {
     check = "scripts/guard/readme-setup-line.sh"
   }
 
+  // The dev crate (dev:C31): rustfmt, then clippy; its tests run on push
+  // (`dev-test` below). Chained with `depends` because cargo locks the
+  // target dir, so parallel cargo runs would only queue on the lock.
+  ["dev-fmt"] {
+    glob = List("dev/**")
+    check = "scripts/hk/run-tool.sh cargo fmt --check --manifest-path dev/Cargo.toml"
+    fix = "scripts/hk/run-tool.sh cargo fmt --manifest-path dev/Cargo.toml"
+  }
+  ["dev-clippy"] {
+    glob = List("dev/**")
+    depends = List("dev-fmt")
+    check = "scripts/hk/run-tool.sh cargo clippy --quiet --all-targets --manifest-path dev/Cargo.toml -- -D warnings"
+  }
+
+  // The README badges are generated (T105, dev:V1): every file a badge
+  // reads is in the glob, so a new bats test, a gate step or a Nix floor
+  // change reruns the check (V19). The tool's own source too: a template
+  // change must rerun it.
+  ["readme-badges"] {
+    glob = List(
+      "README.md",
+      "LICENSE",
+      "setup.sh",
+      ".claudinix.toml",
+      "hk.pkl",
+      "pkl/*.pkl",
+      "SPEC.md",
+      ".github/workflows/ci.yml",
+      "tests/unit/**/*.bats",
+      "dev/**"
+    )
+    check = "scripts/hk/run-tool.sh claudinix-dev badges --check"
+    fix = "scripts/hk/run-tool.sh claudinix-dev badges --write"
+  }
+  // The step counts docs/INTEGRATION.md states equal hk.pkl's (T105).
+  ["integration-counts"] {
+    glob = List("docs/INTEGRATION.md", "hk.pkl", "pkl/*.pkl", "dev/**")
+    check = "scripts/hk/run-tool.sh claudinix-dev counts --check"
+    fix = "scripts/hk/run-tool.sh claudinix-dev counts --write"
+  }
+
   // This repo's own .claudinix.toml must pass the reader every tool uses
   // (T92, scripts:V34). The reader and its schema are data the check
   // depends on, so a change to them reruns it (V19). config.sh needs nix
@@ -228,6 +269,15 @@ local all = (fast) {
       "tests/fixtures/**"
     )
     check = "scripts/hk/run-tool.sh bats --recursive tests/unit"
+  }
+
+  // The dev crate's tests, on push like the bats suite: a RED commit
+  // lands a failing Rust test on purpose (C17). After clippy, which
+  // holds the same cargo lock.
+  ["dev-test"] {
+    glob = List("dev/**")
+    depends = List("dev-clippy")
+    check = "scripts/hk/run-tool.sh cargo test --quiet --manifest-path dev/Cargo.toml"
   }
 
   // The mirror rule is a property of the branch, not of every commit: a

@@ -10,7 +10,7 @@
 [![cache pr0d1r2.cachix.org](https://img.shields.io/badge/cache-pr0d1r2.cachix.org-5277C3?logo=nixos&logoColor=white)](https://pr0d1r2.cachix.org)
 
 [![gate hk](https://img.shields.io/badge/gate-hk-6E4AFF)](hk.pkl)
-[![gate steps 27 commit / 30 push](https://img.shields.io/badge/gate_steps-27_commit_%2F_30_push-6E4AFF)](hk.pkl)
+[![gate steps 31 commit / 35 push](https://img.shields.io/badge/gate_steps-31_commit_%2F_35_push-6E4AFF)](hk.pkl)
 [![bats tests 567](https://img.shields.io/badge/bats_tests-567-brightgreen)](tests/unit)
 [![federated nodes 6](https://img.shields.io/badge/federated_nodes-6-6E4AFF)](SPEC.md)
 
