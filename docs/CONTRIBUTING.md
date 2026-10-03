@@ -23,8 +23,13 @@ nix develop        # or: direnv allow  (the .envrc is `use flake`)
 Entering the shell runs
 [`scripts/dev/shell-hook.sh`](../scripts/dev/shell-hook.sh), which installs
 the git hooks with `hk install`. Each hook then re-enters the pinned shell
-itself (`nix develop -c hk run <hook>`), so a commit uses the pinned tools
-even from a terminal whose `PATH` is stale.
+itself (`CLAUDINIX_HOOK=1 nix-dev -c hk run <hook>` where `nix-dev` is
+installed, else `nix develop -c hk run <hook>`), so a commit uses the pinned
+tools even from a terminal whose `PATH` is stale. Git 2.54 or newer runs
+these config-based hooks; an older git runs `.git/hooks` shims that the shell
+hook copies from
+[`scripts/dev/legacy-hook.sh`](../scripts/dev/legacy-hook.sh) and that run
+the same command. See [`INTEGRATION.md`](INTEGRATION.md).
 
 `flake.nix` declares the owner's cache, `pr0d1r2.cachix.org`, as a substituter
 so that `hk` and the other tools are downloaded rather than built. Nix only
@@ -102,7 +107,9 @@ If you contribute from a Claude Code cloud session, the facts in
 `git fetch --unshallow` before pushing or `tdd-order` cannot see the RED
 commits; your commits are authored as `Claude <noreply@anthropic.com>` with a
 `Claude-Session:` trailer, which the `commit-msg` hook accepts; and the branch
-you push gets a random suffix.
+you push gets a random suffix. The project's SessionStart hook,
+`bash "$CLAUDE_PROJECT_DIR/scripts/dev/session-start.sh"`, fetches the full
+history and enters the dev shell once so the hooks are installed.
 
 ## Things that will get a patch turned down
 
