@@ -50,7 +50,10 @@ value you have to paste, and checks what it can. Creating the environment
 itself is the one part that has to happen by hand at
 [claude.ai/code](https://claude.ai/code), because it has no API. The setup
 script you paste there is the line published above (and in each release's
-notes). The same steps, written out, are in [`docs/SETUP.md`](docs/SETUP.md).
+notes). Until the first release there is no published line: the block above
+says so, and the guide stops with "no release yet". Until then, a maintainer
+or tester can print a line for a commit CI passed with `guide --rev SHA` or
+`scripts/setup-line.sh SHA` (both need `gh`, signed in). The same steps, written out, are in [`docs/SETUP.md`](docs/SETUP.md).
 
 ## The agent home is opt-in
 
@@ -129,7 +132,9 @@ click, is [`docs/SETUP.md`](docs/SETUP.md). In short:
    `allowlist.txt` plus your project's hosts from
    `nix run github:pr0d1r2/claudinix#domains`, and as the setup script the
    one line published at the top of this page (not the contents of
-   `setup.sh`).
+   `setup.sh`). Until the first release there is no published line, and the
+   guide stops with "no release yet"; maintainers and testers can use
+   `guide --rev SHA` or `scripts/setup-line.sh SHA` (needs `gh`).
 5. **Choose it in your terminal** with `/remote-env` (once per machine).
 6. **Run a first session** and look for a Nix version and `DEVSHELL-OK`:
 
