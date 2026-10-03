@@ -123,7 +123,7 @@ T65|.|EXP E10 unattended routine: API-triggered routine on env `nix`, trivial ta
 T66|.|EXP E11 cost per session: usage page before/after E1-E5; confirms credit charged at API rates ?|I.file,`docs:T42` — first reading 2026-10-03: $7 for 8 short sessions (7 probes + 1 job, 7 on Opus 5.5) ≈ $0.90/session; per-session split still unmeasured
 T67|x|ARCHIVED to SPEC-ARCHIVE.md|T58,`scripts:T28`,I.cmd — answered 2026-10-03 (probe 7): `claude --cloud "<task>" --model sonnet` ⇒ configured, served \& trailer = Sonnet 5.5; `--model` before the task fails (`--cloud requires a description`)
 T68|.|C11 config block: cachix host + key + repo slug as variables at top of `setup.sh`, used by every later line; `docs/FORKING.md` → 1 place; bats: block edit alone retargets cache \& repo|C11,V3,I.file
-T69|.|setup line safety: `scripts/setup-line.sh` refuses a REV whose CI run on default branch is not green (`gh run list --commit`) unless `--force`; `setup.sh` fetches nix-dev at its SHA arg (⊥ `main`); bats w/ stubbed `gh`\|`curl`|V20,C19,I.file
+T69|x|setup line safety: `scripts/setup-line.sh` refuses a REV whose CI run on default branch is not green (`gh run list --commit`) unless `--force`; `setup.sh` fetches nix-dev at its SHA arg (⊥ `main`); bats w/ stubbed `gh`\|`curl`|V20,C19,I.file
 
 ## §B BUGS
 id|date|cause|fix
