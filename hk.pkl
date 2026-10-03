@@ -63,6 +63,35 @@ local fast = new Mapping<String, Step> {
     check = "scripts/hk/run-tool.sh zizmor --offline --no-progress --persona=pedantic {{files}}"
   }
 
+  // The spec toolchain (SPEC C20). microlith owns the format: `mth fmt` is
+  // whitespace-only, `mth check` the structural rules; each takes one
+  // path, and this repo has one SPEC.md. itok gates token ceilings in
+  // `.context-limits`; sherd validates the federation and its chain
+  // budget. A missing tool fails through run-tool.sh (V18).
+  ["spec-fmt"] {
+    glob = List("SPEC.md")
+    check = "scripts/hk/run-tool.sh mth fmt --check SPEC.md"
+    fix = "scripts/hk/run-tool.sh mth fmt SPEC.md"
+  }
+  ["spec-check"] {
+    glob = List("SPEC.md")
+    depends = List("spec-fmt")
+    check = "scripts/hk/run-tool.sh mth check SPEC.md"
+  }
+  ["spec-tokens"] {
+    glob = List("**/SPEC.md", ".context-limits")
+    check = "scripts/hk/run-tool.sh itok check"
+  }
+  ["federation"] {
+    glob = List("**/SPEC.md", ".context-limits")
+    check = "scripts/hk/run-tool.sh sherd validate"
+  }
+  ["budget"] {
+    glob = List("**/SPEC.md", ".context-limits")
+    depends = List("federation")
+    check = "scripts/hk/run-tool.sh sherd budget"
+  }
+
   ["typos"] {
     glob = List("**/*")
     check = "scripts/hk/run-tool.sh typos --force-exclude {{files}}"
