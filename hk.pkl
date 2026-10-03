@@ -46,6 +46,14 @@ local fast = new Mapping<String, Step> {
   // because a gate must not need the network, and in a cloud session the
   // injected GH_TOKEN placeholder makes online audits fail with 401
   // (SPEC C6, C8).
+  // One language per file (SPEC C15): no shell embedded in nix strings.
+  // xnl skips files no host claims, so the glob only keeps the step off
+  // commits that touch neither language.
+  ["xenolith"] {
+    glob = List("**/*.nix", "**/*.sh", "**/*.bats", "xenolith.toml")
+    check = "scripts/hk/run-tool.sh xnl check {{files}}"
+  }
+
   ["actionlint"] {
     glob = List(".github/workflows/*.yml", ".github/workflows/*.yaml")
     check = "scripts/hk/run-tool.sh actionlint {{files}}"
