@@ -11,9 +11,9 @@ right and this file has a bug.
 
 | caller | set | when |
 |---|---|---|
-| `pre-commit` hook | `fast`, 21 steps | every commit, on the staged files |
-| `pre-push` hook | `all`, 24 steps | every push |
-| `hk check --all` in CI | `all`, 24 steps | every push to `main` and every pull request |
+| `pre-commit` hook | `fast`, 22 steps | every commit, on the staged files |
+| `pre-push` hook | `all`, 25 steps | every push |
+| `hk check --all` in CI | `all`, 25 steps | every push to `main` and every pull request |
 
 A fourth hook, `commit-msg`, runs one step on the commit message.
 
@@ -63,6 +63,7 @@ hk hands the step; by hand, name the files yourself.
 | `shfmt` | `*.sh`, `*.bats` | `shfmt --diff --indent 4 <files>` (fix: `--write`) |
 | `nixfmt` | `*.nix` | `nixfmt --check <files>` (fix: drop `--check`) |
 | `xenolith` | `*.nix`, `*.sh`, `*.bats`, `xenolith.toml` | `xnl check <files>` |
+| `just` | `justfile` | `just --fmt --check --unstable` (fix: drop `--check`) |
 | `actionlint` | `.github/workflows/*.yml` | `actionlint <files>` |
 | `zizmor` | `.github/workflows/*.yml` | `zizmor --offline --no-progress --persona=pedantic <files>` |
 | `spec-fmt` | every `SPEC.md` | `mth fmt --check <node>/SPEC.md` (fix: `mth fmt`) |
@@ -86,6 +87,10 @@ A few notes on why the steps look the way they do:
 - **xenolith** enforces one language per file: no shell inside nix strings,
   hk steps or heredocs. The `xnl` binary is built with only the `nix` and
   `shell` languages, because those are the languages this repository has.
+- **just** keeps the `justfile` in just's own layout. `--unstable` is there
+  because `just --fmt` still asks for it. Each recipe is one plain command
+  that calls a script under `scripts/`; the logic lives in the bats-covered
+  script, not in the justfile.
 - **zizmor** runs `--offline`. A gate must not need the network, and inside
   a cloud session the injected `GH_TOKEN` placeholder makes online audits
   fail with 401.
