@@ -33,10 +33,18 @@ fi
 # hk and tools the calling shell happens to have. Wrap each hook so it
 # enters this dev shell itself (V17). Already-wrapped commands are left
 # alone; a wrap under an older env prefix (the project was renamed, T71)
-# is replaced whole, never nested. Two shells racing here meet git's
-# config.lock: the loser warns.
-wrap="CLAUDINIX_HOOK=1 nix develop -c hk run"
-old_wrap='[A-Za-z_][A-Za-z0-9_]*=1 nix develop -c hk run '
+# or the other shell entry is replaced whole, never nested. Two shells
+# racing here meet git's config.lock: the loser warns.
+#
+# Where nix-dev is installed (every cloud session, by setup.sh) the hook
+# enters the shell through it: plain `nix develop` 403s on an uncached
+# github: input there (C6), and that would refuse every commit.
+if command -v nix-dev >/dev/null 2>&1; then
+    wrap="CLAUDINIX_HOOK=1 nix-dev -c hk run"
+else
+    wrap="CLAUDINIX_HOOK=1 nix develop -c hk run"
+fi
+old_wrap='[A-Za-z_][A-Za-z0-9_]*=1 nix(-dev| develop) -c hk run '
 while read -r key value; do
     case "$value" in
     *"$wrap"*) continue ;;

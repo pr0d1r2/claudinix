@@ -4,8 +4,9 @@
 #
 #   1. The cloud clone is shallow (C8): tdd-order refuses to judge it
 #      (V29), so fetch the full history now, not at the first push.
-#   2. `nix develop -c true` enters the dev shell once, which installs
-#      and wraps the hk git hooks (V17) before the first commit.
+#   2. `nix-dev -c true` (else `nix develop -c true`) enters the dev
+#      shell once, which installs and wraps the hk git hooks (V17,
+#      V32) before the first commit.
 #
 # Success is silence (V31). A problem is a warning on stdout, which the
 # hook hands to the agent as context, and the session always starts:
@@ -41,8 +42,15 @@ if ! command -v nix >/dev/null 2>&1; then
     exit 0
 fi
 
-if ! develop_log="$(nix develop -c true 2>&1)"; then
-    warn "nix develop failed -- the git hooks may be missing; fix the shell, then run: nix develop -c true"
+# nix-dev (installed by setup.sh) reaches the shell even when a github:
+# input is not cached, where plain `nix develop` gets a 403 (C6).
+if command -v nix-dev >/dev/null 2>&1; then
+    enter=(nix-dev)
+else
+    enter=(nix develop)
+fi
+if ! develop_log="$("${enter[@]}" -c true 2>&1)"; then
+    warn "${enter[*]} failed -- the git hooks may be missing; fix the shell, then run: ${enter[*]} -c true"
     printf '%s\n' "$develop_log"
 fi
 
