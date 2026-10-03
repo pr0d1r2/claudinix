@@ -128,3 +128,27 @@ EOF
     [ -f "$ENV_DIR/allowlist.txt" ]
     [ -f "$ENV_DIR/env-names.txt" ]
 }
+
+@test "nix.conf: managed block sits between begin and end markers (V3)" {
+    run bash "$SCRIPT"
+    conf="$NIX_CONF_DIR/nix.conf"
+    [ "$(grep -c '^# BEGIN nix-claude-code-cloud' "$conf")" -eq 1 ]
+    [ "$(grep -c '^# END nix-claude-code-cloud' "$conf")" -eq 1 ]
+}
+
+@test "nix.conf: a stale managed block is replaced whole on re-run (V3, B2)" {
+    mkdir -p "$NIX_CONF_DIR"
+    printf '%s\n' 'build-users-group = nixbld' \
+        '# BEGIN nix-claude-code-cloud (SPEC V3)' \
+        'extra-substituters = https://old.example' \
+        '# END nix-claude-code-cloud (SPEC V3)' \
+        'max-jobs = 4' >"$NIX_CONF_DIR/nix.conf"
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    conf="$NIX_CONF_DIR/nix.conf"
+    run ! grep -q 'old.example' "$conf"
+    grep -qx 'accept-flake-config = true' "$conf"
+    grep -qx 'build-users-group = nixbld' "$conf"
+    grep -qx 'max-jobs = 4' "$conf"
+    [ "$(grep -c '^# BEGIN nix-claude-code-cloud' "$conf")" -eq 1 ]
+}
