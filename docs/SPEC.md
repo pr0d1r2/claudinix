@@ -52,7 +52,7 @@ T83|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:C24`,`.:C25`,`.:C26`
 T84|x|ARCHIVED to SPEC-ARCHIVE.md|C22
 T85|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:C17`,`.:C21`
 T89|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C6`,`.:V18`,C22
-T94|.|`docs/CONFIG.md`: every key, type, default, which tool reads it, precedence, example (this repo's file); CLI/README/CONSUMER/SETUP mention it; plain English|`.:C28`,`scripts:V34`,C22
+T94|x|`docs/CONFIG.md`: every key, type, default, which tool reads it, precedence, example (this repo's file); CLI/README/CONSUMER/SETUP mention it; plain English|`.:C28`,`scripts:V34`,C22
 
 ## §B BUGS
 
