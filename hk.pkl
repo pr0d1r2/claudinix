@@ -63,20 +63,25 @@ local fast = new Mapping<String, Step> {
     check = "scripts/hk/run-tool.sh zizmor --offline --no-progress --persona=pedantic {{files}}"
   }
 
-  // The spec toolchain (SPEC C20). microlith owns the format: `mth fmt` is
-  // whitespace-only, `mth check` the structural rules; each takes one
-  // path, and this repo has one SPEC.md. itok gates token ceilings in
-  // `.context-limits`; sherd validates the federation and its chain
-  // budget. A missing tool fails through run-tool.sh (V18).
+  // The spec toolchain (SPEC C20). The spec is federated: one SPEC.md
+  // per node (root, scripts, nix, docs). microlith owns the format --
+  // `mth fmt` is whitespace-only, `mth check` the structural rules --
+  // and takes one path per run, so `workspace_indicator` runs it once
+  // per changed node. itok gates token ceilings in `.context-limits`;
+  // sherd validates the federation, checks citations across nodes,
+  // keeps each §N in step with its parent's §F, and budgets every
+  // chain. A missing tool fails through run-tool.sh (V18).
   ["spec-fmt"] {
-    glob = List("SPEC.md")
-    check = "scripts/hk/run-tool.sh mth fmt --check SPEC.md"
-    fix = "scripts/hk/run-tool.sh mth fmt SPEC.md"
+    glob = List("**/SPEC.md")
+    workspace_indicator = "SPEC.md"
+    check = "scripts/hk/run-tool.sh mth fmt --check {{workspace}}/SPEC.md"
+    fix = "scripts/hk/run-tool.sh mth fmt {{workspace}}/SPEC.md"
   }
   ["spec-check"] {
-    glob = List("SPEC.md")
+    glob = List("**/SPEC.md")
+    workspace_indicator = "SPEC.md"
     depends = List("spec-fmt")
-    check = "scripts/hk/run-tool.sh mth check SPEC.md"
+    check = "scripts/hk/run-tool.sh mth check {{workspace}}/SPEC.md"
   }
   ["spec-tokens"] {
     glob = List("**/SPEC.md", ".context-limits")
@@ -85,6 +90,17 @@ local fast = new Mapping<String, Step> {
   ["federation"] {
     glob = List("**/SPEC.md", ".context-limits")
     check = "scripts/hk/run-tool.sh sherd validate"
+  }
+  ["nav"] {
+    glob = List("**/SPEC.md")
+    depends = List("federation")
+    check = "scripts/hk/run-tool.sh sherd sync --check"
+    fix = "scripts/hk/run-tool.sh sherd sync"
+  }
+  ["spec-structure"] {
+    glob = List("**/SPEC.md")
+    depends = List("federation")
+    check = "scripts/hk/run-tool.sh sherd check"
   }
   ["budget"] {
     glob = List("**/SPEC.md", ".context-limits")
