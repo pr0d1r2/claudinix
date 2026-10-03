@@ -19,6 +19,14 @@
 
 set -euo pipefail
 
+# Everything owner-specific, and nothing else (C11): a fork edits only
+# this block. The cache is read-only and its key is public (V6).
+# BEGIN fork config (SPEC C11)
+cache_host=pr0d1r2.cachix.org
+cache_key=pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM=
+repo=pr0d1r2/nix-claude-code-cloud
+# END fork config (SPEC C11)
+
 # The SHA the UI line fetched this file at (V20). A short or mistyped id
 # would pin nothing, so refuse it before touching the system.
 sha="${1:-}"
@@ -96,8 +104,8 @@ fi
     printf '%s\n' "$begin" \
         'experimental-features = nix-command flakes' \
         'accept-flake-config = true' \
-        'extra-substituters = https://pr0d1r2.cachix.org' \
-        'extra-trusted-public-keys = pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM=' \
+        "extra-substituters = https://$cache_host" \
+        "extra-trusted-public-keys = $cache_key" \
         "$end"
 } >"$conf.tmp"
 mv "$conf.tmp" "$conf"
@@ -113,7 +121,7 @@ ln -sf "$profile_bin"/* "$bin_dir/"
 # fetched at (T69, V20), or `main` when none was given. A failed fetch
 # only warns: nix itself still works (V1).
 lib_dir="${NCCC_LIB_DIR:-/usr/local/lib/nix-claude-code-cloud}"
-raw="${NCCC_RAW_URL:-https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/${NCCC_REV:-${sha:-main}}}"
+raw="${NCCC_RAW_URL:-https://raw.githubusercontent.com/$repo/${NCCC_REV:-${sha:-main}}}"
 here="$(dirname "${BASH_SOURCE[0]:-.}")"
 mkdir -p "$lib_dir"
 nix_dev=ok
@@ -142,7 +150,6 @@ fi
 # store path from cachix without touching GitHub. If both fail, Nix stays
 # usable: warn loudly, leave a marker, exit 0.
 # With a SHA (V20) both tiers are pinned to it.
-repo=pr0d1r2/nix-claude-code-cloud
 home_flake="${CLOUD_HOME_FLAKE:-git+https://github.com/$repo?${sha:+rev=$sha&}shallow=1}"
 home_storepath="${CLOUD_HOME_STOREPATH:-$(dirname "$0")/cloud-home.storepath}"
 home_marker="${CLOUD_HOME_MARKER:-$HOME/.local/state/nix-claude-code-cloud/agent-home.failed}"
