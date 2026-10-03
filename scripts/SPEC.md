@@ -45,7 +45,7 @@ T80|x|ARCHIVED to SPEC-ARCHIVE.md|V13,V26,`.:V18`
 T81|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C24`,`.:C25`,V26
 T82|x|ARCHIVED to SPEC-ARCHIVE.md|`.:V29`,`.:V18`,`.:V17`
 T90|x|`scripts/config.sh [--dir D] get KEY\|json\|check`: `nix eval --impure --json --expr 'builtins.fromTOML (builtins.readFile …)'`, schema check (types, unknown keys, version) via jq; no file → defaults (`json` prints them); bats w/ fixture files (missing, valid, unknown key, bad type, bad version, path w/ spaces)|`.:C28`,V34,V26
-T91|.|readers: `domains` adds `network.extra_domains` (source tag `config`); `inputs` \& verify defaults use `cache.name`; `guide` \& `probe` default `--model` from `session.model`, `--agent-home` from `session.agent_home`, first check \& probe use `devshell.installable`; `probe` branch prefix from `probe.branch_prefix`; `nix-dev` default installable from `devshell.installable`; flags still win; each w/ bats|V34,`.:C28`,V13
+T91|x|readers: `domains` adds `network.extra_domains` (source tag `config`); `inputs` \& verify defaults use `cache.name`; `guide` \& `probe` default `--model` from `session.model`, `--agent-home` from `session.agent_home`, first check \& probe use `devshell.installable`; `probe` branch prefix from `probe.branch_prefix`; `nix-dev` default installable from `devshell.installable`; flags still win; each w/ bats|V34,`.:C28`,V13
 
 ## §B BUGS
 
