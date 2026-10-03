@@ -38,6 +38,7 @@ T64|.|EXP E9 `nix-dev` auto-overrides prototype on itok \| microlith w/o changin
 T65|.|EXP E10 unattended routine: API-triggered routine on env `nix`, trivial task; watch prompts \& errors|`.:T51`
 T66|.|EXP E11 cost per session: usage page before/after E1-E5; confirms credit charged at API rates ?|I.file,`docs:T42` — first reading 2026-10-03: $7 for 8 short sessions (7 probes + 1 job, 7 on Opus 5.5) ≈ $0.90/session; per-session split still unmeasured
 T102|.|EXP self-build 1: after 1st push + green CI, `just cloud` 1 small real task (e.g. `docs:T44`-sized); record in FACTS: setup ok, dev shell time, gate ok, hooks fired (old git?), prompts hit, branch pushed, cost|C29,T56,T57,T62
+T104|.|EXP permission location: in a session w/ the agent home, does `~/.claude/settings.json` written at setup survive to launch \& apply (no prompt for an allowed gate command)? does `.claude/settings.local.json` written by the SessionStart hook apply in the SAME session or only the next? record in FACTS; decides which of `.:T101`'s 2 routes stays|`.:T101`,`.:C27`,T56
 
 ## §B BUGS
 
