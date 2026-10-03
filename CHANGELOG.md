@@ -77,6 +77,21 @@ does are summarised briefly; the git history has the detail.
   timeouts, and `CLAUDINIX_NIX_TIMEOUT` seconds per step, default 120);
   `CLAUDINIX_AGENT_HOME` accepts only 0 or 1.
 
+### Built by its own cloud agents
+
+- `just cloud <node:Tn>` starts one billed cloud session that builds one
+  open spec task of this repository and pushes it to a `claude/*` branch
+  for review; it refuses missing, done or ambiguous tasks and unpushed
+  branches, asks before starting, and `--dry-run` prints the command.
+- The dev shell's own flake inputs are fetched over `git+https`, so a
+  cloud session can enter it without GitHub 403s; only nixpkgs remains a
+  `github:` input, served by cache.nixos.org.
+- In cloud sessions with the agent home, `~/.claude/settings.json` gets a
+  narrow permission list (the gate's own commands, pushing `claude/*`,
+  never `main`) so unattended tasks do not stall on prompts. Local
+  sessions never get it: the committed `.claude/settings.json` holds only
+  the SessionStart hook, and a gate step refuses blanket rules.
+
 ### Per-repo config
 
 - An optional `.claudinix.toml` in a target repository sets the session
