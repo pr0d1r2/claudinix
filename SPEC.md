@@ -139,7 +139,7 @@ T62|.|EXP E7 silence prompts: commit exact `add_repo` allow rule in sherd `.clau
 T63|.|EXP E8 cache fast path: after sherd CI pushes inputs + devShell (T54), fresh session times plain `nix develop` (target < 10 s), confirms narHash substitution ⊥ git fetch|V8,T54
 T64|.|EXP E9 `nix-dev` auto-overrides prototype on itok \| microlith w/o changing their flakes|T49,V13
 T65|.|EXP E10 unattended routine: API-triggered routine on env `nix`, trivial task; watch prompts \& errors|T51
-T66|.|EXP E11 cost per session: usage page before/after E1-E5; confirms credit charged at API rates ?|I.file,T42
+T66|.|EXP E11 cost per session: usage page before/after E1-E5; confirms credit charged at API rates ?|I.file,T42 — first reading 2026-10-03: $7 for 8 short sessions (7 probes + 1 job, 7 on Opus 5.5) ≈ $0.90/session; per-session split still unmeasured
 T67|x|EXP E3b: launch w/ `claude --cloud --model sonnet`; check `get_session.configured_model` \& commit trailer; probe launcher (T28) passes `--model` always|T58,T28,I.cmd — answered 2026-10-03 (probe 7): `claude --cloud "<task>" --model sonnet` ⇒ configured, served \& trailer = Sonnet 5.5; `--model` before the task fails (`--cloud requires a description`)
 T10|.|`just bump-nix <ver>`: fetch installer + `.sha256`, rewrite pin pair, run tests|V11,C4
 
