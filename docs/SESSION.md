@@ -5,6 +5,25 @@ this repository runs where. It explains why some edits do not reach a session
 that is already running. Anything not measured is marked as such; the
 measurements are in [`FACTS.md`](FACTS.md), dated.
 
+## The boot at a glance
+
+```mermaid
+flowchart TD
+    A["claude --cloud (your machine)"] --> B["VM created<br/>Ubuntu 24.04, fresh boot"]
+    B --> C["repository cloned, shallow"]
+    C --> D["network rules applied"]
+    D --> E{"snapshot<br/>exists?"}
+    E -->|no| F["setup.sh runs as root<br/>Nix, nix-dev,<br/>agent home only if opted in"]
+    F --> G["snapshot saved if setup<br/>took about 5 minutes or less"]
+    E -->|yes| H["setup skipped<br/>(not measured yet)"]
+    G --> I["your SessionStart hook"]
+    H --> I
+    I --> J["Claude starts<br/>as root, nix on PATH"]
+```
+
+The setup script runs only when there is no snapshot; your SessionStart hook
+runs on every session. The steps in words:
+
 ## The boot, in order
 
 1. **You launch.** `claude --cloud "<task>" --model sonnet` from a checkout
