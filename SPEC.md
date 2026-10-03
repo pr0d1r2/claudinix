@@ -94,7 +94,7 @@ T7|.|measure setup wall time on fresh VM; record; > 5 min → trim|V5,C1
 T10|.|`just bump-nix <ver>`: fetch installer + `.sha256`, rewrite pin pair, run tests|V11,C4
 T11|.|MANUAL create public GitHub repo `pr0d1r2/nix-claude-code-cloud`, add remote, push after `docs:T9`|C10,V12
 T14|.|probe ext: `echo $HOME`, `id`, `ls -la ~/.claude`, `settings.json` owner \& content before/after launch; setup places 1 test skill in `~/.claude/skills` → visible to Claude (`/` list) ?|C13,`nix:V14`,I.file
-T17|.|`setup.sh` tail: activate agent home w/ `nix:V15` failover as Claude's uid; seams `CLOUD_HOME_FLAKE`, `CLOUD_HOME_STOREPATH`; bats w/ stub `nix`|`nix:V14`,`nix:V15`,V7,I.file
+T17|x|`setup.sh` tail: activate agent home w/ `nix:V15` failover as Claude's uid; seams `CLOUD_HOME_FLAKE`, `CLOUD_HOME_STOREPATH`; bats w/ stub `nix`|`nix:V14`,`nix:V15`,V7,I.file
 T19|x|ARCHIVED to SPEC-ARCHIVE.md|C16,C17,V17,V19
 T20|x|ARCHIVED to SPEC-ARCHIVE.md|C15,V18
 T21|x|ARCHIVED to SPEC-ARCHIVE.md|C20,V18
