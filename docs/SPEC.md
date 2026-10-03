@@ -41,7 +41,7 @@ T39|x|W3 SHOULD `docs/CONTRIBUTING.md`: run `hk check`, TDD order, commit format
 T40|x|W3 SHOULD `docs/CODE_OF_CONDUCT.md`: same text as owner repos|C22
 T41|x|W3 SHOULD `docs/THIRD-PARTY-NOTICES.md`: Nix installer, nix-hk, xenolith, set-and-setting, cavekit (MIT)|C22,C12
 T42|x|W3 SHOULD `docs/MODEL.md`: why probe/launcher default to Sonnet 5.5, dated prices, when to change; generalized from the owner's private seed repo `docs/MODEL.md`|C22,I.cmd
-T43|.|W3 SHOULD `docs/EXAMPLE.md`: sherd from zero to green `cargo test` in cloud w/ real timings (devShell 34 s, tests 12.5 s, gate 2m45s); model rekall/pklith `EXAMPLE.md`|C22,C8
+T43|x|W3 SHOULD `docs/EXAMPLE.md`: sherd from zero to green `cargo test` in cloud w/ real timings (devShell 34 s, tests 12.5 s, gate 2m45s); model rekall/pklith `EXAMPLE.md`|C22,C8
 T44|.|W4 SHOULD `docs/CLI.md`: `domains`, `inputs`, `guide`, `probe` flags, exit codes, output; model pklith `CLI.md`|C22,I.cmd
 T45|.|W4 SHOULD `docs/SESSION.md`: session lifecycle `claude --cloud` → VM → clone → setup script \| snapshot → SessionStart → Claude; why edits ⊥ reach running session; model nixos-poe2 `usage.md` boot flow|C22,C1,C8
 T46|.|W4 SHOULD `docs/FORKING.md`: own cachix, domains, env name (C11 block); model nixos-poe2 `development.md`|C22,C11
