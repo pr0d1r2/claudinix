@@ -120,18 +120,28 @@ in each new VM. This repository's environment installs Nix.
        start a session in the browser. Claude Sonnet 5.5 costs half of
        Claude Opus 5.5 per token; see [`MODEL.md`](MODEL.md).
      - Add any other names listed in [`env-names.txt`](../env-names.txt).
+       One is optional: `BASH_DEFAULT_TIMEOUT_MS=600000`. A Bash command
+       that runs past 120 seconds in a session moves to the background and
+       keeps running, and its real exit status arrives only with the
+       completion notice. A timeout of 600000 ms (10 minutes) means fewer
+       runs of the gate are backgrounded (`SPEC.md` V24). It is not a secret.
      - Anyone who can use the environment can read these values, so
        never put secrets here.
    - **Setup script**: the one line that `scripts/setup-line.sh` prints,
-     pinned to a commit SHA. From a checkout of this repository:
+     pinned to a commit SHA. Wait until CI on `main` is green for that
+     commit first: CI is what pushes the agent home to the binary cache, so
+     the script refuses a commit whose newest `ci.yml` run on `main` is not
+     completed and successful. From a checkout of this repository:
 
      ```sh
      scripts/setup-line.sh
      ```
 
-     It prints a single line of this shape (the SHA is the commit it
-     resolved; pass a revision to pin another one, such as
-     `scripts/setup-line.sh <rev>`):
+     `scripts/setup-line.sh [--force] [REV]` takes a revision to pin
+     another commit; a full 40-character SHA needs no checkout. `--force`
+     prints the line even when CI is not green, with a warning. The guide
+     (`guide`, step 3) runs it for you and pastes the same line. It prints
+     a single line of this shape (the SHA is the commit it resolved):
 
      ```text
      d=$(mktemp -d) && curl -fsSL https://raw.githubusercontent.com/pr0d1r2/nix-claude-code-cloud/<sha>/setup.sh -o "$d/setup.sh" && bash "$d/setup.sh" <sha>
@@ -237,12 +247,14 @@ claude -p "<message>" --cloud <session-id>
 2. Hover over `nix` and select the settings (gear) icon on the right.
 3. Change only what the commit changed:
    - **Setup script**: select all of the old script and paste the new
-     line over it (`scripts/setup-line.sh` prints it). A bump is a new SHA
-     in that line and nothing else.
+     line over it (`scripts/setup-line.sh [--force] [REV]` prints it, once CI
+     is green for that commit; `guide update` pastes the same line). A bump
+     is a new SHA in that line and nothing else.
    - **Allowed domains**: one domain per line; run
      `nix run github:pr0d1r2/nix-claude-code-cloud#domains` in your
      project for the full list.
-   - **Environment variables**: names from `env-names.txt`.
+   - **Environment variables**: names from `env-names.txt`, including the
+     optional `BASH_DEFAULT_TIMEOUT_MS=600000`.
 4. Save, then check the change in a **new** session (see below).
 
 A change to the setup script or the allowed domains rebuilds the
