@@ -27,7 +27,7 @@ setup() {
         printf '%s\n' '#!/usr/bin/env bash' 'echo "--- clip" >>"$LOG"' 'cat >>"$LOG"' >"$STUBS/pbcopy"
         printf '%s\n' '#!/usr/bin/env bash' 'echo "claude $*" >>"$LOG"' 'exit "${CLAUDE_RC:-0}"' >"$STUBS/claude"
         printf '%s\n' '#!/usr/bin/env bash' 'echo "inputs $*" >>"$LOG"' \
-            'echo "pr0d1r2/a 1111 attach"' 'echo "NixOS/nixpkgs 2222 cached"' >"$LIB/inputs.sh"
+            'echo "pr0d1r2/a 1111 uncached"' 'echo "NixOS/nixpkgs 2222 cached"' >"$LIB/inputs.sh"
         printf '%s\n' '#!/usr/bin/env bash' 'echo "domains $*" >>"$LOG"' \
             'printf "%s\n" pr0d1r2.cachix.org index.crates.io' >"$LIB/domains.sh"
         printf '%s\n' '#!/usr/bin/env bash' 'echo "setup-line $*" >>"$LOG"' \
@@ -146,6 +146,17 @@ titles() {
     [ "$status" -eq 0 ]
     [[ "$output" == *"https://claude.ai/code"* ]]
     [[ "$output" == *"index.crates.io"* ]]
+}
+
+@test "the clipboard tool's own output never reaches ours (xclip, scripts:T80)" {
+    # shellcheck disable=SC2016 # expands inside the stub, not here
+    printf '%s\n' '#!/usr/bin/env bash' 'cat >>"$LOG"' 'echo CLIP-STDOUT' 'echo CLIP-STDERR >&2' >"$STUBS/xclip"
+    chmod +x "$STUBS/xclip"
+    CLIPBOARD_TOOLS="$STUBS/xclip" run bash "$SCRIPT" update <<<''
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"(copied to the clipboard)"* ]]
+    [[ "$output" != *"CLIP-STDOUT"* ]]
+    [[ "$output" != *"CLIP-STDERR"* ]]
 }
 
 @test "unknown flag or step is a usage error" {

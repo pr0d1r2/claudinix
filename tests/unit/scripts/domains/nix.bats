@@ -48,6 +48,21 @@ setup() {
     [[ "$output" != *"github.com"* ]]
 }
 
+@test "commented-out substituters are not hosts (scripts:T80)" {
+    printf '%s\n' '{' \
+        '  nixConfig = {' \
+        '    # substituters = [ "https://old.example.org" ];' \
+        '    #extra-substituters = [' \
+        '    #  "https://older.example.org"' \
+        '    #];' \
+        '    extra-substituters = [ "https://kept.example.com" ]; # not "https://trailing.example.net"' \
+        '  };' \
+        '}' >"$P/flake.nix"
+    run bash "$SCRIPT" "$P"
+    [ "$status" -eq 0 ]
+    [ "$output" = "kept.example.com	flake.nix" ]
+}
+
 @test "no flake files: prints nothing and passes" {
     run bash "$SCRIPT" "$P"
     [ "$status" -eq 0 ]

@@ -41,13 +41,13 @@ cached() {
 }
 
 @test "every github input once: nested, deduped, non-github skipped" {
-    run bash "$SCRIPT" "$PROJECT"
+    run --separate-stderr bash "$SCRIPT" "$PROJECT"
     [ "$status" -eq 0 ]
     [ "${#lines[@]}" -eq 4 ]
-    [ "${lines[0]}" = "NixOS/nixpkgs 6666666666666666666666666666666666666666 attach" ]
-    [ "${lines[1]}" = "owner/e 5555555555555555555555555555555555555555 attach" ]
-    [ "${lines[2]}" = "pr0d1r2/a 1111111111111111111111111111111111111111 attach" ]
-    [ "${lines[3]}" = "pr0d1r2/b 2222222222222222222222222222222222222222 attach" ]
+    [ "${lines[0]}" = "NixOS/nixpkgs 6666666666666666666666666666666666666666 uncached" ]
+    [ "${lines[1]}" = "owner/e 5555555555555555555555555555555555555555 uncached" ]
+    [ "${lines[2]}" = "pr0d1r2/a 1111111111111111111111111111111111111111 uncached" ]
+    [ "${lines[3]}" = "pr0d1r2/b 2222222222222222222222222222222222222222 uncached" ]
     [[ "$output" != *"example.org"* ]]
 }
 
@@ -58,7 +58,7 @@ cached() {
     [ "$status" -eq 0 ]
     [[ "$output" == *"pr0d1r2/a 1111111111111111111111111111111111111111 cached"* ]]
     [[ "$output" == *"owner/e 5555555555555555555555555555555555555555 cached"* ]]
-    [[ "$output" == *"pr0d1r2/b 2222222222222222222222222222222222222222 attach"* ]]
+    [[ "$output" == *"pr0d1r2/b 2222222222222222222222222222222222222222 uncached"* ]]
 }
 
 @test "a narinfo in cache.nixos.org marks the input cached (.:V8, probe 4)" {
@@ -71,7 +71,7 @@ cached() {
     cached pr0d1r2.cachix.org bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
     cached other.example bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
     INPUTS_CACHES="https://nowhere.example" run bash "$SCRIPT" "$PROJECT"
-    [[ "$output" == *"pr0d1r2/b 2222222222222222222222222222222222222222 attach"* ]]
+    [[ "$output" == *"pr0d1r2/b 2222222222222222222222222222222222222222 uncached"* ]]
     INPUTS_CACHES="https://nowhere.example https://other.example" run bash "$SCRIPT" "$PROJECT"
     [[ "$output" == *"pr0d1r2/b 2222222222222222222222222222222222222222 cached"* ]]
 }
@@ -79,7 +79,7 @@ cached() {
 @test "--check: exit 1 when any input must be attached" {
     run bash "$SCRIPT" --check "$PROJECT"
     [ "$status" -eq 1 ]
-    [[ "$output" == *" attach"* ]]
+    [[ "$output" == *" uncached"* ]]
 }
 
 @test "--check: exit 0 when every input is cached" {
@@ -89,12 +89,12 @@ cached() {
     done
     run bash "$SCRIPT" "$PROJECT" --check
     [ "$status" -eq 0 ]
-    [[ "$output" != *" attach"* ]]
+    [[ "$output" != *" uncached"* ]]
 }
 
 @test "default flake dir is the current directory, passed to nix absolute" {
     cd "$PROJECT"
-    run bash "$SCRIPT"
+    run --separate-stderr bash "$SCRIPT"
     [ "$status" -eq 0 ]
     [ "${#lines[@]}" -eq 4 ]
     grep -q "^flake archive --dry-run --json $PROJECT\$" "$NIX_LOG"
@@ -141,4 +141,32 @@ cached() {
     [ "$status" -eq 1 ]
     [[ "$output" == *"no directory $BATS_TEST_TMPDIR/nonexistent "* ]]
     [[ "$output" == *"nothing was checked"* ]]
+}
+
+# scripts:T80 (review R3-4): say what to do about uncached inputs.
+
+@test "uncached inputs: one remedy line on stderr, the list stays on stdout" {
+    run --separate-stderr bash "$SCRIPT" "$PROJECT"
+    [ "$status" -eq 0 ]
+    [ "${#lines[@]}" -eq 4 ]
+    [ "${#stderr_lines[@]}" -eq 1 ]
+    [[ "$stderr" == *"nix-dev"* ]]
+    [[ "$stderr" == *"git+https://github.com/<owner>/<repo>"* ]]
+}
+
+@test "--check keeps its exit codes and prints the remedy once" {
+    run --separate-stderr bash "$SCRIPT" --check "$PROJECT"
+    [ "$status" -eq 1 ]
+    [ "${#stderr_lines[@]}" -eq 1 ]
+    [[ "$stderr" == *"nix-dev"* ]]
+}
+
+@test "every input cached: no remedy line" {
+    for h in aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb \
+        ffffffffffffffffffffffffffffffff nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn; do
+        cached pr0d1r2.cachix.org "$h"
+    done
+    run --separate-stderr bash "$SCRIPT" --check "$PROJECT"
+    [ "$status" -eq 0 ]
+    [ -z "$stderr" ]
 }

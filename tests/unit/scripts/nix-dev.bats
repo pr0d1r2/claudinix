@@ -138,7 +138,7 @@ N=6666666666666666666666666666666666666666
 }
 
 @test "auto: uncached inputs skip tier 1; tier 2 overrides only those" {
-    inputs_stub "pr0d1r2/a $A attach" "pr0d1r2/b $B cached" "owner/e $E attach" "NixOS/nixpkgs $N cached"
+    inputs_stub "pr0d1r2/a $A uncached" "pr0d1r2/b $B cached" "owner/e $E uncached" "NixOS/nixpkgs $N cached"
     NIX_OK_PLAIN=1 NIX_OK_GIT=1 run bash "$SCRIPT"
     [ "$status" -eq 0 ]
     [[ "$output" == *"tier 1 skipped"* ]]
@@ -152,7 +152,7 @@ N=6666666666666666666666666666666666666666
 }
 
 @test "auto: tier 2 failing falls to tier 3, github: as locked, warned" {
-    inputs_stub "pr0d1r2/a $A attach" "pr0d1r2/b $B cached" "owner/e $E cached" "NixOS/nixpkgs $N cached"
+    inputs_stub "pr0d1r2/a $A uncached" "pr0d1r2/b $B cached" "owner/e $E cached" "NixOS/nixpkgs $N cached"
     NIX_OK_PLAIN=1 run bash "$SCRIPT"
     [ "$status" -eq 0 ]
     [ "$(grep -o 'tier [0-9]' <<<"$output" | tail -n 1)" = "tier 3" ]
@@ -161,7 +161,7 @@ N=6666666666666666666666666666666666666666
 }
 
 @test "auto: only nixpkgs uncached, nothing for tier 2 to override" {
-    inputs_stub "pr0d1r2/a $A cached" "pr0d1r2/b $B cached" "owner/e $E cached" "NixOS/nixpkgs $N attach"
+    inputs_stub "pr0d1r2/a $A cached" "pr0d1r2/b $B cached" "owner/e $E cached" "NixOS/nixpkgs $N uncached"
     NIX_OK_CHANNEL=1 run bash "$SCRIPT"
     [ "$status" -eq 0 ]
     run ! grep -q 'git+https' "$NIX_LOG"

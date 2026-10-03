@@ -117,6 +117,16 @@ setup() {
     [[ "$output" == *"usage"* ]]
 }
 
+@test "the clipboard tool's own output never reaches ours (xclip, scripts:T80)" {
+    # shellcheck disable=SC2016 # expands inside the stub, not here
+    printf '%s\n' '#!/usr/bin/env bash' 'cat >"$CLIP"' 'echo CLIP-STDOUT' 'echo CLIP-STDERR >&2' >"$STUBS/xclip"
+    CLIPBOARD_TOOLS="$STUBS/xclip" run bash "$SCRIPT" "$P"
+    [ "$status" -eq 0 ]
+    [[ "$output" != *"CLIP-STDOUT"* ]]
+    [[ "$output" != *"CLIP-STDERR"* ]]
+    [[ "$output" == *"copied"* ]]
+}
+
 @test "an unreadable log fails" {
     run bash "$SCRIPT" --from-log "$BATS_TEST_TMPDIR/none.log" "$P"
     [ "$status" -eq 1 ]
