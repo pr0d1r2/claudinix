@@ -76,6 +76,10 @@ owner-side steps are in [`FORKING.md`](FORKING.md) and
   commit of your choosing** (`guide --rev SHA`). It asks GitHub whether CI
   passed for that commit. The guide copies the line the release published
   in the [README](../README.md) without it (see step 3).
+- **Optional: a `.claudinix.toml` in your repository** for per-repo
+  settings such as the session model, the dev shell to start or extra
+  allowed domains. Most repositories need none; see
+  [CONFIG.md](CONFIG.md).
 
 ## 2. Connect GitHub (browser, once)
 
