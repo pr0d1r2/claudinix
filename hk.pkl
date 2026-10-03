@@ -181,9 +181,21 @@ local fast = new Mapping<String, Step> {
 local all = (fast) {
   // The whole suite, not the mirrored file: a change to any test must run
   // beside the others it shares helpers with. Parallel through
-  // BATS_NUMBER_OF_PARALLEL_JOBS from the dev shell (C18).
+  // BATS_NUMBER_OF_PARALLEL_JOBS from the dev shell (C18). The glob
+  // follows the data: besides code, the tests read the jq programs, the
+  // guide's TSV, the text lists, the justfile, SETUP.md and fixtures, so
+  // a change to any of those reruns them (V19).
   ["bats"] {
-    glob = List("**/*.sh", "**/*.bats")
+    glob = List(
+      "**/*.sh",
+      "**/*.bats",
+      "**/*.jq",
+      "**/*.tsv",
+      "**/*.txt",
+      "justfile",
+      "docs/SETUP.md",
+      "tests/fixtures/**"
+    )
     check = "scripts/hk/run-tool.sh bats --recursive tests/unit"
   }
 
