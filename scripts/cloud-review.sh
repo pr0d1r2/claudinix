@@ -60,25 +60,25 @@ done
 role="${args[0]}"
 arg="${args[1]}"
 
-lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
+scripts_dir="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 # shellcheck source=/dev/null # lib/cloud-launch.sh, beside this script
 source "$(dirname "${BASH_SOURCE[0]}")/lib/cloud-launch.sh"
 remote="${CLOUD_TASK_REMOTE:-origin}"
 
 # The roles: one per file in review/; `all` runs every one of them.
-roles=()
-for f in "$lib"/review/*.md; do
-    [ -f "$f" ] && roles+=("$(basename "$f" .md)")
+all_roles=()
+for f in "$scripts_dir"/review/*.md; do
+    [ -f "$f" ] && all_roles+=("$(basename "$f" .md)")
 done
-if [ "$role" = all ] && [ "${#roles[@]}" -eq 0 ]; then
+if [ "$role" = all ] && [ "${#all_roles[@]}" -eq 0 ]; then
     echo "review: no role files in scripts/review/ -- add one, such as scripts/review/correctness.md" >&2
     exit 2
 elif [ "$role" = all ]; then
-    run=("${roles[@]}")
-elif [[ "$role" =~ ^[a-z][a-z0-9-]*$ ]] && [ -f "$lib/review/$role.md" ]; then
-    run=("$role")
+    selected_roles=("${all_roles[@]}")
+elif [[ "$role" =~ ^[a-z][a-z0-9-]*$ ]] && [ -f "$scripts_dir/review/$role.md" ]; then
+    selected_roles=("$role")
 else
-    echo "review: no role $role -- roles: ${roles[*]:-none}, or all (each role is a file in scripts/review/)" >&2
+    echo "review: no role $role -- roles: ${all_roles[*]:-none}, or all (each role is a file in scripts/review/)" >&2
     exit 2
 fi
 
@@ -122,35 +122,35 @@ if [ -n "$url_repo" ]; then
     fi
 fi
 
-cloud_resolve_model "$lib" || exit "$?"
+cloud_resolve_model "$scripts_dir" || exit "$?"
 
 # build ROLE: $prompt for one role's session.
 build() {
-    prompt="$(cat "$lib/cloud-review-prompt.txt")"
+    prompt="$(cat "$scripts_dir/cloud-review-prompt.txt")"
     cloud_fill @ROLE_TEXT@ @ROLE_TEXT_SLOT@
     cloud_fill @ROLE@ "$1"
     cloud_fill @PR@ "$pr"
     cloud_fill @BASE@ "$base"
     cloud_fill @BRANCH@ "$head"
     cloud_fill @URL@ "$url"
-    cloud_fill @ROLE_TEXT_SLOT@ "$(cat "$lib/review/$1.md")"
+    cloud_fill @ROLE_TEXT_SLOT@ "$(cat "$scripts_dir/review/$1.md")"
 }
 
 if [ "$dry" = 1 ]; then
-    for r in "${run[@]}"; do
+    for r in "${selected_roles[@]}"; do
         build "$r"
         printf 'claude --cloud %q --model %q\n' "$prompt" "$model"
     done
     exit 0
 fi
 
-n="${#run[@]}"
+n="${#selected_roles[@]}"
 if [ "$yes" = 0 ]; then
     cloud_flush_input
     if [ "$role" = all ]; then
         question="$(
             printf 'review: this starts %s billed Claude Code cloud sessions at once (model %s), one per role, each reviewing #%s (%s) and posting one comment:\n' "$n" "$model" "$pr" "$head"
-            printf '  %s\n' "${run[@]}"
+            printf '  %s\n' "${selected_roles[@]}"
             printf 'Each session is billed on its own. That is about %s times the cost of one review. Start all %s? [y/N] ' "$n" "$n"
         )"
     else
@@ -165,7 +165,7 @@ fi
 # are billed.
 started=()
 failed=()
-for r in "${run[@]}"; do
+for r in "${selected_roles[@]}"; do
     build "$r"
     if cloud_launch "$prompt" "$model"; then
         started+=("$r")
