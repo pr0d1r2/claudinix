@@ -79,7 +79,7 @@ V17: gate green before ∀ commit (fast) \& push (all); ⊥ `--no-verify`. hooks
 V18: tool missing \| crash in gate ⇒ fail w/ "gate could not run", ⊥ pass, ⊥ look like finding (itok B6/B8, xenolith `run-tool.sh`).
 V19: whole-repo guards glob `**/*`; per-file steps glob by data dependency (microlith B7).
 V20: UI setup script = 1 line: fetch `setup.sh` at fixed GIT SHA from `raw.githubusercontent.com/pr0d1r2/claudinix/<sha>/` (reachable from setup phase ?, E2) → run w/ same `<sha>`; `setup.sh` activates `git+https://github.com/pr0d1r2/claudinix?rev=<sha>&shallow=1#homeConfigurations.cloud.activationPackage` (substituted from cachix). same SHA ⇒ same VM result. activation derivation ⊥ depends on `cloud-home.storepath` (source filtered) ∴ CI commits store path after build w/o changing it.
-V21: tests parallel-safe: own `BATS_TEST_TMPDIR`; ⊥ write-then-exec same path across forks (ETXTBSY: rekall B26, sherd B32, xenolith B3); ⊥ wall-clock asserts (rekall B5); fixtures unset `GIT_*` env (xenolith B1, sherd B25).
+V21: tests parallel-safe: own `BATS_TEST_TMPDIR`; ⊥ write-then-exec same path across forks (ETXTBSY: rekall B26, sherd B32, xenolith B3); ⊥ wall-clock asserts (rekall B5); fixtures unset `GIT_*` env (xenolith B1, sherd B25); ⊥ host tools/env (B16).
 V22: CI proves what it claims: same `hk check --all` as local; `nix flake check --all-systems` (bare form skips systems silently, nix-hk `experiments:T14`); cachix push verified by narinfo 200 for built paths, empty \| 403 push = red (nix-hk B3-B5); pre-push peels annotated tags `^{commit}` (microlith B22, rekall B18, sherd B27).
 V23: hk ≥ 1.55 (silent `--no-fail-fast` + `depends` bug, itok B21), pinned via `nix-hk`.
 V24: long gate commands in the Bash tool: default 120 s does NOT kill (probe 6): command moves to background at 120 s and finishes (limit 30 min); real exit status arrives only w/ the completion notice ∴ agent prompts \& wrappers wait for completion, ⊥ read the 120 s return as result. `BASH_DEFAULT_TIMEOUT_MS` raise = optional (fewer backgrounded runs).
@@ -93,7 +93,7 @@ V32: the gate's git hooks fire under the git that actually commits (cloud: image
 V33: a released SHA contains `cloud-home.storepath` for its own agent home, \& every eval-time input source has narinfo 200 (`verify-cachix.sh --sources`) before the line is published (B10).
 V35: every setting the agent home writes into `~/.claude` is checked in the GENERATED file's shape (`checks.x86_64-linux.cloud-home` runs the merge script \& reads `.permissions`), ⊥ trusting a module option's name (B11).
 V36: a commit that changes `hk.pkl` stages it w/ every file its fix steps regenerate (README badges, INTEGRATION counts) in the SAME commit; ⊥ commit other work while `hk.pkl` has unstaged edits (hk reads the worktree `hk.pkl` before `stash = "git"`) (B12).
-V38: ∀ host the setup line or `setup.sh` fetches from in a session (an `https://<host>` literal) ∈ `allowlist.txt` (B15).
+V38: ∀ host the setup line or `setup.sh` fetches from (`https://<host>`) ∈ `allowlist.txt` (B15).
 
 ## §T TASKS
 id|status|task|cites
@@ -154,4 +154,5 @@ B9|2026-10-03|hk 1.58 installs only config-based hooks under git ≥ 2.54 (dev s
 B10|2026-10-03|`release.sh` pinned the line to REV, then asked to commit `cloud-home.storepath` after it ⇒ the released SHA lacks the file, tier 2 404s; release ⊥ checked input sources (re-review RR-2, RR-3)|V33
 B11|2026-10-03|nix-home-manager-claude-code `programs.claude-code.permissions.{allow,deny}` writes flat `"permissions.allow"` keys Claude Code ignores; caught by evaluating the generated JSON; workaround: freeform `programs.claude-code.settings.permissions` (pr0d1r2/nix-home-manager-claude-code#35)|V35
 B12|2026-10-03|hk loads worktree `hk.pkl` before stashing ∴ unstaged new fix steps rewrote README \& INTEGRATION in unrelated commits; 2 messages claimed numbers their diffs lacked (reworded pre-push)|V36
-B15|2026-10-04|setup line downloads `setup.sh` from `raw.githubusercontent.com`; host ∉ `allowlist.txt` → 1st session in a fresh env: `curl: (22) The requested URL returned error: 403`, setup exit 22|V38
+B15|2026-10-04|setup line downloads `setup.sh` from `raw.githubusercontent.com`; host ∉ `allowlist.txt` → fresh env setup: `curl: (22) ... 403`|V38
+B16|2026-10-04|cloud: probe test saw the session's `nix-dev`; setup test expected unset `$USER` (setup: `id -un`)|V21
