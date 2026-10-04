@@ -58,6 +58,14 @@ list() {
     [[ "$output" != *' -f '* ]]
 }
 
+@test "the repo's own list lets fixup push a PR branch, and HEAD:main stays denied (nix:T133)" {
+    run jq -r '.allow[]' "$REPO_ROOT/nix/cloud-permissions.json"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'Bash(git push origin HEAD:*)'* ]]
+    run jq -r '.deny[]' "$REPO_ROOT/nix/cloud-permissions.json"
+    [[ "$output" == *'Bash(git push *:main)'* ]]
+}
+
 @test "whole-tool rule Bash: refused and named" {
     list '["Bash(bats *)", "Bash"]'
     run bash "$SCRIPT"
