@@ -170,7 +170,7 @@ if [ "$yes" = 0 ]; then
     if [ "$role" = all ]; then
         printf 'review: this starts %s billed Claude Code cloud sessions at once (model %s), one per role, each reviewing #%s (%s) and posting one comment:\n' "$n" "$model" "$pr" "$head"
         printf '  %s\n' "${run[@]}"
-        printf 'Each session is billed on its own. Start all %s? [y/N] ' "$n"
+        printf 'Each session is billed on its own. That is about %s times the cost of one review. Start all %s? [y/N] ' "$n" "$n"
     else
         printf 'review: this starts a billed Claude Code cloud session (model %s) for a %s review of #%s (%s). Start it? [y/N] ' "$model" "$role" "$pr" "$head"
     fi

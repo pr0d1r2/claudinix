@@ -109,7 +109,8 @@ does are summarised briefly; the git history has the detail.
   correctness, maintainability, extensibility, performance, security and
   architecture; a new role is a new file.
   `just review all <PR>` starts one such session per role, in parallel,
-  after one question that names how many billed sessions start.
+  after one question that names how many billed sessions start and that
+  the cost is about that many times one review.
   It refuses a pull request whose branch names have characters beyond
   letters, digits and `._/-`, since the prompt puts them in shell commands, and a pull request URL
   of another repository than this checkout's.
