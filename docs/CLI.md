@@ -770,9 +770,9 @@ error.
 own tooling: it writes the generated doc blocks and checks the docs for drift
 (see [`CONTRIBUTING.md`](CONTRIBUTING.md#generated-docs)). It is built from
 the `dev/` crate, is never published, is not a flake app and is never
-installed in a session. Run it from this repository's dev shell. Exit 0 on
-success, 1 when the changelog rule refuses a commit, 2 for a usage error or
-a check that finds drift or cannot read its source.
+installed in a session. Run it from this repository's dev shell. Exit 0 when
+clean, 1 when a check finds drift or the changelog rule refuses a commit,
+2 for a usage error or a source it cannot read.
 
 | command | what it does |
 |---|---|
