@@ -61,6 +61,8 @@ role="${args[0]}"
 arg="${args[1]}"
 
 lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
+# shellcheck source=/dev/null # lib/cloud-launch.sh, beside this script
+source "$(dirname "${BASH_SOURCE[0]}")/lib/cloud-launch.sh"
 remote="${CLOUD_TASK_REMOTE:-origin}"
 
 # The roles: one per file in review/; `all` runs every one of them.
@@ -111,11 +113,7 @@ for ref in "$head" "$base"; do
     fi
 done
 
-if ! git remote get-url "$remote" >/dev/null 2>&1; then
-    echo "review: no remote $remote -- push the project to GitHub first" >&2
-    exit 1
-fi
-# A URL names its repository; gh looks only in this checkout's (B21).
+cloud_require_remote review "$remote" || exit 1
 if [ -n "$url_repo" ]; then
     remote_repo="$(git remote get-url "$remote" | sed -E 's#^.*[:/]([^/]+/[^/]+)$#\1#; s#\.git$##')"
     if [ "$(printf %s "$url_repo" | tr '[:upper:]' '[:lower:]')" != "$(printf %s "$remote_repo" | tr '[:upper:]' '[:lower:]')" ]; then
@@ -124,31 +122,18 @@ if [ -n "$url_repo" ]; then
     fi
 fi
 
-if [ -z "$model" ]; then
-    model="$(bash "$lib/config.sh" get session.model)" || exit "$?"
-fi
+cloud_resolve_model "$lib" || exit "$?"
 
-# fill KEY VALUE: replace every KEY in $prompt with VALUE, as written
-# (see cloud-task.sh for why not ${prompt//KEY/VALUE}). The role text goes
-# in last, so a placeholder spelled inside it is not filled.
-fill() {
-    local text="$prompt" out=
-    while [[ "$text" == *"$1"* ]]; do
-        out="$out${text%%"$1"*}$2"
-        text="${text#*"$1"}"
-    done
-    prompt="$out$text"
-}
 # build ROLE: $prompt for one role's session.
 build() {
     prompt="$(cat "$lib/cloud-review-prompt.txt")"
-    fill @ROLE_TEXT@ @ROLE_TEXT_SLOT@
-    fill @ROLE@ "$1"
-    fill @PR@ "$pr"
-    fill @BASE@ "$base"
-    fill @BRANCH@ "$head"
-    fill @URL@ "$url"
-    fill @ROLE_TEXT_SLOT@ "$(cat "$lib/review/$1.md")"
+    cloud_fill @ROLE_TEXT@ @ROLE_TEXT_SLOT@
+    cloud_fill @ROLE@ "$1"
+    cloud_fill @PR@ "$pr"
+    cloud_fill @BASE@ "$base"
+    cloud_fill @BRANCH@ "$head"
+    cloud_fill @URL@ "$url"
+    cloud_fill @ROLE_TEXT_SLOT@ "$(cat "$lib/review/$1.md")"
 }
 
 if [ "$dry" = 1 ]; then
@@ -161,47 +146,32 @@ fi
 
 n="${#run[@]}"
 if [ "$yes" = 0 ]; then
-    # Drop what the terminal left in the input buffer, so only the typed
-    # answer is read (B19). Whole seconds: macOS /bin/bash 3.2 has no
-    # fractional -t.
-    if [ -t 0 ]; then
-        while IFS= read -r -t 1 _; do :; done
-    fi
+    cloud_flush_input
     if [ "$role" = all ]; then
-        printf 'review: this starts %s billed Claude Code cloud sessions at once (model %s), one per role, each reviewing #%s (%s) and posting one comment:\n' "$n" "$model" "$pr" "$head"
-        printf '  %s\n' "${run[@]}"
-        printf 'Each session is billed on its own. That is about %s times the cost of one review. Start all %s? [y/N] ' "$n" "$n"
+        question="$(
+            printf 'review: this starts %s billed Claude Code cloud sessions at once (model %s), one per role, each reviewing #%s (%s) and posting one comment:\n' "$n" "$model" "$pr" "$head"
+            printf '  %s\n' "${run[@]}"
+            printf 'Each session is billed on its own. That is about %s times the cost of one review. Start all %s? [y/N] ' "$n" "$n"
+        )"
     else
-        printf 'review: this starts a billed Claude Code cloud session (model %s) for a %s review of #%s (%s). Start it? [y/N] ' "$model" "$role" "$pr" "$head"
+        question="$(printf 'review: this starts a billed Claude Code cloud session (model %s) for a %s review of #%s (%s). Start it? [y/N] ' "$model" "$role" "$pr" "$head")"
     fi
-    answer=
-    IFS= read -r answer || true
-    case "$answer" in
-    y | Y | yes) ;;
-    *)
-        echo "review: not started" >&2
-        exit 1
-        ;;
-    esac
+    cloud_confirm review "$question" || exit 1
 fi
 
-# util-linux `script` takes the command as a string, BSD `script` as
-# arguments; both get a TTY for claude. Each call returns once its
-# session exists, so the sessions are running side by side, though they
-# start one after another. A failed launch is recorded and the rest
-# still start (B22): the sessions already started are billed.
+# Each launch returns once its session exists, so the sessions are running
+# side by side, though they start one after another. A failed launch is
+# recorded and the rest still start (B22): the sessions already started
+# are billed.
 started=()
 failed=()
 for r in "${run[@]}"; do
     build "$r"
-    if script --version >/dev/null 2>&1; then
-        # shellcheck disable=SC2016 # script's shell expands these, not this one
-        CLOUD_TASK_PROMPT="$prompt" CLOUD_TASK_MODEL="$model" script -q -e \
-            -c 'claude --cloud "$CLOUD_TASK_PROMPT" --model "$CLOUD_TASK_MODEL"' /dev/null && ok=1 || ok=0
+    if cloud_launch "$prompt" "$model"; then
+        started+=("$r")
     else
-        script -q /dev/null claude --cloud "$prompt" --model "$model" && ok=1 || ok=0
+        failed+=("$r")
     fi
-    if [ "$ok" = 1 ]; then started+=("$r"); else failed+=("$r"); fi
 done
 
 if [ "${#failed[@]}" -gt 0 ]; then
