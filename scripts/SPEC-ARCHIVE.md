@@ -33,3 +33,4 @@ T119|x|guide step 4 = per-project pin (owner 2026-10-04: 1 env per project, more
 T124|x|cloud prompt step 6: after the push, open a PR to `main` (title = 1st commit subject; body: task row, commits, gate rc, session link) as the GitHub artifact; ⊥ merge (owner, 2026-10-04; PR #6 showed a session can)|I.cmd,`.:C29`
 T126|x|`just rebase <PR>` (owner 2026-10-04: #8 conflicted only in README badges after #9): 1 cloud session rebases a `claude/*` PR onto `main`|I.cmd,`.:C29`,`nix:T127`
 T129|x|`just review` (owner 2026-10-04): 6 roles to start, more to come; `all` = 1 session per role, 1 y/N naming count, model, roles \& per-session billing|I.cmd,`.:C29`,`docs:T130`
+T132|x|`just fixup <PR>` (owner 2026-10-04): fix a PR's review findings 1 by 1 in separate commits, push, 👍 the originating comment; any branch but `main`|I.cmd,`.:C29`,`nix:T133`,`docs:T134`
