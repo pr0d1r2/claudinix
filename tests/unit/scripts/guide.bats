@@ -619,7 +619,7 @@ config() {
 @test "step 4 and the update flow name the default without step 3 (T116)" {
     run bash "$SCRIPT" --from 4 <<<$'y\ny\n\n'
     [[ "$output" == *"pick project"* ]]
-    [[ "$output" == *".claude/settings.json"* ]]
+    [[ "$output" == *".claude/settings.local.json"* ]]
     run bash "$SCRIPT" update <<<''
     [[ "$output" == *"Hover over project"* ]]
 }
@@ -630,4 +630,80 @@ config() {
     run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
     [[ "$output" == *"Then select Add environment."* ]]
     [[ "$output" != *"Create environment"* ]]
+}
+
+# scripts:T119: one environment per project, pinned in the project's
+# gitignored .claude/settings.local.json (/remote-env writes user scope).
+
+@test "step 4 pins the picked environment in the project's settings.local.json (T119)" {
+    run bash "$SCRIPT" --from 4 <<<$'y\ny\n\n\n'
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"== 4. Choose the environment in your terminal (once per project) =="* ]]
+    [[ "$output" == *"Pin env_123 to this project"* ]]
+    [ "$(jq -r .remote.defaultEnvironmentId "$P/.claude/settings.local.json")" = env_123 ]
+}
+
+@test "answering n leaves the project unpinned (T119)" {
+    run bash "$SCRIPT" --from 4 <<<$'y\ny\n\nn\n'
+    [ "$status" -eq 0 ]
+    [ ! -e "$P/.claude/settings.local.json" ]
+    [[ "$output" == *"Not pinned"* ]]
+}
+
+@test "the pin keeps every other key of settings.local.json (T119)" {
+    mkdir -p "$P/.claude"
+    echo '{"permissions":{"allow":["Bash(x)"]},"remote":{"other":1}}' >"$P/.claude/settings.local.json"
+    run bash "$SCRIPT" --from 4 <<<$'y\ny\n\n\n'
+    [ "$status" -eq 0 ]
+    f="$P/.claude/settings.local.json"
+    [ "$(jq -r '.permissions.allow[0]' "$f")" = 'Bash(x)' ]
+    [ "$(jq -r '.remote.other' "$f")" = 1 ]
+    [ "$(jq -r '.remote.defaultEnvironmentId' "$f")" = env_123 ]
+}
+
+@test "already pinned to the picked id: says so, asks nothing (T119)" {
+    mkdir -p "$P/.claude"
+    echo '{"remote":{"defaultEnvironmentId":"env_123"}}' >"$P/.claude/settings.local.json"
+    run bash "$SCRIPT" --from 4 <<<$'y\ny\n\n'
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"already pins env_123"* ]]
+    [[ "$output" != *"Pin env_123"* ]]
+}
+
+@test "pinned to another id: names it, replaces it on yes (T119)" {
+    mkdir -p "$P/.claude"
+    echo '{"remote":{"defaultEnvironmentId":"env_old"}}' >"$P/.claude/settings.local.json"
+    run bash "$SCRIPT" --from 4 <<<$'y\ny\n\ny\n'
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"env_old"* ]]
+    [ "$(jq -r .remote.defaultEnvironmentId "$P/.claude/settings.local.json")" = env_123 ]
+}
+
+@test "a settings.local.json that is not a JSON object is left alone, named (T119, V26)" {
+    mkdir -p "$P/.claude"
+    echo '[1]' >"$P/.claude/settings.local.json"
+    run bash "$SCRIPT" --from 4 <<<$'y\ny\n\n\n'
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"$P/.claude/settings.local.json"* ]]
+    [[ "$output" == *"not a JSON object"* ]]
+    [ "$(cat "$P/.claude/settings.local.json")" = '[1]' ]
+}
+
+@test "a pin git does not ignore gets a warning; an ignored one does not (T119)" {
+    while read -r var; do unset "$var"; done < <(env | sed -n 's/^\(GIT_[A-Z_]*\)=.*/\1/p')
+    git init -q "$P"
+    run bash "$SCRIPT" --from 4 <<<$'y\ny\n\n\n'
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"git does not ignore $P/.claude/settings.local.json"* ]]
+    echo '/.claude/*' >"$P/.gitignore"
+    run bash "$SCRIPT" --from 4 <<<$'y\ny\n\n\n'
+    [[ "$output" != *"git does not ignore"* ]]
+}
+
+@test "no environment picked yet: a todo, no pin (T119)" {
+    echo '{}' >"$CLAUDE_SETTINGS"
+    run bash "$SCRIPT" --from 4 <<<$'y\ny\n\n\n'
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"todo:"* ]]
+    [ ! -e "$P/.claude/settings.local.json" ]
 }
