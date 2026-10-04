@@ -96,6 +96,11 @@ does are summarised briefly; the git history has the detail.
   open spec task of this repository, pushes it to a `claude/*` branch
   and opens a pull request for review (the agent never merges); it refuses missing, done or ambiguous tasks and unpushed
   branches, asks before starting, and `--dry-run` prints the command.
+- `just rebase <PR>` starts one billed cloud session that rebases an open
+  `claude/*` pull request onto `main`: it re-writes generated files instead
+  of merging them by hand, stops and reports a conflict that needs a
+  decision, runs the gate and force-pushes the same branch with a lease.
+  It opens no new pull request and merges nothing.
 - The dev shell's own flake inputs are fetched over `git+https`, so a
   cloud session can enter it without GitHub 403s; only nixpkgs remains a
   `github:` input, served by cache.nixos.org.

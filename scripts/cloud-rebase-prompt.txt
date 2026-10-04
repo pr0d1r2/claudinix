@@ -1,0 +1,38 @@
+Rebase one pull request of this repository onto `@BASE@` in this Claude
+Code cloud session: #@PR@ (@URL@), branch `@BRANCH@`. You run
+unattended: nobody answers questions, so do not stop to ask.
+
+1. Read AGENTS.md and follow it exactly; it overrides any skill's
+   defaults. Run tools inside the dev shell: `nix-dev --command <cmd>`
+   when nix-dev is on PATH, else `nix develop --command <cmd>`. If the
+   SessionStart hook warned, do what it says first.
+2. Fetch and rebase:
+   `git fetch origin @BASE@ @BRANCH@`,
+   `git checkout -B @BRANCH@ origin/@BRANCH@`,
+   `git rebase origin/@BASE@`.
+3. Resolve each conflict:
+   - A generated file or block (README badges, the docs/INTEGRATION.md
+     step table and counts, docs/THIRD-PARTY-NOTICES.md, anything between
+     `<!-- BEGIN ... -->` and `<!-- END ... -->` markers): take either
+     side, then re-write it in the dev shell with
+     `claudinix-dev badges --write`, `claudinix-dev steps --write` or
+     `claudinix-dev notices --write`, and stage the result in that same
+     commit. Never merge generated lines by hand.
+   - A spec, doc or code file: keep what both sides meant.
+   - A conflict that needs a decision the pull request does not make:
+     run `git rebase --abort`, push nothing, and report the conflict.
+4. Keep every commit and its message; change nothing beyond resolving
+   conflicts. Never use --no-verify.
+5. Run the gate over the rebased branch:
+   `hk check --from-ref origin/@BASE@ --to-ref HEAD >gate.log 2>&1; echo rc=$?`
+   in the dev shell. A command still running at 120 s moves to the
+   background: wait for its completion notice and use its real exit
+   status, not the 120 s return. Read gate.log only when rc is not 0;
+   fix only what the rebase broke, never weaken a check. Do not commit
+   gate.log.
+6. Push to the same branch:
+   `git push --force-with-lease origin HEAD:@BRANCH@`.
+   Push to no other branch and open no new pull request. Do not merge
+   anything; the owner reviews and merges.
+7. End with a short report: the branch's old and new head, each conflict
+   and how you resolved it, the gate's rc, and anything blocked.
