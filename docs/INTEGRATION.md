@@ -170,7 +170,10 @@ A few notes on why the steps look the way they do:
   `pkl eval`, the `@test` lines, `setup.sh`, `.claudinix.toml`, `LICENSE`,
   the root `§F`), so adding a gate step or a bats test means running
   `claudinix-dev badges --write` and `claudinix-dev steps --write` in the
-  same commit. `cli-usage` checks that every `usage:` line
+  same commit. The pre-commit fix writes their output to the worktree only,
+  so **staged-generated** runs both checks again on a copy of the index:
+  a commit that stages the source without the rewritten output fails until
+  you `git add` it. `cli-usage` checks that every `usage:` line
   [`CLI.md`](CLI.md) quotes is the text its script prints, and
   `config-keys` that the key table in [`CONFIG.md`](CONFIG.md) is the one
   `claudinix-dev config --write` renders from the schema in
