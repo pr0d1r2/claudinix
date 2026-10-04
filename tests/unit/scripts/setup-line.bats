@@ -23,8 +23,11 @@ setup() {
     # shellcheck disable=SC2016 # expands inside the stub, not here
     # `gh auth status` exits GH_AUTH_RC (default GH_RC); other calls print
     # GH_ERR, when set, on stderr.
+    # `gh api` (short SHA lookup, scripts:V37) prints GH_API_OUT and exits
+    # GH_API_RC (default 0).
     printf '%s\n' '#!/usr/bin/env bash' 'echo "gh $*" >>"$GH_LOG"' \
         '[ "$1" != auth ] || exit "${GH_AUTH_RC:-$GH_RC}"' \
+        '[ "$1" != api ] || { printf "%s\n" "${GH_API_OUT:-}"; exit "${GH_API_RC:-0}"; }' \
         '[ -z "${GH_ERR:-}" ] || echo "$GH_ERR" >&2' \
         'printf "%s\n" "$GH_JSON"' 'exit "$GH_RC"' >"$STUBS/gh"
     chmod +x "$STUBS/gh"
@@ -207,4 +210,58 @@ line_for() {
     [ "$status" -eq 1 ]
     [[ "$output" == *"error connecting to api.github.com"* ]]
     [[ "$output" != *"signed in"* ]]
+}
+
+# scripts:V37, T113: a short SHA is a claudinix commit, so GitHub resolves
+# it; local git may be the target project's repo.
+
+FULL=0123456789abcdef0123456789abcdef01234567
+
+@test "a short SHA outside any clone resolves on GitHub to the full SHA (V37)" {
+    mkdir "$BATS_TEST_TMPDIR/plain"
+    cd "$BATS_TEST_TMPDIR/plain" || exit 1
+    GH_API_OUT="$FULL" GIT_CEILING_DIRECTORIES="$BATS_TEST_TMPDIR" run bash "$SCRIPT" 0123456
+    [ "$status" -eq 0 ]
+    [ "$output" = "$(line_for "$FULL")" ]
+    grep -q "^gh api repos/pr0d1r2/claudinix/commits/0123456" "$GH_LOG"
+    grep -q -- "--commit $FULL " "$GH_LOG"
+}
+
+@test "a short SHA inside a clone still asks GitHub, not local git (V37)" {
+    short="${HEAD_SHA:0:7}"
+    GH_API_OUT="$FULL" run bash "$SCRIPT" "$short"
+    [ "$status" -eq 0 ]
+    [ "$output" = "$(line_for "$FULL")" ]
+}
+
+@test "a 39-hex SHA is short too; 40 hex needs no lookup (V37)" {
+    GH_API_OUT="$FULL" run bash "$SCRIPT" "${FULL:0:39}"
+    [ "$status" -eq 0 ]
+    [ "$output" = "$(line_for "$FULL")" ]
+    : >"$GH_LOG"
+    run bash "$SCRIPT" "$FULL"
+    run ! grep -q "^gh api" "$GH_LOG"
+}
+
+@test "GitHub cannot resolve a short SHA: exit 1 naming it, no line (V37, V26)" {
+    GH_API_RC=1 run bash "$SCRIPT" abcdef1
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"abcdef1"* ]]
+    [[ "$output" == *"pr0d1r2/claudinix"* ]]
+    [[ "$output" != *"curl"* ]]
+}
+
+@test "GitHub answers something that is not a full SHA: exit 1 naming it (V37)" {
+    GH_API_OUT='not-a-sha' run bash "$SCRIPT" abcdef1
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"abcdef1"* ]]
+    [[ "$output" != *"curl"* ]]
+}
+
+@test "gh missing for a short SHA: exit 1 naming it and gh (V37)" {
+    GH_BIN="$BATS_TEST_TMPDIR/no-such-gh" run bash "$SCRIPT" abcdef1
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"abcdef1"* ]]
+    [[ "$output" == *"no-such-gh"* ]]
+    [[ "$output" != *"curl"* ]]
 }
