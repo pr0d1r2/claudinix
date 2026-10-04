@@ -40,7 +40,7 @@ To re-measure, run [`probe.sh`](../probe.sh) inside a session.
 |---|---|---|
 | "Include default list of common package managers" does **not** cover the nixos.org hosts. The proxy refused `cache.nixos.org` and `channels.nixos.org` until they were added by name. | 2026-10-03 | probes 1-3 |
 | Cargo needs `index.crates.io` and `static.crates.io` added by name. | 2026-10-03 | probe 4 |
-| `raw.githubusercontent.com` is not in the default list either. Without it the setup line's download of `setup.sh` failed with `curl: (22) The requested URL returned error: 403` and setup exited 22. With it allowed, the download passed and setup went on to copy store paths. | 2026-10-04 | sessions in env `claudinix` (`.:B15`) |
+| `raw.githubusercontent.com` is not in the default list either. Without it the setup line's download of `setup.sh` failed with `curl: (22) The requested URL returned error: 403` and setup exited 22. With it allowed, setup finished and Claude Code started. | 2026-10-04 | sessions in env `claudinix` (`.:B15`) |
 | Editing the allowed domains does not reach a session that is already running. Start a new session. | 2026-10-03 | probe 4 |
 
 ## GitHub
