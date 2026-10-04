@@ -21,6 +21,7 @@ setup() {
     export CLAUDE_SETTINGS="$BATS_TEST_TMPDIR/settings.json"
     export CLIPBOARD_TOOLS="$STUBS/pbcopy"
     export GUIDE_OPEN_TOOLS="$STUBS/open"
+    export GH_BIN="$STUBS/gh"
     mkdir -p "$STUBS" "$LIB" "$P" "${CLAUDINIX_README%/*}"
     : >"$LOG"
     cp "$REPO/scripts/guide-steps.tsv" "$LIB/"
@@ -35,6 +36,9 @@ setup() {
         printf '%s\n' '#!/usr/bin/env bash' 'echo "open $*" >>"$LOG"' >"$STUBS/open"
         printf '%s\n' '#!/usr/bin/env bash' 'echo "--- clip" >>"$LOG"' 'cat >>"$LOG"' >"$STUBS/pbcopy"
         printf '%s\n' '#!/usr/bin/env bash' 'echo "claude $*" >>"$LOG"' 'exit "${CLAUDE_RC:-0}"' >"$STUBS/claude"
+        # gh: the newest green main SHA for the pre-release hint (scripts:T114).
+        printf '%s\n' '#!/usr/bin/env bash' 'echo "gh $*" >>"$LOG"' \
+            '[ -z "${GH_HEAD:-}" ] || echo "$GH_HEAD"' 'exit "${GH_RC:-0}"' >"$STUBS/gh"
         printf '%s\n' '#!/usr/bin/env bash' 'echo "inputs $*" >>"$LOG"' \
             'echo "pr0d1r2/a 1111 uncached"' 'echo "NixOS/nixpkgs 2222 cached"' >"$LIB/inputs.sh"
         printf '%s\n' '#!/usr/bin/env bash' 'echo "domains $*" >>"$LOG"' \
@@ -540,4 +544,50 @@ config() {
     [[ "$output" == *".claudinix.toml"* ]]
     [[ "$output" == *"session.model"* ]]
     [[ "$output" != *"== 0."* ]]
+}
+
+# scripts:T114, V37: --rev takes a short SHA; before the first release
+# the stop names the newest green main commit to rerun with.
+
+@test "--rev takes a short SHA and passes it on to setup-line.sh (V37)" {
+    no_release
+    run bash "$SCRIPT" --rev 0123456 --from 3 <<<$'y\ny\n'
+    [ "$status" -eq 0 ]
+    grep -qx "setup-line 0123456" "$LOG"
+    run bash "$SCRIPT" update --rev "${SHA:0:12}" <<<''
+    [ "$status" -eq 0 ]
+    grep -qx "setup-line ${SHA:0:12}" "$LOG"
+}
+
+@test "--rev with a bad value: exit 2 naming the flag and the value (V26)" {
+    run bash "$SCRIPT" --rev abc123 </dev/null
+    [ "$status" -eq 2 ]
+    [[ "$output" == *"--rev"* ]]
+    [[ "$output" == *"abc123"* ]]
+    run bash "$SCRIPT" --rev main </dev/null
+    [ "$status" -eq 2 ]
+    [[ "$output" == *"main"* ]]
+}
+
+@test "no release yet: names the newest green main commit as the --rev to use (T114)" {
+    no_release
+    GH_HEAD="$SHA" run bash "$SCRIPT" update <<<''
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"no release yet"* ]]
+    [[ "$output" == *"--rev ${SHA:0:12}"* ]]
+    grep -q -- "^gh run list --repo pr0d1r2/claudinix --branch main --workflow ci.yml --status success" "$LOG"
+}
+
+@test "no release yet and gh missing or silent: today's message, no hint (T114)" {
+    no_release
+    GH_BIN="$BATS_TEST_TMPDIR/no-such-gh" run bash "$SCRIPT" update <<<''
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"--rev SHA"* ]]
+    [[ "$output" != *"newest green"* ]]
+    GH_RC=1 GH_HEAD="$SHA" run bash "$SCRIPT" update <<<''
+    [ "$status" -eq 1 ]
+    [[ "$output" != *"${SHA:0:12}"* ]]
+    GH_HEAD='not-a-sha' run bash "$SCRIPT" update <<<''
+    [ "$status" -eq 1 ]
+    [[ "$output" != *"not-a-sha"* ]]
 }
