@@ -33,6 +33,7 @@ T15|.|set-and-setting issue: move `mkTrip` from owner home config `lib/mk-trip.n
 T16|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,I.file
 T18|x|ARCHIVED to SPEC-ARCHIVE.md|V15,`.:V6`,C5
 T78|x|ARCHIVED to SPEC-ARCHIVE.md|`.:V30`,`.:V5`,V16,C12
+T127|.|cloud permissions allow `git push --force-with-lease origin HEAD:claude/*` (`scripts:T126` rebase push); main deny rules unchanged|`.:C29`,`scripts:T126`
 
 ## §B BUGS
 
