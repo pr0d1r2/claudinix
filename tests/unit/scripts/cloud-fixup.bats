@@ -46,14 +46,14 @@ setup() {
         'echo "$*" >>"$STATE/gh.log"' \
         '[ -z "${GH_READS_STDIN:-}" ] || cat >/dev/null' \
         '[ -z "${GH_FAIL:-}" ] || { echo "GraphQL: Could not resolve to a PullRequest" >&2; exit 1; }' \
-        'printf "%b\n" "${STUB_PR:-8\tOPEN\tfeature/x\tmain\thttps://github.com/o/p/pull/8}"' >"$STUBS/gh"
+        'printf "%b\n" "${STUB_PR:-8\tOPEN\tfeature/x\tmain\thttps://github.com/o/p/pull/8\tfalse}"' >"$STUBS/gh"
     chmod +x "$STUBS"/*
     export PATH="$STUBS:$PATH"
 }
 
-# pr STATE HEAD BASE: what the gh stub answers for #8.
+# pr STATE HEAD BASE [CROSS]: what the gh stub answers for #8.
 pr() {
-    export STUB_PR="8\t$1\t$2\t$3\thttps://github.com/o/p/pull/8"
+    export STUB_PR="8\t$1\t$2\t$3\thttps://github.com/o/p/pull/8\t${4:-false}"
 }
 
 # --- the pull request ---
@@ -79,6 +79,15 @@ pr() {
     [ "$status" -eq 1 ]
     [[ "$output" == *"other/repo"* ]]
     [[ "$output" == *"o/p"* ]]
+    [ ! -e "$STATE/claude.1" ]
+}
+
+@test "a PR from a fork is refused naming the PR, no session (scripts:B24)" {
+    pr OPEN feature/x main true
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"#8"* ]]
+    [[ "$output" == *"fork"* ]]
     [ ! -e "$STATE/claude.1" ]
 }
 
