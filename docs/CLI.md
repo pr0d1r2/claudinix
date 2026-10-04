@@ -17,6 +17,7 @@ has a bug.
 | [`rebase`](#rebase) | rebases one `claude/*` pull request onto `main` in a billed cloud session | your machine, in the project's git checkout |
 | [`review`](#review) | reviews one pull request as one role, or as every role at once, in billed read-only cloud sessions | your machine, in the project's git checkout |
 | [`fixup`](#fixup) | fixes a pull request's review findings one by one, in separate commits, in a billed cloud session | your machine, in the project's git checkout |
+| [`all`](#all) | runs `cloud`, `review all` and `fixup` for one task, waits for CI after each, and opens the pull request | your machine, in the project's git checkout |
 | [`config.sh`](#configsh) | reads and checks a project's optional [`.claudinix.toml`](CONFIG.md) | your machine or a session, in the project |
 | [`nix-dev`](#nix-dev) | `nix develop` that survives the GitHub proxy | inside a cloud session |
 | [`setup.sh`](#setupsh) | the environment's setup script | a cloud session's VM, through the setup line |
@@ -728,6 +729,73 @@ cloud: started the fixup of #<n> (<branch>); it pushes its commits there and giv
 | 1 | a refusal above, or the answer was not yes |
 | 2 | a usage error, a bad pull request argument, or a bad `.claudinix.toml` |
 
+## all
+
+Runs one spec task's whole cloud flow from your terminal and waits for each
+step: [`cloud`](#cloud) builds it, [`review all`](#review) reviews the pull
+request by every role, and [`fixup`](#fixup) works through the findings.
+At the end it opens the green pull request in Safari for you to review and
+merge. **It starts several billed sessions**, so it asks once, first.
+
+```text
+usage: cloud-all.sh <node:Tn | Tn> [--model M] [--yes] [--dry-run]
+```
+
+Run it as `scripts/cloud-all.sh ...` or `just all ...`, for example
+`just all docs:T47`. The task argument and the model order are the same as
+for [`cloud`](#cloud). `CLAUDINIX_SCRIPTS` holds the three launchers,
+`review/` and `config.sh`.
+
+**Before anything starts.** It runs `cloud-task.sh --dry-run`, so every
+check of `cloud` applies: the task, the remote, the pushed branch and the
+model. A refusal exits with the status `cloud` gives it. With no role
+files in `scripts/review/`, it exits 1. Then one question covers every
+session:
+
+```text
+all: docs:T47 runs 8 billed Claude Code cloud sessions (model sonnet), one after another: 1 build, 6 reviews (architecture correctness extensibility maintainability performance security), 1 fixup; it waits for each and for green CI, up to hours. Start? [y/N]
+```
+
+`--yes` skips only that question, and each launcher then runs with
+`--yes`. `--dry-run` runs the checks, prints the plan above without the
+question, and starts nothing.
+
+**The steps.** Each wait polls GitHub with `gh` every `CLOUD_ALL_POLL`
+seconds (default 60). Each wait stops after a fixed number of polls, not
+at a clock time.
+
+| step | waits for | at most |
+|---|---|---|
+| 1. `cloud <task>` | a pull request that was not open before, from branch `claude/<node>-<task>` (the harness may add a suffix; case is ignored; any node for a bare `Tn`) | 180 polls |
+| 2. | CI on the head commit: no check pending, none failed (skipped and neutral count as passed; no checks yet counts as pending) | 60 polls |
+| 3. `review all <PR>` | a comment headed `Review: <role>` for every role | 90 polls |
+| 4. `fixup <PR>` | the first newer comment that is not a review: the fixup's reply | 180 polls |
+| 5. | CI again, as in step 2 | 60 polls |
+
+Then it opens the pull request: `open -a Safari` on macOS, `xdg-open`
+elsewhere. It never merges.
+
+**When a step fails.** A launcher that fails, red CI or a wait that runs out
+stops the flow. It names the step, opens the pull request if there is one,
+and exits 1:
+
+```text
+all: the build of <task> did not start
+all: gave up waiting for the pull request of <task> after 180 polls of 60s
+all: CI failed on #<n>
+all: no review of #<n> by <roles>
+all: the fixup of #<n> never replied
+```
+
+Sessions that already started keep running. Fix the cause, then run the
+remaining steps one by one (`just review all <PR>`, `just fixup <PR>`).
+
+| exit | meaning |
+|---|---|
+| 0 | CI is green after the fixup, or `--dry-run` printed the plan |
+| 1 | a refusal, the answer was not yes, or a step failed |
+| 2 | a usage error, a bad task argument, or a bad `.claudinix.toml` |
+
 ## config.sh
 
 The one reader of a project's optional [`.claudinix.toml`](CONFIG.md); every
@@ -1055,6 +1123,7 @@ Arguments pass through, and each recipe is one plain command.
 | `just guide [args]` | `scripts/guide.sh`; `just guide update` for the update flow |
 | `just probe [args]` | `scripts/probe-launch.sh` |
 | `just cloud <task> [args]` | `scripts/cloud-task.sh` |
+| `just all <task> [args]` | `scripts/cloud-all.sh` |
 | `just bump-nix <version>` | `scripts/bump-nix.sh` |
 | `just release [args]` | `scripts/release.sh` (maintainer) |
 
