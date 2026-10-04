@@ -324,7 +324,7 @@ step_3() {
         paste "$kind"
     done
     env_vars
-    echo "Then select Create environment."
+    echo "Then select Add environment."
     ask "Press Enter when done."
 }
 

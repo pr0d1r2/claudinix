@@ -143,6 +143,7 @@ Run from the project you will send to the cloud, as
 - `guide` names the cloud environment after the project by default (it
   asks, Enter keeps it), instead of always `nix`, and step 4 says how to
   pin that environment for this project only.
+- `guide` step 3 names the dialog's real button, **Add environment**.
 
 ### Repository
 
