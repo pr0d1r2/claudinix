@@ -41,6 +41,10 @@ review *args:
 fixup *args:
     scripts/cloud-fixup.sh {{ args }}
 
+# Build a task, wait for CI, review by every role, fix up, wait for CI, open the PR in Safari; `--dry-run` prints the plan.
+all *args:
+    scripts/cloud-all.sh {{ args }}
+
 # Pin setup.sh to another Nix release: version and installer sha256 together.
 bump-nix ver:
     scripts/bump-nix.sh {{ ver }}
