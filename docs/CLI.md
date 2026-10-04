@@ -670,10 +670,12 @@ the model order work as in [`cloud`](#cloud); `CLAUDINIX_SCRIPTS` holds
 `cloud-fixup-prompt.txt`.
 
 **The pull request.** It must be open and based on `main`. Its branch may
-be any branch but `main`, and its name must be a plain ref (letters,
+be any branch of `origin` but `main` (a pull request from a fork is
+refused), and its name must be a plain ref (letters,
 digits, `.`, `_`, `/`, `-`), because the name goes into the session's
 commands and the pull request's author chose it. A URL must belong to the
-repository `origin` points at. Otherwise it exits 1 before a session
+repository `origin` points at; owner and repo are compared without regard
+to case. Otherwise it exits 1 before a session
 starts:
 
 ```text
@@ -681,6 +683,7 @@ fixup: <url> is a pull request of <owner/repo>, but origin is <owner/repo> -- ru
 fixup: gh could not read pull request #<n> -- check the number and that gh is signed in
 fixup: #<n> is <STATE>, not OPEN -- nothing to fix up
 fixup: #<n> targets <base>, not main -- fix it up by hand
+fixup: #<n> is from a fork; its branch <branch> is not a branch of origin -- fix it up by hand
 fixup: #<n>'s branch is main; a cloud session never pushes main
 fixup: #<n>'s branch <branch> is not a plain branch name (letters, digits, ._/-) -- it would reach the session's commands
 ```
