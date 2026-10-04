@@ -14,6 +14,8 @@ The steps are defined in [`hk.pkl`](../hk.pkl) and explained in
 |---|---|---|
 | `.sh` | shellcheck, shfmt (`-i 4`), xenolith, bats-mirror, tdd-order, bats | every script has `tests/unit/<same path>.bats` |
 | `.bats` | shellcheck, shfmt (`-i 4`), xenolith, bats-mirror, bats | tests; each needs its script |
+| `.rs` | cargo fmt (`--check`), clippy (`-D warnings`), cargo test | `dev/` only, the `claudinix-dev` crate; clippy is pedantic with `unwrap`, `expect`, `panic` and indexing denied, and `unsafe` is forbidden (`dev/Cargo.toml`); the tests run on push; the shell steps do not apply |
+| `Cargo.toml`, `Cargo.lock` | none beyond hygiene | covered by the cargo steps only: they run when anything under `dev/` changes |
 | `justfile` | just (`--fmt --check --unstable`) | one plain command per recipe; the logic is in the scripts |
 | `.envrc` | shellcheck | direnv runs it with bash |
 | `.nix` | nixfmt, xenolith, `nix flake check` | no shell inside nix strings |
