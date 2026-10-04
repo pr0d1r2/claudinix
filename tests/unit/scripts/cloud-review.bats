@@ -124,6 +124,15 @@ setup() {
     [[ "$output" == *"cloud: started the security review of #12"* ]]
 }
 
+@test "a PR URL of another repository is refused, no session (B21)" {
+    run bash "$SCRIPT" security https://github.com/other/repo/pull/12 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"other/repo"* ]]
+    [ ! -e "$STATE/claude.1" ]
+    run bash "$SCRIPT" security https://github.com/O/P/pull/12 --yes
+    [ "$status" -eq 0 ]
+}
+
 @test "usage: missing role or PR, a bad PR, extra args, unknown flag" {
     for args in "" "security" "security abc" "security 12 13" "security 12 --bogus" "security 12 --model"; do
         # shellcheck disable=SC2086 # split on purpose: each word one arg
