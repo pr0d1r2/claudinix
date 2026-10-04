@@ -55,9 +55,37 @@ lib="${CLAUDINIX_SCRIPTS:-$(dirname "$self")}"
 
 # A leading installable names the flake; its lock is the one that counts.
 # Without one, the project's devshell.installable (scripts:T91, V34),
-# read by config.sh at the repo's top level; `.` is a bare develop. A
-# bad file exits 2. A lib dir without config.sh (an older install) or a
-# PATH without jq reads no file.
+# read by config.sh at the repo's top level; `.` is a bare develop. A lib
+# dir without config.sh (an older install) or a PATH without jq reads no
+# file.
+#
+# An invalid file (config.sh exit 2) never blocks the dev shell
+# (scripts:T98): config.sh's message, one WARNING naming the file, then
+# the defaults, as with no file. Any other config.sh failure stops here.
+
+# config_file: the file config.sh read, named as config.sh names it.
+config_file() {
+    local root
+    if [ -n "${CLAUDINIX_CONFIG_JSON:-}" ]; then
+        echo CLAUDINIX_CONFIG_JSON
+    elif [ -n "${CLAUDINIX_CONFIG:-}" ]; then
+        echo "$CLAUDINIX_CONFIG"
+    else
+        root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+        echo "${root:-.}/.claudinix.toml"
+    fi
+}
+
+# defaults: config.sh's json for a file that is absent (no nix runs).
+defaults() {
+    local none rc=0
+    none="$(mktemp -d)"
+    env -u CLAUDINIX_CONFIG_JSON CLAUDINIX_CONFIG="$none/.claudinix.toml" \
+        bash "$lib/config.sh" json || rc=$?
+    rm -rf "$none"
+    return "$rc"
+}
+
 installable=()
 # The config read here goes to inputs.sh as CLAUDINIX_CONFIG_JSON, for
 # that one call only, never into the dev shell (scripts:T96).
@@ -65,7 +93,14 @@ config_env=()
 case "${1:-}" in
 -* | "")
     if [ -f "$lib/config.sh" ] && command -v jq >/dev/null 2>&1; then
-        config="$(bash "$lib/config.sh" json)" || exit "$?"
+        rc=0
+        config="$(bash "$lib/config.sh" json)" || rc=$?
+        if [ "$rc" = 2 ]; then
+            log "WARNING: $(config_file) is invalid -- using defaults (the repo's gate refuses it at commit)"
+            config="$(defaults)" || exit "$?"
+        elif [ "$rc" != 0 ]; then
+            exit "$rc"
+        fi
         config_env=("CLAUDINIX_CONFIG_JSON=$config")
         from_file="$(jq -r .devshell.installable <<<"$config")"
         if [ "$from_file" != . ]; then

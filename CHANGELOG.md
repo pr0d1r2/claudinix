@@ -102,6 +102,10 @@ does are summarised briefly; the git history has the detail.
   cloud session needs no extra tool; unknown keys, wrong types and bad
   values are refused with every problem listed at once. `setup.sh` never
   reads it. This repository carries its own, checked by the gate.
+- `nix-dev` no longer stops on an invalid `.claudinix.toml`: it prints
+  what is wrong, warns `nix-dev: WARNING: <file> is invalid -- using
+  defaults`, and starts the dev shell as if there were no file. The other
+  commands still refuse a bad file with exit 2.
 
 ### Commands for target projects
 
