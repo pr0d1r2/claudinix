@@ -10,7 +10,9 @@ setup() {
     STUBS="$BATS_TEST_TMPDIR/stubs"
     export CLAUDINIX_SCRIPTS="$BATS_TEST_TMPDIR/lib"
     export STATE="$BATS_TEST_TMPDIR/state"
-    unset CLOUD_ALL_POLL TASK_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT PR_AFTER
+    # Long polls keep the timed-out waits to a few polls each.
+    export CLOUD_ALL_POLL=600
+    unset TASK_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT PR_AFTER
     mkdir -p "$STUBS" "$STATE" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
@@ -104,6 +106,14 @@ fixup 14 --yes --model sonnet" ]
     grep -q 'review all 14' "$STATE/children.log"
 }
 
+@test "by default polls every 10 s, one dot per poll" {
+    unset CLOUD_ALL_POLL
+    PR_AFTER=3 run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 0 ]
+    [ "$(grep -c "^10$" "$STATE/sleep.log")" -ge 2 ]
+    [[ "$output" == *".."* ]]
+}
+
 @test "a PR open before the launch, or of another task, is not the build's" {
     printf '9\tclaude/docs-T47\thttps://github.com/o/p/pull/9\n12\tclaude/docs-t470-x\thttps://github.com/o/p/pull/12\n' >"$STATE/prs"
     run bash "$SCRIPT" docs:T47 --yes
@@ -124,6 +134,7 @@ fixup 14 --yes --model sonnet" ]
     run bash "$SCRIPT" docs:T47 --yes
     [ "$status" -eq 1 ]
     [[ "$output" == *"pull request"* ]]
+    [[ "$output" == *"after 18 polls of 600s"* ]]
     run ! grep -q '^review' "$STATE/children.log"
 }
 
