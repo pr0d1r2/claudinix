@@ -68,7 +68,10 @@ roles=()
 for f in "$lib"/review/*.md; do
     [ -f "$f" ] && roles+=("$(basename "$f" .md)")
 done
-if [ "$role" = all ] && [ "${#roles[@]}" -gt 0 ]; then
+if [ "$role" = all ] && [ "${#roles[@]}" -eq 0 ]; then
+    echo "review: no role files in scripts/review/ -- add one, such as scripts/review/correctness.md" >&2
+    exit 2
+elif [ "$role" = all ]; then
     run=("${roles[@]}")
 elif [[ "$role" =~ ^[a-z][a-z0-9-]*$ ]] && [ -f "$lib/review/$role.md" ]; then
     run=("$role")
