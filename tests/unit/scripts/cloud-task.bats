@@ -292,6 +292,17 @@ config() {
     run ! grep -qF '@' "$STATE/claude.task"
 }
 
+# shellcheck disable=SC2016 # literal backticks, not expanded
+@test "the prompt: open a pull request to main after the push, never merge it (scripts:T124)" {
+    run bash "$SCRIPT" T20 --yes
+    [ "$status" -eq 0 ]
+    grep -qF 'open a pull request' "$STATE/claude.task"
+    grep -qF 'into `main`' "$STATE/claude.task"
+    grep -qF 'Do not merge it' "$STATE/claude.task"
+    grep -qF 'the pull request URL' "$STATE/claude.task"
+    run ! grep -qF 'open no pull request' "$STATE/claude.task"
+}
+
 # shellcheck disable=SC2016 # literal $ and backticks in the row, not expanded
 @test "the task row goes in as written: & \\& backticks and \$() stay literal" {
     printf '%s\n' 'T40|.|a & b \& c `d` $(rm -rf x) @TASK@ ~/y|V1' >>"$TOPLEVEL/scripts/SPEC.md"
