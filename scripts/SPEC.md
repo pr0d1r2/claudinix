@@ -68,7 +68,7 @@ T119|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V26,T116,`.:C2`
 T124|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`
 T126|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,`nix:T127`
 T129|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,`docs:T130`
-T132|.|`just fixup <PR>` (owner 2026-10-04): fix a PR's review findings 1 by 1 in separate commits, push, 👍 the originating comment; any branch but `main`|I.cmd,`.:C29`,`nix:T133`,`docs:T134`
+T132|x|`just fixup <PR>` (owner 2026-10-04): fix a PR's review findings 1 by 1 in separate commits, push, 👍 the originating comment; any branch but `main`|I.cmd,`.:C29`,`nix:T133`,`docs:T134`
 
 ## §B BUGS
 
