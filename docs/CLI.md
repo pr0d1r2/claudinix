@@ -152,7 +152,7 @@ usage: domains.sh [--why] [--from-log FILE]... [PROJECT_DIR...]
 
 The plain output is paste-ready. When a clipboard program is on the machine
 the list is also copied to the clipboard, and a note goes to stderr
-(`domains: copied 5 hosts to the clipboard (pbcopy)`). It reads files only
+(`domains: copied 6 hosts to the clipboard (pbcopy)`). It reads files only
 and never uses the network. Keys read from `.claudinix.toml`:
 `network.extra_domains`; a bad file exits 2.
 
@@ -164,6 +164,7 @@ cache.nixos.org	base
 channels.nixos.org	base
 releases.nixos.org	base
 github.com	base
+raw.githubusercontent.com	base
 ```
 
 Run on a Cargo project with a refused host in a log:
@@ -174,6 +175,7 @@ cache.nixos.org	base
 channels.nixos.org	base
 releases.nixos.org	base
 github.com	base
+raw.githubusercontent.com	base
 example.org	log
 index.crates.io	p/Cargo.toml
 static.crates.io	p/Cargo.toml

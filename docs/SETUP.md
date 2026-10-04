@@ -127,10 +127,13 @@ in each new VM. This repository's environment installs Nix.
      - In **Allowed domains**, enter one domain per line:
        - The base list: every non-comment line of
          [`allowlist.txt`](../allowlist.txt): `pr0d1r2.cachix.org`,
-         `cache.nixos.org`, `channels.nixos.org`, `releases.nixos.org` and
-         `github.com`. The default list does **not** cover the nixos.org
-         hosts: the proxy refused `cache.nixos.org` and `channels.nixos.org`
-         until they were named (probes 1-3, [`FACTS.md`](FACTS.md)).
+         `cache.nixos.org`, `channels.nixos.org`, `releases.nixos.org`,
+         `github.com` and `raw.githubusercontent.com`. The default list does
+         **not** cover the nixos.org hosts: the proxy refused
+         `cache.nixos.org` and `channels.nixos.org` until they were named
+         (probes 1-3, [`FACTS.md`](FACTS.md)). Nor does it cover
+         `raw.githubusercontent.com`, where the setup line downloads
+         `setup.sh` from.
        - Your project's own hosts (`index.crates.io` for Cargo, PyPI, npm
          and so on). Run the `domains` app inside your project:
          `nix run github:pr0d1r2/claudinix#domains`. It prints the base
@@ -317,7 +320,10 @@ keeps its old VM; start a new session to pick up the change.
 
 - **The session fails to start, or stops during setup.** The setup
   script exited with an error. The setup checklist in your terminal
-  shows which step failed. Check that you pasted the whole line, that the SHA
+  shows which step failed. If the output is only
+  `curl: (22) The requested URL returned error: 403`, the line could not
+  download `setup.sh`: add `raw.githubusercontent.com` to **Allowed
+  domains**. Otherwise check that you pasted the whole line, that the SHA
   in it is a commit pushed to GitHub, and that **Also include default list of
   common package managers** is checked.
 - **`nix: command not found`.** The session ran in another environment.

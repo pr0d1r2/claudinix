@@ -112,8 +112,8 @@ through a cache ([`CACHE-CI.md`](CACHE-CI.md)).
    environment name `nix` is only a label in the browser;
    pick another if you like and tell your terminal with `/remote-env`.
 2. The environment's allowed domains need your cache host in place of the
-   owner's, and `github.com`, `cache.nixos.org`, `channels.nixos.org` and
-   `releases.nixos.org` as they are now (`allowlist.txt`, probes 1-5).
+   owner's, and `github.com`, `cache.nixos.org`, `channels.nixos.org`,
+   `releases.nixos.org` and `raw.githubusercontent.com` as they are now (`allowlist.txt`, probes 1-5).
 3. Add the ecosystem hosts your targets need, such as `index.crates.io` and
    `static.crates.io` for Cargo ([`CONSUMER.md`](CONSUMER.md)). The `domains`
    command lists them from your lock files: run
