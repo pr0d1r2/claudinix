@@ -139,7 +139,7 @@ T99|x|ARCHIVED to SPEC-ARCHIVE.md|C29,V30,C6
 T100|x|ARCHIVED to SPEC-ARCHIVE.md|C29,`scripts:V34`,V24
 T101|x|ARCHIVED to SPEC-ARCHIVE.md|C29,C24,C27,`docs:T47`,`experiments:T104`
 T105|x|ARCHIVED to SPEC-ARCHIVE.md|C22,V19,C7,`dev:V1`
-T121|.|`allowlist.txt` names `raw.githubusercontent.com`; bats checks V38|V38,C6,B15,`docs:T122`
+T121|x|`allowlist.txt` names `raw.githubusercontent.com`; bats checks V38|V38,C6,B15,`docs:T122`
 
 ## §B BUGS
 id|date|cause|fix
