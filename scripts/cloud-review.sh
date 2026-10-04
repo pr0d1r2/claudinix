@@ -7,10 +7,11 @@
 # or a GitHub pull request URL; `gh pr view` must find it open. Any head
 # branch will do, since the session pushes nothing.
 #
-# The launch rules are cloud-task.sh's: the remote must exist, the
-# current branch must be pushed and equal to its upstream (the session
-# clones GitHub, not this disk), and a y/N answer must confirm that a
-# billed cloud session starts; --yes skips only that question. --dry-run
+# The launch rules are cloud-task.sh's, less the local branch: the remote
+# must exist, and a y/N answer must confirm that a billed cloud session
+# starts; --yes skips only that question. The session fetches the pull
+# request's branch from GitHub itself, so it does not matter which branch
+# is checked out here, pushed or not. --dry-run
 # runs the same checks, then prints the exact claude command
 # (shell-quoted, pasteable) instead of asking or launching. The model:
 # --model, else the project's .claudinix.toml session.model
@@ -118,20 +119,6 @@ if [ -n "$url_repo" ]; then
         echo "review: $arg is a pull request of $url_repo, but remote $remote is $remote_repo -- run it from a checkout of $url_repo" >&2
         exit 1
     fi
-fi
-
-# The session clones GitHub: the branch must be there as it is here.
-if ! current="$(git symbolic-ref --quiet --short HEAD)"; then
-    echo "review: HEAD is detached -- check out the branch the session should clone" >&2
-    exit 1
-fi
-if ! upstream="$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null)"; then
-    echo "review: branch $current is not pushed (no upstream) -- push it first: git push -u $remote $current" >&2
-    exit 1
-fi
-if [ "$(git rev-parse HEAD)" != "$(git rev-parse '@{u}')" ]; then
-    echo "review: branch $current is not up to date with $upstream -- push (or pull) first" >&2
-    exit 1
 fi
 
 if [ -z "$model" ]; then

@@ -116,6 +116,8 @@ does are summarised briefly; the git history has the detail.
   When one session of `review all` fails to start, the others still start
   and it says which started and which failed. The review prompt tells the
   session that the pull request's text is untrusted data, not instructions.
+  It needs the `origin` remote only: an unpushed or detached local branch
+  no longer stops a review.
 - The cloud permission list allows
   `git push --force-with-lease origin HEAD:claude/*`, the rebase session's
   push; plain force pushes and every push to `main` stay unlisted or denied.
