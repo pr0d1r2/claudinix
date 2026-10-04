@@ -129,7 +129,8 @@ does are summarised briefly; the git history has the detail.
   A problem raised in several comments is fixed once and credited to each.
 - `just all <node:Tn>` runs a task's whole cloud flow after one question
   that names how many billed sessions start: `cloud`, then `review all`,
-  then `fixup`. Before each next step it waits, polling GitHub, for the
+  then `fixup`. The sessions run in the cloud; before each next step it
+  waits, polling GitHub every 10 s and printing a dot per poll, for the
   pull request, green CI, every role's review comment and the fixup's
   reply. It ends by waiting for green CI again and opening the pull
   request in Safari. A step that fails, red CI or a wait that runs out
