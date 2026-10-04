@@ -76,6 +76,11 @@ does are summarised briefly; the git history has the detail.
 - Every Nix network operation in `setup.sh` is bounded (connect and stall
   timeouts, and `CLAUDINIX_NIX_TIMEOUT` seconds per step, default 120);
   `CLAUDINIX_AGENT_HOME` accepts only 0 or 1.
+- `allowlist.txt`, and so `domains` and the guide's step 3, now name
+  `raw.githubusercontent.com`. The setup line downloads `setup.sh` from
+  it; without it, setup in a new environment fails with
+  `curl: (22) The requested URL returned error: 403`. Add it to the
+  allowed domains of an environment you already have.
 
 ### Built by its own cloud agents
 
