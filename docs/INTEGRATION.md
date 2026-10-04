@@ -11,9 +11,9 @@ right and this file has a bug.
 
 | caller | set | when |
 |---|---|---|
-| `pre-commit` hook | `fast`, 36 steps | every commit, on the staged files |
-| `pre-push` hook | `all`, 40 steps | every push |
-| `hk check --all` in CI | `all`, 40 steps | every push to `main` and every pull request |
+| `pre-commit` hook | `fast`, 37 steps | every commit, on the staged files |
+| `pre-push` hook | `all`, 41 steps | every push |
+| `hk check --all` in CI | `all`, 41 steps | every push to `main` and every pull request |
 
 A fourth hook, `commit-msg`, runs two steps on the commit message.
 
@@ -118,6 +118,7 @@ the `integration-steps` step fails when it no longer matches.
 | `dev-clippy` | fast | `dev/**` | `cargo clippy --quiet --all-targets --manifest-path dev/Cargo.toml -- -D warnings` | - |
 | `readme-badges` | fast | `README.md` `LICENSE` `setup.sh` `.claudinix.toml` `hk.pkl` `pkl/*.pkl` `SPEC.md` `.github/workflows/ci.yml` `tests/unit/**/*.bats` `dev/**` | `claudinix-dev badges --check` | `claudinix-dev badges --write` |
 | `integration-steps` | fast | `docs/INTEGRATION.md` `hk.pkl` `pkl/*.pkl` `dev/**` | `claudinix-dev steps --check` | `claudinix-dev steps --write` |
+| `staged-generated` | fast | `README.md` `LICENSE` `setup.sh` `.claudinix.toml` `hk.pkl` `pkl/*.pkl` `SPEC.md` `.github/workflows/ci.yml` `tests/unit/**/*.bats` `docs/INTEGRATION.md` `dev/**` `scripts/guard/staged-generated.sh` | `scripts/guard/staged-generated.sh` | - |
 | `third-party-notices` | fast | `docs/THIRD-PARTY-NOTICES.md` `flake.lock` `dev/**` | `claudinix-dev notices --check` | `claudinix-dev notices --write` |
 | `prose-facts` | fast | `README.md` `docs/LLM-DISCLAIMER.md` `docs/FACTS.md` `setup.sh` `hk.pkl` `pkl/*.pkl` `SPEC.md` `tests/unit/**/*.bats` `dev/**` | `claudinix-dev facts --check` | - |
 | `cli-usage` | fast | `docs/CLI.md` `setup.sh` `scripts/*.sh` `dev/**` | `claudinix-dev cli --check` | - |

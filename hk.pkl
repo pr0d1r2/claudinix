@@ -231,6 +231,28 @@ local fast = new Mapping<String, Step> {
     check = "scripts/hk/run-tool.sh claudinix-dev steps --check"
     fix = "scripts/hk/run-tool.sh claudinix-dev steps --write"
   }
+  // The two above read the worktree, where their fix just wrote, so a
+  // commit staging hk.pkl alone passed with stale output (B18). This one
+  // checks both on a copy of the index: what the commit carries (dev:V39).
+  // After them, so a fix hk stages is in the copy. Globs: both of theirs.
+  ["staged-generated"] {
+    glob = List(
+      "README.md",
+      "LICENSE",
+      "setup.sh",
+      ".claudinix.toml",
+      "hk.pkl",
+      "pkl/*.pkl",
+      "SPEC.md",
+      ".github/workflows/ci.yml",
+      "tests/unit/**/*.bats",
+      "docs/INTEGRATION.md",
+      "dev/**",
+      "scripts/guard/staged-generated.sh"
+    )
+    depends = List("readme-badges", "integration-steps")
+    check = "scripts/guard/staged-generated.sh"
+  }
   // The flake inputs table in the notices is generated from flake.lock
   // (dev:T109), so an input bump reruns it (V19).
   ["third-party-notices"] {
