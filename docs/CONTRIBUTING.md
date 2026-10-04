@@ -53,7 +53,8 @@ which works but is slow the first time.
 To run the whole gate by hand:
 
 ```sh
-hk check --all     # every step, as CI runs it
+hk check --from-ref main --to-ref HEAD   # every step, on what your branch changed
+hk check --all     # every step on every file, as CI runs it
 hk fix             # the formatters
 ```
 
