@@ -573,7 +573,8 @@ line is a `# ` title, and the rest tells the reviewer what to look for. The
 first roles are `correctness`, `maintainability`, `extensibility`,
 `performance`, `security` and `architecture`. To add a role, add a file:
 the launcher and its tests read the directory, so no code changes. A role
-file must not contain `@`, and `all` is not a role name. An unknown role
+file may contain `@`, even a placeholder such as `@PR@`: it reaches the
+session as written. `all` is not a role name. An unknown role
 exits 2 and lists the roles:
 
 ```text
