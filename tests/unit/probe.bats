@@ -116,7 +116,14 @@ code() {
 }
 
 @test "nix-dev not installed: skipped" {
-    run bash "$SCRIPT"
+    # Hide a nix-dev the host has, as every cloud session does (B16).
+    local path="" dir
+    local -a dirs
+    IFS=: read -ra dirs <<<"$PATH"
+    for dir in "${dirs[@]}"; do
+        [ -x "$dir/nix-dev" ] || path="${path:+$path:}$dir"
+    done
+    run env PATH="$path" bash "$SCRIPT"
     [[ "$output" == *"nix-dev: skip"* ]]
 }
 

@@ -286,7 +286,8 @@ EOF
     agent_home
     run bash "$SCRIPT" --agent-home
     [ "$status" -eq 0 ]
-    [ "$(cat "$ACTIVATE_LOG")" = "HOME=$HOME USER=$USER" ]
+    # A root shell may leave $USER unset; setup then uses id -un (B16).
+    [ "$(cat "$ACTIVATE_LOG")" = "HOME=$HOME USER=${USER:-$(id -un)}" ]
 }
 
 @test "agent home: tier 1 fails, tier 2 realises the recorded path (nix:V15)" {
