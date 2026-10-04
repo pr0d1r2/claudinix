@@ -20,6 +20,7 @@ setup() {
     printf '%s\n' '#!/usr/bin/env bash' \
         'printf "%s\n" "$1" >"$STATE/claude.1"' \
         'printf "%s" "$2" >"$STATE/claude.task"' \
+        'printf "%s" "$2" | grep -o "Review: [a-z-]*" | head -n 1 >>"$STATE/claude.roles"' \
         'shift 2; echo "$*" >"$STATE/claude.rest"' >"$STUBS/claude"
     # script: BSD form, as on macOS.
     # shellcheck disable=SC2016 # expands inside the stub, not here
@@ -207,4 +208,56 @@ setup() {
 @test "just review runs the script, one plain command" {
     grep -qxF 'review *args:' "$REPO/justfile"
     grep -qxF '    scripts/cloud-review.sh {{ args }}' "$REPO/justfile"
+}
+
+# --- all: every role at once ---
+
+# roles: the role names, one per file in scripts/review/.
+roles() {
+    local f
+    for f in "$ROLES"/*.md; do
+        basename "$f" .md
+    done
+}
+
+@test "all: one session per role file, each with its own role" {
+    local n role
+    n="$(roles | wc -l | tr -d ' ')"
+    run bash "$SCRIPT" all 12 --yes
+    [ "$status" -eq 0 ]
+    [ "$(wc -l <"$STATE/claude.roles" | tr -d ' ')" = "$n" ]
+    for role in $(roles); do
+        grep -qx "Review: $role" "$STATE/claude.roles"
+    done
+    [[ "$output" == *"cloud: started $n review sessions for #12"* ]]
+}
+
+@test "all: one question naming the count, model, every role and per-session billing" {
+    local n role
+    n="$(roles | wc -l | tr -d ' ')"
+    run bash "$SCRIPT" all 12 <<<""
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"starts $n billed Claude Code cloud sessions at once (model sonnet)"* ]]
+    for role in $(roles); do
+        [[ "$output" == *"$role"* ]]
+    done
+    [[ "$output" == *"Each session is billed on its own."* ]]
+    [[ "$output" == *"Start all $n? [y/N]"* ]]
+    [ ! -e "$STATE/claude.roles" ]
+    run bash "$SCRIPT" all 12 <<<"y"
+    [ "$status" -eq 0 ]
+    [ "$(wc -l <"$STATE/claude.roles" | tr -d ' ')" = "$n" ]
+}
+
+@test "all: --dry-run prints one command per role and starts nothing" {
+    local n
+    n="$(roles | wc -l | tr -d ' ')"
+    run bash "$SCRIPT" all 12 --dry-run </dev/null
+    [ "$status" -eq 0 ]
+    [ "$(grep -c '^claude --cloud ' <<<"$output")" = "$n" ]
+    [ ! -e "$STATE/claude.roles" ]
+}
+
+@test "all is a word, not a role: no role file may be called all.md" {
+    [ ! -e "$ROLES/all.md" ]
 }
