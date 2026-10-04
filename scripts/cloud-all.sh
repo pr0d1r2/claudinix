@@ -14,8 +14,10 @@
 # child then runs with --yes. --dry-run runs the checks and prints the
 # plan instead.
 #
-# The waits poll GitHub with gh every CLOUD_ALL_POLL seconds (default
-# 60), each for a bounded number of polls, never a wall-clock deadline:
+# The sessions run in the cloud; this script only waits, polling GitHub
+# with gh every CLOUD_ALL_POLL seconds (default 10) and printing one dot
+# per poll. Each wait lasts a fixed number of minutes, counted in polls
+# (minutes x 60 / CLOUD_ALL_POLL), never against a wall-clock deadline:
 # - the pull request: a newly open one whose branch is
 #   claude/<node>-<task>, maybe with the harness's suffix, compared with
 #   the case folded (any node for a bare Tn); one open before the launch
@@ -28,7 +30,7 @@
 # opens the pull request when there is one, and exits 1.
 #
 # Usage: cloud-all.sh <node:Tn | Tn> [--model M] [--yes] [--dry-run]
-# Env:   CLOUD_ALL_POLL     seconds between polls (default 60)
+# Env:   CLOUD_ALL_POLL     seconds between polls (default 10)
 #        CLAUDINIX_SCRIPTS  dir holding the child launchers, review/ and
 #                           config.sh (default: here)
 
@@ -68,13 +70,20 @@ id="${BASH_REMATCH[3]}"
 lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 # shellcheck source=/dev/null # lib/cloud-launch.sh, beside this script
 source "$(dirname "${BASH_SOURCE[0]}")/lib/cloud-launch.sh"
-poll="${CLOUD_ALL_POLL:-60}"
+poll="${CLOUD_ALL_POLL:-10}"
 
-# The longest each wait lasts, in polls (60 s each by default).
-polls_pr=180
-polls_ci=60
-polls_reviews=90
-polls_fixup=180
+# polls MINUTES: how many polls a wait of MINUTES takes, at least 1.
+polls() {
+    local n=$(($1 * 60 / poll))
+    [ "$n" -ge 1 ] || n=1
+    echo "$n"
+}
+
+# The longest each wait lasts.
+polls_pr="$(polls 180)"
+polls_ci="$(polls 60)"
+polls_reviews="$(polls 90)"
+polls_fixup="$(polls 180)"
 
 cloud_resolve_model "$lib" || exit "$?"
 "$lib/cloud-task.sh" "$arg" --dry-run --model "$model" >/dev/null || exit "$?"
@@ -129,17 +138,22 @@ fail() {
 }
 
 # wait_for WHAT MAX CHECK...: run CHECK every $poll s until it returns 0
-# (done) or 1 (failed); 2 is not yet. Returns 1 when MAX polls run out.
+# (done) or 1 (failed); 2 is not yet, printed as a dot. Returns 1 when MAX
+# polls run out.
 wait_for() {
     local what="$1" max="$2" i=0 rc
     shift 2
     while :; do
         rc=0
         "$@" || rc=$?
-        [ "$rc" != 0 ] || return 0
-        [ "$rc" != 1 ] || return 1
+        if [ "$rc" != 2 ]; then
+            [ "$i" = 0 ] || echo
+            return "$rc"
+        fi
+        printf .
         i=$((i + 1))
         if [ "$i" -ge "$max" ]; then
+            echo
             echo "all: gave up waiting for $what after $max polls of ${poll}s" >&2
             return 1
         fi
