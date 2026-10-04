@@ -197,20 +197,32 @@ fi
 
 # util-linux `script` takes the command as a string, BSD `script` as
 # arguments; both get a TTY for claude. Each call returns once its
-# session exists, so the sessions run in parallel.
+# session exists, so the sessions are running side by side, though they
+# start one after another. A failed launch is recorded and the rest
+# still start (B22): the sessions already started are billed.
+started=()
+failed=()
 for r in "${run[@]}"; do
     build "$r"
     if script --version >/dev/null 2>&1; then
         # shellcheck disable=SC2016 # script's shell expands these, not this one
         CLOUD_TASK_PROMPT="$prompt" CLOUD_TASK_MODEL="$model" script -q -e \
-            -c 'claude --cloud "$CLOUD_TASK_PROMPT" --model "$CLOUD_TASK_MODEL"' /dev/null
+            -c 'claude --cloud "$CLOUD_TASK_PROMPT" --model "$CLOUD_TASK_MODEL"' /dev/null && ok=1 || ok=0
     else
-        script -q /dev/null claude --cloud "$prompt" --model "$model"
+        script -q /dev/null claude --cloud "$prompt" --model "$model" && ok=1 || ok=0
     fi
+    if [ "$ok" = 1 ]; then started+=("$r"); else failed+=("$r"); fi
 done
 
+if [ "${#failed[@]}" -gt 0 ]; then
+    echo "cloud: failed to start: ${failed[*]}" >&2
+fi
+if [ "${#started[@]}" -eq 0 ]; then
+    exit 1
+fi
 if [ "$role" = all ]; then
-    echo "cloud: started $n review sessions for #$pr ($head): ${run[*]}; each comments on the pull request -- follow them at claude.ai/code"
+    echo "cloud: started ${#started[@]} review sessions for #$pr ($head): ${started[*]}; each comments on the pull request -- follow them at claude.ai/code"
 else
     echo "cloud: started the $role review of #$pr ($head); it comments on the pull request -- follow it at claude.ai/code"
 fi
+[ "${#failed[@]}" -eq 0 ]
