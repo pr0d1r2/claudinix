@@ -164,12 +164,20 @@ setup() {
     [ ! -e "$STATE/claude.1" ]
 }
 
-# --- launch rules shared with cloud-task.sh and cloud-rebase.sh ---
+# --- launch rules: the remote, the question, the model ---
 
-@test "a branch with no upstream: says to push it, no session" {
+@test "the local branch is not the session's: unpushed, behind or detached still reviews" {
     NO_UPSTREAM=1 run bash "$SCRIPT" security 12 --yes
+    [ "$status" -eq 0 ]
+    [ -e "$STATE/claude.1" ]
+}
+
+@test "no remote: says to push the project to GitHub, no session" {
+    # shellcheck disable=SC2016 # expands inside the stub, not here
+    printf '%s\n' '#!/usr/bin/env bash' '[ "$1 $2" = "remote get-url" ] && exit 2' 'exit 9' >"$STUBS/git"
+    run bash "$SCRIPT" security 12 --yes
     [ "$status" -eq 1 ]
-    [[ "$output" == *"git push -u origin main"* ]]
+    [[ "$output" == *"no remote origin"* ]]
     [ ! -e "$STATE/claude.1" ]
 }
 
