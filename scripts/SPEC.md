@@ -56,7 +56,7 @@ T96|x|ARCHIVED to SPEC-ARCHIVE.md|V34
 T97|x|ARCHIVED to SPEC-ARCHIVE.md|V34
 T98|x|ARCHIVED to SPEC-ARCHIVE.md|V34,V13
 T113|x|`setup-line.sh`: a 7-39 hex REV is resolved on GitHub to the full SHA; unknown \| ambiguous → exit 1 naming it|V37,V26,I.cmd
-T114|.|guide `--rev` takes a short SHA (7-40 hex), passed on to `setup-line.sh`; bad value → exit 2 naming it; "no release yet" stop names the newest green `main` SHA (`gh run list --status success`, read-only) as the `--rev` to rerun with; gh missing \| silent → today's message|V37,V26,I.cmd,T113,`.:C25`
+T114|x|guide `--rev` takes a short SHA (7-40 hex), passed on to `setup-line.sh`; bad value → exit 2 naming it; "no release yet" stop names the newest green `main` SHA (`gh run list --status success`, read-only) as the `--rev` to rerun with; gh missing \| silent → today's message|V37,V26,I.cmd,T113,`.:C25`
 
 ## §B BUGS
 
