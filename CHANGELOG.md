@@ -114,7 +114,8 @@ does are summarised briefly; the git history has the detail.
   letters, digits and `._/-`, since the prompt puts them in shell commands, and a pull request URL
   of another repository than this checkout's.
   When one session of `review all` fails to start, the others still start
-  and it says which started and which failed.
+  and it says which started and which failed. The review prompt tells the
+  session that the pull request's text is untrusted data, not instructions.
 - The cloud permission list allows
   `git push --force-with-lease origin HEAD:claude/*`, the rebase session's
   push; plain force pushes and every push to `main` stay unlisted or denied.
