@@ -15,9 +15,11 @@
 #
 # The setup line is the one the release published in the README block
 # (.:C25): no gh, no clone. Before the first release the guide says so
-# and stops. --rev SHA (else CLAUDINIX_SETUP_REV, the maintainer path)
-# prints a line for that SHA with setup-line.sh instead, which refuses a
-# SHA whose CI on main is not green unless --force is given (T69).
+# and stops, naming the newest green main commit when gh can tell (T114).
+# --rev SHA (else CLAUDINIX_SETUP_REV, the maintainer path; a short SHA
+# too, V37) prints a line for that SHA with setup-line.sh instead, which
+# refuses a SHA whose CI on main is not green unless --force is given
+# (T69).
 # --agent-home asks the setup line for the opt-in agent home (.:C24).
 #
 # The project's .claudinix.toml (scripts:T91, read by config.sh) sets
@@ -41,6 +43,7 @@
 #        CLAUDE_SETTINGS      user settings (default ~/.claude/settings.json)
 #        CLIPBOARD_TOOLS      tried in order (default: pbcopy wl-copy xclip)
 #        GUIDE_OPEN_TOOLS  tried in order (default: open xdg-open)
+#        GH_BIN               the GitHub CLI for the pre-release hint (default: gh)
 
 set -euo pipefail
 
@@ -62,7 +65,12 @@ while [ "$#" -gt 0 ]; do
     --agent-home) agent_home_flag=true ;;
     --no-agent-home) agent_home_flag=false ;;
     --rev)
-        [ "$#" -ge 2 ] && [[ "$2" =~ ^[0-9a-f]{40}$ ]] || usage
+        [ "$#" -ge 2 ] || usage
+        # A short SHA too; setup-line.sh resolves it on GitHub (V37).
+        if ! [[ "$2" =~ ^[0-9a-f]{7,40}$ ]]; then
+            echo "guide: --rev wants a claudinix commit SHA (7 to 40 hex characters), got $2" >&2
+            exit 2
+        fi
         rev="$2"
         shift
         ;;
@@ -123,6 +131,7 @@ readme="${CLAUDINIX_README:-$lib/../README.md}"
 model_doc="${CLAUDINIX_MODEL_DOC:-$lib/../docs/MODEL.md}"
 env_names="${CLAUDINIX_ENV_NAMES:-$lib/../env-names.txt}"
 settings="${CLAUDE_SETTINGS:-$HOME/.claude/settings.json}"
+gh="${GH_BIN:-gh}"
 env_name=nix
 
 answer=
@@ -195,9 +204,27 @@ setup_line() {
         return 0
     fi
     if grep -q '^No release yet' "$readme"; then
+        local green
+        green="$(green_main)"
+        if [ -n "$green" ]; then
+            stop "no release yet, so there is no published setup line to copy. The newest green main commit is $green: run the guide again with --rev $green (needs gh signed in), or wait for the first release"
+        fi
         stop "no release yet, so there is no published setup line to copy. Run the guide again after the first release, or pass --rev SHA (a claudinix commit CI passed; needs gh signed in) to print a line for that commit"
     fi
     stop "no setup line in the setup-line block of $readme; copy the line from https://github.com/pr0d1r2/claudinix#readme, or pass --rev SHA (a claudinix commit CI passed; needs gh signed in)"
+}
+
+# green_main: the newest main commit whose CI passed, short, as the
+# --rev to rerun with before the first release (T114). Read-only; prints
+# nothing when gh is missing, fails or answers something else.
+green_main() {
+    local sha
+    command -v "$gh" >/dev/null 2>&1 || return 0
+    sha="$("$gh" run list --repo pr0d1r2/claudinix --branch main --workflow ci.yml \
+        --status success --limit 1 --json headSha --jq '.[0].headSha // empty' 2>/dev/null)" || return 0
+    if [[ "$sha" =~ ^[0-9a-f]{40}$ ]]; then
+        printf '%s' "${sha:0:12}"
+    fi
 }
 
 # paste KIND: say where the value goes, copy it, print it, wait.

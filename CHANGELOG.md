@@ -137,6 +137,9 @@ Run from the project you will send to the cloud, as
 - `scripts/setup-line.sh` takes a short SHA (7 to 39 hex characters) and
   looks it up on GitHub, so `c63d695` names the same claudinix commit
   from any directory.
+- `guide --rev` takes a short SHA too. Before the first release, when
+  `gh` can tell, the guide names the newest `main` commit whose CI passed
+  as the `--rev` to run it again with.
 
 ### Repository
 
