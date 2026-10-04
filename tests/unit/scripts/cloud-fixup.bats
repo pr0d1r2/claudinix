@@ -82,6 +82,12 @@ pr() {
     [ ! -e "$STATE/claude.1" ]
 }
 
+@test "a URL's owner and repo are compared with the case folded (scripts:B25)" {
+    run bash "$SCRIPT" https://github.com/O/P/pull/8 --yes
+    [ "$status" -eq 0 ]
+    [ -e "$STATE/claude.1" ]
+}
+
 @test "a PR from a fork is refused naming the PR, no session (scripts:B24)" {
     pr OPEN feature/x main true
     run bash "$SCRIPT" 8 --yes
