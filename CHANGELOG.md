@@ -79,6 +79,10 @@ does are summarised briefly; the git history has the detail.
 
 ### Built by its own cloud agents
 
+- A cloud task agent ends with `hk check --from-ref origin/main --to-ref
+  HEAD` (the push layer over the files its branch changed) instead of the
+  full `hk check --all`, so a docs-only task no longer rebuilds the Rust
+  crate.
 - The cloud permission list also allows the gate's Rust commands
   (`cargo fmt`, `cargo clippy`, `cargo test`) and `claudinix-dev`, so a
   cloud agent can run the `dev/` checks without a prompt; never a bare

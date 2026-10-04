@@ -20,8 +20,9 @@ The task row, as it stands in the spec:
    has a `Why:` and a `Refs:` line. Never use --no-verify.
 4. A spec change you would normally ask the owner about: record it in
    the spec, commit it on its own, and name it in your report.
-5. Run the whole gate: `hk check --all >gate.log 2>&1; echo rc=$?` in
-   the dev shell. A command still running at 120 s moves to the
+5. Run the gate over what your branch changed:
+   `hk check --from-ref origin/main --to-ref HEAD >gate.log 2>&1; echo rc=$?`
+   in the dev shell (each commit already ran the fast layer). A command still running at 120 s moves to the
    background: wait for its completion notice and use its real exit
    status, not the 120 s return. Read gate.log only when rc is not 0;
    fix the code, never weaken a check. Do not commit gate.log.
