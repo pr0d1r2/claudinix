@@ -26,8 +26,10 @@ concurrency:
 jobs:
   gate:
     name: gate
-    # x86_64-linux: the system of the cloud session VM (SPEC C1).
-    runs-on: ubuntu-latest
+    # x86_64-linux on Ubuntu 24.04: the same system and release as the cloud
+    # session VM (SPEC C1). Pinned, not `ubuntu-latest`, which moves to
+    # Ubuntu 26 from 2026-10-19 and would drift away from the sessions.
+    runs-on: ubuntu-24.04
     steps:
       # Actions pinned to commit SHAs; tags are mutable. `fetch-depth: 0`
       # because tdd-order reads history; `persist-credentials: false`
@@ -70,7 +72,7 @@ jobs:
     name: verify cache
     needs: gate
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
