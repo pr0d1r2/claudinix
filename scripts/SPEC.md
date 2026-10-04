@@ -66,7 +66,7 @@ T118|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B14,`.:C2`
 T119|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V26,T116,`.:C2`
 T124|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`
 T126|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,`nix:T127`
-T129|.|`just review` (owner 2026-10-04): 6 roles to start, more to come; `all` = 1 session per role, 1 y/N naming count, model, roles \& per-session billing|I.cmd,`.:C29`,`docs:T130`
+T129|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,`docs:T130`
 
 ## §B BUGS
 
