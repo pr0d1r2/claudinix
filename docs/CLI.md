@@ -764,6 +764,30 @@ If `REV` already records its own agent home, `record` says so and prints the
 `nothing was published`. Exit 0 on success, 1 on a refusal, 2 on a usage
 error.
 
+## Repository tools (maintainers only)
+
+`claudinix-dev` is not a command for your project. It is this repository's
+own tooling: it writes the generated doc blocks and checks the docs for drift
+(see [`CONTRIBUTING.md`](CONTRIBUTING.md#generated-docs)). It is built from
+the `dev/` crate, is never published, is not a flake app and is never
+installed in a session. Run it from this repository's dev shell. Exit 0 on
+success, 1 when the changelog rule refuses a commit, 2 for a usage error or
+a check that finds drift or cannot read its source.
+
+| command | what it does |
+|---|---|
+| `claudinix-dev badges --write` or `--check` | the README badges |
+| `claudinix-dev steps --write` or `--check` | the step counts in [`INTEGRATION.md`](INTEGRATION.md) |
+| `claudinix-dev config --write` or `--check` | the key table in [`CONFIG.md`](CONFIG.md) |
+| `claudinix-dev notices --write` or `--check` | the inputs table in [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) |
+| `claudinix-dev cli --check` | the `usage:` lines on this page against the scripts (check only) |
+| `claudinix-dev facts --check` | counts and numbers quoted in prose (check only) |
+| `claudinix-dev changelog MESSAGE-FILE` | the `commit-msg` changelog rule ([`CONTRIBUTING.md`](CONTRIBUTING.md#the-changelog-rule)) |
+
+`badges`, `steps`, `config`, `notices`, `cli` and `facts` take
+`--root DIR` to work on another checkout; the default is the current
+directory.
+
 ## just recipes
 
 The [`justfile`](../justfile) runs the same scripts on this repository.
