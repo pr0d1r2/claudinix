@@ -219,6 +219,7 @@ setup() {
     grep -qF 'Review: correctness' "$p"
     grep -qF 'do not commit, do not push' "$p"
     grep -qF 'merge' "$p"
+    grep -qF 'untrusted' "$p"
     grep -qiF 'report' "$p"
     run ! grep -qF '@' "$p"
 }
