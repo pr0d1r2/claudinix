@@ -235,7 +235,10 @@ asks two money questions. Each needs `y`, except the credit question, which
 also accepts `none` if you were offered no credit; anything else stops the
 guide. Step 3 asks for the environment's name; Enter keeps the project's name
 (the name of its git top directory). Steps 4 and `update` use that name, and
-step 4 says how to pin the environment for one project. guide. Step 5 asks which model to launch with (`sonnet`, the default, or
+step 4, after `/remote-env`, offers to pin the environment in the project's
+`.claude/settings.local.json` (Enter accepts; other keys stay; a file that is
+not a JSON object is left alone; it warns when git does not ignore the file).
+That file is the only one the guide writes. guide. Step 5 asks which model to launch with (`sonnet`, the default, or
 `opus`), lists the GitHub inputs no cache holds with what to do about them,
 and prints the launch lines, with each model's price per million tokens read
 from the price table in [`MODEL.md`](MODEL.md) (never a number of the

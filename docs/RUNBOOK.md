@@ -195,12 +195,13 @@ repository.
    - `CLAUDINIX_SESSION_PERMISSIONS=1` (optional) is the fallback route for
      the cloud permissions (see "Build a task in the cloud" below). Nobody
      has measured yet whether it is needed (experiment T104).
-6. **Choose the environment** with `/remote-env` in Claude Code, once per
-   machine. Without it, sessions run in **Default**, which has no Nix.
-   `/remote-env` sets it for every project. Do not pin it in this
-   repository: its `.claude/settings.json` holds only the SessionStart hook,
-   and your `env_...` id means nothing to other contributors. Run
-   `/remote-env` again when you switch to another project.
+6. **Choose and pin the environment.** Run `/remote-env` in Claude Code,
+   pick `claudinix`, and let step 4 of the guide pin it: it writes the id
+   into this checkout's gitignored `.claude/settings.local.json`. From then
+   on `claude --cloud`, `just probe` and `just cloud` in this checkout use
+   `claudinix`, whatever `/remote-env` picks for other projects. Never put
+   the id in the committed `.claude/settings.json`, which holds only the
+   SessionStart hook; your id means nothing to other contributors.
 7. **Check it** with `just probe`. It asks before it starts the billed
    session and prints the report.
 8. **Build one task** as described in the next section: `just cloud
@@ -210,6 +211,16 @@ repository.
    suffix) and opens no pull request. `main` takes changes only through a
    pull request with green CI, so open the pull request from that branch
    yourself, wait for CI, and merge.
+
+### Add another project
+
+Each project gets its own environment, so an experiment in one cannot
+break another. In the new project's checkout, run
+`nix run github:pr0d1r2/claudinix#guide` (or `just guide` here). Step 0
+and the GitHub App come first, as above; add the repository to the App's
+list. Step 3 offers the project's name for the new environment and copies
+that project's domains; step 4 pins it in that checkout. Your other
+projects keep their own pins.
 
 Check again that usage credits are OFF before you add a routine or run
 sessions in parallel. To stop spending at once, see "Emergency stop of
