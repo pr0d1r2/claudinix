@@ -124,7 +124,15 @@ config: /work/app/.claudinix.toml: probe.branch_prefix must not be empty, got ""
 ```
 
 A tool that reads the file stops with that exit 2 before it does anything
-else, so a typo never turns into a silently ignored setting. A missing
+else, so a typo never turns into a silently ignored setting. `nix-dev` is
+the one exception: it prints the same lines, warns loudly, and starts the
+dev shell with the defaults, so a bad file never locks you out of the
+shell (and of the git hooks that enter it):
+
+```text
+nix-dev: WARNING: /work/app/.claudinix.toml is invalid -- using defaults (the repo's gate refuses it at commit)
+```
+ A missing
 `version`, an unknown table or key, a wrong type, a bad value and a
 `version` other than 1 are all refused.
 

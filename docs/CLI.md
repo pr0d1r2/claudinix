@@ -568,7 +568,14 @@ nix-dev: installable .#default from .claudinix.toml (devshell.installable)
 ```
 
 An installable you give wins and logs nothing about the file. A bad file
-exits 2. Without `jq`, or with an older install that has no `config.sh`,
+does not stop `nix-dev`: it prints what is wrong, then warns and runs as if
+there were no file:
+
+```text
+nix-dev: WARNING: /work/app/.claudinix.toml is invalid -- using defaults (the repo's gate refuses it at commit)
+```
+
+Without `jq`, or with an older install that has no `config.sh`,
 no file is read.
 
 Overrides are never written to `flake.lock`. A tier whose command an earlier
