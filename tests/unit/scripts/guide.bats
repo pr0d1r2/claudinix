@@ -116,7 +116,7 @@ titles() {
 @test "step 3 copies the env name, the allowed domains and the README's release line (.:C25)" {
     run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
     [ "$status" -eq 0 ]
-    grep -qx 'nix' "$LOG"
+    grep -qx 'project' "$LOG"
     grep -qx 'domains .' "$LOG"
     grep -qx 'index.crates.io' "$LOG"
     grep -qxF "$LINE" "$LOG"
