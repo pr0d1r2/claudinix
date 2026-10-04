@@ -110,6 +110,8 @@ does are summarised briefly; the git history has the detail.
   architecture; a new role is a new file.
   `just review all <PR>` starts one such session per role, in parallel,
   after one question that names how many billed sessions start.
+  It refuses a pull request whose branch names have characters beyond
+  letters, digits and `._/-`, since the prompt puts them in shell commands.
 - The cloud permission list allows
   `git push --force-with-lease origin HEAD:claude/*`, the rebase session's
   push; plain force pushes and every push to `main` stay unlisted or denied.
