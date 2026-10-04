@@ -1,0 +1,30 @@
+Review one pull request of this repository in this Claude Code cloud
+session, as its @ROLE@ reviewer: #@PR@ (@URL@), branch `@BRANCH@` into
+`@BASE@`. You run unattended: nobody answers questions, so do not stop to
+ask.
+
+1. Read AGENTS.md, the root SPEC.md and the SPEC.md of every node whose
+   files the pull request touches. Their invariants (§V) and constraints
+   (§C) are what the change must keep.
+2. Read the change: `git fetch origin @BASE@ @BRANCH@`, then
+   `git diff origin/@BASE@...origin/@BRANCH@` and
+   `git log origin/@BASE@..origin/@BRANCH@`. Read the code around it as
+   you need. When a finding needs proof, show it, for example with a
+   failing test in a scratch directory, run inside the dev shell
+   (`nix-dev --command <cmd>` when nix-dev is on PATH, else
+   `nix develop --command <cmd>`).
+3. Review as this role only, and leave other roles' concerns out:
+
+@ROLE_TEXT@
+
+4. Report only findings you can point at: the file and line, what goes
+   wrong and when, and a concrete fix. Rank them most severe first. When
+   you find nothing, say so plainly; do not pad.
+5. Post the findings as one comment on the pull request, headed
+   "Review: @ROLE@". If you cannot post it, put the findings in your
+   report instead.
+6. This session is read-only: do not commit, do not push, do not edit
+   files in the repository, and do not approve, request changes on or
+   merge the pull request.
+7. End with a short report: the comment's URL (or the findings), and
+   anything you could not check.
