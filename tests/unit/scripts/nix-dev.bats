@@ -301,12 +301,57 @@ N=6666666666666666666666666666666666666666
     [[ "$output" == *"develop --command true"* ]]
 }
 
-@test "a bad .claudinix.toml: exit 2 naming the file and key, no nix develop" {
-    printf '%s\n' 'version = 1' '[devshell]' 'installable = 1' >"$PROJECT/.claudinix.toml"
+# A bad .claudinix.toml never blocks the dev shell (scripts:T98): it
+# warns and runs with the defaults; the repo's gate refuses the file.
+
+@test "a bad .claudinix.toml: config's message, a warning, then defaults (scripts:T98)" {
+    printf '%s\n' 'version = 1' '[devshell]' 'installable = ".#ci"' 'bogus = 1' >"$PROJECT/.claudinix.toml"
     NIX_OK_PLAIN=1 run bash "$SCRIPT" --command true
-    [ "$status" -eq 2 ]
-    [[ "$output" == *".claudinix.toml"* ]]
-    [[ "$output" == *"devshell.installable"* ]]
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"config: "*"devshell.bogus"* ]]
+    [[ "$output" == *"nix-dev: WARNING: ./.claudinix.toml is invalid -- using defaults (the repo's gate refuses it at commit)"* ]]
+    grep -qx 'print-dev-env' "$NIX_LOG"
+    [[ "$output" == *"develop --command true"* ]]
+    run ! grep -q '#ci' "$NIX_LOG"
+    [ "$(grep -c '^eval ' "$NIX_LOG")" -eq 1 ]
+}
+
+@test "a .claudinix.toml that is not TOML: warning, defaults, dev shell runs" {
+    printf '%s\n' 'this is [not toml' >"$PROJECT/.claudinix.toml"
+    NIX_OK_PLAIN=1 run bash "$SCRIPT" --command true
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"cannot be read as TOML"* ]]
+    [[ "$output" == *"nix-dev: WARNING: ./.claudinix.toml is invalid -- using defaults"* ]]
+    [[ "$output" == *"develop --command true"* ]]
+}
+
+@test "a bad file named by CLAUDINIX_CONFIG: the warning names it as given (V26)" {
+    printf '%s\n' 'version = 2' >"$BATS_TEST_TMPDIR/my.toml"
+    CLAUDINIX_CONFIG="$BATS_TEST_TMPDIR/my.toml" NIX_OK_PLAIN=1 run bash "$SCRIPT" --command true
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"nix-dev: WARNING: $BATS_TEST_TMPDIR/my.toml is invalid -- using defaults"* ]]
+    [[ "$output" == *"develop --command true"* ]]
+}
+
+@test "no .claudinix.toml: no warning, bare develop" {
+    NIX_OK_PLAIN=1 run bash "$SCRIPT" --command true
+    [ "$status" -eq 0 ]
+    [[ "$output" != *"WARNING"* ]]
+    [[ "$output" == *"develop --command true"* ]]
+    run ! grep -q '^eval ' "$NIX_LOG"
+}
+
+@test "config.sh failing otherwise (exit 1): nix-dev exits 1, no dev shell" {
+    lib="$BATS_TEST_TMPDIR/lib"
+    mkdir -p "$lib"
+    for f in nix-dev.sh nix-dev.jq inputs.sh inputs.jq; do
+        cp "$BATS_TEST_DIRNAME/../../../scripts/$f" "$lib/"
+    done
+    printf '%s\n' '#!/usr/bin/env bash' 'echo "config: nix is not on PATH" >&2' 'exit 1' >"$lib/config.sh"
+    NIX_OK_PLAIN=1 run bash "$lib/nix-dev.sh" --command true
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"config: nix is not on PATH"* ]]
+    [[ "$output" != *"using defaults"* ]]
     run ! grep -q '^develop' "$NIX_LOG"
 }
 
