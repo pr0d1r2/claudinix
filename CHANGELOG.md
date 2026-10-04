@@ -119,6 +119,12 @@ does are summarised briefly; the git history has the detail.
   session that the pull request's text is untrusted data, not instructions.
   It needs the `origin` remote only: an unpushed or detached local branch
   no longer stops a review. With no role files, `review all` says so.
+- `just fixup <PR>` starts one billed cloud session that works through a
+  pull request's review findings one at a time, fixing each in its own
+  commits or declining it with a reason. It pushes to the same branch
+  without force, gives a thumbs-up to each comment it fixed, and replies
+  once mapping findings to commits. A URL of another repository or a branch
+  name that is not a plain ref is refused.
 - The cloud permission list allows
   `git push --force-with-lease origin HEAD:claude/*`, the rebase session's
   push; plain force pushes and every push to `main` stay unlisted or denied.

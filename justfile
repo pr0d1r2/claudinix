@@ -37,6 +37,10 @@ rebase *args:
 review *args:
     scripts/cloud-review.sh {{ args }}
 
+# Fix a pull request's review findings, one by one in separate commits, in a billed cloud session.
+fixup *args:
+    scripts/cloud-fixup.sh {{ args }}
+
 # Pin setup.sh to another Nix release: version and installer sha256 together.
 bump-nix ver:
     scripts/bump-nix.sh {{ ver }}
