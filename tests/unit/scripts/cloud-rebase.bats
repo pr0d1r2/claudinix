@@ -9,7 +9,7 @@ setup() {
     STUBS="$BATS_TEST_TMPDIR/stubs"
     export STATE="$BATS_TEST_TMPDIR/state"
     export TOPLEVEL="$BATS_TEST_TMPDIR/project"
-    unset CLAUDINIX_CONFIG CLAUDINIX_CONFIG_JSON CLOUD_TASK_REMOTE STUB_PR GH_FAIL
+    unset CLAUDINIX_CONFIG CLAUDINIX_CONFIG_JSON CLOUD_TASK_REMOTE STUB_PR GH_FAIL GH_READS_STDIN
     mkdir -p "$STUBS" "$STATE" "$TOPLEVEL"
 
     # claude: records its args, one file each.
@@ -44,6 +44,7 @@ setup() {
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "$*" >>"$STATE/gh.log"' \
+        '[ -z "${GH_READS_STDIN:-}" ] || cat >/dev/null' \
         '[ -z "${GH_FAIL:-}" ] || { echo "GraphQL: Could not resolve to a PullRequest" >&2; exit 1; }' \
         'printf "%b\n" "${STUB_PR:-8\tOPEN\tclaude/dev-t123-dk9i03\tmain\thttps://github.com/o/p/pull/8}"' >"$STUBS/gh"
     chmod +x "$STUBS"/*
@@ -148,6 +149,12 @@ setup() {
     printf '%s\n' "$output" >"$BATS_TEST_TMPDIR/cmd.sh"
     bash "$BATS_TEST_TMPDIR/cmd.sh"
     cmp "$STATE/claude.task" "$BATS_TEST_TMPDIR/launched"
+}
+
+@test "gh never reads the y/N answer: it gets no stdin (B19)" {
+    GH_READS_STDIN=1 run bash "$SCRIPT" 8 <<<"y"
+    [ "$status" -eq 0 ]
+    [ -e "$STATE/claude.1" ]
 }
 
 # --- the prompt ---
