@@ -101,6 +101,8 @@ does are summarised briefly; the git history has the detail.
   of merging them by hand, stops and reports a conflict that needs a
   decision, runs the gate and force-pushes the same branch with a lease.
   It opens no new pull request and merges nothing.
+  Answering `y` to its question now starts the session; before, a reply
+  the terminal sent to `gh` could be read as the answer.
 - The cloud permission list allows
   `git push --force-with-lease origin HEAD:claude/*`, the rebase session's
   push; plain force pushes and every push to `main` stay unlisted or denied.
