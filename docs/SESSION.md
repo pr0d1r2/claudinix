@@ -91,7 +91,8 @@ When you change anything about the environment, check it in a new session
 ## What a session can and cannot reach
 
 - **Network.** Only the allowed hosts, through a proxy. The default list did
-  not cover `cache.nixos.org` or `channels.nixos.org` (probes 1-3).
+  not cover `cache.nixos.org` or `channels.nixos.org` (probes 1-3), nor
+  `raw.githubusercontent.com`, which the setup line needs.
 - **GitHub.** Through a separate proxy. `github:` inputs get a 403, while
   plain git reads of public repositories pass, and so do third-party reads
   once `github.com` is in the allowed domains (probes 2 and 5).

@@ -40,6 +40,7 @@ To re-measure, run [`probe.sh`](../probe.sh) inside a session.
 |---|---|---|
 | "Include default list of common package managers" does **not** cover the nixos.org hosts. The proxy refused `cache.nixos.org` and `channels.nixos.org` until they were added by name. | 2026-10-03 | probes 1-3 |
 | Cargo needs `index.crates.io` and `static.crates.io` added by name. | 2026-10-03 | probe 4 |
+| `raw.githubusercontent.com` is not in the default list either. Without it the setup line's download of `setup.sh` failed with `curl: (22) The requested URL returned error: 403` and setup exited 22. | 2026-10-04 | first session in env `claudinix` (`.:B15`) |
 | Editing the allowed domains does not reach a session that is already running. Start a new session. | 2026-10-03 | probe 4 |
 
 ## GitHub
@@ -105,8 +106,8 @@ read on 2026-10-04. They are not measured in a session yet.
   the setup script, and how much faster does it start? (`SPEC.md` T55)
 - Do skills placed in `~/.claude/skills` by the setup script survive until
   Claude starts? (T14, T56)
-- Is `raw.githubusercontent.com` reachable while the setup script runs?
-  (T57)
+- With `raw.githubusercontent.com` allowed, does the setup line download
+  `setup.sh` and finish? Without it, it fails (2026-10-04). (T57)
 - Which git version does the image ship? Not recorded yet (noted
   2026-10-03). Ubuntu 24.04 packages 2.43, but nobody has run
   `git --version` in a session. It matters: a session commits with that
