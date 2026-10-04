@@ -57,7 +57,7 @@ T89|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C6`,`.:V18`,C22
 T94|x|`docs/CONFIG.md`: every key, type, default, which tool reads it, precedence, example (this repo's file); CLI/README/CONSUMER/SETUP mention it; plain English|`.:C28`,`scripts:V34`,C22
 T103|x|AGENTS.md + CONTRIBUTING: cloud-built changes arrive as `claude/*` branches (1 task each); how the owner launches (`just cloud Tn`), reviews (CI on the branch) \& merges; what a cloud agent must report|`.:C29`,C22
 T115|x|SETUP + CLI: `--rev` takes a short SHA (`scripts:V37`) \& the pre-release hint; RUNBOOK "Build claudinix on cloud credit": owner checklist from 0 (claim credit, overage OFF, GitHub App on `pr0d1r2/claudinix`, env via `just guide --rev <sha>` (agent home from `.claudinix.toml`), optional `CLAUDINIX_SESSION_PERMISSIONS=1`, `/remote-env`, `just probe`, `just cloud`, owner opens the PR from `claude/*`); plain English|`scripts:T114`,`scripts:V37`,`.:C29`,`.:C25`,C22
-T117|.|SETUP + README + RUNBOOK + CLI: env name defaults to the project name (`scripts:T116`), ⊥ `nix`; 1 env per project ∴ pin it in the repo `.claude/settings.json`; SETUP step 3 ends w/ **Add environment** (`scripts:B14`); plain English|`scripts:T116`,`scripts:B14`,C22
+T117|x|SETUP + README + RUNBOOK + CLI: env name defaults to the project name (`scripts:T116`), ⊥ `nix`; 1 env per project ∴ pin it in the repo `.claude/settings.json`; SETUP step 3 ends w/ **Add environment** (`scripts:B14`); plain English|`scripts:T116`,`scripts:B14`,C22
 
 ## §B BUGS
 
