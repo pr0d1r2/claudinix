@@ -78,3 +78,4 @@ B17|2026-10-04|git exports `GIT_EXEC_PATH` to hooks; cloud push by image git 2.4
 B19|2026-10-04|`just rebase`: `y` → "not started"; `gh` had the TTY as stdin, its reply likely preceded `y`|gh </dev/null; flush TTY before y/N
 B20|2026-10-04|`just review`: a PR head or base branch name is chosen by the PR author and goes into the prompt's shell commands; `x$(id)` is a valid ref|review refuses a head \| base ⊥ `^[A-Za-z0-9._/-]+$` before any session starts
 B21|2026-10-04|`just review ROLE https://github.com/other/repo/pull/12`: only the number was kept, so this repo's #12 was reviewed, billed, with no warning|a PR URL naming another repo than the remote → refuse
+B22|2026-10-04|`just review all`: session N failed to launch → script exited there; sessions 1..N-1 billed \& running, rest never started, no summary; a re-run duplicated them|a failed launch ⊥ stops the loop; the end lists started \& failed roles, exit 1 iff any failed
