@@ -120,13 +120,26 @@ NIX_NET='--option connect-timeout 10 --option stalled-download-timeout 30'
     grep -qx 'releases.nixos.org' "$ENV_DIR/allowlist.txt"
 }
 
+@test "allowlist names every host the setup line and setup.sh fetch from (V38, B15)" {
+    # $cache_host is the project's cache; domains names it from the config.
+    local hosts
+    hosts="$(grep -ohE 'https://[A-Za-z0-9.-]+' "$ENV_DIR/setup.sh" "$ENV_DIR/scripts/setup-line.sh" | sed 's|https://||' | sort -u)"
+    [ -n "$hosts" ]
+    while IFS= read -r host; do
+        grep -qx "$host" "$ENV_DIR/allowlist.txt" || {
+            echo "not in allowlist.txt: $host"
+            return 1
+        }
+    done <<<"$hosts"
+}
+
 @test "base allowlist is Nix hosts only: crates.io comes from domains (T30)" {
     run ! grep -qx 'index.crates.io' "$ENV_DIR/allowlist.txt"
     run ! grep -qx 'static.crates.io' "$ENV_DIR/allowlist.txt"
     while IFS= read -r host; do
         case "$host" in
         '' | '#'*) ;;
-        pr0d1r2.cachix.org | cache.nixos.org | channels.nixos.org | releases.nixos.org | github.com) ;;
+        pr0d1r2.cachix.org | cache.nixos.org | channels.nixos.org | releases.nixos.org | github.com | raw.githubusercontent.com) ;;
         *)
             echo "not a Nix host: $host"
             return 1
