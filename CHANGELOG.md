@@ -130,7 +130,7 @@ does are summarised briefly; the git history has the detail.
   `git push --force-with-lease origin HEAD:claude/*`, the rebase session's
   push; plain force pushes and every push to `main` stay unlisted or denied.
   It also allows `git push origin HEAD:*` for `just fixup`; the deny rules
-  for `main` still win.
+  for `main`, for `+` force refspecs and for tag pushes still win.
 - The dev shell's own flake inputs are fetched over `git+https`, so a
   cloud session can enter it without GitHub 403s; only nixpkgs remains a
   `github:` input, served by cache.nixos.org.
