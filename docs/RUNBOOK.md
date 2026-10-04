@@ -208,9 +208,9 @@ repository.
    --dry-run <node:Tn>`, then `just cloud <node:Tn>`. Start with a cheap
    task, such as a measurement in `experiments/SPEC.md`.
 9. **Review and merge.** The agent pushes `claude/<node>-<task>` (plus a
-   suffix) and opens no pull request. `main` takes changes only through a
-   pull request with green CI, so open the pull request from that branch
-   yourself, wait for CI, and merge.
+   suffix) and opens a pull request into `main`, which it never merges.
+   `main` takes changes only through a pull request with green CI, so
+   wait for CI on that pull request, review it, and merge.
 
 ### Add another project
 
@@ -242,7 +242,8 @@ a `claude/*` branch. It is billed, and it runs on Sonnet unless you pass
 4. Follow the session at [claude.ai/code](https://claude.ai/code). The
    launcher does not wait for it.
 5. When it ends, review the pushed `claude/<node>-<task>` branch (the
-   harness may add a suffix) and its CI. The agent opens no pull request.
+   harness may add a suffix) through the pull request the agent opened, and
+   its CI.
 6. Merge it if the gate and CI are green and the diff is the one task.
 
 The environment's setup line must include `--agent-home`. This repository's

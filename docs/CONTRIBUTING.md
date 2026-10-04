@@ -203,8 +203,8 @@ history and enters the dev shell once so the hooks are installed.
 The owner can also have a cloud session build one task for you to review.
 It is one task per cloud session, launched with `just cloud <node:Tn>`
 ([`CLI.md`](CLI.md#cloud), [`RUNBOOK.md`](RUNBOOK.md)). The session pushes a
-`claude/<node>-<task>` branch and opens no pull request; the owner reviews
-the branch and its CI, then merges.
+`claude/<node>-<task>` branch and opens a pull request into `main`, which
+it never merges; the owner reviews the pull request and its CI, then merges.
 
 ## Things that will get a patch turned down
 
