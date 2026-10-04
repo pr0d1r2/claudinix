@@ -15,6 +15,7 @@ T3|x|`probe.sh`: `id`, PID 1 comm, systemd dir, `unshare -Ur true`, profile sour
 T4|x|MANUAL create env `nix` at claude.ai/code from repo files; run 1 probe session; record facts → resolve C8 `?`, C6 `?`|C8,C6,V10,I.ext.env — done 2026-10-03: env `nix` created; probes 1-5 on sherd
 T5|x|if probe: session uid ≠ root ∧ no systemd → make store usable (V9) \| switch install mode; bats|V9,V4 — not needed: session uid = root (probe 1)
 T10|x|`just bump-nix <ver>`: fetch `install.sha256`, rewrite pin pair in `setup.sh`; owner reviews diff \& runs gate|V11,C4
+T11|x|MANUAL create public GitHub repo `pr0d1r2/claudinix`, add remote, push after `docs:T9`|C10,V12
 T17|x|`setup.sh` tail: activate agent home w/ `nix:V15` failover as Claude's uid; seams `CLOUD_HOME_FLAKE`, `CLOUD_HOME_STOREPATH`; bats w/ stub `nix`|`nix:V14`,`nix:V15`,V7,I.file
 T19|x|guard scripts: `bats-mirror` (unicoverage, both directions), `tdd-order` (RED in parent of GREEN, `-M`), `commit-msg` (Conventional + `Why:`); reused per C17; pre-push \| all; each w/ own bats (RED→GREEN)|C16,C17,V17,V19
 T20|x|xenolith step `xnl check {{files}}` + `checks.<sys>.xenolith`; `xenolith.toml` (languages nix, shell)|C15,V18
