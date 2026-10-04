@@ -760,17 +760,19 @@ all: docs:T47 runs 8 billed Claude Code cloud sessions (model sonnet), one after
 `--yes`. `--dry-run` runs the checks, prints the plan above without the
 question, and starts nothing.
 
-**The steps.** Each wait polls GitHub with `gh` every `CLOUD_ALL_POLL`
-seconds (default 60). Each wait stops after a fixed number of polls, not
-at a clock time.
+**The steps.** The sessions run in the cloud; the script only waits. Each
+wait polls GitHub with `gh` every `CLOUD_ALL_POLL` seconds (default 10)
+and prints one `.` per poll, so you can see it is alive. Each wait lasts a
+fixed number of minutes, counted in polls (minutes × 60 /
+`CLOUD_ALL_POLL`), not against a clock time.
 
-| step | waits for | at most |
+| step | waits for | at most (minutes) |
 |---|---|---|
-| 1. `cloud <task>` | a pull request that was not open before, from branch `claude/<node>-<task>` (the harness may add a suffix; case is ignored; any node for a bare `Tn`) | 180 polls |
-| 2. | CI on the head commit: no check pending, none failed (skipped and neutral count as passed; no checks yet counts as pending) | 60 polls |
-| 3. `review all <PR>` | a comment headed `Review: <role>` for every role | 90 polls |
-| 4. `fixup <PR>` | the first newer comment that is not a review: the fixup's reply | 180 polls |
-| 5. | CI again, as in step 2 | 60 polls |
+| 1. `cloud <task>` | a pull request that was not open before, from branch `claude/<node>-<task>` (the harness may add a suffix; case is ignored; any node for a bare `Tn`) | 180 |
+| 2. | CI on the head commit: no check pending, none failed (skipped and neutral count as passed; no checks yet counts as pending) | 60 |
+| 3. `review all <PR>` | a comment headed `Review: <role>` for every role | 90 |
+| 4. `fixup <PR>` | the first newer comment that is not a review: the fixup's reply | 180 |
+| 5. | CI again, as in step 2 | 60 |
 
 Then it opens the pull request: `open -a Safari` on macOS, `xdg-open`
 elsewhere. It never merges.
@@ -781,7 +783,7 @@ and exits 1:
 
 ```text
 all: the build of <task> did not start
-all: gave up waiting for the pull request of <task> after 180 polls of 60s
+all: gave up waiting for the pull request of <task> after 1080 polls of 10s
 all: CI failed on #<n>
 all: no review of #<n> by <roles>
 all: the fixup of #<n> never replied
