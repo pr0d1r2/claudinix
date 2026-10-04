@@ -181,6 +181,13 @@ local fast = new Mapping<String, Step> {
     check = "scripts/guard/readme-setup-line.sh"
   }
 
+  // The dev shell's hk and bats job counts equal the vCPUs FACTS records
+  // (T52, C18).
+  ["jobs-match-vcpus"] {
+    glob = List("docs/FACTS.md", "nix/dev-shell.nix", "scripts/guard/jobs-match-vcpus.sh")
+    check = "scripts/guard/jobs-match-vcpus.sh"
+  }
+
   // The dev crate (dev:C31): rustfmt, then clippy; its tests run on push
   // (`dev-test` below). Chained with `depends` because cargo locks the
   // target dir, so parallel cargo runs would only queue on the lock.
