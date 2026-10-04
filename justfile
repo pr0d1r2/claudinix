@@ -29,6 +29,10 @@ probe *args:
 cloud *args:
     scripts/cloud-task.sh {{ args }}
 
+# Rebase one claude/* pull request onto main in a billed cloud session; `--dry-run` prints the command.
+rebase *args:
+    scripts/cloud-rebase.sh {{ args }}
+
 # Pin setup.sh to another Nix release: version and installer sha256 together.
 bump-nix ver:
     scripts/bump-nix.sh {{ ver }}
