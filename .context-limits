@@ -26,9 +26,13 @@
 # Set 2026-10-03 for the new experiments node: the cloud experiment rows
 # (T7, T14, T52, T55-T66, T102) and C23 move down from root, which drops
 # the root chain to 6.6k. Measured: file 1034, chain 7519. ~15% margin.
+#
+# Raised 2026-10-04 for scripts: the setup-line.sh §I row moves down
+# from root (root file -157), with V37, T113, T114 and B13 for short
+# SHAs. Measured: file 3530. Same ~15% margin.
 
 SPEC.md          8700
-scripts/SPEC.md  3150
+scripts/SPEC.md  4050
 nix/SPEC.md      1000
 docs/SPEC.md     1800
 experiments/SPEC.md 1200
