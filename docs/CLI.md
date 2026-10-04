@@ -716,7 +716,7 @@ deny rules for `main` still win.
 **It does not wait.** After the session starts it prints:
 
 ```text
-cloud: started the fixup of #<n> (<branch>); it pushes its commits there and thumbs-up the comments it fixed -- follow it at claude.ai/code
+cloud: started the fixup of #<n> (<branch>); it pushes its commits there and gives a thumbs-up to the comments it fixed -- follow it at claude.ai/code
 ```
 
 | exit | meaning |

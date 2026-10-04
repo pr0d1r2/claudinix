@@ -140,4 +140,4 @@ fi
 
 cloud_launch "$prompt" "$model"
 
-echo "cloud: started the fixup of #$pr ($head); it pushes its commits there and thumbs-up the comments it fixed -- follow it at claude.ai/code"
+echo "cloud: started the fixup of #$pr ($head); it pushes its commits there and gives a thumbs-up to the comments it fixed -- follow it at claude.ai/code"
