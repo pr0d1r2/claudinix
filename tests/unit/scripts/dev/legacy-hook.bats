@@ -11,7 +11,11 @@ setup() {
     GUARD="$ROOT/scripts/guard/commit-msg.sh"
     BASH_BIN="$(command -v bash)"
     REAL_GIT="$(command -v git)"
-    unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_OBJECT_DIRECTORY GIT_PREFIX
+    # Every GIT_* var: a hook exports GIT_EXEC_PATH, and an older git's
+    # exec dir first on PATH makes the shim run the gate again (B17).
+    while IFS= read -r var; do
+        unset "$var"
+    done < <(compgen -e | grep '^GIT_' || true)
     unset CLAUDINIX_HOOK HK
     REPO="$BATS_TEST_TMPDIR/repo"
     HOOKS="$REPO/.git/hooks"
