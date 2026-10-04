@@ -570,7 +570,7 @@ Run it as `scripts/cloud-review.sh ...` or `just review ...`, for example
 
 **The roles.** Each role is one file, `scripts/review/<role>.md`. Its first
 line is a `# ` title, and the rest tells the reviewer what to look for. The
-first roles are `correctness`, `maintainability`, `extensibility`,
+roles so far are `correctness`, `maintainability`, `extensibility`,
 `performance`, `security` and `architecture`. To add a role, add a file:
 the launcher and its tests read the directory, so no code changes. A role
 file may contain `@`, even a placeholder such as `@PR@`: it reaches the
@@ -599,14 +599,15 @@ checked out here may be unpushed, behind or detached.
 review: this starts a billed Claude Code cloud session (model sonnet) for a <role> review of #<n> (<branch>). Start it? [y/N]
 ```
 
-**`all`** starts one session per role and asks once, naming the count:
+**`all`** starts one session per role file (`<N>` of them) and asks once,
+naming the count and that the cost is about `<N>` times one review:
 
 ```text
-review: this starts 6 billed Claude Code cloud sessions at once (model sonnet), one per role, each reviewing #<n> (<branch>) and posting one comment:
+review: this starts <N> billed Claude Code cloud sessions at once (model sonnet), one per role, each reviewing #<n> (<branch>) and posting one comment:
   architecture
   correctness
   ...
-Each session is billed on its own. Start all 6? [y/N]
+Each session is billed on its own. That is about <N> times the cost of one review. Start all <N>? [y/N]
 ```
 
 Anything but `y`, `Y` or `yes` prints `review: not started`, exits 1 and
@@ -625,7 +626,7 @@ does not approve, request changes on or merge the pull request.
 
 ```text
 cloud: started the <role> review of #<n> (<branch>); it comments on the pull request -- follow it at claude.ai/code
-cloud: started 6 review sessions for #<n> (<branch>): <roles>; each comments on the pull request -- follow them at claude.ai/code
+cloud: started <N> review sessions for #<n> (<branch>): <roles>; each comments on the pull request -- follow them at claude.ai/code
 ```
 
 | exit | meaning |
