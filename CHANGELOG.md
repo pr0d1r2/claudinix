@@ -140,6 +140,9 @@ Run from the project you will send to the cloud, as
 - `guide --rev` takes a short SHA too. Before the first release, when
   `gh` can tell, the guide names the newest `main` commit whose CI passed
   as the `--rev` to run it again with.
+- `guide` names the cloud environment after the project by default (it
+  asks, Enter keeps it), instead of always `nix`, and step 4 says how to
+  pin that environment for this project only.
 
 ### Repository
 
