@@ -61,7 +61,7 @@ T114|x|ARCHIVED to SPEC-ARCHIVE.md|V37,V26,I.cmd,T113,`.:C25`
 T116|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V26,`.:C2`
 T118|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B14,`.:C2`
 T119|x|guide step 4 = per-project pin (owner 2026-10-04: 1 env per project, more soon; `/remote-env` writes user scope only, `--environment` rejects `env_` ids): show the project pin if any, ask `Pin <id> to <project> [Y/n]`, write it, warn if not ignored; ⊥ id → todo; heading "(once per project)" + SETUP heading (parity)|I.cmd,V26,T116,`.:C2`
-T124|.|cloud prompt step 6: after the push, open a PR to `main` (title = 1st commit subject; body: task row, commits, gate rc, session link) as the GitHub artifact; ⊥ merge (owner, 2026-10-04; PR #6 showed a session can)|I.cmd,`.:C29`
+T124|x|cloud prompt step 6: after the push, open a PR to `main` (title = 1st commit subject; body: task row, commits, gate rc, session link) as the GitHub artifact; ⊥ merge (owner, 2026-10-04; PR #6 showed a session can)|I.cmd,`.:C29`
 
 ## §B BUGS
 
