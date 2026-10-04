@@ -591,3 +591,35 @@ config() {
     [ "$status" -eq 1 ]
     [[ "$output" != *"not-a-sha"* ]]
 }
+
+# scripts:T116: the environment name defaults to the project's name.
+
+@test "step 3 offers the project name as the environment name and copies it (T116)" {
+    run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
+    [[ "$output" == *"Environment name (Enter: project)"* ]]
+    grep -A1 -x -- '--- clip' "$LOG" | grep -qx project
+    run ! grep -qx nix "$LOG"
+}
+
+@test "a typed environment name is copied and reused by step 4 (T116)" {
+    run bash "$SCRIPT" --from 3 <<<$'y\ny\nmyenv\n\n\n\n\n\n'
+    grep -A1 -x -- '--- clip' "$LOG" | grep -qx myenv
+    [[ "$output" == *"pick myenv"* ]]
+}
+
+@test "the default is the git top's name, not the subdirectory's (T116)" {
+    while read -r var; do unset "$var"; done < <(env | sed -n 's/^\(GIT_[A-Z_]*\)=.*/\1/p')
+    top="$BATS_TEST_TMPDIR/widget"
+    git init -q "$top"
+    mkdir -p "$top/sub"
+    run bash "$SCRIPT" --from 4 "$top/sub" <<<$'y\ny\n\n'
+    [[ "$output" == *"pick widget"* ]]
+}
+
+@test "step 4 and the update flow name the default without step 3 (T116)" {
+    run bash "$SCRIPT" --from 4 <<<$'y\ny\n\n'
+    [[ "$output" == *"pick project"* ]]
+    [[ "$output" == *".claude/settings.json"* ]]
+    run bash "$SCRIPT" update <<<''
+    [[ "$output" == *"Hover over project"* ]]
+}
