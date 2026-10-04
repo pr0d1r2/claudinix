@@ -67,6 +67,8 @@ else
 fi
 
 lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
+# shellcheck source=/dev/null # lib/cloud-launch.sh, beside this script
+source "$(dirname "${BASH_SOURCE[0]}")/lib/cloud-launch.sh"
 remote="${CLOUD_TASK_REMOTE:-origin}"
 
 if ! info="$(gh pr view "$pr" --json number,state,headRefName,baseRefName,url \
@@ -92,44 +94,15 @@ if [ "$base" != main ]; then
     exit 1
 fi
 
-if ! git remote get-url "$remote" >/dev/null 2>&1; then
-    echo "rebase: no remote $remote -- push the project to GitHub first" >&2
-    exit 1
-fi
+cloud_require_remote rebase "$remote" || exit 1
+cloud_require_pushed_branch rebase "$remote" || exit 1
+cloud_resolve_model "$lib" || exit "$?"
 
-# The session clones GitHub: the branch must be there as it is here.
-if ! current="$(git symbolic-ref --quiet --short HEAD)"; then
-    echo "rebase: HEAD is detached -- check out the branch the session should clone" >&2
-    exit 1
-fi
-if ! upstream="$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null)"; then
-    echo "rebase: branch $current is not pushed (no upstream) -- push it first: git push -u $remote $current" >&2
-    exit 1
-fi
-if [ "$(git rev-parse HEAD)" != "$(git rev-parse '@{u}')" ]; then
-    echo "rebase: branch $current is not up to date with $upstream -- push (or pull) first" >&2
-    exit 1
-fi
-
-if [ -z "$model" ]; then
-    model="$(bash "$lib/config.sh" get session.model)" || exit "$?"
-fi
-
-# fill KEY VALUE: replace every KEY in $prompt with VALUE, as written
-# (see cloud-task.sh for why not ${prompt//KEY/VALUE}).
-fill() {
-    local text="$prompt" out=
-    while [[ "$text" == *"$1"* ]]; do
-        out="$out${text%%"$1"*}$2"
-        text="${text#*"$1"}"
-    done
-    prompt="$out$text"
-}
 prompt="$(cat "$lib/cloud-rebase-prompt.txt")"
-fill @PR@ "$pr"
-fill @BASE@ "$base"
-fill @BRANCH@ "$head"
-fill @URL@ "$url"
+cloud_fill @PR@ "$pr"
+cloud_fill @BASE@ "$base"
+cloud_fill @BRANCH@ "$head"
+cloud_fill @URL@ "$url"
 
 if [ "$dry" = 1 ]; then
     printf 'claude --cloud %q --model %q\n' "$prompt" "$model"
@@ -137,32 +110,10 @@ if [ "$dry" = 1 ]; then
 fi
 
 if [ "$yes" = 0 ]; then
-    # Drop what the terminal left in the input buffer, such as a reply to
-    # a query gh sent it, so only the typed answer is read (B19). Whole
-    # seconds: macOS /bin/bash 3.2 has no fractional -t.
-    if [ -t 0 ]; then
-        while IFS= read -r -t 1 _; do :; done
-    fi
-    printf 'rebase: this starts a billed Claude Code cloud session (model %s) to rebase #%s (%s) onto %s. Start it? [y/N] ' "$model" "$pr" "$head" "$base"
-    answer=
-    IFS= read -r answer || true
-    case "$answer" in
-    y | Y | yes) ;;
-    *)
-        echo "rebase: not started" >&2
-        exit 1
-        ;;
-    esac
+    cloud_flush_input
+    cloud_confirm rebase "$(printf 'rebase: this starts a billed Claude Code cloud session (model %s) to rebase #%s (%s) onto %s. Start it? [y/N] ' "$model" "$pr" "$head" "$base")" || exit 1
 fi
 
-# util-linux `script` takes the command as a string, BSD `script` as
-# arguments; both get a TTY for claude.
-if script --version >/dev/null 2>&1; then
-    # shellcheck disable=SC2016 # script's shell expands these, not this one
-    CLOUD_TASK_PROMPT="$prompt" CLOUD_TASK_MODEL="$model" script -q -e \
-        -c 'claude --cloud "$CLOUD_TASK_PROMPT" --model "$CLOUD_TASK_MODEL"' /dev/null
-else
-    script -q /dev/null claude --cloud "$prompt" --model "$model"
-fi
+cloud_launch "$prompt" "$model"
 
 echo "cloud: started the rebase of #$pr ($head) onto $base; it force-pushes $head with a lease -- follow it at claude.ai/code"
