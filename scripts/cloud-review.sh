@@ -96,6 +96,14 @@ if [ "$state" != OPEN ]; then
     echo "review: #$pr is $state, not OPEN -- nothing to review" >&2
     exit 1
 fi
+# The author picks these names and the prompt pastes them into shell
+# commands, so only plain ref characters pass (B20).
+for ref in "$head" "$base"; do
+    if [[ ! "$ref" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+        echo "review: #$pr has the branch name '$ref', which has characters beyond A-Z a-z 0-9 . _ / - -- refusing to put it in a prompt" >&2
+        exit 1
+    fi
+done
 
 if ! git remote get-url "$remote" >/dev/null 2>&1; then
     echo "review: no remote $remote -- push the project to GitHub first" >&2
