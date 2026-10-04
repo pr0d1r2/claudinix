@@ -15,6 +15,7 @@ has a bug.
 | [`probe`](#probe) | starts a billed cloud session that probes the project and prints its report | your machine, in the project's git checkout |
 | [`cloud`](#cloud) | builds one task of this repository's spec in a billed cloud session | your machine, in the project's git checkout |
 | [`rebase`](#rebase) | rebases one `claude/*` pull request onto `main` in a billed cloud session | your machine, in the project's git checkout |
+| [`review`](#review) | reviews one pull request as one role, or as every role at once, in billed read-only cloud sessions | your machine, in the project's git checkout |
 | [`config.sh`](#configsh) | reads and checks a project's optional [`.claudinix.toml`](CONFIG.md) | your machine or a session, in the project |
 | [`nix-dev`](#nix-dev) | `nix develop` that survives the GitHub proxy | inside a cloud session |
 | [`setup.sh`](#setupsh) | the environment's setup script | a cloud session's VM, through the setup line |
@@ -550,6 +551,86 @@ cloud: started the rebase of #<n> (<branch>) onto main; it force-pushes <branch>
 | 0 | the session was started, or `--dry-run` printed the command |
 | 1 | a refusal above, or the answer was not yes |
 | 2 | a usage error, a bad pull request argument, or a bad `.claudinix.toml` |
+
+## review
+
+Reviews one open pull request as one role, or as every role at once, in
+fresh read-only cloud sessions started from your terminal. **Each session
+is billed**, so it asks first.
+
+```text
+usage: cloud-review.sh <ROLE | all> <PR# | URL> [--model M] [--yes] [--dry-run]
+```
+
+Run it as `scripts/cloud-review.sh ...` or `just review ...`, for example
+`just review security 8` or `just review all 8`. `--model`, `--yes`,
+`--dry-run`, `CLOUD_TASK_REMOTE` and the model order work as in
+[`cloud`](#cloud). `CLAUDINIX_SCRIPTS` holds `review/`,
+`cloud-review-prompt.txt` and `config.sh`.
+
+**The roles.** Each role is one file, `scripts/review/<role>.md`. Its first
+line is a `# ` title, and the rest tells the reviewer what to look for. The
+first roles are `correctness`, `maintainability`, `extensibility`,
+`performance`, `security` and `architecture`. To add a role, add a file:
+the launcher and its tests read the directory, so no code changes. A role
+file must not contain `@`, and `all` is not a role name. An unknown role
+exits 2 and lists the roles:
+
+```text
+review: no role <role> -- roles: <list>, or all (each role is a file in scripts/review/)
+```
+
+**The pull request.** `gh pr view` must find it open; any head branch will
+do, since the session pushes nothing. Otherwise it exits 1:
+
+```text
+review: gh could not read pull request #<n> -- check the number and that gh is signed in
+review: #<n> is <STATE>, not OPEN -- nothing to review
+```
+
+The current branch must be pushed and equal to its upstream, as for
+`cloud`.
+
+**One role** asks:
+
+```text
+review: this starts a billed Claude Code cloud session (model sonnet) for a <role> review of #<n> (<branch>). Start it? [y/N]
+```
+
+**`all`** starts one session per role and asks once, naming the count:
+
+```text
+review: this starts 6 billed Claude Code cloud sessions at once (model sonnet), one per role, each reviewing #<n> (<branch>) and posting one comment:
+  architecture
+  correctness
+  ...
+Each session is billed on its own. Start all 6? [y/N]
+```
+
+Anything but `y`, `Y` or `yes` prints `review: not started`, exits 1 and
+starts nothing. `--dry-run` prints one command per session.
+
+**What each session is told.** The prompt is
+[`cloud-review-prompt.txt`](../scripts/cloud-review-prompt.txt) with the
+pull request and the role's file filled in. The session reads `AGENTS.md`,
+the specs and the diff, and reviews as that role only. It reports findings
+it can point at (file and line, what goes wrong, a fix), most severe first,
+and posts them as one comment headed `Review: <role>`. If it cannot post,
+the findings go in its report. It commits, pushes and edits nothing, and it
+does not approve, request changes on or merge the pull request.
+
+**It does not wait.** It prints, for one role or for `all`:
+
+```text
+cloud: started the <role> review of #<n> (<branch>); it comments on the pull request -- follow it at claude.ai/code
+cloud: started 6 review sessions for #<n> (<branch>): <roles>; each comments on the pull request -- follow them at claude.ai/code
+```
+
+| exit | meaning |
+|---|---|
+| 0 | the sessions were started, or `--dry-run` printed the commands |
+| 1 | a refusal above, or the answer was not yes |
+| 2 | a usage error, an unknown role, a bad pull request argument, or a bad `.claudinix.toml` |
 
 ## config.sh
 

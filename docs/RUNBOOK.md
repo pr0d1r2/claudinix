@@ -249,6 +249,10 @@ a `claude/*` branch. It is billed, and it runs on Sonnet unless you pass
    `just rebase <PR>` (`--dry-run` first). Another billed session
    rebases the branch, re-writes generated files such as the README
    badges, runs the gate and force-pushes the same branch with a lease.
+   For a second opinion before you merge, run `just review <role> <PR>`
+   for one role, or `just review all <PR>` for every role at once (one
+   billed session per role). Each session posts its findings as a comment
+   on the pull request.
 
 The environment's setup line must include `--agent-home`. This repository's
 `.claudinix.toml` turns the agent home on, so the cloud agent gets the
