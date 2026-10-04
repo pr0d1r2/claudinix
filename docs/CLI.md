@@ -588,8 +588,9 @@ review: gh could not read pull request #<n> -- check the number and that gh is s
 review: #<n> is <STATE>, not OPEN -- nothing to review
 ```
 
-The current branch must be pushed and equal to its upstream, as for
-`cloud`.
+Unlike `cloud`, it needs only the remote (`origin`, or `CLOUD_TASK_REMOTE`):
+the session fetches the pull request's branch from GitHub, so the branch
+checked out here may be unpushed, behind or detached.
 
 **One role** asks:
 
