@@ -76,6 +76,15 @@ and how to run it by hand: [`docs/INTEGRATION.md`](docs/INTEGRATION.md).
   `tests/unit/<same path>.bats` and the reverse.
 - Tests must be parallel-safe: own `BATS_TEST_TMPDIR`, unset `GIT_*` in
   git fixtures, no wall-clock assertions.
+- A `feat` or `fix` commit that changes what a session or a target-project
+  user gets must stage a `CHANGELOG.md` line under `## Unreleased`; see
+  [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md#the-changelog-rule).
+- Blocks between `<!-- BEGIN ... -->` and `<!-- END ... -->` markers are
+  generated; never edit them by hand. After a flake input bump run
+  `claudinix-dev notices --write`.
+- An `hk.pkl` edit travels in one commit with the files its fix steps
+  regenerate (`.:V36`); never commit other work while `hk.pkl` has unstaged
+  edits.
 
 ## Docs
 
