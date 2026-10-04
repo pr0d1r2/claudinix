@@ -35,9 +35,13 @@
 # bug rows B13, B14 and B17 that had been shortened to fit, and the cloud
 # launchers (cloud, rebase, review, fixup) each keep an §I row. Measured
 # with the rows restored: file 4119; fixup adds about 200. ~15% margin.
+#
+# Raised 2026-10-04 for scripts again: the #12 review fixes (B20, B21,
+# the shared launch library row) took main to 4600, and the fixup row
+# brings it to 4811. ~15% margin.
 
 SPEC.md          8700
-scripts/SPEC.md  4750
+scripts/SPEC.md  5500
 nix/SPEC.md      1000
 docs/SPEC.md     1800
 experiments/SPEC.md 1200
