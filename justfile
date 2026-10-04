@@ -33,6 +33,10 @@ cloud *args:
 rebase *args:
     scripts/cloud-rebase.sh {{ args }}
 
+# Review one pull request as one role (`scripts/review/<role>.md`) in a billed, read-only cloud session.
+review *args:
+    scripts/cloud-review.sh {{ args }}
+
 # Pin setup.sh to another Nix release: version and installer sha256 together.
 bump-nix ver:
     scripts/bump-nix.sh {{ ver }}

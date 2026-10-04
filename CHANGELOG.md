@@ -103,6 +103,11 @@ does are summarised briefly; the git history has the detail.
   It opens no new pull request and merges nothing.
   Answering `y` to its question now starts the session; before, a reply
   the terminal sent to `gh` could be read as the answer.
+- `just review <role> <PR>` starts one billed, read-only cloud session that
+  reviews an open pull request as one role and posts its findings as one
+  comment on it. The roles are the files in `scripts/review/`:
+  correctness, maintainability, extensibility, performance, security and
+  architecture; a new role is a new file.
 - The cloud permission list allows
   `git push --force-with-lease origin HEAD:claude/*`, the rebase session's
   push; plain force pushes and every push to `main` stay unlisted or denied.
