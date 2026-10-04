@@ -3,12 +3,15 @@
 # "Also include default list of common package managers" = ON.
 # The default list did not cover the nixos.org hosts below: the proxy
 # refused cache.nixos.org and channels.nixos.org (probe 2026-10-03).
+# Nor raw.githubusercontent.com, where the setup line downloads setup.sh:
+# setup failed with curl 403 without it (SPEC B15, 2026-10-04).
 # Enter each line below as one Allowed domain; comments are not entered.
 pr0d1r2.cachix.org
 cache.nixos.org
 channels.nixos.org
 releases.nixos.org
 github.com
+raw.githubusercontent.com
 # This is the base, Nix only (SPEC T30). A target project's own hosts
 # (crates.io for cargo, PyPI, npm, ...) come from its files: run
 #   nix run github:pr0d1r2/claudinix#domains
