@@ -59,8 +59,13 @@ and how to run it by hand: [`docs/INTEGRATION.md`](docs/INTEGRATION.md).
 
 - Commit from inside the dev shell (`direnv allow` or `nix develop`). It
   installs the git hooks, and each hook re-enters the pinned shell.
-- Run the whole gate: `hk check --all >gate.log 2>&1; echo rc=$?`. Read
-  the log only when `rc` is not 0; a green gate is quiet.
+- Each commit runs the fast layer through the hooks; don't rerun it by
+  hand. When a task is done, run the push layer over what your branch
+  changed: `hk check --from-ref main --to-ref HEAD >gate.log 2>&1; echo
+  rc=$?` (`origin/main` in a cloud session). Read the log only when `rc`
+  is not 0; a green gate is quiet. Run the full `hk check --all` only
+  after changing `hk.pkl`, `flake.lock` or `nix/dev-shell.nix`; CI runs
+  it on every push.
 - A Bash command past 120 seconds moves to the background and keeps
   going. Wait for the completion notice, which carries the real exit
   status; do not read the 120-second return as the result.
