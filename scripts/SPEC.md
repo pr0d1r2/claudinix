@@ -55,10 +55,10 @@ T95|x|ARCHIVED to SPEC-ARCHIVE.md|V34,V26
 T96|x|ARCHIVED to SPEC-ARCHIVE.md|V34
 T97|x|ARCHIVED to SPEC-ARCHIVE.md|V34
 T98|x|ARCHIVED to SPEC-ARCHIVE.md|V34,V13
-T113|x|`setup-line.sh`: a 7-39 hex REV is resolved on GitHub to the full SHA; unknown \| ambiguous → exit 1 naming it|V37,V26,I.cmd
-T114|x|guide `--rev` takes a short SHA (7-40 hex), passed on to `setup-line.sh`; bad value → exit 2 naming it; "no release yet" stop names the newest green `main` SHA (`gh run list --status success`, read-only) as the `--rev` to rerun with; gh missing \| silent → today's message|V37,V26,I.cmd,T113,`.:C25`
-T116|x|guide env name: step 3 asks `Environment name (Enter: <project>)`, default = project name (git top basename of flake-dir), ⊥ fixed `nix`; steps 4 \& `update` name it; step 4 says `/remote-env` is user-wide ∴ pin per-project env in the repo `.claude/settings.json` (`remote.defaultEnvironmentId`)|I.cmd,V26,`.:C2`
-T118|x|guide step 3 ends w/ "select Add environment" (UI label seen 2026-10-04), ⊥ "Create environment"|I.cmd,B14,`.:C2`
+T113|x|ARCHIVED to SPEC-ARCHIVE.md|V37,V26,I.cmd
+T114|x|ARCHIVED to SPEC-ARCHIVE.md|V37,V26,I.cmd,T113,`.:C25`
+T116|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V26,`.:C2`
+T118|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B14,`.:C2`
 
 ## §B BUGS
 
