@@ -258,6 +258,13 @@ a `claude/*` branch. It is billed, and it runs on Sonnet unless you pass
    each comment it fixed, and replies once. Then review and merge as
    above.
 
+To run steps 3 to 6 in one command, use `just all <task>` (`--dry-run`
+first). After one question it builds the task, waits for the pull request
+and green CI, runs `review all`, waits for every role's comment, runs
+`fixup`, waits for its reply and for green CI again, and then opens the
+pull request in Safari. You still review and merge it. See
+[`all`](CLI.md#all).
+
 The environment's setup line must include `--agent-home`. This repository's
 `.claudinix.toml` turns the agent home on, so the cloud agent gets the
 `/build` skill; without the flag it builds by hand from `AGENTS.md`. See
