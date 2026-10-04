@@ -117,8 +117,10 @@ in each new VM. This repository's environment installs Nix.
    once you choose **Cloud**.
 3. Select **Cloud**, then **Add cloud environment**.
 4. Fill in the dialog, field by field, in this order:
-   - **Name**: `nix`. It is only a label; pick another if you like, and
-     choose that one in step 4.
+   - **Name**: your project's name, for example `claudinix`. It is only a
+     label, and the guide offers the project's name by default. One
+     environment per project fits best, because the allowed domains differ
+     from project to project. Choose the same name in step 4.
    - **Network access**: **Custom**.
      - Check **Also include default list of common package managers**.
        It does not cover everything Nix needs, so you add hosts below.
@@ -174,7 +176,7 @@ in each new VM. This repository's environment installs Nix.
      [`scripts/setup-line.sh`](../scripts/setup-line.sh) (see
      [`CLI.md`](CLI.md)); it needs `gh`, because it refuses a commit whose
      CI on `main` is not green.
-5. Select **Create environment**.
+5. Select **Add environment**.
 
 The setup script runs as root on the first session in the environment.
 When it finishes within about five minutes, the VM's filesystem is
@@ -223,14 +225,15 @@ clone the whole repository.
 
 ## 4. Choose the environment in your terminal (once per machine)
 
-Run `/remote-env` in Claude Code and pick `nix`. This saves the choice
+Run `/remote-env` in Claude Code and pick the environment you made. This saves the choice
 as `remote.defaultEnvironmentId` in your user settings
 (`~/.claude/settings.json`), and `claude --cloud` uses it from then on
 in every project. Without this step, sessions run in the **Default**
 environment, which has no Nix.
 
-A repository can pin the environment for everyone who works in it by
-setting the same key in its committed `.claude/settings.json`. Copy the
+With one environment per project, pin it in the repository so the
+user-wide choice does not matter. A repository can pin the environment for
+everyone who works in it by setting the same key in its committed `.claude/settings.json`. Copy the
 `env_...` ID from your user settings after running `/remote-env`:
 
 ```json
@@ -301,7 +304,7 @@ keeps its old VM; start a new session to pick up the change.
   in it is a commit pushed to GitHub, and that **Also include default list of
   common package managers** is checked.
 - **`nix: command not found`.** The session ran in another environment.
-  Run `/remote-env`, pick `nix`, and start a new session.
+  Run `/remote-env`, pick your environment, and start a new session.
 - **Downloads fail with a network or proxy error** such as
   `CONNECT tunnel failed, response 403`. The host is not allowed. Add
   it to **Allowed domains** in the environment dialog, and start a new

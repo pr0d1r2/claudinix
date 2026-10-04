@@ -11,7 +11,7 @@
 
 [![gate hk](https://img.shields.io/badge/gate-hk-6E4AFF)](hk.pkl)
 [![gate steps 35 commit / 39 push](https://img.shields.io/badge/gate_steps-35_commit_%2F_39_push-6E4AFF)](hk.pkl)
-[![bats tests 585](https://img.shields.io/badge/bats_tests-585-brightgreen)](tests/unit)
+[![bats tests 586](https://img.shields.io/badge/bats_tests-586-brightgreen)](tests/unit)
 [![federated nodes 6](https://img.shields.io/badge/federated_nodes-6-6E4AFF)](SPEC.md)
 
 [![built with Claude Code](https://img.shields.io/badge/built_with-Claude_Code-D97757)](https://claude.com/claude-code)
@@ -202,7 +202,7 @@ click, is [`docs/SETUP.md`](docs/SETUP.md). In short:
    committed `flake.lock`, and your branch pushed.
 3. **Connect GitHub** to your claude.ai account (once).
 4. **Create the environment** at [claude.ai/code](https://claude.ai/code):
-   name `nix`, network access **Custom** with the default package-manager
+   named after your project, network access **Custom** with the default package-manager
    list included, as allowed domains every non-comment line of
    `allowlist.txt` plus your project's hosts from
    `nix run github:pr0d1r2/claudinix#domains`, and as the setup script the

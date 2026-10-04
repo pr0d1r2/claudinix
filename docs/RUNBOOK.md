@@ -96,7 +96,7 @@ cloud session (`.:T57`).
    and the release notes hold the line that `publish` generated; users
    paste that one.
 4. Follow "Updating the environment" in [`SETUP.md`](SETUP.md): open the
-   `nix` environment's settings, select all of the old setup script, paste
+   environment's settings, select all of the old setup script, paste
    the new line over it, save.
 5. Start a **new** session. A running session keeps its old VM.
 6. Run `probe.sh` in that session and check every line.
@@ -150,7 +150,7 @@ been run end to end against a real cloud session.
 
 | line | likely cause | fix |
 |---|---|---|
-| `nix-path: FAIL` | the setup script did not run, or failed before linking `nix` into `/usr/local/bin` | check the session is in the `nix` environment (`/remote-env`), then read the setup step in the session's checklist |
+| `nix-path: FAIL` | the setup script did not run, or failed before linking `nix` into `/usr/local/bin` | check the session is in the environment that holds the setup line (`/remote-env`), then read the setup step in the session's checklist |
 | `substituters: FAIL` | the managed block in `/etc/nix/nix.conf` is missing | the setup script did not finish; check the pasted line and start a new session |
 | `cachix: FAIL HTTP 403` | `pr0d1r2.cachix.org` is not in the allowed domains | add it (see `allowlist.txt`), start a new session |
 | `channels: FAIL HTTP 403` | `channels.nixos.org` or `releases.nixos.org` is not allowed | add both, start a new session (`.:B1`) |
@@ -187,9 +187,9 @@ repository.
    `.claudinix.toml` sets `session.agent_home = true`. The cloud agent
    needs the agent home for the `/build` skill and the cloud permissions.
 5. **Create the environment** in the browser as step 3 of the guide says:
-   name `nix`, network **Custom** with the default package-manager list,
-   the domains the guide copies, and the setup line. Environment
-   variables:
+   name `claudinix` (the guide offers it), network **Custom** with the
+   default package-manager list, the domains the guide copies, and the
+   setup line. Environment variables:
    - `BASH_DEFAULT_TIMEOUT_MS=600000` (optional) keeps gate runs in the
      foreground.
    - `CLAUDINIX_SESSION_PERMISSIONS=1` (optional) is the fallback route for
@@ -197,6 +197,10 @@ repository.
      has measured yet whether it is needed (experiment T104).
 6. **Choose the environment** with `/remote-env` in Claude Code, once per
    machine. Without it, sessions run in **Default**, which has no Nix.
+   `/remote-env` sets it for every project. Do not pin it in this
+   repository: its `.claude/settings.json` holds only the SessionStart hook,
+   and your `env_...` id means nothing to other contributors. Run
+   `/remote-env` again when you switch to another project.
 7. **Check it** with `just probe`. It asks before it starts the billed
    session and prints the report.
 8. **Build one task** as described in the next section: `just cloud
