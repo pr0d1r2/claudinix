@@ -63,7 +63,8 @@ nix run github:pr0d1r2/claudinix#guide
 1. **Run the guide** (above). It walks you through the setup and checks what
    it can. Creating the environment itself is the one part you do by hand at
    [claude.ai/code](https://claude.ai/code).
-2. **Choose the environment** in `claude` with `/remote-env`.
+2. **Choose the environment** in `claude` with `/remote-env`; the guide then
+   pins it to the project.
 3. **Run a first session** and look for a Nix version and `DEVSHELL-OK`:
 
    ```sh
@@ -210,7 +211,8 @@ click, is [`docs/SETUP.md`](docs/SETUP.md). In short:
    `setup.sh`). Until the first release there is no published line, and the
    guide stops with "no release yet"; maintainers and testers can use
    `guide --rev SHA` or `scripts/setup-line.sh SHA` (needs `gh`).
-5. **Choose it in your terminal** with `/remote-env` (once per machine).
+5. **Choose it in your terminal** with `/remote-env` and pin it to the
+   project (once per project; the guide writes the pin).
 6. **Run a first session** and look for a Nix version and `DEVSHELL-OK`:
 
    ```sh

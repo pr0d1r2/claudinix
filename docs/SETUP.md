@@ -23,7 +23,7 @@ Steps at a glance:
 1. Check the prerequisites.
 2. Connect GitHub (browser, once).
 3. Create the environment (browser, once).
-4. Choose the environment in your terminal (once per machine).
+4. Choose the environment in your terminal (once per project).
 5. Run a first session and check that it works.
 
 If you run this repository yourself (your own cache, your own names), the
@@ -225,24 +225,41 @@ clone the whole repository.
 
 ## 4. Choose the environment in your terminal (once per project)
 
-Run `/remote-env` in Claude Code and pick the environment you made. This saves the choice
-as `remote.defaultEnvironmentId` in your user settings
-(`~/.claude/settings.json`), and `claude --cloud` uses it from then on
-in every project. Without this step, sessions run in the **Default**
+Run `/remote-env` in Claude Code and pick the environment you made. It
+saves the choice as `remote.defaultEnvironmentId` in your user settings
+(`~/.claude/settings.json`), so on its own it applies to every project on
+your machine. Without any choice, sessions run in the **Default**
 environment, which has no Nix.
 
-With one environment per project, pin it in the repository so the
-user-wide choice does not matter. A repository can pin the environment for
-everyone who works in it by setting the same key in its committed `.claude/settings.json`. Copy the
-`env_...` ID from your user settings after running `/remote-env`:
+One environment per project works best. The allowed domains differ from
+project to project, and an experiment (a new setup line, domain or
+variable) then stays inside one project instead of breaking the others.
+So pin the environment in the project itself:
 
-```json
-{
-  "remote": {
-    "defaultEnvironmentId": "env_..."
+- **With the guide.** Step 4 reads the id `/remote-env` saved and offers
+  to write it into the project's `.claude/settings.local.json`. Press
+  Enter to accept. Other keys in that file stay as they are.
+- **By hand.** Copy the `env_...` id from `~/.claude/settings.json` into
+  the project's `.claude/settings.local.json`:
+
+  ```json
+  {
+    "remote": {
+      "defaultEnvironmentId": "env_..."
+    }
   }
-}
-```
+  ```
+
+Claude Code reads this key from every settings file, and the project's
+`settings.local.json` wins over your user settings, so `claude --cloud`
+from that project uses its own environment whatever `/remote-env` picked
+last. Make sure git ignores `settings.local.json` (the guide warns when it
+does not); your environment id means nothing to other people. A team that
+shares one environment can commit the same key in `.claude/settings.json`
+instead.
+
+`claude --cloud` has no flag that picks an `env_...` environment for one
+launch: `--environment` takes only self-hosted `ccpool_...` environments.
 
 ## 5. Run a first session and check that it works
 

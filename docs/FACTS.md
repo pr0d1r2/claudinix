@@ -71,6 +71,19 @@ GitHub traffic goes through a GitHub proxy, separately from the allowlist.
 | `claude --cloud "<task>" --model sonnet` runs the session on Sonnet 5.5: configured model, served model and commit trailer all agree. Putting `--model` before the task fails with `--cloud requires a description`. | 2026-10-03 | probe 7 |
 | A Bash command still running at 120 s is not killed. It moves to the background and finishes (limit 30 min); its real exit status arrives with the completion notice. | 2026-10-03 | probe 6 |
 
+## Choosing the environment
+
+These come from the Claude Code documentation
+([cloud environments](https://code.claude.com/docs/en/cloud-environments),
+[settings reference](https://code.claude.com/docs/en/settings-reference)),
+read on 2026-10-04. They are not measured in a session yet.
+
+| fact | read | source |
+|---|---|---|
+| `/remote-env` saves the pick as `remote.defaultEnvironmentId` in the user settings only, so it applies to every project on the machine. | 2026-10-04 | docs |
+| `remote.defaultEnvironmentId` with an `env_...` id is read from any settings file; the usual precedence applies, so a project's `.claude/settings.local.json` wins over `.claude/settings.json`, which wins over the user settings. | 2026-10-04 | docs |
+| `claude --cloud --environment <id>` takes only self-hosted `ccpool_...` ids and rejects `env_...` ids; there is no flag or variable that picks an `env_...` environment for one launch. | 2026-10-04 | docs, `claude --help` |
+
 ## Timings
 
 | what | time | measured | source |
