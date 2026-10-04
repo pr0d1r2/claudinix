@@ -108,6 +108,8 @@ does are summarised briefly; the git history has the detail.
   comment on it. The roles are the files in `scripts/review/`:
   correctness, maintainability, extensibility, performance, security and
   architecture; a new role is a new file.
+  `just review all <PR>` starts one such session per role, in parallel,
+  after one question that names how many billed sessions start.
 - The cloud permission list allows
   `git push --force-with-lease origin HEAD:claude/*`, the rebase session's
   push; plain force pushes and every push to `main` stay unlisted or denied.

@@ -22,7 +22,10 @@
 # commits, pushes and merges nothing. This does not wait for the session;
 # follow it at claude.ai/code.
 #
-# Usage: cloud-review.sh <ROLE> <PR# | URL> [--model M] [--yes] [--dry-run]
+# ROLE `all` starts one session per role file, all behind one y/N question
+# that names the count, the model, the roles and the billing.
+#
+# Usage: cloud-review.sh <ROLE | all> <PR# | URL> [--model M] [--yes] [--dry-run]
 # Env:   CLOUD_TASK_REMOTE  remote that must hold the branch (default origin)
 #        CLAUDINIX_SCRIPTS  dir holding review/, cloud-review-prompt.txt and
 #                           config.sh (default: here)
@@ -30,7 +33,7 @@
 set -euo pipefail
 
 usage() {
-    echo "usage: cloud-review.sh <ROLE> <PR# | URL> [--model M] [--yes] [--dry-run]" >&2
+    echo "usage: cloud-review.sh <ROLE | all> <PR# | URL> [--model M] [--yes] [--dry-run]" >&2
     exit 2
 }
 
@@ -59,12 +62,17 @@ arg="${args[1]}"
 lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 remote="${CLOUD_TASK_REMOTE:-origin}"
 
-if [[ ! "$role" =~ ^[a-z][a-z0-9-]*$ ]] || [ ! -f "$lib/review/$role.md" ]; then
-    roles=()
-    for f in "$lib"/review/*.md; do
-        [ -f "$f" ] && roles+=("$(basename "$f" .md)")
-    done
-    echo "review: no role $role -- roles: ${roles[*]:-none} (each is a file in scripts/review/)" >&2
+# The roles: one per file in review/; `all` runs every one of them.
+roles=()
+for f in "$lib"/review/*.md; do
+    [ -f "$f" ] && roles+=("$(basename "$f" .md)")
+done
+if [ "$role" = all ] && [ "${#roles[@]}" -gt 0 ]; then
+    run=("${roles[@]}")
+elif [[ "$role" =~ ^[a-z][a-z0-9-]*$ ]] && [ -f "$lib/review/$role.md" ]; then
+    run=("$role")
+else
+    echo "review: no role $role -- roles: ${roles[*]:-none}, or all (each role is a file in scripts/review/)" >&2
     exit 2
 fi
 
@@ -123,20 +131,27 @@ fill() {
     done
     prompt="$out$text"
 }
-prompt="$(cat "$lib/cloud-review-prompt.txt")"
-fill @ROLE_TEXT@ @ROLE_TEXT_SLOT@
-fill @ROLE@ "$role"
-fill @PR@ "$pr"
-fill @BASE@ "$base"
-fill @BRANCH@ "$head"
-fill @URL@ "$url"
-fill @ROLE_TEXT_SLOT@ "$(cat "$lib/review/$role.md")"
+# build ROLE: $prompt for one role's session.
+build() {
+    prompt="$(cat "$lib/cloud-review-prompt.txt")"
+    fill @ROLE_TEXT@ @ROLE_TEXT_SLOT@
+    fill @ROLE@ "$1"
+    fill @PR@ "$pr"
+    fill @BASE@ "$base"
+    fill @BRANCH@ "$head"
+    fill @URL@ "$url"
+    fill @ROLE_TEXT_SLOT@ "$(cat "$lib/review/$1.md")"
+}
 
 if [ "$dry" = 1 ]; then
-    printf 'claude --cloud %q --model %q\n' "$prompt" "$model"
+    for r in "${run[@]}"; do
+        build "$r"
+        printf 'claude --cloud %q --model %q\n' "$prompt" "$model"
+    done
     exit 0
 fi
 
+n="${#run[@]}"
 if [ "$yes" = 0 ]; then
     # Drop what the terminal left in the input buffer, so only the typed
     # answer is read (B19). Whole seconds: macOS /bin/bash 3.2 has no
@@ -144,7 +159,13 @@ if [ "$yes" = 0 ]; then
     if [ -t 0 ]; then
         while IFS= read -r -t 1 _; do :; done
     fi
-    printf 'review: this starts a billed Claude Code cloud session (model %s) for a %s review of #%s (%s). Start it? [y/N] ' "$model" "$role" "$pr" "$head"
+    if [ "$role" = all ]; then
+        printf 'review: this starts %s billed Claude Code cloud sessions at once (model %s), one per role, each reviewing #%s (%s) and posting one comment:\n' "$n" "$model" "$pr" "$head"
+        printf '  %s\n' "${run[@]}"
+        printf 'Each session is billed on its own. Start all %s? [y/N] ' "$n"
+    else
+        printf 'review: this starts a billed Claude Code cloud session (model %s) for a %s review of #%s (%s). Start it? [y/N] ' "$model" "$role" "$pr" "$head"
+    fi
     answer=
     IFS= read -r answer || true
     case "$answer" in
@@ -157,13 +178,21 @@ if [ "$yes" = 0 ]; then
 fi
 
 # util-linux `script` takes the command as a string, BSD `script` as
-# arguments; both get a TTY for claude.
-if script --version >/dev/null 2>&1; then
-    # shellcheck disable=SC2016 # script's shell expands these, not this one
-    CLOUD_TASK_PROMPT="$prompt" CLOUD_TASK_MODEL="$model" script -q -e \
-        -c 'claude --cloud "$CLOUD_TASK_PROMPT" --model "$CLOUD_TASK_MODEL"' /dev/null
-else
-    script -q /dev/null claude --cloud "$prompt" --model "$model"
-fi
+# arguments; both get a TTY for claude. Each call returns once its
+# session exists, so the sessions run in parallel.
+for r in "${run[@]}"; do
+    build "$r"
+    if script --version >/dev/null 2>&1; then
+        # shellcheck disable=SC2016 # script's shell expands these, not this one
+        CLOUD_TASK_PROMPT="$prompt" CLOUD_TASK_MODEL="$model" script -q -e \
+            -c 'claude --cloud "$CLOUD_TASK_PROMPT" --model "$CLOUD_TASK_MODEL"' /dev/null
+    else
+        script -q /dev/null claude --cloud "$prompt" --model "$model"
+    fi
+done
 
-echo "cloud: started the $role review of #$pr ($head); it comments on the pull request -- follow it at claude.ai/code"
+if [ "$role" = all ]; then
+    echo "cloud: started $n review sessions for #$pr ($head): ${run[*]}; each comments on the pull request -- follow them at claude.ai/code"
+else
+    echo "cloud: started the $role review of #$pr ($head); it comments on the pull request -- follow it at claude.ai/code"
+fi
