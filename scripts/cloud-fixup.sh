@@ -83,7 +83,8 @@ if [ -n "$url_repo" ]; then
     # git@github.com:o/r(.git).
     repo="${remote_url%.git}"
     repo="${repo#*github.com[:/]}"
-    if [ "$url_repo" != "$repo" ]; then
+    # GitHub names ignore case; `tr`, as bash 3.2 has no ${var,,}.
+    if [ "$(printf %s "$url_repo" | tr '[:upper:]' '[:lower:]')" != "$(printf %s "$repo" | tr '[:upper:]' '[:lower:]')" ]; then
         echo "fixup: $arg is a pull request of $url_repo, but $remote is $repo -- run it from that repository's checkout" >&2
         exit 1
     fi
