@@ -171,6 +171,13 @@ pr() {
 
 # --- the prompt ---
 
+@test "the prompt: a comment holds many findings; one raised twice is fixed once" {
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 0 ]
+    grep -qF 'several numbered findings' "$STATE/claude.task"
+    grep -qF 'raised in several comments is one finding' "$STATE/claude.task"
+}
+
 @test "the prompt: findings 1 by 1 in own commits, gate, plain push, thumbs-up, reply" {
     run bash "$SCRIPT" 8 --yes
     [ "$status" -eq 0 ]
