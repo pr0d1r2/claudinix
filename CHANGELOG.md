@@ -108,8 +108,8 @@ does are summarised briefly; the git history has the detail.
   comment on it. The roles are the files in `scripts/review/`:
   correctness, maintainability, extensibility, performance, security and
   architecture; a new role is a new file.
-  `just review all <PR>` starts one such session per role, in parallel,
-  after one question that names how many billed sessions start and that
+  `just review all <PR>` starts one such session per role, started one
+  after another and then running side by side, after one question that names how many billed sessions start and that
   the cost is about that many times one review.
   It refuses a pull request whose branch names have characters beyond
   letters, digits and `._/-`, since the prompt puts them in shell commands, and a pull request URL
