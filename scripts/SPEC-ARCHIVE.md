@@ -24,3 +24,4 @@ T91|x|readers: `domains` adds `network.extra_domains` (source tag `config`); `in
 T95|x|config values, ⊥ only types: non-empty strings; `cache.name` ~ `^[a-z0-9-]+$`; `extra_domains` = bare hostnames (⊥ scheme, path); `installable` shell-quoted (`printf %q`) wherever printed into a command \| probe prompt (build review W1, W5)|V34,V26
 T96|x|1 eval per run: a tool that calls another passes the effective config (`CLAUDINIX_CONFIG_JSON`) so guide → domains/inputs \& nix-dev → inputs read the file once (W6)|V34
 T97|x|`--dir D` resolves D's git top like the no-flag case; `CLAUDINIX_CONFIG` applies only w/o `--dir` (multi-project `domains`) (W3, W4)|V34
+T98|x|`nix-dev` w/ an invalid `.claudinix.toml` (decided 2026-10-04): warn loudly on stderr (config.sh's own message + `using defaults`) \& run w/ defaults, exit as the dev shell does; ⊥ block the dev shell in cloud (the repo's own gate refuses a bad file at commit). other tools keep exit 2 (V34)|V34,V13

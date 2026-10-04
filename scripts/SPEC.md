@@ -52,7 +52,7 @@ T91|x|ARCHIVED to SPEC-ARCHIVE.md|V34,`.:C28`,V13
 T95|x|ARCHIVED to SPEC-ARCHIVE.md|V34,V26
 T96|x|ARCHIVED to SPEC-ARCHIVE.md|V34
 T97|x|ARCHIVED to SPEC-ARCHIVE.md|V34
-T98|x|`nix-dev` w/ an invalid `.claudinix.toml` (decided 2026-10-04): warn loudly on stderr (config.sh's own message + `using defaults`) \& run w/ defaults, exit as the dev shell does; ⊥ block the dev shell in cloud (the repo's own gate refuses a bad file at commit). other tools keep exit 2 (V34)|V34,V13
+T98|x|ARCHIVED to SPEC-ARCHIVE.md|V34,V13
 
 ## §B BUGS
 
