@@ -245,6 +245,10 @@ a `claude/*` branch. It is billed, and it runs on Sonnet unless you pass
    harness may add a suffix) through the pull request the agent opened, and
    its CI.
 6. Merge it if the gate and CI are green and the diff is the one task.
+   If `main` moved on and the pull request now conflicts, run
+   `just rebase <PR>` (`--dry-run` first). Another billed session
+   rebases the branch, re-writes generated files such as the README
+   badges, runs the gate and force-pushes the same branch with a lease.
 
 The environment's setup line must include `--agent-home`. This repository's
 `.claudinix.toml` turns the agent home on, so the cloud agent gets the

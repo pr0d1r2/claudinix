@@ -14,6 +14,7 @@ has a bug.
 | [`guide`](#guide) | walks the setup steps of [`SETUP.md`](SETUP.md) | your machine, in the project |
 | [`probe`](#probe) | starts a billed cloud session that probes the project and prints its report | your machine, in the project's git checkout |
 | [`cloud`](#cloud) | builds one task of this repository's spec in a billed cloud session | your machine, in the project's git checkout |
+| [`rebase`](#rebase) | rebases one `claude/*` pull request onto `main` in a billed cloud session | your machine, in the project's git checkout |
 | [`config.sh`](#configsh) | reads and checks a project's optional [`.claudinix.toml`](CONFIG.md) | your machine or a session, in the project |
 | [`nix-dev`](#nix-dev) | `nix develop` that survives the GitHub proxy | inside a cloud session |
 | [`setup.sh`](#setupsh) | the environment's setup script | a cloud session's VM, through the setup line |
@@ -496,6 +497,59 @@ Unattended runs may still hit permission prompts; see
 | 0 | the session was started, or `--dry-run` printed the command |
 | 1 | a refusal above, or the answer was not yes |
 | 2 | a usage error, a bad task argument, or a bad `.claudinix.toml` |
+
+## rebase
+
+Rebases one open `claude/*` pull request onto `main` in a fresh cloud
+session, started from your terminal. Use it when a cloud agent's pull
+request conflicts after `main` moved on. **It starts a billed session**,
+so it asks first.
+
+```text
+usage: cloud-rebase.sh <PR# | URL> [--model M] [--yes] [--dry-run]
+```
+
+Run it as `scripts/cloud-rebase.sh ...` or `just rebase ...`, for example
+`just rebase 8` or `just rebase https://github.com/pr0d1r2/claudinix/pull/8`.
+`--model`, `--yes`, `--dry-run`, `CLOUD_TASK_REMOTE` and the model order
+work as in [`cloud`](#cloud); `CLAUDINIX_SCRIPTS` holds
+`cloud-rebase-prompt.txt`.
+
+**The pull request.** `gh pr view` must find it open, on a `claude/*`
+branch (the only branches a cloud session may push) and based on `main`.
+Otherwise it exits 1 before a session starts:
+
+```text
+rebase: gh could not read pull request #<n> -- check the number and that gh is signed in
+rebase: #<n> is <STATE>, not OPEN -- nothing to rebase
+rebase: #<n>'s branch is <branch>; a cloud session may push only claude/* branches
+rebase: #<n> targets <base>, not main -- rebase it by hand
+```
+
+The current branch must be pushed and equal to its upstream, as for
+`cloud`, and the same y/N question comes before the billed session.
+
+**What the session is told.** The prompt is
+[`cloud-rebase-prompt.txt`](../scripts/cloud-rebase-prompt.txt) with the
+pull request, its URL and branch filled in. The session rebases the branch
+onto `main`. It takes either side of a conflict in a generated file and
+re-writes it with `claudinix-dev badges|steps|notices --write`, rather than
+merging generated lines by hand. A conflict that needs a decision makes it
+abort the rebase and report, pushing nothing. Otherwise it runs the gate
+and pushes with `git push --force-with-lease origin HEAD:<branch>`. It
+opens no new pull request and merges nothing.
+
+**It does not wait.** After the session starts it prints:
+
+```text
+cloud: started the rebase of #<n> (<branch>) onto main; it force-pushes <branch> with a lease -- follow it at claude.ai/code
+```
+
+| exit | meaning |
+|---|---|
+| 0 | the session was started, or `--dry-run` printed the command |
+| 1 | a refusal above, or the answer was not yes |
+| 2 | a usage error, a bad pull request argument, or a bad `.claudinix.toml` |
 
 ## config.sh
 
