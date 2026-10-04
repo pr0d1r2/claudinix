@@ -30,9 +30,14 @@
 # Raised 2026-10-04 for scripts: the setup-line.sh §I row moves down
 # from root (root file -157), with V37, T113, T114 and B13 for short
 # SHAs. Measured: file 3530. Same ~15% margin.
+#
+# Raised 2026-10-04 for scripts: the review of #12 asked to restore the
+# bug rows B13, B14 and B17 that had been shortened to fit, and the cloud
+# launchers (cloud, rebase, review, fixup) each keep an §I row. Measured
+# with the rows restored: file 4119; fixup adds about 200. ~15% margin.
 
 SPEC.md          8700
-scripts/SPEC.md  4050
+scripts/SPEC.md  4750
 nix/SPEC.md      1000
 docs/SPEC.md     1800
 experiments/SPEC.md 1200
