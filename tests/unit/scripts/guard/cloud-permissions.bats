@@ -50,6 +50,14 @@ list() {
     [[ "$output" == *'Bash(git commit *)'* ]]
 }
 
+@test "the repo's own list allows a lease push to claude/* and no plain force push (nix:T127)" {
+    run jq -r '.allow[]' "$REPO_ROOT/nix/cloud-permissions.json"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'Bash(git push --force-with-lease origin HEAD:claude/*)'* ]]
+    [[ "$output" != *'--force '* ]]
+    [[ "$output" != *' -f '* ]]
+}
+
 @test "whole-tool rule Bash: refused and named" {
     list '["Bash(bats *)", "Bash"]'
     run bash "$SCRIPT"
