@@ -127,6 +127,13 @@ does are summarised briefly; the git history has the detail.
   without regard to case), a pull
   request from a fork or a branch name that is not a plain ref is refused.
   A problem raised in several comments is fixed once and credited to each.
+- `just all <node:Tn>` runs a task's whole cloud flow after one question
+  that names how many billed sessions start: `cloud`, then `review all`,
+  then `fixup`. Before each next step it waits, polling GitHub, for the
+  pull request, green CI, every role's review comment and the fixup's
+  reply. It ends by waiting for green CI again and opening the pull
+  request in Safari. A step that fails, red CI or a wait that runs out
+  stops it, names the step and opens the pull request. It never merges.
 - The cloud permission list allows
   `git push --force-with-lease origin HEAD:claude/*`, the rebase session's
   push; plain force pushes and every push to `main` stay unlisted or denied.
