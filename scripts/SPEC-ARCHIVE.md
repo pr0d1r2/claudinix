@@ -31,3 +31,4 @@ T116|x|guide env name: step 3 asks `Environment name (Enter: <project>)`, defaul
 T118|x|guide step 3 ends w/ "select Add environment" (UI label seen 2026-10-04), ⊥ "Create environment"|I.cmd,B14,`.:C2`
 T119|x|guide step 4 = per-project pin (owner 2026-10-04: 1 env per project, more soon; `/remote-env` writes user scope only, `--environment` rejects `env_` ids): show the project pin if any, ask `Pin <id> to <project> [Y/n]`, write it, warn if not ignored; ⊥ id → todo; heading "(once per project)" + SETUP heading (parity)|I.cmd,V26,T116,`.:C2`
 T124|x|cloud prompt step 6: after the push, open a PR to `main` (title = 1st commit subject; body: task row, commits, gate rc, session link) as the GitHub artifact; ⊥ merge (owner, 2026-10-04; PR #6 showed a session can)|I.cmd,`.:C29`
+T126|x|`just rebase <PR>` (owner 2026-10-04: #8 conflicted only in README badges after #9): 1 cloud session rebases a `claude/*` PR onto `main`|I.cmd,`.:C29`,`nix:T127`
