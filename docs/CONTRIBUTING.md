@@ -99,6 +99,80 @@ and runs `hk check --all`, so a laptop and a runner cannot disagree.
 [`INTEGRATION.md`](INTEGRATION.md) has the full picture: every step, which
 files it sees, and how to reproduce any verdict by hand.
 
+## The changelog rule
+
+A `feat` or `fix` commit that changes what a session VM or a
+target-project user gets must stage a line in
+[`CHANGELOG.md`](../CHANGELOG.md), under `## Unreleased`, saying what changes
+for them. The `commit-msg` hook refuses the commit otherwise.
+
+Session code, the paths that count:
+
+- `setup.sh`, `probe.sh`, `allowlist.txt` and `env-names.txt`
+- `nix/cloud-home.nix`, `nix/cloud-permissions.json` and `nix/apps.nix`
+- everything under `scripts/`, except the directories and files below
+
+These do not count: `scripts/guard/`, `scripts/hk/`, `scripts/ci/`,
+`scripts/dev/`, `scripts/nix/`, and any `SPEC*.md` file. Commits whose
+subject starts with a word the version-control tool writes itself (`Merge `,
+`Revert `, `fixup! `, `squash! `, `amend! `) are not judged again, and an
+amend passes when the commit it replaces already brought its own entry under
+the same subject.
+
+A refused commit prints the session paths it touches and this text:
+
+```text
+a feat commit changes what a session VM or a target-project user gets, and
+CHANGELOG.md is not staged: ...
+fix: add a line under ## Unreleased in CHANGELOG.md saying what changes for
+them, then git add CHANGELOG.md and commit again. A change no user sees is
+not a feat: use refactor, test, docs, chore, build or ci.
+```
+
+The answer is nearly always to write the line. If no user sees the change,
+the commit type was wrong.
+
+## Generated docs
+
+Some blocks in the docs are written by the repository's own tool, not by
+hand. Each sits between `<!-- BEGIN ... -->` and `<!-- END ... -->` markers
+that say so. Never edit inside the markers: the gate rewrites them and a hand
+edit is lost or fails the check.
+
+| block | file | regenerate with |
+|---|---|---|
+| badges | `README.md` | `claudinix-dev badges --write` |
+| steps | `docs/INTEGRATION.md` | `claudinix-dev steps --write` |
+| config | `docs/CONFIG.md` | `claudinix-dev config --write` |
+| inputs | `docs/THIRD-PARTY-NOTICES.md` | `claudinix-dev notices --write` |
+
+Two more checks only compare and never write: `claudinix-dev cli --check`
+(the `usage:` lines in [`CLI.md`](CLI.md) against the scripts) and
+`claudinix-dev facts --check` (counts and numbers quoted in prose). When one
+fails, fix the doc. Run the commands from the dev shell. After a flake input
+bump, run `claudinix-dev notices --write`. [`INTEGRATION.md`](INTEGRATION.md)
+lists the step behind each one.
+
+**A change to `hk.pkl` ships with the files it regenerates, in the same
+commit.** Run the four `--write` commands above, stage `hk.pkl` and every
+file they changed, and commit them together. Never commit other work while
+`hk.pkl` has unstaged edits: hk reads the worktree copy of `hk.pkl` before it
+stashes, so a half-staged change rewrites README badges and step counts in an
+unrelated commit.
+
+## Rust in `dev/`
+
+`dev/` holds `claudinix-dev`, the one Rust crate in the repository. It is
+repository tooling only: it uses the standard library alone, is never
+published and never reaches a session. The shell rules (`bats-mirror`, shfmt,
+a bats file per script) do not apply to it. Its own rules:
+
+- Tests live in `src/<module>/tests.rs`, beside the module they cover.
+- Test first still holds. The RED commit adds the failing test, and it must
+  compile: a test that fails to build is a broken commit, not a RED one.
+- `cargo fmt` and `clippy` run on every commit that touches `dev/`. The
+  `dev-test` step runs `cargo test` on push only.
+
 ## The one hard rule
 
 **Never `--no-verify`**, on commit or on push. A gate that can be stepped
