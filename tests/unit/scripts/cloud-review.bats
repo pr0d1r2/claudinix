@@ -62,7 +62,7 @@ setup() {
     done
 }
 
-@test "every role file has a '# ' title and no @, so the prompt fill cannot misfire" {
+@test "every role file has a '# ' title" {
     local f n=0
     for f in "$ROLES"/*.md; do
         n=$((n + 1))
@@ -70,7 +70,6 @@ setup() {
             echo "no title: $f"
             return 1
         }
-        run ! grep -qF '@' "$f"
     done
     [ "$n" -ge 6 ]
 }
@@ -95,6 +94,16 @@ setup() {
     CLAUDINIX_SCRIPTS="$lib" run bash "$SCRIPT" usability 12 --yes
     [ "$status" -eq 0 ]
     grep -qF 'Look only at how a person uses this.' "$STATE/claude.task"
+}
+
+@test "a placeholder spelled in a role file reaches the prompt as written" {
+    local lib="$BATS_TEST_TMPDIR/lib"
+    mkdir -p "$lib/review"
+    cp "$REPO/scripts/cloud-review-prompt.txt" "$REPO/scripts/config.sh" "$REPO/scripts/config.jq" "$lib/"
+    printf '%s\n' '# Mail' 'Ask a@b.c and @PR@ and @ROLE@ about it.' >"$lib/review/mail.md"
+    CLAUDINIX_SCRIPTS="$lib" run bash "$SCRIPT" mail 12 --yes
+    [ "$status" -eq 0 ]
+    grep -qF 'Ask a@b.c and @PR@ and @ROLE@ about it.' "$STATE/claude.task"
 }
 
 @test "an unknown role: exit 2 listing the roles, no session" {
