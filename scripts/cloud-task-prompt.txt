@@ -28,6 +28,11 @@ The task row, as it stands in the spec:
    fix the code, never weaken a check. Do not commit gate.log.
 6. Push your commits to a new branch: `git push -u origin @BRANCH@`
    (the harness may add a suffix to the name). Do not push to any other
-   branch and open no pull request; the owner reviews and merges.
-7. End with a short report: each commit (hash and subject), the gate's
-   rc, the branch pushed, and anything blocked or left undone.
+   branch.
+7. Then open a pull request from that branch into `main`. Title: the
+   subject of your feat or fix commit. Body: the task row, each commit (hash
+   and subject), the gate's rc, anything blocked or left undone, and
+   this session's link. Do not merge it; the owner reviews and merges.
+8. End with a short report: each commit (hash and subject), the gate's
+   rc, the branch pushed, the pull request URL, and anything blocked or
+   left undone.
