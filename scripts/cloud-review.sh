@@ -76,10 +76,12 @@ else
     exit 2
 fi
 
+url_repo=
 if [[ "$arg" =~ ^[0-9]+$ ]]; then
     pr="$arg"
-elif [[ "$arg" =~ ^https://github\.com/[^/]+/[^/]+/pull/([0-9]+)/?$ ]]; then
-    pr="${BASH_REMATCH[1]}"
+elif [[ "$arg" =~ ^https://github\.com/([^/]+/[^/]+)/pull/([0-9]+)/?$ ]]; then
+    url_repo="${BASH_REMATCH[1]}"
+    pr="${BASH_REMATCH[2]}"
 else
     usage
 fi
@@ -108,6 +110,14 @@ done
 if ! git remote get-url "$remote" >/dev/null 2>&1; then
     echo "review: no remote $remote -- push the project to GitHub first" >&2
     exit 1
+fi
+# A URL names its repository; gh looks only in this checkout's (B21).
+if [ -n "$url_repo" ]; then
+    remote_repo="$(git remote get-url "$remote" | sed -E 's#^.*[:/]([^/]+/[^/]+)$#\1#; s#\.git$##')"
+    if [ "$(printf %s "$url_repo" | tr '[:upper:]' '[:lower:]')" != "$(printf %s "$remote_repo" | tr '[:upper:]' '[:lower:]')" ]; then
+        echo "review: $arg is a pull request of $url_repo, but remote $remote is $remote_repo -- run it from a checkout of $url_repo" >&2
+        exit 1
+    fi
 fi
 
 # The session clones GitHub: the branch must be there as it is here.
