@@ -132,7 +132,9 @@ model_doc="${CLAUDINIX_MODEL_DOC:-$lib/../docs/MODEL.md}"
 env_names="${CLAUDINIX_ENV_NAMES:-$lib/../env-names.txt}"
 settings="${CLAUDE_SETTINGS:-$HOME/.claude/settings.json}"
 gh="${GH_BIN:-gh}"
-env_name=nix
+# The environment is named after the project by default (T116): the git
+# top of the project, else the directory itself; step 3 may change it.
+env_name="$(basename "$(git -C "$abs" rev-parse --show-toplevel 2>/dev/null || echo "$abs")")"
 
 answer=
 # ask PROMPT: one line of stdin into $answer; end of input is "".
@@ -232,6 +234,8 @@ paste() {
     local value="$tmp/value"
     case "$1" in
     env-name)
+        ask "Environment name (Enter: $env_name):"
+        env_name="${answer:-$env_name}"
         echo "Name: $env_name"
         echo "$env_name" >"$value"
         ;;
@@ -351,6 +355,8 @@ step_4() {
     else
         echo "todo: remote.defaultEnvironmentId is not set in $settings: run /remote-env."
     fi
+    echo "/remote-env sets it for every project. To keep $env_name for this one only, copy that env_... id"
+    echo "into remote.defaultEnvironmentId in $abs/.claude/settings.json and commit it."
     ask "Press Enter when done."
 }
 
