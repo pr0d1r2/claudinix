@@ -70,7 +70,7 @@ lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 remote="${CLOUD_TASK_REMOTE:-origin}"
 
 if ! info="$(gh pr view "$pr" --json number,state,headRefName,baseRefName,url \
-    --jq '[.number, .state, .headRefName, .baseRefName, .url] | @tsv')"; then
+    --jq '[.number, .state, .headRefName, .baseRefName, .url] | @tsv' </dev/null)"; then
     echo "rebase: gh could not read pull request #$pr -- check the number and that gh is signed in" >&2
     exit 1
 fi
@@ -137,6 +137,12 @@ if [ "$dry" = 1 ]; then
 fi
 
 if [ "$yes" = 0 ]; then
+    # Drop what the terminal left in the input buffer, such as a reply to
+    # a query gh sent it, so only the typed answer is read (B19). Whole
+    # seconds: macOS /bin/bash 3.2 has no fractional -t.
+    if [ -t 0 ]; then
+        while IFS= read -r -t 1 _; do :; done
+    fi
     printf 'rebase: this starts a billed Claude Code cloud session (model %s) to rebase #%s (%s) onto %s. Start it? [y/N] ' "$model" "$pr" "$head" "$base"
     answer=
     IFS= read -r answer || true
