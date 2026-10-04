@@ -691,6 +691,9 @@ config() {
 
 @test "a pin git does not ignore gets a warning; an ignored one does not (T119)" {
     while read -r var; do unset "$var"; done < <(env | sed -n 's/^\(GIT_[A-Z_]*\)=.*/\1/p')
+    # The caller's global ignore (core.excludesFile, ~/.config/git/ignore)
+    # must not decide this.
+    export GIT_CONFIG_GLOBAL=/dev/null XDG_CONFIG_HOME="$BATS_TEST_TMPDIR/xdg"
     git init -q "$P"
     run bash "$SCRIPT" --from 4 <<<$'y\ny\n\n\n'
     [ "$status" -eq 0 ]
