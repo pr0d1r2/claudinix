@@ -11,7 +11,9 @@
 # github inputs no cache holds with the remedy (T81). Step 0 (money)
 # always runs and needs an explicit answer for each check (`y`, or `none`
 # for a credit never offered). Paths are printed absolute. Step titles and URLs come from guide-steps.tsv, which a test
-# keeps equal to the SETUP.md headings. No network writes, no secrets.
+# keeps equal to the SETUP.md headings. No network writes, no secrets;
+# the one file it writes is the project's .claude/settings.local.json
+# (step 4, on yes: the environment pin, T119).
 #
 # The setup line is the one the release published in the README block
 # (.:C25): no gh, no clone. Before the first release the guide says so
@@ -344,20 +346,62 @@ uncached_inputs() {
     fi
 }
 
+# env_id FILE: remote.defaultEnvironmentId in a settings file, or nothing.
+env_id() {
+    [ -f "$1" ] && command -v jq >/dev/null 2>&1 || return 0
+    jq -r '.remote.defaultEnvironmentId // empty' "$1" 2>/dev/null || true
+}
+
+# pin_env FILE ID: set remote.defaultEnvironmentId in FILE, keeping every
+# other key; a file that is not a JSON object is left alone (T119, as
+# dev/session-start.sh does). The only file the guide writes.
+pin_env() {
+    local file="$1" id="$2" existing='{}' merged
+    if [ -e "$file" ] && ! existing="$(jq -e 'if type == "object" then . else error end' "$file" 2>/dev/null)"; then
+        echo "warning: $file is not a JSON object -- left alone, not pinned."
+        return 0
+    fi
+    merged="$(jq --arg id "$id" '.remote = ((.remote // {}) | .defaultEnvironmentId = $id)' <<<"$existing")"
+    if ! { mkdir -p "${file%/*}" && printf '%s\n' "$merged" >"$file.tmp.$$" && mv "$file.tmp.$$" "$file"; }; then
+        echo "warning: could not write $file -- not pinned."
+        return 0
+    fi
+    echo "ok: $file pins $id; claude --cloud from this project uses it, whatever /remote-env picks."
+}
+
+# step_4: one environment per project (T119). /remote-env saves the pick
+# in user settings only, for every project; the guide copies it into the
+# project's settings.local.json, which wins over the user file.
 step_4() {
-    echo "Run /remote-env in Claude Code and pick $env_name."
-    local id=
-    if [ -f "$settings" ] && command -v jq >/dev/null 2>&1; then
-        id="$(jq -r '.remote.defaultEnvironmentId // empty' "$settings" 2>/dev/null || true)"
+    local id pinned top file
+    echo "Run /remote-env in Claude Code and pick $env_name. It saves the pick for every project on this machine."
+    ask "Press Enter when it is picked."
+    id="$(env_id "$settings")"
+    if [ -z "$id" ]; then
+        echo "todo: remote.defaultEnvironmentId is not set in $settings: run /remote-env, then the guide again with --from 4."
+        return 0
     fi
-    if [ -n "$id" ]; then
-        echo "ok: remote.defaultEnvironmentId = $id (check it is $env_name)."
-    else
-        echo "todo: remote.defaultEnvironmentId is not set in $settings: run /remote-env."
+    echo "/remote-env picked $id (check it is $env_name)."
+    # The git top as the user spells the path (V26), not the resolved one.
+    top="$(cd "$abs/$(git -C "$abs" rev-parse --show-cdup 2>/dev/null || true)" && pwd)"
+    file="$top/.claude/settings.local.json"
+    pinned="$(env_id "$file")"
+    if [ "$pinned" = "$id" ]; then
+        echo "ok: $file already pins $id for this project."
+        return 0
     fi
-    echo "/remote-env sets it for every project. To keep $env_name for this one only, copy that env_... id"
-    echo "into remote.defaultEnvironmentId in $abs/.claude/settings.json and commit it."
-    ask "Press Enter when done."
+    [ -z "$pinned" ] || echo "This project pins $pinned now, in $file."
+    ask "Pin $id to this project in $file? [Y/n]:"
+    case "$answer" in
+    '' | y | Y) pin_env "$file" "$id" ;;
+    *)
+        echo "Not pinned: sessions from $top use whatever /remote-env picked last."
+        return 0
+        ;;
+    esac
+    if git -C "$top" rev-parse --git-dir >/dev/null 2>&1 && ! git -C "$top" check-ignore -q "$file"; then
+        echo "warning: git does not ignore $file; add .claude/settings.local.json to .gitignore so your environment id is never committed."
+    fi
 }
 
 trim() {

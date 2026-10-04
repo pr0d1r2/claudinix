@@ -223,7 +223,7 @@ these, best first:
 Attaching `NixOS/nixpkgs` to the session is not a fix: the session would
 clone the whole repository.
 
-## 4. Choose the environment in your terminal (once per machine)
+## 4. Choose the environment in your terminal (once per project)
 
 Run `/remote-env` in Claude Code and pick the environment you made. This saves the choice
 as `remote.defaultEnvironmentId` in your user settings
