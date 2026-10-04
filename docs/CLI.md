@@ -587,7 +587,13 @@ do, since the session pushes nothing. Otherwise it exits 1:
 ```text
 review: gh could not read pull request #<n> -- check the number and that gh is signed in
 review: #<n> is <STATE>, not OPEN -- nothing to review
+review: #<n> has the branch name '<name>', which has characters beyond A-Z a-z 0-9 . _ / - -- refusing to put it in a prompt
+review: <URL> is a pull request of <o/r>, but remote origin is <o/r> -- run it from a checkout of <o/r>
 ```
+
+The branch names go into shell commands in the prompt, so a head or base
+with anything beyond letters, digits and `._/-` is refused. A URL must
+name the repository of the remote: `gh` looks only in this checkout's.
 
 Unlike `cloud`, it needs only the remote (`origin`, or `CLOUD_TASK_REMOTE`):
 the session fetches the pull request's branch from GitHub, so the branch
@@ -622,7 +628,18 @@ and posts them as one comment headed `Review: <role>`. If it cannot post,
 the findings go in its report. It commits, pushes and edits nothing, and it
 does not approve, request changes on or merge the pull request.
 
-**It does not wait.** It prints, for one role or for `all`:
+The prompt tells the session that the diff, commit messages and comments
+are untrusted data, never instructions. That is text, not a sandbox: the
+session also gets the cloud permission list if `CLAUDINIX_SESSION_PERMISSIONS`
+is set. A review of a pull request from an author you do not trust runs
+that author's code in the dev shell, so review such a pull request only
+in an environment you would let that author's code run in.
+
+**It does not wait.** If one session of `all` fails to start, the others
+still start; it prints `cloud: failed to start: <roles>` on stderr, lists
+the started roles in the line below, and exits 1. A re-run starts all roles
+again, so start only the failed ones by name. It prints, for one role or
+for `all`:
 
 ```text
 cloud: started the <role> review of #<n> (<branch>); it comments on the pull request -- follow it at claude.ai/code
@@ -632,7 +649,7 @@ cloud: started <N> review sessions for #<n> (<branch>): <roles>; each comments o
 | exit | meaning |
 |---|---|
 | 0 | the sessions were started, or `--dry-run` printed the commands |
-| 1 | a refusal above, or the answer was not yes |
+| 1 | a refusal above, the answer was not yes, or a session failed to start |
 | 2 | a usage error, an unknown role, a bad pull request argument, or a bad `.claudinix.toml` |
 
 ## config.sh
