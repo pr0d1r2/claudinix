@@ -32,7 +32,7 @@ sib|dev|`claudinix-dev`: repo-only Rust tool, generated README badges \\& doc nu
 - cmd: `cloud`, `rebase`, `review` take `[--model M] [--yes] [--dry-run]`; refuse no `origin`, detached, unpushed \| behind; model `--model` > `session.model` > sonnet; y/N unless `--yes`; `--dry-run` prints the command; ⊥ waits. PR = number \| URL via `gh pr view </dev/null` (B19).
 - cmd: `just cloud <node:Tn \| Tn>` → `scripts/cloud-task.sh`: exactly 1 open (`.`) row across §F nodes, else refuse; pushes `claude/<node>-<task>`, opens a PR.
 - cmd: `just rebase <PR>` → `scripts/cloud-rebase.sh`: PR open, head `claude/*`, base `main` else refuse: rebase, generated outputs re-written ⊥ hand-merged, decision conflict → abort, gate, lease push to the same branch; ⊥ PR, ⊥ merge.
-- cmd: `just review <role> <PR>` → `scripts/cloud-review.sh`: role ∈ `scripts/review/<role>.md` (new role = new file), else refuse listing them; PR open; prompt `scripts/cloud-review-prompt.txt` + the role file: review the diff as that role only, findings → 1 PR comment; read-only.
+- cmd: `just review <role \| all> <PR>` → `scripts/cloud-review.sh`: role ∈ `scripts/review/<role>.md` (new role = new file), else refuse listing them; PR open; prompt `scripts/cloud-review-prompt.txt` + the role file: review the diff as that role only, findings → 1 PR comment; read-only.
 
 ## §V INVARIANTS
 V13: input failover order, each tier logged: (1) substitute locked input by `narHash` from a cache (`.:V8`); (2) `git+https://github.com/<o>/<r>?rev=<locked rev>&shallow=1` via `--override-input` (proven probe 4: nix-hk, nixpkgs-lock; ⊥ for nixpkgs: 90k objects); (3) `github:` as locked (works only for session-attached repos); (4) `nixpkgs` → `https://channels.nixos.org/<channel>/nixexprs.tar.xz` via `--override-input` (degraded: rev ≠ lock). ∀ overrides w/ `--no-write-lock-file`, ⊥ commit lock; tier ≥ 3 → warn in session, ⊥ silent. impl (2026-10-03): tier 1 only when ∀ `github` input cached; each tier tried w/ `nix print-dev-env`, tier repeating an earlier command skipped; ⊥ `flake.lock` ∨ ⊥ `jq` → plain `nix develop`, logged tier 1; log line contains `tier N` (`.:T3` probe greps it). T79: nixpkgs matched case-insensitive (`nixos/nixpkgs`); tier 4 channel per nixpkgs node; failure log = 1st `error:` line; ⊥ `jq` → loud WARNING, plain develop.
@@ -66,7 +66,7 @@ T118|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B14,`.:C2`
 T119|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V26,T116,`.:C2`
 T124|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`
 T126|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,`nix:T127`
-T129|.|`just review` (owner 2026-10-04): roles correctness, maintainability, extensibility, performance, security, architecture; more to come|I.cmd,`.:C29`,`docs:T130`
+T129|.|`just review` (owner 2026-10-04): 6 roles to start, more to come; `all` = 1 session per role, 1 y/N naming count, model, roles \& per-session billing|I.cmd,`.:C29`,`docs:T130`
 
 ## §B BUGS
 
