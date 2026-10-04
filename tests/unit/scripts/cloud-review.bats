@@ -12,7 +12,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     export TOPLEVEL="$BATS_TEST_TMPDIR/project"
     unset CLAUDINIX_CONFIG CLAUDINIX_CONFIG_JSON CLAUDINIX_SCRIPTS CLOUD_TASK_REMOTE
-    unset STUB_PR GH_FAIL GH_READS_STDIN NO_UPSTREAM
+    unset STUB_PR CLAUDE_FAIL_ROLE GH_FAIL GH_READS_STDIN NO_UPSTREAM
     mkdir -p "$STUBS" "$STATE" "$TOPLEVEL"
 
     # claude: records its args, one file each.
@@ -21,6 +21,7 @@ setup() {
         'printf "%s\n" "$1" >"$STATE/claude.1"' \
         'printf "%s" "$2" >"$STATE/claude.task"' \
         'printf "%s" "$2" | grep -o "Review: [a-z-]*" | head -n 1 >>"$STATE/claude.roles"' \
+        '[ -z "${CLAUDE_FAIL_ROLE:-}" ] || ! printf "%s" "$2" | grep -qF "Review: $CLAUDE_FAIL_ROLE\"" || exit 1' \
         'shift 2; echo "$*" >"$STATE/claude.rest"' >"$STUBS/claude"
     # script: BSD form, as on macOS.
     # shellcheck disable=SC2016 # expands inside the stub, not here
@@ -279,4 +280,14 @@ roles() {
 
 @test "all is a word, not a role: no role file may be called all.md" {
     [ ! -e "$ROLES/all.md" ]
+}
+
+@test "all: one failed launch does not stop the rest; the end says which started, which failed (B22)" {
+    local n
+    n="$(roles | wc -l | tr -d ' ')"
+    CLAUDE_FAIL_ROLE=performance run bash "$SCRIPT" all 12 --yes
+    [ "$status" -eq 1 ]
+    [ "$(wc -l <"$STATE/claude.roles" | tr -d ' ')" = "$n" ]
+    grep -qx "cloud: failed to start: performance" <<<"$output"
+    grep -E '^cloud: started [0-9]+ review sessions' <<<"$output" | grep -qv performance
 }
