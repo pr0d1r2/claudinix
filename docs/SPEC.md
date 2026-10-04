@@ -54,11 +54,12 @@ T83|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:C24`,`.:C25`,`.:C26`
 T84|x|ARCHIVED to SPEC-ARCHIVE.md|C22
 T85|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:C17`,`.:C21`
 T89|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C6`,`.:V18`,C22
-T94|x|`docs/CONFIG.md`: every key, type, default, which tool reads it, precedence, example (this repo's file); CLI/README/CONSUMER/SETUP mention it; plain English|`.:C28`,`scripts:V34`,C22
-T103|x|AGENTS.md + CONTRIBUTING: cloud-built changes arrive as `claude/*` branches (1 task each); how the owner launches (`just cloud Tn`), reviews (CI on the branch) \& merges; what a cloud agent must report|`.:C29`,C22
-T115|x|SETUP + CLI: `--rev` takes a short SHA (`scripts:V37`) \& the pre-release hint; RUNBOOK "Build claudinix on cloud credit": owner checklist from 0 (claim credit, overage OFF, GitHub App on `pr0d1r2/claudinix`, env via `just guide --rev <sha>` (agent home from `.claudinix.toml`), optional `CLAUDINIX_SESSION_PERMISSIONS=1`, `/remote-env`, `just probe`, `just cloud`, owner opens the PR from `claude/*`); plain English|`scripts:T114`,`scripts:V37`,`.:C29`,`.:C25`,C22
-T117|x|SETUP + README + RUNBOOK + CLI: env name defaults to the project name (`scripts:T116`), ⊥ `nix`; 1 env per project ∴ pin it in the repo `.claude/settings.json`; SETUP step 3 ends w/ **Add environment** (`scripts:B14`); plain English|`scripts:T116`,`scripts:B14`,C22
-T120|x|1 env per project (why: domains differ; blast radius: an experiment w/ a new setup line, domain or env var stays in 1 project): SETUP step 4 (pin via guide or by hand into `.claude/settings.local.json`; `/remote-env` = user scope; `--environment` = self-hosted `ccpool_` only), RUNBOOK owner checklist \& a "Add another project" path, CLI step 4, FACTS: the documented precedence (local > project > user) as docs-stated, ⊥ measured|`scripts:T119`,C22
+T94|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C28`,`scripts:V34`,C22
+T103|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,C22
+T115|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:T114`,`scripts:V37`,`.:C29`,`.:C25`,C22
+T117|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:T116`,`scripts:B14`,C22
+T120|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:T119`,C22
+T122|.|`raw.githubusercontent.com` in every doc that lists the allowed domains (SETUP step 3 + troubleshooting for `curl: (22) ... 403`, FORKING, RUNBOOK, CLI `domains` output, SESSION); FACTS: open question "raw reachable during setup?" answered: 403 until allowed (2026-10-04)|`.:T121`,`.:B15`,`.:C6`,C22
 
 ## §B BUGS
 
