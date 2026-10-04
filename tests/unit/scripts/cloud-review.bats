@@ -144,6 +144,16 @@ setup() {
     [ ! -e "$STATE/claude.1" ]
 }
 
+@test "a head or base branch with shell syntax in its name is refused, no session (B20)" {
+    STUB_PR='12\tOPEN\tx$(id)\tmain\thttps://github.com/o/p/pull/12' run bash "$SCRIPT" security 12 --yes
+    [ "$status" -eq 1 ]
+    # shellcheck disable=SC2016 # the literal text, not an expansion
+    [[ "$output" == *'x$(id)'* ]]
+    STUB_PR='12\tOPEN\tfeature/x\ta;b\thttps://github.com/o/p/pull/12' run bash "$SCRIPT" security 12 --yes
+    [ "$status" -eq 1 ]
+    [ ! -e "$STATE/claude.1" ]
+}
+
 # --- launch rules shared with cloud-task.sh and cloud-rebase.sh ---
 
 @test "a branch with no upstream: says to push it, no session" {
