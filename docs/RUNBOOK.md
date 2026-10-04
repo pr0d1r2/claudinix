@@ -160,6 +160,57 @@ been run end to end against a real cloud session.
 Record anything new in [`FACTS.md`](FACTS.md) with the date, and in
 `SPEC.md` `§B` through `/ck:spec`.
 
+## Build claudinix on cloud credit
+
+**Human, once.** This takes the owner from nothing to cloud sessions that
+build this repository, paid from promotional cloud credit. It is the
+general walkthrough in [`SETUP.md`](SETUP.md), with this repository's
+choices filled in. `just guide` walks most of it from a checkout of this
+repository.
+
+1. **Claim the credit first.** Run `/claim-credit` in Claude Code, or claim
+   it at claude.ai. Then open
+   [claude.ai/settings/usage](https://claude.ai/settings/usage) and check
+   that it shows the amount and the expiry date. Sessions run before the
+   claim use your plan quota.
+2. **Turn usage credits OFF** on the same page. If they are ON, a session
+   that goes past the credit bills your card.
+3. **Connect GitHub.** Install the
+   [Claude GitHub App](https://github.com/apps/claude) with **Only select
+   repositories** and list `pr0d1r2/claudinix`. Check that it appears in
+   the repository picker at [claude.ai/code](https://claude.ai/code).
+4. **Get the setup line.** Until the first release there is none in the
+   README. Run `just guide` once: it stops at step 3 and names the newest
+   `main` commit whose CI passed. Run it again with that SHA:
+   `just guide --rev <sha>`. A short SHA works. The guide adds
+   `--agent-home` to the line by itself, because this repository's
+   `.claudinix.toml` sets `session.agent_home = true`. The cloud agent
+   needs the agent home for the `/build` skill and the cloud permissions.
+5. **Create the environment** in the browser as step 3 of the guide says:
+   name `nix`, network **Custom** with the default package-manager list,
+   the domains the guide copies, and the setup line. Environment
+   variables:
+   - `BASH_DEFAULT_TIMEOUT_MS=600000` (optional) keeps gate runs in the
+     foreground.
+   - `CLAUDINIX_SESSION_PERMISSIONS=1` (optional) is the fallback route for
+     the cloud permissions (see "Build a task in the cloud" below). Nobody
+     has measured yet whether it is needed (experiment T104).
+6. **Choose the environment** with `/remote-env` in Claude Code, once per
+   machine. Without it, sessions run in **Default**, which has no Nix.
+7. **Check it** with `just probe`. It asks before it starts the billed
+   session and prints the report.
+8. **Build one task** as described in the next section: `just cloud
+   --dry-run <node:Tn>`, then `just cloud <node:Tn>`. Start with a cheap
+   task, such as a measurement in `experiments/SPEC.md`.
+9. **Review and merge.** The agent pushes `claude/<node>-<task>` (plus a
+   suffix) and opens no pull request. `main` takes changes only through a
+   pull request with green CI, so open the pull request from that branch
+   yourself, wait for CI, and merge.
+
+Check again that usage credits are OFF before you add a routine or run
+sessions in parallel. To stop spending at once, see "Emergency stop of
+cloud spend" below.
+
 ## Build a task in the cloud
 
 **Human.** One open task of the spec becomes one cloud session that pushes
