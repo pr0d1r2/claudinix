@@ -29,7 +29,19 @@
     "Bash(git log *)",
     "Bash(git push -u origin claude/*)",
     "Bash(git push origin claude/*)",
-    "Edit(/gate.log)"
+    "Edit(/gate.log)",
+    "Bash(nix develop -c cargo fmt *)",
+    "Bash(nix develop -c cargo clippy *)",
+    "Bash(nix develop -c cargo test *)",
+    "Bash(nix develop -c claudinix-dev *)",
+    "Bash(nix-dev -c cargo fmt *)",
+    "Bash(nix-dev -c cargo clippy *)",
+    "Bash(nix-dev -c cargo test *)",
+    "Bash(nix-dev -c claudinix-dev *)",
+    "Bash(cargo fmt *)",
+    "Bash(cargo clippy *)",
+    "Bash(cargo test *)",
+    "Bash(claudinix-dev *)"
   ],
   "deny": [
     "Bash(git push * main)",

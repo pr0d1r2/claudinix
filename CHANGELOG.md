@@ -79,6 +79,10 @@ does are summarised briefly; the git history has the detail.
 
 ### Built by its own cloud agents
 
+- The cloud permission list also allows the gate's Rust commands
+  (`cargo fmt`, `cargo clippy`, `cargo test`) and `claudinix-dev`, so a
+  cloud agent can run the `dev/` checks without a prompt; never a bare
+  `cargo` (which could install or run anything).
 - `just cloud <node:Tn>` starts one billed cloud session that builds one
   open spec task of this repository and pushes it to a `claude/*` branch
   for review; it refuses missing, done or ambiguous tasks and unpushed
