@@ -33,9 +33,10 @@ T15|.|set-and-setting issue: move `mkTrip` from owner home config `lib/mk-trip.n
 T16|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,I.file
 T18|x|ARCHIVED to SPEC-ARCHIVE.md|V15,`.:V6`,C5
 T78|x|ARCHIVED to SPEC-ARCHIVE.md|`.:V30`,`.:V5`,V16,C12
-T127|x|cloud permissions allow `git push --force-with-lease origin HEAD:claude/*` (`scripts:T126` rebase push); main deny rules unchanged|`.:C29`,`scripts:T126`
-T133|x|cloud permissions allow `git push origin HEAD:*` (`scripts:T132` fixup push to a PR branch); the main deny rules still win; ⊥ force|`.:C29`,`scripts:T132`
+T127|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T126`
+T133|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T132`
 
 ## §B BUGS
 
 id|date|cause|fix
+B23|2026-10-04|`HEAD:*` allow (T133) also matched `HEAD:+main` (force) \& tag pushes; no deny did|shared list denies `+` refspecs \& tag pushes; bats globs them
