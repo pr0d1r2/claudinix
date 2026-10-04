@@ -32,6 +32,7 @@ V1: every generated number comes from the file that OWNS it (`hk.pkl` steps, `@t
 V2: a badge's alt text \& URL come from ONE value ∴ they cannot disagree.
 V3: render is idempotent: splice(splice(x)) == splice(x) ∴ `--check` is equality.
 V4: the status badge follows the README's `> **Alpha|Beta|Preview, <date>.**` callout \& is absent w/o one; the CI slug comes from `setup.sh`'s fork block `repo=`, the cache from `.claudinix.toml` `cache.name`.
+V39: pre-commit checks each generated file AS STAGED: a commit staging a source (`hk.pkl`, `*.bats`, ...) w/ its output stale in the index fails (B18, `.:V36`).
 
 ## §T TASKS
 
@@ -43,7 +44,9 @@ T109|x|ARCHIVED to SPEC-ARCHIVE.md|V1,V3
 T110|x|ARCHIVED to SPEC-ARCHIVE.md|V1
 T111|x|ARCHIVED to SPEC-ARCHIVE.md|`.:V20`,`docs:T37`
 T112|.|? `select`: run only the generated outputs a changed file can affect (xenolith `select`) — when the gate gets slow|V3
+T123|.|enforce V39: `badges` \& `steps` `--check` on an index snapshot (`git checkout-index`) in pre-commit|V39,`.:V36`,B18
 
 ## §B BUGS
 
 id|date|cause|fix
+B18|2026-10-04|T52 cloud commit staged `hk.pkl` only; pre-commit `fix` rewrote INTEGRATION counts in the worktree, unstaged ∴ commit passed stale (repro hk 1.58.1)|V39
