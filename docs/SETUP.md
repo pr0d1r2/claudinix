@@ -158,9 +158,11 @@ in each new VM. This repository's environment installs Nix.
      do not make up a SHA. The guide (`guide`, step 3) copies the
      release's line from the README to your clipboard for you. Until the first
      release there is no published line: the guide says there is no release
-     yet and stops. Maintainers and testers can run `guide --rev SHA` or
-     `scripts/setup-line.sh SHA` (needs `gh`) to get a line for a commit CI
-     passed.
+     yet and stops. When `gh` is signed in, it also names the newest `main`
+     commit whose CI passed. Maintainers and testers can run
+     `guide --rev SHA` or `scripts/setup-line.sh SHA` (needs `gh`) to get a
+     line for a commit CI passed. A short SHA such as `c63d695` works; it is
+     looked up on GitHub.
 
      By default the script installs Nix and `nix-dev` only. To also install
      the agent home (the owner's Claude rules and skills; it changes how

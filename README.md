@@ -123,7 +123,8 @@ script you paste there is the line published above (and in each release's
 notes). Until the first release there is no published line: the block above
 says so, and the guide stops with "no release yet". Until then, a maintainer
 or tester can print a line for a commit CI passed with `guide --rev SHA` or
-`scripts/setup-line.sh SHA` (both need `gh`, signed in). The same steps, written out, are in [`docs/SETUP.md`](docs/SETUP.md).
+`scripts/setup-line.sh SHA` (both need `gh`, signed in; a short SHA works,
+and the guide names the newest green commit). The same steps, written out, are in [`docs/SETUP.md`](docs/SETUP.md).
 
 ## The agent home is opt-in
 

@@ -17,7 +17,7 @@ has a bug.
 | [`config.sh`](#configsh) | reads and checks a project's optional [`.claudinix.toml`](CONFIG.md) | your machine or a session, in the project |
 | [`nix-dev`](#nix-dev) | `nix develop` that survives the GitHub proxy | inside a cloud session |
 | [`setup.sh`](#setupsh) | the environment's setup script | a cloud session's VM, through the setup line |
-| [`setup-line.sh`](#setup-linesh) | prints the one-line setup script, for a commit whose CI is green | your machine; a checkout of this repository, or any directory with a full SHA |
+| [`setup-line.sh`](#setup-linesh) | prints the one-line setup script, for a commit whose CI is green | your machine; a checkout of this repository, or any directory with a full or short SHA |
 | [`bump-nix.sh`](#bump-nixsh) | pins `setup.sh` to another Nix release | a checkout of this repository |
 | [`release.sh`](#releasesh) | cuts a release in two steps: record the agent home, then publish | a checkout of this repository (maintainer) |
 | [`just` recipes](#just-recipes) | the same scripts, run on this repository | a checkout of this repository |
@@ -204,7 +204,7 @@ usage: guide.sh [--force] [--[no-]agent-home] [--rev SHA] [--from STEP] [FLAKE_D
 | `FLAKE_DIR` | the project, default the current directory |
 | `--from STEP` | resume at step 0 to 5; step 0 (protect your money) always runs first |
 | `update` | the "Updating the environment" flow instead of steps 0 to 5 |
-| `--rev SHA` | copy a line for this full 40-character commit of claudinix instead of the release's, printed by [`setup-line.sh`](#setup-linesh) (needs `gh`, signed in); use it before the first release or to pin another commit |
+| `--rev SHA` | copy a line for this commit of claudinix instead of the release's, printed by [`setup-line.sh`](#setup-linesh) (needs `gh`, signed in); use it before the first release or to pin another commit. A full 40-character SHA or a short one of at least 7 (`c63d695`), which `setup-line.sh` looks up on GitHub |
 | `--force` | with `--rev`, passed to [`setup-line.sh`](#setup-linesh), so the guide prints the setup line even when CI for that commit is not green |
 | `--agent-home` | the line it copies ends in ` --agent-home`, exactly as [`setup-line.sh`](#setup-linesh) appends it, and opts in to the agent home (see the [README](../README.md#the-agent-home-is-opt-in)); without it the line installs Nix and `nix-dev` only |
 | `--no-agent-home` | the opposite: the line has no ` --agent-home`, even when `session.agent_home` in `.claudinix.toml` is `true` |
@@ -214,12 +214,13 @@ usage: guide.sh [--force] [--[no-]agent-home] [--rev SHA] [--from STEP] [FLAKE_D
 | `CLAUDINIX_CONFIG_JSON` | internal: `guide` sets it from the file it read, so the tools it calls do not read it again |
 | `CLAUDINIX_SCRIPTS` | directory holding `guide-steps.tsv`, `inputs.sh`, `domains.sh`, `setup-line.sh` and `config.sh`; default the script's own |
 | `CLAUDINIX_README` | the `README.md` whose setup-line block holds the release's line; default the one beside `scripts/` (the flake app sets it to the README of the commit it was built from) |
-| `CLAUDINIX_SETUP_REV` | the maintainer path: a full SHA of this repository to print the line for with `setup-line.sh`, as `--rev` does; `--rev` wins over it; unset by default |
+| `CLAUDINIX_SETUP_REV` | the maintainer path: a full or short SHA of this repository to print the line for with `setup-line.sh`, as `--rev` does; `--rev` wins over it; unset by default |
 | `CLAUDINIX_MODEL_DOC` | the `MODEL.md` that step 5 reads prices from; default `docs/MODEL.md` beside `scripts/` |
 | `CLAUDINIX_ENV_NAMES` | the `env-names.txt` to list; default the one beside `scripts/` |
 | `CLAUDE_SETTINGS` | user settings to read; default `~/.claude/settings.json` |
 | `CLIPBOARD_TOOLS` | clipboard programs to try in order; default `pbcopy wl-copy xclip` |
 | `GUIDE_OPEN_TOOLS` | URL openers to try in order; default `open xdg-open` |
+| `GH_BIN` | the GitHub CLI asked, read-only, for the newest green `main` commit before the first release; default `gh` |
 
 Keys read from [`.claudinix.toml`](CONFIG.md) in `FLAKE_DIR`, before step 0:
 `session.model` (the default answer in step 5), `session.agent_home` (the
@@ -269,7 +270,15 @@ URLs and carries on.
 The setup-script value that step 3 copies, and that `update` copies, is the
 one line the release published in the README's setup-line block, not the
 contents of `setup.sh`; reading it needs neither `gh` nor a clone. Before the
-first release that block holds no line, and the guide stops with exit 1:
+first release that block holds no line, and the guide stops with exit 1.
+When `gh` can tell, it names the newest `main` commit whose CI passed, so
+you can run it again with that `--rev`:
+
+```text
+guide: stop here -- no release yet, so there is no published setup line to copy. The newest green main commit is <sha12>: run the guide again with --rev <sha12> (needs gh signed in), or wait for the first release
+```
+
+Without `gh`, or when it does not answer, the stop reads:
 
 ```text
 guide: stop here -- no release yet, so there is no published setup line to copy. Run the guide again after the first release, or pass --rev SHA (a claudinix commit CI passed; needs gh signed in) to print a line for that commit
@@ -295,7 +304,7 @@ guide: stop here -- no setup line for <sha> (see above); pick a SHA CI passed, o
 |---|---|
 | 0 | the steps ran to the end |
 | 1 | stopped: a money check at step 0 was not accepted, there is no setup line to copy (no release yet, no README block, or with `--rev` CI not green and no `--force`), or the project directory does not exist (`guide: no directory <dir> -- nothing was checked`) |
-| 2 | a usage error: an unknown flag, `--from` outside 0 to 5, `--rev` without a full 40-character SHA, or two directories |
+| 2 | a usage error: an unknown flag, `--from` outside 0 to 5, `--rev` with anything but 7 to 40 hex characters (`guide: --rev wants a claudinix commit SHA (7 to 40 hex characters), got <value>`), or two directories |
 
 ## probe
 
@@ -621,7 +630,7 @@ usage: setup-line.sh [--force] [--agent-home] [REV]
 
 | argument | meaning |
 |---|---|
-| `REV` | the commit to pin, default `HEAD`; a full 40-hex SHA is used as given and needs no clone, anything else is resolved in the git checkout the script runs in |
+| `REV` | the commit to pin, default `HEAD`; a full 40-hex SHA is used as given and needs no clone; a short SHA (7 to 39 hex) is looked up on GitHub in `pr0d1r2/claudinix`, never in the local checkout, which may be another project; anything else (`HEAD~1`, a branch) is resolved in the git checkout the script runs in |
 | `--force` | print the line even when CI is not green, with a `WARNING` on stderr that says why it should not have |
 | `--agent-home` | append `--agent-home` to the printed line, which opts in to the agent home |
 
@@ -656,7 +665,7 @@ d=$(mktemp -d) && curl -fsSL https://raw.githubusercontent.com/pr0d1r2/claudinix
 | exit | meaning |
 |---|---|
 | 0 | the line was printed (with `--force`, possibly after a warning) |
-| 1 | `REV` is not a commit (`setup-line: cannot resolve <REV> to a commit -- no line printed`), or CI is not green and `--force` was not given |
+| 1 | `REV` is not a commit (`setup-line: cannot resolve <REV> to a commit -- no line printed`), GitHub cannot resolve a short SHA (`setup-line: GitHub cannot resolve <REV> to one commit of pr0d1r2/claudinix -- no line printed; pass a longer or the full SHA`, or `cannot resolve short SHA <REV>: gh is not installed`), or CI is not green and `--force` was not given |
 | 2 | a usage error: an unknown flag or more than one `REV` |
 
 ## session-start.sh
