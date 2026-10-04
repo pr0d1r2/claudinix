@@ -63,6 +63,7 @@ T122|x|`raw.githubusercontent.com` in every doc that lists the allowed domains (
 T125|x|AGENTS, CONTRIBUTING, CLI `cloud`, RUNBOOK: a cloud agent opens a PR \& never merges; owner reviews it (CI runs on the PR)|`scripts:T124`,`.:C29`,C22
 T128|x|CLI `rebase` section, RUNBOOK review step: a conflicting `claude/*` PR → `just rebase <PR>`|`scripts:T126`,C22
 T130|x|CLI `review` section (roles = files in `scripts/review/`, how to add one), RUNBOOK review step|`scripts:T129`,C22
+T134|.|CLI `fixup` section, RUNBOOK: after `just review`, `just fixup <PR>`|`scripts:T132`,C22
 
 ## §B BUGS
 
