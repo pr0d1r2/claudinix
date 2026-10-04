@@ -61,7 +61,7 @@ T117|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:T116`,`scripts:B14`,C22
 T120|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:T119`,C22
 T122|x|`raw.githubusercontent.com` in every doc that lists the allowed domains (SETUP step 3 + troubleshooting for `curl: (22) ... 403`, FORKING, RUNBOOK, CLI `domains` output, SESSION); FACTS: open question "raw reachable during setup?" answered: 403 until allowed (2026-10-04)|`.:T121`,`.:B15`,`.:C6`,C22
 T125|x|AGENTS, CONTRIBUTING, CLI `cloud`, RUNBOOK: a cloud agent opens a PR \& never merges; owner reviews it (CI runs on the PR)|`scripts:T124`,`.:C29`,C22
-T128|.|CLI `rebase` section, RUNBOOK review step: a conflicting `claude/*` PR → `just rebase <PR>`|`scripts:T126`,C22
+T128|x|CLI `rebase` section, RUNBOOK review step: a conflicting `claude/*` PR → `just rebase <PR>`|`scripts:T126`,C22
 
 ## §B BUGS
 
