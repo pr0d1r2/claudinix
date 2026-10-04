@@ -20,6 +20,7 @@ To re-measure, run [`probe.sh`](../probe.sh) inside a session.
 | PID 1 is `process_api`. There is no systemd. | 2026-10-03 | probe 1 |
 | `unshare -Ur` works. | 2026-10-03 | probe 1 |
 | 4 vCPUs, 15 GB RAM, no swap. | 2026-10-03 | probe 6 |
+| `nproc` 4, `free` 15 GiB total with 10 GiB free and no swap, `df /` 252 GB with 26 GB available. The dev shell sets hk and bats jobs to 4 from this and leaves cargo at its default (one job per vCPU). The `jobs-match-vcpus` gate step keeps them equal. Store growth is in the `sherd` row below. | 2026-10-04 | T52 session |
 | About 30 GB of free disk per session, on a 252 GB device. No cgroup v2 limits are visible. | 2026-10-03 | probe 6 |
 | The VM had been up for 3 minutes when the session started: a fresh boot, not a reused one. | 2026-10-03 | probe 6 |
 | The session sets `CLAUDE_CODE_REMOTE=true`, plus several `CCR_*` variables. A hook can use this to tell it is running in the cloud. | 2026-10-03 | probe 7 |
