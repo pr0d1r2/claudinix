@@ -11,6 +11,8 @@
 # The agent home is opt-in (.:C24): `--agent-home` appends `--agent-home`
 # to the line, which asks setup.sh for it; without it, Nix and nix-dev only.
 #
+# A short SHA (7-39 hex) is looked up on GitHub (scripts:V37).
+#
 # Usage: setup-line.sh [--force] [--agent-home] [REV]   (default: HEAD)
 # Env:   GH_BIN   the GitHub CLI (default: gh); used read-only
 # Needs: git, gh (signed in), jq
@@ -45,9 +47,21 @@ done
 rev="${rev:-HEAD}"
 
 # A full SHA needs no clone (the guide app runs in the target project);
-# CI below decides whether it is a good one.
+# CI below decides whether it is a good one. A short one (7-39 hex) names
+# a claudinix commit, so GitHub resolves it, never local git, which may
+# be the target project's repo (scripts:V37).
 if [[ "$rev" =~ ^[0-9a-f]{40}$ ]]; then
     sha="$rev"
+elif [[ "$rev" =~ ^[0-9a-f]{7,39}$ ]]; then
+    if ! command -v "$gh" >/dev/null 2>&1; then
+        echo "setup-line: cannot resolve short SHA $rev: $gh is not installed -- no line printed; pass the full SHA" >&2
+        exit 1
+    fi
+    sha="$("$gh" api "repos/$repo/commits/$rev" --jq .sha 2>/dev/null || true)"
+    if ! [[ "$sha" =~ ^[0-9a-f]{40}$ ]]; then
+        echo "setup-line: GitHub cannot resolve $rev to one commit of $repo -- no line printed; pass a longer or the full SHA" >&2
+        exit 1
+    fi
 elif ! sha="$(git rev-parse --verify --quiet "$rev^{commit}")"; then
     echo "setup-line: cannot resolve $rev to a commit -- no line printed" >&2
     exit 1

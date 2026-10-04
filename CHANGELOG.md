@@ -134,6 +134,9 @@ Run from the project you will send to the cloud, as
   skips the question).
 - `guide` checks the project's inputs before the first session, tests the
   dev shell with `nix-dev`, and launches with `--model sonnet`.
+- `scripts/setup-line.sh` takes a short SHA (7 to 39 hex characters) and
+  looks it up on GitHub, so `c63d695` names the same claudinix commit
+  from any directory.
 
 ### Repository
 
