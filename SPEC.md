@@ -103,7 +103,7 @@ T3|x|ARCHIVED to SPEC-ARCHIVE.md|C8,V8,V9,I.file
 T4|x|ARCHIVED to SPEC-ARCHIVE.md|C8,C6,V10,I.ext.env — done 2026-10-03: env `nix` created; probes 1-5 on sherd
 T5|x|ARCHIVED to SPEC-ARCHIVE.md|V9,V4 — not needed: session uid = root (probe 1)
 T10|x|ARCHIVED to SPEC-ARCHIVE.md|V11,C4
-T11|.|MANUAL create public GitHub repo `pr0d1r2/claudinix`, add remote, push after `docs:T9`|C10,V12
+T11|x|MANUAL create public GitHub repo `pr0d1r2/claudinix`, add remote, push after `docs:T9`|C10,V12
 T17|x|ARCHIVED to SPEC-ARCHIVE.md|`nix:V14`,`nix:V15`,V7,I.file
 T19|x|ARCHIVED to SPEC-ARCHIVE.md|C16,C17,V17,V19
 T20|x|ARCHIVED to SPEC-ARCHIVE.md|C15,V18
