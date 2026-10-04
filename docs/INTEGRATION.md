@@ -11,9 +11,9 @@ right and this file has a bug.
 
 | caller | set | when |
 |---|---|---|
-| `pre-commit` hook | `fast`, 35 steps | every commit, on the staged files |
-| `pre-push` hook | `all`, 39 steps | every push |
-| `hk check --all` in CI | `all`, 39 steps | every push to `main` and every pull request |
+| `pre-commit` hook | `fast`, 36 steps | every commit, on the staged files |
+| `pre-push` hook | `all`, 40 steps | every push |
+| `hk check --all` in CI | `all`, 40 steps | every push to `main` and every pull request |
 
 A fourth hook, `commit-msg`, runs two steps on the commit message.
 
@@ -113,6 +113,7 @@ the `integration-steps` step fails when it no longer matches.
 | `no-large-files` | fast | `**/*` | `hk util check-added-large-files <files>` | - |
 | `no-merge-conflict` | fast | `**/*` | `hk util check-merge-conflict --assume-in-merge <files>` | - |
 | `readme-setup-line` | fast | `README.md` `scripts/setup-line.sh` `scripts/guard/readme-setup-line.sh` | `scripts/guard/readme-setup-line.sh` | - |
+| `jobs-match-vcpus` | fast | `docs/FACTS.md` `nix/dev-shell.nix` `scripts/guard/jobs-match-vcpus.sh` | `scripts/guard/jobs-match-vcpus.sh` | - |
 | `dev-fmt` | fast | `dev/**` | `cargo fmt --check --manifest-path dev/Cargo.toml` | `cargo fmt --manifest-path dev/Cargo.toml` |
 | `dev-clippy` | fast | `dev/**` | `cargo clippy --quiet --all-targets --manifest-path dev/Cargo.toml -- -D warnings` | - |
 | `readme-badges` | fast | `README.md` `LICENSE` `setup.sh` `.claudinix.toml` `hk.pkl` `pkl/*.pkl` `SPEC.md` `.github/workflows/ci.yml` `tests/unit/**/*.bats` `dev/**` | `claudinix-dev badges --check` | `claudinix-dev badges --write` |
