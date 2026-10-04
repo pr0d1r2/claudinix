@@ -623,3 +623,11 @@ config() {
     run bash "$SCRIPT" update <<<''
     [[ "$output" == *"Hover over project"* ]]
 }
+
+# scripts:B14, T118: the label the owner saw on the dialog's button.
+
+@test "step 3 ends with the dialog's real button label, Add environment (B14)" {
+    run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
+    [[ "$output" == *"Then select Add environment."* ]]
+    [[ "$output" != *"Create environment"* ]]
+}
