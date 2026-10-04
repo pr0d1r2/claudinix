@@ -60,7 +60,7 @@ T113|x|ARCHIVED to SPEC-ARCHIVE.md|V37,V26,I.cmd
 T114|x|ARCHIVED to SPEC-ARCHIVE.md|V37,V26,I.cmd,T113,`.:C25`
 T116|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V26,`.:C2`
 T118|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B14,`.:C2`
-T119|.|guide step 4 = per-project pin (owner 2026-10-04: 1 env per project, more soon; `/remote-env` writes user scope only, `--environment` rejects `env_` ids): show the project pin if any, ask `Pin <id> to <project> [Y/n]`, write it, warn if not ignored; ⊥ id → todo; heading "(once per project)" + SETUP heading (parity)|I.cmd,V26,T116,`.:C2`
+T119|x|guide step 4 = per-project pin (owner 2026-10-04: 1 env per project, more soon; `/remote-env` writes user scope only, `--environment` rejects `env_` ids): show the project pin if any, ask `Pin <id> to <project> [Y/n]`, write it, warn if not ignored; ⊥ id → todo; heading "(once per project)" + SETUP heading (parity)|I.cmd,V26,T116,`.:C2`
 
 ## §B BUGS
 
