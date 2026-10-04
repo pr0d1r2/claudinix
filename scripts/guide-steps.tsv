@@ -6,6 +6,6 @@
 1	Prerequisites	-	-
 2	Connect GitHub (browser, once)	https://github.com/apps/claude	-
 3	Create the environment (browser, once)	https://claude.ai/code	env-name,domains,setup
-4	Choose the environment in your terminal (once per machine)	-	-
+4	Choose the environment in your terminal (once per project)	-	-
 5	Run a first session and check that it works	-	-
 update	Updating the environment (after a change here)	https://claude.ai/code	setup,domains

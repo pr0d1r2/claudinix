@@ -144,6 +144,10 @@ Run from the project you will send to the cloud, as
   asks, Enter keeps it), instead of always `nix`, and step 4 says how to
   pin that environment for this project only.
 - `guide` step 3 names the dialog's real button, **Add environment**.
+- `guide` step 4 pins the environment to the project: after `/remote-env`
+  (which saves the pick for every project) it offers to write the
+  environment id into the project's gitignored
+  `.claude/settings.local.json`, so each project keeps its own environment.
 
 ### Repository
 
