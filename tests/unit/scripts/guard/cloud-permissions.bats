@@ -66,6 +66,22 @@ list() {
     [[ "$output" == *'Bash(git push *:main)'* ]]
 }
 
+@test "the repo's own list denies a force refspec and a tag push through HEAD:* (nix:B23)" {
+    for refspec in HEAD:+main HEAD:+claude/x HEAD:refs/heads/main HEAD:refs/tags/v1; do
+        denied=0
+        while IFS= read -r rule; do
+            glob="${rule#Bash(}"
+            glob="${glob%)}"
+            # shellcheck disable=SC2053 # the rule is a glob on purpose
+            [[ "git push origin $refspec" == $glob ]] && denied=1
+        done < <(jq -r '.deny[]' "$REPO_ROOT/nix/cloud-permissions.json")
+        [ "$denied" -eq 1 ] || {
+            echo "not denied: $refspec"
+            return 1
+        }
+    done
+}
+
 @test "whole-tool rule Bash: refused and named" {
     list '["Bash(bats *)", "Bash"]'
     run bash "$SCRIPT"
