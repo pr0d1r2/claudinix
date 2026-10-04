@@ -53,7 +53,7 @@ setup() {
 
 # --- the roles ---
 
-@test "the owner's six roles each have a file" {
+@test "the owner's six roles are a floor: each has a file, more may follow" {
     for role in correctness maintainability extensibility performance security architecture; do
         [ -s "$ROLES/$role.md" ] || {
             echo "missing role: $role"
@@ -285,6 +285,21 @@ roles() {
     run bash "$SCRIPT" all 12 <<<"y"
     [ "$status" -eq 0 ]
     [ "$(wc -l <"$STATE/claude.roles" | tr -d ' ')" = "$n" ]
+}
+
+@test "all: the question says the cost is one review times the role count" {
+    run bash "$SCRIPT" all 12 <<<""
+    [[ "$output" == *"about $(roles | wc -l | tr -d ' ') times the cost of one review"* ]]
+}
+
+@test "all with no role files: says there are none, not that all is no role" {
+    local lib="$BATS_TEST_TMPDIR/lib"
+    mkdir -p "$lib/review"
+    cp "$REPO/scripts/cloud-review-prompt.txt" "$REPO/scripts/config.sh" "$REPO/scripts/config.jq" "$lib/"
+    CLAUDINIX_SCRIPTS="$lib" run bash "$SCRIPT" all 12 --yes
+    [ "$status" -eq 2 ]
+    [[ "$output" == *"no role files"* ]]
+    [ ! -e "$STATE/claude.1" ]
 }
 
 @test "all: --dry-run prints one command per role and starts nothing" {
