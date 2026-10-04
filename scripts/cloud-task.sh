@@ -23,7 +23,8 @@
 # The prompt is cloud-task-prompt.txt with @TASK@, @NODE@, @BRANCH@ and
 # @TASK_TEXT@ (the spec row as written) filled in. The session pushes
 # `claude/<node>-<task>` (`root` for the root node), to which the harness
-# may add a suffix. claude runs as `claude --cloud PROMPT --model M`: the
+# may add a suffix, and opens a pull request into main (scripts:T124);
+# it never merges. claude runs as `claude --cloud PROMPT --model M`: the
 # prompt right after --cloud, since --model first fails with "--cloud
 # requires a description" (probe 7). It needs a TTY there, so it runs
 # under `script`. This does not wait for the session (a build outlasts a
@@ -231,4 +232,4 @@ else
     script -q /dev/null claude --cloud "$prompt" --model "$model"
 fi
 
-echo "cloud: started $node:$id; it pushes claude/$label-$id (the harness may add a suffix) -- follow it at claude.ai/code"
+echo "cloud: started $node:$id; it pushes claude/$label-$id (the harness may add a suffix) and opens a pull request -- follow it at claude.ai/code"

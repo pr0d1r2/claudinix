@@ -93,8 +93,8 @@ does are summarised briefly; the git history has the detail.
   cloud agent can run the `dev/` checks without a prompt; never a bare
   `cargo` (which could install or run anything).
 - `just cloud <node:Tn>` starts one billed cloud session that builds one
-  open spec task of this repository and pushes it to a `claude/*` branch
-  for review; it refuses missing, done or ambiguous tasks and unpushed
+  open spec task of this repository, pushes it to a `claude/*` branch
+  and opens a pull request for review (the agent never merges); it refuses missing, done or ambiguous tasks and unpushed
   branches, asks before starting, and `--dry-run` prints the command.
 - The dev shell's own flake inputs are fetched over `git+https`, so a
   cloud session can enter it without GitHub 403s; only nixpkgs remains a
