@@ -29,7 +29,7 @@ sib|dev|`claudinix-dev`: repo-only Rust tool, generated README badges \\& doc nu
 id|status|task|cites
 T7|.|measure setup wall time on fresh VM; record; > 5 min → trim|`.:V5`,C1
 T14|.|probe ext: `echo $HOME`, `id`, `ls -la ~/.claude`, `settings.json` owner \& content before/after launch; setup places 1 test skill in `~/.claude/skills` → visible to Claude (`/` list) ?|C13,`nix:V14`,I.file
-T52|.|record VM resources (`nproc`, `free`, `df /`, store growth) in FACTS; set bats `--jobs`, hk jobs, cargo jobs from them|C18,`docs:T34` — measured: 4 vCPU ∴ hk \& bats jobs = 4, cargo default
+T52|x|record VM resources (`nproc`, `free`, `df /`, store growth) in FACTS; set bats `--jobs`, hk jobs, cargo jobs from them|C18,`docs:T34` — measured: 4 vCPU ∴ hk \& bats jobs = 4, cargo default
 T55|.|measure snapshot reuse: 2nd session in same env skips setup?; start time cold vs warm; record in FACTS|`.:V5`,C1,`docs:T34`
 T56|.|EXP E1 skills survive: `setup.sh` places test skill + `~/.claude/settings.json`; session lists skills \& reads file; decides agent-home design (`nix:T16`, `.:T17`) vs account-synced skills|C13,`nix:V14`,T14
 T57|.|EXP E2 SHA-pinned fetch: in session `curl raw.githubusercontent.com/<o>/<r>/<sha>/setup.sh` + `nix build git+https://…?rev=<sha>#…`; after 1st push (or sherd stand-in)|`.:V20`,`nix:V15`,`.:T24`
