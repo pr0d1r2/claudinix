@@ -252,7 +252,11 @@ a `claude/*` branch. It is billed, and it runs on Sonnet unless you pass
    For a second opinion before you merge, run `just review <role> <PR>`
    for one role, or `just review all <PR>` for every role at once (one
    billed session per role). Each session posts its findings as a comment
-   on the pull request.
+   on the pull request. To act on them, run `just fixup <PR>`: one more
+   session fixes each finding in its own commits (or declines it with a
+   reason), pushes them to the pull request's branch, gives a thumbs-up to
+   each comment it fixed, and replies once. Then review and merge as
+   above.
 
 The environment's setup line must include `--agent-home`. This repository's
 `.claudinix.toml` turns the agent home on, so the cloud agent gets the
