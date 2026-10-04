@@ -473,15 +473,16 @@ claude --cloud <prompt> --model <M>
 **What the session is told.** The prompt is
 [`cloud-task-prompt.txt`](../scripts/cloud-task-prompt.txt) with the task,
 node, branch and the spec row filled in. It says: follow `AGENTS.md`, build
-exactly this task (RED, GREEN, status flip), run the gate, push the branch
-and report. The session pushes `claude/<node>-<task>`, with `root` as the
+exactly this task (RED, GREEN, status flip), run the gate, push the branch,
+open a pull request into `main` without merging it, and report. The session pushes `claude/<node>-<task>`, with `root` as the
 node name for the root, for example `claude/scripts-T98` or
-`claude/root-T103`. The harness may add a suffix. It opens no pull request.
+`claude/root-T103`. The harness may add a suffix. It then opens a pull request into `main`,
+titled after its feat or fix commit, and never merges it.
 
 **It does not wait.** After the session starts it prints:
 
 ```text
-cloud: started <node>:<Tn>; it pushes claude/<node>-<Tn> (the harness may add a suffix) -- follow it at claude.ai/code
+cloud: started <node>:<Tn>; it pushes claude/<node>-<Tn> (the harness may add a suffix) and opens a pull request -- follow it at claude.ai/code
 ```
 
 A build outlasts a launcher, so follow the session at

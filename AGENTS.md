@@ -120,7 +120,8 @@ Measured in real sessions: root, `HOME=/root`, `CLAUDE_CODE_REMOTE=true`.
   cache.nixos.org).
 - Launch cloud tasks with `just cloud <node:Tn>` (`--dry-run` first), never
   a hand-written `claude --cloud`. A cloud agent pushes
-  `claude/<node>-<task>` and opens no PR; the owner reviews and merges.
+  `claude/<node>-<task>` and opens a pull request into `main`; it never
+  merges. The owner reviews the pull request and its CI, then merges.
 
 ## Cloud permissions
 
