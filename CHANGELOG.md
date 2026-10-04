@@ -101,6 +101,9 @@ does are summarised briefly; the git history has the detail.
   of merging them by hand, stops and reports a conflict that needs a
   decision, runs the gate and force-pushes the same branch with a lease.
   It opens no new pull request and merges nothing.
+- The cloud permission list allows
+  `git push --force-with-lease origin HEAD:claude/*`, the rebase session's
+  push; plain force pushes and every push to `main` stay unlisted or denied.
 - The dev shell's own flake inputs are fetched over `git+https`, so a
   cloud session can enter it without GitHub 403s; only nixpkgs remains a
   `github:` input, served by cache.nixos.org.
