@@ -123,8 +123,8 @@ does are summarised briefly; the git history has the detail.
   pull request's review findings one at a time, fixing each in its own
   commits or declining it with a reason. It pushes to the same branch
   without force, gives a thumbs-up to each comment it fixed, and replies
-  once mapping findings to commits. A URL of another repository or a branch
-  name that is not a plain ref is refused.
+  once mapping findings to commits. A URL of another repository, a pull
+  request from a fork or a branch name that is not a plain ref is refused.
   A problem raised in several comments is fixed once and credited to each.
 - The cloud permission list allows
   `git push --force-with-lease origin HEAD:claude/*`, the rebase session's

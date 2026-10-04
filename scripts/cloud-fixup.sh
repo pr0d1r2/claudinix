@@ -90,15 +90,19 @@ if [ -n "$url_repo" ]; then
 fi
 
 # </dev/null: gh must not share the terminal the y/N answer comes from (B19).
-if ! info="$(gh pr view "$pr" --json number,state,headRefName,baseRefName,url \
-    --jq '[.number, .state, .headRefName, .baseRefName, .url] | @tsv' </dev/null)"; then
+if ! info="$(gh pr view "$pr" --json number,state,headRefName,baseRefName,url,isCrossRepository \
+    --jq '[.number, .state, .headRefName, .baseRefName, .url, .isCrossRepository] | @tsv' </dev/null)"; then
     echo "fixup: gh could not read pull request #$pr -- check the number and that gh is signed in" >&2
     exit 1
 fi
-IFS="$(printf '\t')" read -r _ state head base url <<<"$info"
+IFS="$(printf '\t')" read -r _ state head base url cross <<<"$info"
 
 if [ "$state" != OPEN ]; then
     echo "fixup: #$pr is $state, not OPEN -- nothing to fix up" >&2
+    exit 1
+fi
+if [ "$cross" = true ]; then
+    echo "fixup: #$pr is from a fork; its branch $head is not a branch of $remote -- fix it up by hand" >&2
     exit 1
 fi
 if [ "$base" != main ]; then
