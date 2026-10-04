@@ -63,7 +63,7 @@ T116|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V26,`.:C2`
 T118|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B14,`.:C2`
 T119|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V26,T116,`.:C2`
 T124|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`
-T126|.|`just rebase <PR>` (owner 2026-10-04: #8 conflicted only in README badges after #9): 1 cloud session rebases a `claude/*` PR onto `main`|I.cmd,`.:C29`,`nix:T127`
+T126|x|`just rebase <PR>` (owner 2026-10-04: #8 conflicted only in README badges after #9): 1 cloud session rebases a `claude/*` PR onto `main`|I.cmd,`.:C29`,`nix:T127`
 
 ## §B BUGS
 
