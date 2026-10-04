@@ -58,9 +58,11 @@ T98|x|ARCHIVED to SPEC-ARCHIVE.md|V34,V13
 T113|x|`setup-line.sh`: a 7-39 hex REV is resolved on GitHub to the full SHA; unknown \| ambiguous → exit 1 naming it|V37,V26,I.cmd
 T114|x|guide `--rev` takes a short SHA (7-40 hex), passed on to `setup-line.sh`; bad value → exit 2 naming it; "no release yet" stop names the newest green `main` SHA (`gh run list --status success`, read-only) as the `--rev` to rerun with; gh missing \| silent → today's message|V37,V26,I.cmd,T113,`.:C25`
 T116|x|guide env name: step 3 asks `Environment name (Enter: <project>)`, default = project name (git top basename of flake-dir), ⊥ fixed `nix`; steps 4 \& `update` name it; step 4 says `/remote-env` is user-wide ∴ pin per-project env in the repo `.claude/settings.json` (`remote.defaultEnvironmentId`)|I.cmd,V26,`.:C2`
+T118|.|guide step 3 ends w/ "select Add environment" (UI label seen 2026-10-04), ⊥ "Create environment"|I.cmd,B14,`.:C2`
 
 ## §B BUGS
 
 id|date|cause|fix
 B4|2026-10-03|`scripts/inputs.sh /nonexistent` said `no directory .`: failed `dir="$(cd … && pwd)"` emptied `dir`, `${dir:-.}` showed `.` ⇒ user cannot tell which path was wrong (found by docs round 2 running the CLI)|V26
 B13|2026-10-04|`just guide --rev c63d695` (short SHA, as git prints it) → bare usage line, exit 2: `--rev` matched only 40 hex \& the message named neither the flag nor the value ⇒ owner could not tell what was wrong; pre-release there is no published line, so `--rev` is the only path|V37,V26
+B14|2026-10-04|guide step 3 \& SETUP said "select Create environment"; the dialog button reads "Add environment" (owner, 1st real run) ⇒ UI labels drift w/o notice; ⊥ invariant can check the UI (`.:C2`), ∴ a bats test pins the label the owner saw|`.:C2`
