@@ -240,6 +240,17 @@ pr() {
     run ! grep -qF 'push again with the same command' "$STATE/claude.task"
 }
 
+@test "the prompt: the Fixup: reply comes before the CI watch, which appends its result to the reply (scripts:T142)" {
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 0 ]
+    local p="$STATE/claude.task" reply watch
+    reply="$(grep -nF 'headed "Fixup:"' "$p" | head -n 1 | cut -d: -f1)"
+    watch="$(grep -nF 'Watch CI on the pull request' "$p" | head -n 1 | cut -d: -f1)"
+    [ -n "$reply" ] && [ -n "$watch" ]
+    [ "$reply" -lt "$watch" ]
+    grep -qF 'Append the CI result to your Fixup: reply' "$p"
+}
+
 # shellcheck disable=SC2016 # literal backticks in the prompt
 @test "the prompt: a CI fix never edits the files that define CI (scripts:V42)" {
     run bash "$SCRIPT" 8 --yes
