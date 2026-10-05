@@ -41,6 +41,7 @@ V13: input failover order, each tier logged: (1) substitute locked input by `nar
 V26: ∀ error message about a user-given path \| arg names it as given (⊥ a fallback like `.`); bats asserts the arg appears in the message.
 V34: config precedence = flag > `.claudinix.toml` > built-in default; no file = today's behaviour; unknown table \| key \| wrong type \| `version` ≠ 1 → exit 2 naming the key \& the file (V26); 1 reader (`scripts/config.sh`), ⊥ ad-hoc parsing in each tool. absent `config.sh` (old install) = no file.
 V37: a claudinix commit given by the user (`setup-line.sh` REV, guide `--rev`): 40 hex = as is, ⊥ clone; 7-39 hex = short SHA → full SHA from GitHub (`gh api repos/pr0d1r2/claudinix/commits/<hex>`, read-only), ⊥ local git (the guide app runs in the target repo ∴ a local prefix may name a wrong commit); answer ⊥ 40 hex \| gh fails → exit 1 naming REV (V26), no line; other REV (`HEAD~1`, branch) → local `git rev-parse`.
+V40: `just all` snapshots a PR's comments before each child launch; ⊥ read → exit 1 naming the PR (⊥ count 0), so an old comment is never new (B33).
 
 ## §T TASKS
 
@@ -95,3 +96,4 @@ B29|2026-10-05|`CLOUD_ALL_POLL=0` \| `abc` → raw shell error|exit 2 naming it 
 B30|2026-10-05|`all` comment reader: a `\r\n` heading ⊥ matched|`comments` trims the `\r`
 B31|2026-10-05|`all` branch regex took the node unescaped (`a.b` ~ `axb`)|escape it
 B32|2026-10-05|every `all` wait maps a `gh` error to "not yet"; #14's fixup reply (07:19) was missed by a wait of the same rule, which printed dots to its 3 h limit, cause hidden|stop after 3 `gh` errors in a row, show stderr
+B33|2026-10-05|`all` `comment_count` turned a failed `gh` read into 0 ∴ on an existing PR the old `Review:` \& `Fixup:` comments counted as new and the waits passed at once|V40: a comment count that cannot be read stops the flow (exit 1, names the PR)
