@@ -731,8 +731,9 @@ cloud: started the fixup of #<n> (<branch>); it pushes its commits there and giv
 
 ## all
 
-Runs one spec task's whole cloud flow from your terminal and waits for each
-step: [`cloud`](#cloud) builds it, [`review all`](#review) reviews the pull
+Runs a pull request's whole cloud flow from your terminal and waits for each
+step. For a spec task, [`cloud`](#cloud) builds it first; for an existing
+pull request there is no build. Then [`review all`](#review) reviews the pull
 request by every role, and [`fixup`](#fixup) works through the findings.
 At the end it opens the green pull request in Safari for you to review and
 merge. **It starts several billed sessions**, so it asks once, first.
@@ -748,22 +749,27 @@ for [`cloud`](#cloud). `CLAUDINIX_SCRIPTS` holds the three launchers,
 
 **An existing pull request.** Give a PR number or URL instead of a task,
 for example `just all 16`, and the build is skipped. This is for a pull
-request made by hand, such as a spec-only one. `cloud-fixup.sh --dry-run`
-checks it (open, not from a fork, based on `main`, a plain branch name),
-and the flow starts at step 2. It starts one session per role and one
-fixup, and the children get the argument as given.
+request made by hand, such as a spec-only one. The flow starts at the CI
+wait (step 2) and starts one session per role and one fixup; the children
+get the argument as given.
 
-**Before anything starts.** It runs `cloud-task.sh --dry-run`, so every
-check of `cloud` applies: the task, the remote, the pushed branch and the
-model. A refusal exits with the status `cloud` gives it. After your
-answer it lists the open pull requests once, to know which are not the
-build's; if `gh` cannot list them, it exits 1 before any session starts. With no role
+**Before anything starts.** For a task it runs `cloud-task.sh --dry-run`,
+so every check of `cloud` applies: the task, the remote, the pushed branch
+and the model. For a pull request it runs `cloud-fixup.sh --dry-run`
+instead (open, not from a fork, based on `main`, a plain branch name, a
+URL of this repository) and lists no pull requests. A refusal exits with
+the status the launcher gives it. For a task, after your answer it lists
+the open pull requests once, to know which are not the build's; if `gh`
+cannot list them, it exits 1 before any session starts. With no role
 files in `scripts/review/`, it exits 1. Then one question covers every
 session:
 
 ```text
 all: docs:T47 runs 8 billed Claude Code cloud sessions (model sonnet), one after another: 1 build, 6 reviews (architecture correctness extensibility maintainability performance security), 1 fixup; it waits for each and for green CI, up to hours. Start? [y/N]
+all: #16 runs 7 billed Claude Code cloud sessions (model sonnet), one after another: 6 reviews (architecture correctness extensibility maintainability performance security), 1 fixup; it waits for each and for green CI, up to hours. Start? [y/N]
 ```
+
+The first line is a task, the second an existing pull request.
 
 `--yes` skips only that question, and each launcher then runs with
 `--yes`. `--dry-run` runs the checks, prints the plan above without the
@@ -780,10 +786,10 @@ positive whole number; anything else exits 2. The table mirrors the
 | step | waits for | at most (minutes) |
 |---|---|---|
 | 1. `cloud <task>` | a pull request that was not open before, from branch `claude/<node>-<task>` in this repository, not a fork (the harness may add a suffix; case is ignored; any node for a bare `Tn`) | 180 |
-| 2. | CI on the head commit: no check pending, none failed (skipped and neutral count as passed; no checks yet counts as pending) | 60 |
+| 2. (just waits) | CI on the head commit: no check pending, none failed (skipped and neutral count as passed; no checks yet counts as pending) | 60 |
 | 3. `review all <PR>` | a comment headed `Review: <role>` for every role | 90 |
 | 4. `fixup <PR>` | a newer comment headed `Fixup:`: the fixup's reply | 180 |
-| 5. | CI again, as in step 2 | 60 |
+| 5. (just waits) | CI again, as in step 2 | 60 |
 
 Then it opens the pull request: `open -a Safari` on macOS, `xdg-open`
 elsewhere. It never merges.
