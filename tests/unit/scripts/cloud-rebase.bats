@@ -46,7 +46,7 @@ setup() {
         'echo "$*" >>"$STATE/gh.log"' \
         '[ -z "${GH_READS_STDIN:-}" ] || cat >/dev/null' \
         '[ -z "${GH_FAIL:-}" ] || { echo "GraphQL: Could not resolve to a PullRequest" >&2; exit 1; }' \
-        'printf "%b\n" "${STUB_PR:-8\tOPEN\tclaude/dev-t123-dk9i03\tmain\thttps://github.com/o/p/pull/8}"' >"$STUBS/gh"
+        'printf "%b\n" "${STUB_PR:-8\tOPEN\tclaude/dev-t123-dk9i03\tmain\thttps://github.com/o/p/pull/8\tfalse}"' >"$STUBS/gh"
     chmod +x "$STUBS"/*
     export PATH="$STUBS:$PATH"
 }
@@ -93,12 +93,27 @@ setup() {
     [ ! -e "$STATE/claude.1" ]
 }
 
-@test "a head outside claude/* is refused: the session may push only there" {
-    STUB_PR='8\tOPEN\tfeature/x\tmain\thttps://github.com/o/p/pull/8' run bash "$SCRIPT" 8 --yes
-    [ "$status" -eq 1 ]
-    [[ "$output" == *"feature/x"* ]]
-    [[ "$output" == *"claude/*"* ]]
+@test "any branch of origin but main is rebased; a fork, main or a non-plain ref is refused (scripts:T145)" {
+    STUB_PR='8\tOPEN\tfeature/x\tmain\thttps://github.com/o/p/pull/8\tfalse' run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 0 ]
+    grep -qF 'git push --force-with-lease origin HEAD:feature/x' "$STATE/claude.task"
+    rm -f "$STATE/claude.1"
+    # shellcheck disable=SC2016 # $(id) is the literal branch name under test
+    for head in 'feature/x\ttrue' 'main\tfalse' 'x$(id)\tfalse'; do
+        STUB_PR="8\tOPEN\t${head%%\\t*}\tmain\thttps://github.com/o/p/pull/8\t${head#*\\t}" run bash "$SCRIPT" 8 --yes
+        [ "$status" -eq 1 ]
+        [[ "$output" == *"#8"* ]]
+    done
     [ ! -e "$STATE/claude.1" ]
+}
+
+@test "a URL of another repository is refused; owner and repo compare with the case folded (scripts:T145)" {
+    run bash "$SCRIPT" https://github.com/other/repo/pull/8 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"other/repo"* ]]
+    [ ! -e "$STATE/claude.1" ]
+    run bash "$SCRIPT" https://github.com/O/P/pull/8 --yes
+    [ "$status" -eq 0 ]
 }
 
 @test "a base other than main is refused" {
@@ -182,4 +197,16 @@ setup() {
 @test "just rebase runs the script, one plain command" {
     grep -qxF 'rebase *args:' "$BATS_TEST_DIRNAME/../../../justfile"
     grep -qxF '    scripts/cloud-rebase.sh {{ args }}' "$BATS_TEST_DIRNAME/../../../justfile"
+}
+
+@test "the prompt: mechanical conflicts are resolved, a shared spec id renumbered, then CI watched (scripts:T145)" {
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 0 ]
+    local p="$STATE/claude.task"
+    grep -qF 'keep both' "$p"
+    grep -qF 'next free id' "$p"
+    grep -qF 'every citation of it' "$p"
+    grep -qF 'opposite things' "$p"
+    grep -qF 'Watch CI on the pull request' "$p"
+    grep -qF 'at most 3 red rounds' "$p"
 }

@@ -82,6 +82,20 @@ list() {
     done
 }
 
+@test "the repo's own list lets rebase lease-push any PR branch; a lease push to main stays denied (nix:T144)" {
+    run jq -r '.allow[]' "$REPO_ROOT/nix/cloud-permissions.json"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'Bash(git push --force-with-lease origin HEAD:*)'* ]]
+    denied=0
+    while IFS= read -r rule; do
+        glob="${rule#Bash(}"
+        glob="${glob%)}"
+        # shellcheck disable=SC2053 # the rule is a glob on purpose
+        [[ "git push --force-with-lease origin HEAD:main" == $glob ]] && denied=1
+    done < <(jq -r '.deny[]' "$REPO_ROOT/nix/cloud-permissions.json")
+    [ "$denied" -eq 1 ]
+}
+
 @test "whole-tool rule Bash: refused and named" {
     list '["Bash(bats *)", "Bash"]'
     run bash "$SCRIPT"
