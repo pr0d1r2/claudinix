@@ -274,7 +274,8 @@ find_pr() {
 
 # ci_state: the head commit's checks: 0 green, 1 red, 2 pending. A cancelled
 # check is pending, not red: a runner outage cancels jobs that never ran
-# a step (B38); it is said once, with where to look.
+# a step (B38) and a newer push cancels the run it supersedes, so the
+# notice names both causes and none as the one (B37), once per wait.
 cancel_said=
 red_said=
 ci_fixing=0
@@ -296,7 +297,7 @@ ci_state() {
         return 2
     fi
     if [ -z "$cancel_said" ] && grep -qx CANCELLED <<<"$states"; then
-        printf '\nall: a check on #%s was cancelled, likely a runner outage (see https://www.githubstatus.com); re-run it (gh run rerun) -- still waiting\n' "$pr" >&2
+        printf '\nall: a check on #%s was cancelled (a runner outage, see https://www.githubstatus.com, or a run a newer push superseded); re-run it (gh run rerun) -- still waiting\n' "$pr" >&2
         cancel_said=1
     fi
     if grep -qvE '^(SUCCESS|SKIPPED|NEUTRAL)$' <<<"$states"; then

@@ -153,8 +153,8 @@ does are summarised briefly; the git history has the detail.
   never edits the workflows, `hk.pkl` or the permission lists.
 - `just all` no longer stops on a check that was cancelled, which is what a
   GitHub Actions runner outage does to a job that never started. It says
-  so once, points at githubstatus.com and `gh run rerun`, and keeps
-  waiting.
+  so once per wait, as a runner outage or a run a newer push superseded,
+  points at githubstatus.com and `gh run rerun`, and keeps waiting.
 - `just all` no longer stops at the first red check after the build or the
   fixup, because that session is fixing it: it says so once and waits, for
   up to 120 minutes. A pull request given by number still fails on a red
