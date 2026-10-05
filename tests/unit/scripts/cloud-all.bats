@@ -12,7 +12,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     # Long polls keep the timed-out waits to a few polls each.
     export CLOUD_ALL_POLL=600
-    unset TASK_REFUSE FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS
+    unset TASK_REFUSE REBASE_SILENT FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS
     mkdir -p "$STUBS" "$STATE" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
@@ -45,6 +45,11 @@ setup() {
         'fi' \
         '[ -z "${FIXUP_BOT:-}" ] || echo "Coverage 92%" >>"$STATE/comments"' \
         '[ -n "${FIXUP_SILENT:-}" ] || [ -n "${FIXUP_BOT:-}" ] || echo "## Fixup: pushed" >>"$STATE/comments"' >"$CLAUDINIX_SCRIPTS/cloud-fixup.sh"
+    # cloud-rebase.sh: pushes a new head that merges cleanly.
+    # shellcheck disable=SC2016 # expands inside the stub, not here
+    printf '%s\n' '#!/usr/bin/env bash' \
+        'echo "rebase $*" >>"$STATE/children.log"' \
+        '[ -n "${REBASE_SILENT:-}" ] || echo "MERGEABLE bbb" >"$STATE/merge"' >"$CLAUDINIX_SCRIPTS/cloud-rebase.sh"
     printf '%s\n' '#!/usr/bin/env bash' 'echo sonnet' >"$CLAUDINIX_SCRIPTS/config.sh"
     chmod +x "$CLAUDINIX_SCRIPTS"/*.sh
 
@@ -62,6 +67,7 @@ setup() {
         '  [ -z "${LIST_FAIL_FIRST:-}" ] || [ "$n" -ne 1 ] || exit 1' \
         '  gh_fails "${LIST_GH_FAILS:-}" "$n"' \
         '  [ "$n" -le "${PR_AFTER:-0}" ] || cat "$STATE/prs" 2>/dev/null; exit 0 ;;' \
+        '*mergeable*) tr " " "\t" <"$STATE/merge"; exit 0 ;;' \
         '*statusCheckRollup*)' \
         '  n=$(( $(cat "$STATE/ci.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/ci.n"' \
         '  gh_fails "${CI_GH_FAILS:-}" "$n"' \
@@ -85,6 +91,7 @@ setup() {
     chmod +x "$STUBS"/*
     export PATH="$STUBS:$PATH"
     echo SUCCESS >"$STATE/ci"
+    echo "MERGEABLE aaa" >"$STATE/merge"
 }
 
 # ci LINE...: what the CI checks show, one poll per LINE.
@@ -481,4 +488,28 @@ fixup 16 --yes --model sonnet" ]
     [[ "$output" == *"3 gh calls failed in a row"* ]]
     [[ "$output" != *"never replied"* ]]
     [ "$(cat "$STATE/open.log")" = "-a Safari https://github.com/o/p/pull/14" ]
+}
+
+# --- conflicts (scripts:T146) ---
+
+@test "a PR that conflicts with main is rebased by a cloud agent, then the flow goes on" {
+    echo "CONFLICTING aaa" >"$STATE/merge"
+    run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 0 ]
+    [ "$(cat "$STATE/children.log")" = "task docs:T47 --dry-run --model sonnet
+task docs:T47 --yes --model sonnet
+rebase 14 --yes --model sonnet
+review all 14 --yes --model sonnet
+fixup 14 --yes --model sonnet" ]
+    [[ "$output" == *"conflict"* ]]
+}
+
+@test "a rebase that pushes no new head stops the flow naming the conflict, no review" {
+    echo "CONFLICTING aaa" >"$STATE/merge"
+    REBASE_SILENT=1 run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"conflict"* ]]
+    [[ "$output" == *"#14"* ]]
+    [ -s "$STATE/open.log" ]
+    run ! grep -q '^review' "$STATE/children.log"
 }
