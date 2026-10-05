@@ -311,6 +311,15 @@ config() {
     grep -qF 'T40|.|a & b \& c `d` $(rm -rf x) @TASK@ ~/y|V1' "$STATE/claude.task"
 }
 
+@test "the prompt: watch CI after the push; red is fixed and pushed again, at most 3 rounds; a cancelled run is reported (scripts:T140)" {
+    run bash "$SCRIPT" T20 --yes
+    [ "$status" -eq 0 ]
+    grep -qF 'Watch CI on the pull request' "$STATE/claude.task"
+    grep -qF 'at most 3 red rounds' "$STATE/claude.task"
+    grep -qF 'cancelled before any step ran' "$STATE/claude.task"
+    grep -qF 'never weaken a check' "$STATE/claude.task"
+}
+
 # --- dry run ---
 
 @test "--dry-run prints the exact command, starts nothing, needs no answer" {

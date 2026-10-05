@@ -213,6 +213,15 @@ pr() {
     run ! grep -qF '@' "$p"
 }
 
+@test "the prompt: watch CI after the push; red is fixed and pushed again, at most 3 rounds; a cancelled run is reported (scripts:T140)" {
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 0 ]
+    grep -qF 'Watch CI on the pull request' "$STATE/claude.task"
+    grep -qF 'at most 3 red rounds' "$STATE/claude.task"
+    grep -qF 'cancelled before any step ran' "$STATE/claude.task"
+    grep -qF 'never weaken a check' "$STATE/claude.task"
+}
+
 # --- just ---
 
 @test "just fixup runs the script, one plain command" {
