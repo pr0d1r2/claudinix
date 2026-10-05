@@ -256,7 +256,8 @@ fixup 14 --yes --model sonnet" ]
     run bash "$SCRIPT" docs:T47 --yes
     [ "$status" -eq 1 ]
     [[ "$output" == *"githubstatus.com"* ]]
-    [[ "$output" != *"CI failed"* ]]
+    [[ "$output" == *"gave up waiting for CI on #14"* ]]
+    [[ "$output" == *"CI is not green on #14 after the build"* ]]
     run ! grep -q "^review" "$STATE/children.log"
 }
 
