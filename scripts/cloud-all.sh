@@ -60,6 +60,7 @@ minutes_ci=60
 minutes_ci_fix=120 # after a session, which may fix a red run in up to 3 rounds
 minutes_reviews=90
 minutes_fixup=180
+minutes_rebase=60
 
 # The check conclusions: red fails a CI wait (or, after a session, is waited
 # out), ok passes it; every other one, a cancelled check among them, is
@@ -124,6 +125,7 @@ polls_ci="$(polls "$minutes_ci")"
 polls_ci_fix="$(polls "$minutes_ci_fix")"
 polls_reviews="$(polls "$minutes_reviews")"
 polls_fixup="$(polls "$minutes_fixup")"
+polls_rebase="$(polls "$minutes_rebase")"
 
 cloud_resolve_model "$scripts_dir" || exit "$?"
 child_args=(--yes --model "$model") # every child runs unasked, on the one model
@@ -373,7 +375,9 @@ fixup_replied() {
 }
 
 # merge_state: 0 when the pull request merges cleanly into its base, 4 when
-# it conflicts, 2 while GitHub has not worked it out; sets $head_sha.
+# it conflicts, 2 while GitHub has not worked it out. Sets $head_sha, which
+# head_moved and resolve_conflicts read right after it (a success or a
+# failed gh call leaves the last one read).
 head_sha=
 merge_state() {
     local out m
@@ -409,7 +413,7 @@ resolve_conflicts() {
     old="$head_sha"
     echo "all: #$pr conflicts with main; starting a rebase"
     "$scripts_dir/cloud-rebase.sh" "$target" "${child_args[@]}" || fail "the rebase of #$pr did not start"
-    wait_for "the rebase of #$pr" "$polls_fixup" head_moved "$old" ||
+    wait_for "the rebase of #$pr" "$polls_rebase" head_moved "$old" ||
         wait_failed $? "the rebase of #$pr pushed no new head: a conflict needs the owner"
 }
 
