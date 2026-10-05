@@ -146,8 +146,9 @@ cloud_require_open_pr() {
         echo "$1: #$pr's branch is main; a cloud session never pushes main" >&2
         return 1
     fi
-    if [[ ! "$head" =~ ^[A-Za-z0-9._/-]+$ ]]; then
-        echo "$1: #$pr's branch $head is not a plain branch name (letters, digits, ._/-) -- it would reach the session's commands" >&2
+    # No leading `-`: the prompts paste the head bare into git commands (B39).
+    if [[ ! "$head" =~ ^[A-Za-z0-9._][A-Za-z0-9._/-]*$ ]]; then
+        echo "$1: #$pr's branch $head is not a plain branch name (letters, digits, ._/-, not starting with -) -- it would reach the session's commands" >&2
         return 1
     fi
 }
