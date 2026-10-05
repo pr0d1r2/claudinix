@@ -52,6 +52,12 @@ minutes_ci_fix=120 # after a session, which may fix a red run in up to 3 rounds
 minutes_reviews=90
 minutes_fixup=180
 
+# The check conclusions: red fails a CI wait (or, after a session, is waited
+# out), ok passes it; every other one, a cancelled check among them, is
+# pending.
+ci_red='^(FAILURE|TIMED_OUT|ERROR|ACTION_REQUIRED|STARTUP_FAILURE)$'
+ci_ok='^(SUCCESS|SKIPPED|NEUTRAL)$'
+
 usage() {
     echo "usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run]" >&2
     exit 2
@@ -285,7 +291,7 @@ ci_state() {
         if .__typename == "CheckRun" then (if .status == "COMPLETED" then .conclusion else "PENDING" end)
         else .state end' </dev/null 2>"$gh_err")" || return "$gh_failed"
     [ -n "$states" ] || return 2
-    if grep -qE '^(FAILURE|TIMED_OUT|ERROR|ACTION_REQUIRED|STARTUP_FAILURE)$' <<<"$states"; then
+    if grep -qE "$ci_red" <<<"$states"; then
         [ "$ci_fixing" = 1 ] || {
             echo "all: CI failed on #$pr" >&2
             return 1
@@ -300,7 +306,7 @@ ci_state() {
         printf '\nall: a check on #%s was cancelled (a runner outage, see https://www.githubstatus.com, or a run a newer push superseded); re-run it (gh run rerun) -- still waiting\n' "$pr" >&2
         cancel_said=1
     fi
-    if grep -qvE '^(SUCCESS|SKIPPED|NEUTRAL)$' <<<"$states"; then
+    if grep -qvE "$ci_ok" <<<"$states"; then
         return 2
     fi
 }
