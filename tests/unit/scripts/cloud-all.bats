@@ -12,7 +12,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     # Long polls keep the timed-out waits to a few polls each.
     export CLOUD_ALL_POLL=600
-    unset TASK_REFUSE FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS
+    unset TASK_REFUSE FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS
     mkdir -p "$STUBS" "$STATE" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
@@ -55,6 +55,7 @@ setup() {
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "$*" >>"$STATE/gh.log"' \
+        'gh_fails() { [ "${1:$(($2 - 1)):1}" != f ] || { echo "HTTP 502: bad gateway" >&2; exit 1; }; }' \
         'case "$*" in' \
         '"pr list"*)' \
         '  n=$(( $(cat "$STATE/list.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/list.n"' \
@@ -62,7 +63,7 @@ setup() {
         '  [ "$n" -le "${PR_AFTER:-0}" ] || cat "$STATE/prs" 2>/dev/null; exit 0 ;;' \
         '*statusCheckRollup*)' \
         '  n=$(( $(cat "$STATE/ci.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/ci.n"' \
-        '  [ "${CI_GH_FAILS:0:$n}" != "${CI_GH_FAILS:0:$n-1}f" ] || { echo "HTTP 502: bad gateway" >&2; exit 1; }' \
+        '  gh_fails "${CI_GH_FAILS:-}" "$n"' \
         '  [ -f "$STATE/ci" ] || exit 0' \
         '  head -n 1 "$STATE/ci" | tr " " "\n" | grep -v "^$"' \
         '  [ "$(wc -l <"$STATE/ci")" -le 1 ] || { tail -n +2 "$STATE/ci" >"$STATE/ci.t"; mv "$STATE/ci.t" "$STATE/ci"; }' \
@@ -71,7 +72,7 @@ setup() {
         '*comments*)' \
         '  n=$(( $(cat "$STATE/comments.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/comments.n"' \
         '  [ -z "${COMMENTS_FAIL_FIRST:-}" ] || [ "$n" -ne 1 ] || exit 1' \
-        '  [ "${COMMENTS_GH_FAILS:0:$n}" != "${COMMENTS_GH_FAILS:0:$n-1}f" ] || { echo "HTTP 502: bad gateway" >&2; exit 1; }' \
+        '  gh_fails "${COMMENTS_GH_FAILS:-}" "$n"' \
         '  cat "$STATE/comments" 2>/dev/null; exit 0 ;;' \
         'esac' \
         'exit 9' >"$STUBS/gh"
