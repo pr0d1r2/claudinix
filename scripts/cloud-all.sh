@@ -216,9 +216,11 @@ ci_state() {
     fi
 }
 
-# comments: the first line of every comment on the pull request.
+# comments: the first line of every comment on the pull request, without
+# the CR a comment written in the web UI ends its lines with.
 comments() {
-    gh pr view "$pr" --json comments --jq '.comments[] | (.body | split("\n") | .[0]) // ""' </dev/null
+    gh pr view "$pr" --json comments --jq '.comments[] | (.body | split("\n") | .[0]) // ""' </dev/null |
+        tr -d '\r'
 }
 
 # comment_count: how many comments the pull request has now.

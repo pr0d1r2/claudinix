@@ -145,6 +145,8 @@ does are summarised briefly; the git history has the detail.
   wait early.
 - `just all` refuses a `CLOUD_ALL_POLL` that is not a positive number of
   seconds, naming it, instead of failing with a shell error.
+- `just all` matches the review and fixup headings of comments written in the
+  GitHub web UI, which end their lines with a carriage return.
 - The cloud permission list allows
   `git push --force-with-lease origin HEAD:claude/*`, the rebase session's
   push; plain force pushes and every push to `main` stay unlisted or denied.
