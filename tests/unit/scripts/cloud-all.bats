@@ -138,6 +138,14 @@ fixup 14 --yes --model sonnet" ]
     grep -q 'review all 15 ' "$STATE/children.log"
 }
 
+@test "a PR from a fork is not the build's, even with the right branch name" {
+    printf '%b\n' '15\tclaude/docs-t47-x\thttps://github.com/o/p/pull/15\ttrue' >"$STATE/new_pr"
+    run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"no pull request of docs:T47"* ]]
+    run ! grep -q '^review' "$STATE/children.log"
+}
+
 @test "node:Tn takes only that node's branch" {
     printf '%b\n' '15\tclaude/scripts-t47\thttps://github.com/o/p/pull/15' >"$STATE/new_pr"
     run bash "$SCRIPT" docs:T47 --yes
