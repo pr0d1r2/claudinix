@@ -244,6 +244,13 @@ fixup 14 --yes --model sonnet" ]
     [[ "$output" != *"likely a runner outage"* ]]
 }
 
+@test "the cancelled notice is said once per CI wait: a second outage after the fixup is said again (scripts:B37)" {
+    ci CANCELLED SUCCESS CANCELLED SUCCESS
+    run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 0 ]
+    [ "$(grep -c "githubstatus.com" <<<"$output")" -eq 2 ]
+}
+
 @test "a check that stays cancelled times out naming githubstatus.com, not a CI failure (scripts:T141)" {
     ci CANCELLED
     run bash "$SCRIPT" docs:T47 --yes
