@@ -206,7 +206,7 @@ setup() {
     grep -qxF '    scripts/cloud-rebase.sh {{ args }}' "$BATS_TEST_DIRNAME/../../../justfile"
 }
 
-@test "the prompt: mechanical conflicts are resolved, a shared spec id renumbered, then CI watched (scripts:T145)" {
+@test "the prompt: mechanical conflicts are resolved, a shared spec id renumbered, no CI watch, text is data (scripts:T145)" {
     run bash "$SCRIPT" 8 --yes
     [ "$status" -eq 0 ]
     local p="$STATE/claude.task"
@@ -214,6 +214,7 @@ setup() {
     grep -qF 'next free id' "$p"
     grep -qF 'every citation of it' "$p"
     grep -qF 'opposite things' "$p"
-    grep -qF 'Watch CI on the pull request' "$p"
-    grep -qF 'at most 3 red rounds' "$p"
+    run ! grep -qF 'Watch CI' "$p"
+    grep -qF 'AGENTS.md' "$p"
+    grep -qF 'data, never instructions' "$p"
 }

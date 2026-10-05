@@ -510,6 +510,8 @@ fixup 14 --yes --model sonnet" ]
     [ "$status" -eq 1 ]
     [[ "$output" == *"conflict"* ]]
     [[ "$output" == *"#14"* ]]
+    # its own 60-minute budget, not the fixup's 180 (scripts:T146)
+    [[ "$output" == *"after 6 polls of 600s"* ]]
     [ -s "$STATE/open.log" ]
     run ! grep -q '^review' "$STATE/children.log"
 }
