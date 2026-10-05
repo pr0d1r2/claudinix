@@ -25,7 +25,7 @@
 # - CI: the head commit's checks, none pending and none failed (skipped
 #   and neutral pass); no checks yet counts as pending;
 # - the reviews: one comment headed "Review: <role>" for every role;
-# - the fixup: the first comment after its launch not headed "Review:".
+# - the fixup: a comment after its launch headed "Fixup:".
 # A child that fails, red CI or a wait that runs out names the step,
 # opens the pull request when there is one, and exits 1.
 #
@@ -224,7 +224,8 @@ comment_count() {
     if [ -z "$lines" ]; then echo 0; else wc -l <<<"$lines" | tr -d ' '; fi
 }
 
-review_head='^#* *Review: '
+review_head="^#* *$CLOUD_REVIEW_HEADING "
+fixup_head="^#* *$CLOUD_FIXUP_HEADING"
 
 # reviews_in SKIP: 0 when every role has a comment after the first SKIP.
 reviews_in() {
@@ -238,11 +239,12 @@ reviews_in() {
     [ "${#missing[@]}" -eq 0 ] || return 2
 }
 
-# fixup_replied SKIP: 0 when a comment after the first SKIP is not a review.
+# fixup_replied SKIP: 0 when a comment after the first SKIP is headed
+# "Fixup:", as cloud-fixup-prompt.txt tells the session.
 fixup_replied() {
     local lines
     lines="$(comments)" || return 2
-    tail -n +$(($1 + 1)) <<<"$lines" | grep -v '^$' | grep -qvE "$review_head" || return 2
+    tail -n +$(($1 + 1)) <<<"$lines" | grep -qE "$fixup_head" || return 2
 }
 
 "$lib/cloud-task.sh" "$arg" --yes --model "$model" || fail "the build of $arg did not start"

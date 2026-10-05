@@ -6,6 +6,13 @@
 
 set -euo pipefail
 
+# The first words of the comments the review and fixup sessions post; the
+# prompts name them and cloud-all.sh waits for them (scripts:B28).
+# shellcheck disable=SC2034 # read by the scripts that source this file
+CLOUD_REVIEW_HEADING='Review:'
+# shellcheck disable=SC2034 # read by the scripts that source this file
+CLOUD_FIXUP_HEADING='Fixup:'
+
 # cloud_fill KEY VALUE: replace every KEY in $prompt with VALUE, as written.
 # Not ${prompt//KEY/VALUE}: bash 5.2 turns an `&` in VALUE into the match
 # (patsub_replacement), and quoting VALUE there keeps the quotes in bash
