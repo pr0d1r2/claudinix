@@ -516,9 +516,9 @@ Unattended runs may still hit permission prompts; see
 
 ## rebase
 
-Rebases one open `claude/*` pull request onto `main` in a fresh cloud
-session, started from your terminal. Use it when a cloud agent's pull
-request conflicts after `main` moved on. **It starts a billed session**,
+Rebases one open pull request onto `main` in a fresh cloud session,
+started from your terminal. Use it when a pull request conflicts after
+`main` moved on; [`all`](#all) starts it by itself. **It starts a billed session**,
 so it asks first.
 
 ```text
@@ -531,14 +531,18 @@ Run it as `scripts/cloud-rebase.sh ...` or `just rebase ...`, for example
 work as in [`cloud`](#cloud); `CLAUDINIX_SCRIPTS` holds
 `cloud-rebase-prompt.txt`.
 
-**The pull request.** `gh pr view` must find it open, on a `claude/*`
-branch (the only branches a cloud session may push) and based on `main`.
+**The pull request.** It is checked as for [`fixup`](#fixup): open, based
+on `main`, from this repository (not a fork), on any branch but `main`
+with a plain name, and a URL must name the repository `origin` points at.
 Otherwise it exits 1 before a session starts:
 
 ```text
 rebase: gh could not read pull request #<n> -- check the number and that gh is signed in
 rebase: #<n> is <STATE>, not OPEN -- nothing to rebase
-rebase: #<n>'s branch is <branch>; a cloud session may push only claude/* branches
+rebase: <url> is a pull request of <owner/repo>, but origin is <owner/repo> -- run it from that repository's checkout
+rebase: #<n> is from a fork; its branch <branch> is not a branch of origin -- rebase it by hand
+rebase: #<n>'s branch is main; a cloud session never pushes main
+rebase: #<n>'s branch <branch> is not a plain branch name (letters, digits, ._/-) -- it would reach the session's commands
 rebase: #<n> targets <base>, not main -- rebase it by hand
 ```
 
@@ -550,10 +554,15 @@ The current branch must be pushed and equal to its upstream, as for
 pull request, its URL and branch filled in. The session rebases the branch
 onto `main`. It takes either side of a conflict in a generated file and
 re-writes it with `claudinix-dev badges|steps|notices --write`, rather than
-merging generated lines by hand. A conflict that needs a decision makes it
-abort the rebase and report, pushing nothing. Otherwise it runs the gate
-and pushes with `git push --force-with-lease origin HEAD:<branch>`. It
-opens no new pull request and merges nothing.
+merging generated lines by hand. It keeps both sides' lines in
+`CHANGELOG.md` and spec tables. A spec id that both sides added (for
+example two pull requests that each took `B34`) gets the next free id on
+the pull request's side, with every citation of it changed in the same
+commit. It aborts and pushes nothing only when the two sides mean
+opposite things. Then it runs the gate and pushes with
+`git push --force-with-lease origin HEAD:<branch>` (the cloud permission
+list allows that for any branch but `main`), and watches CI as
+[`cloud`](#cloud) does. It opens no new pull request and merges nothing.
 
 **It does not wait.** After the session starts it prints:
 
@@ -808,6 +817,13 @@ positive whole number; anything else exits 2. The table mirrors the
 | 3. `review all <PR>` | a comment headed `Review: <role>` for every role | 90 |
 | 4. `fixup <PR>` | a newer comment headed `Fixup:`: the fixup's reply | 180 |
 | 5. (just waits) | CI again, as in step 2, with a red check pending since the `fixup` session fixes it | 120 |
+
+**Conflicts.** Once the pull request is known, and again after the fixup,
+it asks GitHub whether the pull request still merges into `main`. A
+conflicting one gets no CI, so `all` starts [`rebase`](#rebase) and goes
+on once the rebase agent pushes a new head. If no new head comes, it
+stops: "the rebase of #<n> pushed no new head: a conflict needs the
+owner".
 
 Then it opens the pull request: `open -a Safari` on macOS, `xdg-open`
 elsewhere. It never merges.
