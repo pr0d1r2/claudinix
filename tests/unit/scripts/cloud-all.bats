@@ -349,3 +349,11 @@ fixup 16 --yes --model sonnet" ]
     [[ "$output" == *"could not read pull request #14"* ]]
     run ! grep -q -- '--yes' "$STATE/children.log"
 }
+
+@test "an unreadable comment count on a PR with old reviews: exit 1, no review starts (B33)" {
+    printf '## Review: alpha\n## Review: beta\n## Fixup: old\n' >"$STATE/comments"
+    COMMENTS_FAIL_FIRST=1 run bash "$SCRIPT" 14 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"#14"* ]]
+    run ! grep -q 'review all' "$STATE/children.log"
+}
