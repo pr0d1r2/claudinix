@@ -32,9 +32,10 @@
 # - the reviews: one comment headed "Review: <role>" for every role;
 # - the fixup: a comment after its launch headed "Fixup:".
 # A child that fails, red CI or a wait that runs out names the step,
-# opens the pull request when there is one, and exits 1. So do 3 failed gh
-# calls in a row in one wait (a success resets the count): it shows gh's
-# last stderr instead of dots to the limit (SPEC scripts:T138).
+# opens the pull request when there is one, and exits 1.
+# A wait also ends the flow after 3 failed gh calls in a row (a success
+# resets the count): it shows gh's last stderr instead of dots to the limit
+# (SPEC scripts:T138).
 #
 # Usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run]
 # Env:   CLOUD_ALL_POLL     seconds between polls (default 10)
@@ -164,11 +165,14 @@ fail() {
     exit 1
 }
 
-# gh_err: where a check's failed gh call leaves its stderr, for wait_for.
+# gh_err: where a wait check's failed gh call leaves its stderr, for wait_for.
+# Only the checks use it; comment_count and the snapshot let gh's stderr
+# reach the terminal.
 gh_err="$(mktemp)"
 trap 'rm -f "$gh_err"' EXIT
 
-# The failed gh calls in a row that stop a wait (B32).
+# The failed gh calls in a row that stop a wait (B32). The header above and
+# docs/CLI.md say 3 too.
 max_gh_failures=3
 
 # What a wait's check returns for a failed gh call, and wait_for for the stop.
