@@ -107,13 +107,7 @@ for ref in "$head" "$base"; do
 done
 
 cloud_require_remote review "$remote" || exit 1
-if [ -n "$url_repo" ]; then
-    remote_repo="$(git remote get-url "$remote" | sed -E 's#^.*[:/]([^/]+/[^/]+)$#\1#; s#\.git$##')"
-    if [ "$(printf %s "$url_repo" | tr '[:upper:]' '[:lower:]')" != "$(printf %s "$remote_repo" | tr '[:upper:]' '[:lower:]')" ]; then
-        echo "review: $arg is a pull request of $url_repo, but remote $remote is $remote_repo -- run it from a checkout of $url_repo" >&2
-        exit 1
-    fi
-fi
+cloud_require_url_repo review "$remote" "$arg" || exit 1
 
 cloud_resolve_model "$scripts_dir" || exit "$?"
 
