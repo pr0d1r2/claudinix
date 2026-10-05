@@ -29,7 +29,12 @@
 # A child that fails, red CI or a wait that runs out names the step,
 # opens the pull request when there is one, and exits 1.
 #
-# Usage: cloud-all.sh <node:Tn | Tn> [--model M] [--yes] [--dry-run]
+# PR# or a pull request URL (scripts:T139) skips the build: an existing
+# pull request, made by hand or by an earlier run, gets the same CI,
+# review, fixup and CI steps. cloud-fixup.sh --dry-run checks it, and the
+# children get the argument as given.
+#
+# Usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run]
 # Env:   CLOUD_ALL_POLL     seconds between polls (default 10)
 #        CLAUDINIX_SCRIPTS  dir holding the child launchers, review/ and
 #                           config.sh (default: here)
@@ -44,7 +49,7 @@ minutes_reviews=90
 minutes_fixup=180
 
 usage() {
-    echo "usage: cloud-all.sh <node:Tn | Tn> [--model M] [--yes] [--dry-run]" >&2
+    echo "usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run]" >&2
     exit 2
 }
 
@@ -76,7 +81,14 @@ scripts_dir="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/cloud-launch.sh"
 want_node= # set by cloud_parse_task
 id=
-cloud_parse_task "$arg" || usage
+pr=
+if [[ "$arg" =~ ^[0-9]+$ ]]; then
+    pr="$arg"
+elif [[ "$arg" =~ ^https://github\.com/[^/]+/[^/]+/pull/([0-9]+)/?$ ]]; then
+    pr="${BASH_REMATCH[1]}"
+else
+    cloud_parse_task "$arg" || usage
+fi
 poll="${CLOUD_ALL_POLL-10}"
 if [[ ! "$poll" =~ ^[1-9][0-9]*$ ]]; then
     echo "all: CLOUD_ALL_POLL must be a positive integer of seconds, got '$poll'" >&2
@@ -97,7 +109,11 @@ polls_fixup="$(polls "$minutes_fixup")"
 
 cloud_resolve_model "$scripts_dir" || exit "$?"
 child_args=(--yes --model "$model") # every child runs unasked, on the one model
-"$scripts_dir/cloud-task.sh" "$arg" --dry-run --model "$model" >/dev/null || exit "$?"
+if [ -n "$pr" ]; then
+    "$scripts_dir/cloud-fixup.sh" "$arg" --dry-run --model "$model" >/dev/null || exit "$?"
+else
+    "$scripts_dir/cloud-task.sh" "$arg" --dry-run --model "$model" >/dev/null || exit "$?"
+fi
 
 roles=()
 while IFS= read -r r; do
@@ -107,11 +123,18 @@ if [ "${#roles[@]}" -eq 0 ]; then
     echo "all: no review roles in $scripts_dir/review -- add one (ROLE.md) first" >&2
     exit 1
 fi
-sessions=$((${#roles[@]} + 2))
+if [ -n "$pr" ]; then
+    sessions=$((${#roles[@]} + 1))
+    steps=
+    name="#$pr"
+else
+    sessions=$((${#roles[@]} + 2))
+    steps="1 build, "
+    name="$arg"
+    want_head="$(cloud_branch_regex "$want_node" "$id")"
+fi
 
-want_head="$(cloud_branch_regex "$want_node" "$id")"
-
-plan="all: $arg runs $sessions billed Claude Code cloud sessions (model $model), one after another: 1 build, ${#roles[@]} reviews (${roles[*]}), 1 fixup; it waits for each and for green CI, up to hours"
+plan="all: $name runs $sessions billed Claude Code cloud sessions (model $model), one after another: $steps${#roles[@]} reviews (${roles[*]}), 1 fixup; it waits for each and for green CI, up to hours"
 if [ "$dry" = 1 ]; then
     echo "$plan"
     exit 0
@@ -121,7 +144,6 @@ if [ "$yes" = 0 ]; then
     cloud_confirm all "$plan. Start? [y/N] " || exit 1
 fi
 
-pr=
 url=
 
 # open_pr: show the pull request, when there is one, in Safari (macOS)
@@ -174,15 +196,23 @@ open_prs() {
 }
 
 # The PRs open before the launch; an unreadable list stops the flow, as an
-# empty one would make any old PR of the task look new.
-snapshot="$(open_prs)" || {
-    echo "all: cannot list the open pull requests -- check gh auth status" >&2
-    exit 1
-}
+# empty one would make any old PR of the task look new. A given PR needs
+# only its URL.
 before=" "
-while IFS="$(printf '\t')" read -r n _ _ _; do
-    [ -z "$n" ] || before="$before$n "
-done <<<"$snapshot"
+if [ -n "$pr" ]; then
+    url="$(gh pr view "$pr" --json url --jq .url </dev/null)" || {
+        echo "all: gh could not read pull request #$pr -- check gh auth status" >&2
+        exit 1
+    }
+else
+    snapshot="$(open_prs)" || {
+        echo "all: cannot list the open pull requests -- check gh auth status" >&2
+        exit 1
+    }
+    while IFS="$(printf '\t')" read -r n _ _ _; do
+        [ -z "$n" ] || before="$before$n "
+    done <<<"$snapshot"
+fi
 
 # find_pr: sets $pr and $url to the build's pull request, never a fork's.
 find_pr() {
@@ -256,15 +286,24 @@ fixup_replied() {
     tail -n +$(($1 + 1)) <<<"$lines" | grep -qE "$fixup_head" || return 2
 }
 
-"$scripts_dir/cloud-task.sh" "$arg" "${child_args[@]}" || fail "the build of $arg did not start"
-echo "all: waiting for the pull request of $arg"
-wait_for "the pull request of $arg" "$polls_pr" find_pr || fail "no pull request of $arg appeared"
-echo "all: #$pr is open ($url); waiting for CI"
-wait_for "CI on #$pr" "$polls_ci" ci_state || fail "CI is not green on #$pr after the build"
+if [ -n "$pr" ]; then
+    target="$arg" # the children check a URL's repo themselves
+    built=
+    echo "all: waiting for CI on #$pr ($url)"
+    wait_for "CI on #$pr" "$polls_ci" ci_state || fail "CI is not green on #$pr"
+else
+    "$scripts_dir/cloud-task.sh" "$arg" "${child_args[@]}" || fail "the build of $arg did not start"
+    echo "all: waiting for the pull request of $arg"
+    wait_for "the pull request of $arg" "$polls_pr" find_pr || fail "no pull request of $arg appeared"
+    target="$pr"
+    built="the build, "
+    echo "all: #$pr is open ($url); waiting for CI"
+    wait_for "CI on #$pr" "$polls_ci" ci_state || fail "CI is not green on #$pr after the build"
+fi
 
 echo "all: CI is green on #$pr; starting the reviews"
 skip="$(comment_count)"
-"$scripts_dir/cloud-review.sh" all "$pr" "${child_args[@]}" || fail "the reviews of #$pr did not all start"
+"$scripts_dir/cloud-review.sh" all "$target" "${child_args[@]}" || fail "the reviews of #$pr did not all start"
 missing=()
 if ! wait_for "the reviews of #$pr" "$polls_reviews" reviews_in "$skip"; then
     fail "no review of #$pr by ${missing[*]}"
@@ -272,10 +311,10 @@ fi
 
 echo "all: every role reviewed #$pr; starting the fixup"
 skip="$(comment_count)"
-"$scripts_dir/cloud-fixup.sh" "$pr" "${child_args[@]}" || fail "the fixup of #$pr did not start"
+"$scripts_dir/cloud-fixup.sh" "$target" "${child_args[@]}" || fail "the fixup of #$pr did not start"
 wait_for "the fixup of #$pr" "$polls_fixup" fixup_replied "$skip" || fail "the fixup of #$pr never replied"
 echo "all: the fixup replied on #$pr; waiting for CI"
 wait_for "CI on #$pr" "$polls_ci" ci_state || fail "CI is not green on #$pr after the fixup"
 
-echo "all: CI is green on #$pr after the build, the reviews and the fixup; opening $url"
+echo "all: CI is green on #$pr after ${built}the reviews and the fixup; opening $url"
 open_pr

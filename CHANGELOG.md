@@ -135,6 +135,9 @@ does are summarised briefly; the git history has the detail.
   reply. It ends by waiting for green CI again and opening the pull
   request in Safari. A step that fails, red CI or a wait that runs out
   stops it, names the step and opens the pull request. It never merges.
+  `just all <PR# | URL>` gives an existing pull request, such as one made
+  by hand, the same steps without the build: CI, `review all`, `fixup`
+  and CI again, then Safari.
 - `just all` stops, before any session starts, when it cannot list the
   open pull requests, instead of taking an old open pull request of the
   same task for the build's.
