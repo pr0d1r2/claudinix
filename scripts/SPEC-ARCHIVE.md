@@ -35,3 +35,6 @@ T126|x|`just rebase <PR>` (owner 2026-10-04: #8 conflicted only in README badges
 T129|x|`just review` (owner 2026-10-04): 6 roles to start, more to come; `all` = 1 session per role, 1 y/N naming count, model, roles \& per-session billing|I.cmd,`.:C29`,`docs:T130`
 T132|x|`just fixup <PR>` (owner 2026-10-04): fix a PR's review findings 1 by 1 in separate commits, push, 👍 the originating comment; any branch but `main`|I.cmd,`.:C29`,`nix:T133`,`docs:T134`
 T135|x|`just all <node:Tn>` (owner 2026-10-04): 1 command runs cloud → CI → review all → fixup → CI, waits for each, opens the PR in Safari|I.cmd,`.:C29`,`docs:T136`
+T139|x|`just all <PR#\|URL>` (owner 2026-10-05): an existing PR (made by hand, e.g. a spec-only PR) gets the same CI → review all → fixup → CI → Safari steps, ⊥ build|I.cmd,`.:C29`,T135
+T140|x|`cloud` \& `fixup` sessions watch CI after their push (owner 2026-10-05): red → read the failed log, fix in AGENTS order, gate, push again, ≤3 rounds, then report; cancelled ⊥ steps → report only; ⊥ weaken a check; `rebase` exempt: it resolves conflicts only \& pushes `--force-with-lease`, which the loop's ⊥ force forbids|I.cmd,`.:C29`
+T141|x|`just all`: a cancelled check (a runner outage ∨ a superseded run) → "cancelled" ⊥ "failed", keeps waiting to the wait's limit, message names githubstatus.com \& ⊥ asserts a cause, said once per wait|I.cmd,B38,B37
