@@ -77,8 +77,8 @@ T135|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,`docs:T136`
 T137|.|`guide` offers `add_repo` allow|`docs:T47`,I.cmd
 T138|x|`just all` (owner 2026-10-05): 3 failed `gh` calls in a row in 1 wait → show gh's last stderr, name the step, open the PR if known, exit 1; a success resets the count|I.cmd,B32
 T139|x|`just all <PR#\|URL>` (owner 2026-10-05): an existing PR (made by hand, e.g. a spec-only PR) gets the same CI → review all → fixup → CI → Safari steps, ⊥ build|I.cmd,`.:C29`,T135
-T140|.|`cloud` \& `fixup` sessions watch CI after their push (owner 2026-10-05): red → read the failed log, fix in AGENTS order, gate, push again, ≤3 rounds, then report; cancelled ⊥ steps → report only; ⊥ weaken a check|I.cmd,`.:C29`
-T141|.|`just all`: a check cancelled ⊥ steps (runner outage) → "cancelled" ⊥ "failed", keeps waiting to the wait's limit, message names githubstatus.com|I.cmd,B38
+T140|x|`cloud` \& `fixup` sessions watch CI after their push (owner 2026-10-05): red → read the failed log, fix in AGENTS order, gate, push again, ≤3 rounds, then report; cancelled ⊥ steps → report only; ⊥ weaken a check|I.cmd,`.:C29`
+T141|x|`just all`: a check cancelled ⊥ steps (runner outage) → "cancelled" ⊥ "failed", keeps waiting to the wait's limit, message names githubstatus.com|I.cmd,B38
 
 ## §B BUGS
 
