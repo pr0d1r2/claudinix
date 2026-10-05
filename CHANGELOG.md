@@ -20,6 +20,8 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- `just rebase` and `just fixup` refuse a pull request whose branch name starts
+  with `-`, which git would read as an option.
 - `just all` stops a wait after 3 failed `gh` calls in a row, showing gh's
   last error and naming the step, instead of printing dots to the limit,
   with no second line that names another cause.
