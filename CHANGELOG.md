@@ -20,6 +20,8 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- Cloud sessions can no longer run `git push` with `--delete`, `--force` or
+  `--mirror`; the lease push of `just rebase` still works.
 - `just rebase` and `just fixup` refuse a pull request whose branch name starts
   with `-`, which git would read as an option.
 - `just all` stops a wait after 3 failed `gh` calls in a row, showing gh's
