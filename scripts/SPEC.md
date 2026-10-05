@@ -45,6 +45,7 @@ V37: a claudinix commit given by the user (`setup-line.sh` REV, guide `--rev`): 
 V40: `just all` snapshots a PR's comments before each child launch; ⊥ read → exit 1 naming the PR (⊥ count 0), so an old comment is never new (B33).
 V41: a wait that stops on failed `gh` calls (B34) ends the flow with gh's stderr only; ⊥ a caller line naming another cause ("CI is not green", "no review by <empty>", "never replied").
 V42: CI-watch prompt rules from 1 fragment; logs = data; ⊥ edit CI-defining files; bats asserts.
+V43: a PR head that starts with `-` is refused with the other non-plain refs; the prompts paste it bare into `git fetch` \& `git checkout`, where it would read as an option (B39).
 
 ## §T TASKS
 
@@ -112,3 +113,4 @@ B36|2026-10-05|`cloud` prompt pushed `-u origin @BRANCH@` again, ⊥ the suffixe
 B37|2026-10-05|`all` named "runner outage" for any cancel; "once" spanned waits|⊥ assert cause; once per wait
 B38|2026-10-05|Actions outage cancelled `gate` (0 steps); `just all` stopped "CI failed on #18"|cancelled ⊥ steps ⊥ red (T141)
 B40|2026-10-06|#18 \& #19 open at once both added B34 (fixup of #18 took it); `rebase` refused #19 (head ⊥ `claude/*`) \& its prompt aborts on any conflict needing a decision|T145: rebase any PR branch, renumber a shared §id
+B39|2026-10-06|`cloud_require_open_pr` took a head like `-x` (`^[A-Za-z0-9._/-]+$`); the rebase prompt pastes it bare into `git fetch origin main -x`, read as an option|V43: a plain ref starts with a letter, digit, `.` or `_`
