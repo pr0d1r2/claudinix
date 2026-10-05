@@ -155,6 +155,10 @@ does are summarised briefly; the git history has the detail.
   GitHub Actions runner outage does to a job that never started. It says
   so once, points at githubstatus.com and `gh run rerun`, and keeps
   waiting.
+- `just all` no longer stops at the first red check after the build or the
+  fixup, because that session is fixing it: it says so once and waits, for
+  up to 120 minutes. A pull request given by number still fails on a red
+  first run, since no session fixes it.
 - `just all` stops, naming the pull request, when it cannot read a pull
   request's comments before a review or fixup starts, instead of taking
   an old review or fixup comment for the new session's.

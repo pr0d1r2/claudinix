@@ -48,6 +48,7 @@ set -euo pipefail
 # mirrors them.
 minutes_pr=180
 minutes_ci=60
+minutes_ci_fix=120 # after a session, which may fix a red run in up to 3 rounds
 minutes_reviews=90
 minutes_fixup=180
 
@@ -105,6 +106,7 @@ polls() {
 
 polls_pr="$(polls "$minutes_pr")"
 polls_ci="$(polls "$minutes_ci")"
+polls_ci_fix="$(polls "$minutes_ci_fix")"
 polls_reviews="$(polls "$minutes_reviews")"
 polls_fixup="$(polls "$minutes_fixup")"
 
@@ -274,6 +276,8 @@ find_pr() {
 # check is pending, not red: a runner outage cancels jobs that never ran
 # a step (B38); it is said once, with where to look.
 cancel_said=
+red_said=
+ci_fixing=0
 ci_state() {
     local states
     states="$(gh pr view "$pr" --json statusCheckRollup --jq '.statusCheckRollup[] |
@@ -281,8 +285,15 @@ ci_state() {
         else .state end' </dev/null 2>"$gh_err")" || return "$gh_failed"
     [ -n "$states" ] || return 2
     if grep -qE '^(FAILURE|TIMED_OUT|ERROR|ACTION_REQUIRED|STARTUP_FAILURE)$' <<<"$states"; then
-        echo "all: CI failed on #$pr" >&2
-        return 1
+        [ "$ci_fixing" = 1 ] || {
+            echo "all: CI failed on #$pr" >&2
+            return 1
+        }
+        if [ -z "$red_said" ]; then
+            printf '\nall: a check on #%s is red; the session is fixing it -- still waiting\n' "$pr" >&2
+            red_said=1
+        fi
+        return 2
     fi
     if [ -z "$cancel_said" ] && grep -qx CANCELLED <<<"$states"; then
         printf '\nall: a check on #%s was cancelled, likely a runner outage (see https://www.githubstatus.com); re-run it (gh run rerun) -- still waiting\n' "$pr" >&2
@@ -291,6 +302,18 @@ ci_state() {
     if grep -qvE '^(SUCCESS|SKIPPED|NEUTRAL)$' <<<"$states"; then
         return 2
     fi
+}
+
+# wait_ci [FIXING]: wait for green CI on #$pr. After a session (FIXING=1) a
+# red check waits like a pending one, up to the longer limit: the session
+# owns the fix (scripts:T140, T143), and the notices below say once per wait.
+wait_ci() {
+    local max="$polls_ci"
+    ci_fixing="${1:-0}"
+    cancel_said=
+    red_said=
+    [ "$ci_fixing" = 0 ] || max="$polls_ci_fix"
+    wait_for "CI on #$pr" "$max" ci_state
 }
 
 # comments: the first line of every comment on the pull request, without
@@ -337,7 +360,7 @@ if [ -n "$given_pr" ]; then
     target="$arg" # the children check a URL's repo themselves
     built=
     echo "all: waiting for CI on #$pr ($url)"
-    wait_for "CI on #$pr" "$polls_ci" ci_state || wait_failed $? "CI is not green on #$pr"
+    wait_ci || wait_failed $? "CI is not green on #$pr"
 else
     "$scripts_dir/cloud-task.sh" "$arg" "${child_args[@]}" || fail "the build of $arg did not start"
     echo "all: waiting for the pull request of $arg"
@@ -345,7 +368,7 @@ else
     target="$pr"
     built="the build, "
     echo "all: #$pr is open ($url); waiting for CI"
-    wait_for "CI on #$pr" "$polls_ci" ci_state || wait_failed $? "CI is not green on #$pr after the build"
+    wait_ci 1 || wait_failed $? "CI is not green on #$pr after the build"
 fi
 
 echo "all: CI is green on #$pr; starting the reviews"
@@ -359,7 +382,7 @@ skip="$(comment_count)"
 "$scripts_dir/cloud-fixup.sh" "$target" "${child_args[@]}" || fail "the fixup of #$pr did not start"
 wait_for "the fixup of #$pr" "$polls_fixup" fixup_replied "$skip" || wait_failed $? "the fixup of #$pr never replied"
 echo "all: the fixup replied on #$pr; waiting for CI"
-wait_for "CI on #$pr" "$polls_ci" ci_state || wait_failed $? "CI is not green on #$pr after the fixup"
+wait_ci 1 || wait_failed $? "CI is not green on #$pr after the fixup"
 
 echo "all: CI is green on #$pr after ${built}the reviews and the fixup; opening $url"
 open_pr
