@@ -28,11 +28,16 @@
 #   the case folded (any node for a bare Tn); one open before the launch
 #   or from a fork is not it;
 # - CI: the head commit's checks, none pending and none failed (skipped
-#   and neutral pass); no checks yet counts as pending;
+#   and neutral pass); no checks yet counts as pending, and so does a
+#   cancelled one (an outage, or a run a newer push superseded; said once
+#   per wait). After the build and after the fixup a red check counts as
+#   pending too, for up to 120 minutes: that session fixes it. A pull
+#   request given by number fails on its first red run;
 # - the reviews: one comment headed "Review: <role>" for every role;
 # - the fixup: a comment after its launch headed "Fixup:".
-# A child that fails, red CI or a wait that runs out names the step,
-# opens the pull request when there is one, and exits 1.
+# A child that fails, red CI (where no session fixes it) or a wait that
+# runs out names the step, opens the pull request when there is one, and
+# exits 1.
 # A wait also ends the flow after 3 failed gh calls in a row (a success
 # resets the count): it shows gh's last stderr instead of dots to the limit
 # (SPEC scripts:T138).
