@@ -299,9 +299,14 @@ The session stops on a prompt such as "Allow Claude to use add repo
 `mcp__claude-code-remote__add_repo` (read from a session's tool list,
 2026-10-05). Three ways to answer it before the session needs it:
 
-a. **Commit an allow rule in the target repository.** A cloud session reads
-   the repository's committed `.claude/settings.json`; your own
-   `~/.claude` does not reach the cloud. Add the one tool, not a wildcard:
+a. **Commit an allow rule in the target repository.** This is for target
+   repositories that do not use `--agent-home`: with it, the agent home
+   already writes a narrow rule list into the session's own
+   `~/.claude/settings.json` (see [`RUNBOOK.md`](RUNBOOK.md#build-a-task-in-the-cloud)
+   and `nix/cloud-permissions.json`), and `add_repo` is not in that list.
+   Whether it should be is decided there, not here. A cloud session reads
+   the repository's committed `.claude/settings.json`; add the one tool, not
+   a wildcard:
 
    ```json
    {
