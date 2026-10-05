@@ -50,6 +50,25 @@ cloud_parse_task() {
     id="${BASH_REMATCH[3]}"
 }
 
+# cloud_parse_pr ARG: split a pull request argument, PR# or its URL, into $pr
+# and $url_repo (owner/repo, empty for a bare number). Returns 1 for
+# anything else.
+cloud_parse_pr() {
+    # shellcheck disable=SC2034 # read by the caller
+    url_repo=
+    if [[ "$1" =~ ^[0-9]+$ ]]; then
+        # shellcheck disable=SC2034 # read by the caller
+        pr="$1"
+    elif [[ "$1" =~ ^https://github\.com/([^/]+/[^/]+)/pull/([0-9]+)/?$ ]]; then
+        # shellcheck disable=SC2034 # read by the caller
+        url_repo="${BASH_REMATCH[1]}"
+        # shellcheck disable=SC2034 # read by the caller
+        pr="${BASH_REMATCH[2]}"
+    else
+        return 1
+    fi
+}
+
 # cloud_branch_name NODE ID: the branch the build's session pushes. The
 # root node, `.`, is spelled root.
 cloud_branch_name() {
