@@ -39,9 +39,14 @@
 # Raised 2026-10-04 for scripts again: the #12 review fixes (B20, B21,
 # the shared launch library row) took main to 4600, and the fixup row
 # brings it to 4811. ~15% margin.
+#
+# Raised 2026-10-05 for scripts again: the #14 review fixes (B26-B31,
+# the shared task, branch and role rules) filled the file to 5500 on
+# main; T138 and B32 (gh errors stop `just all`) bring it to 5654.
+# Owner chose a raise over a new cloud node.
 
 SPEC.md          8700
-scripts/SPEC.md  5500
+scripts/SPEC.md  6300
 nix/SPEC.md      1000
 docs/SPEC.md     1800
 experiments/SPEC.md 1200
