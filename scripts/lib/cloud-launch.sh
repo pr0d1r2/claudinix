@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# The launch rules cloud-task.sh, cloud-rebase.sh and cloud-review.sh
-# share (SPEC scripts:I.cmd, scripts:B19). Source it; it defines functions
+# The launch rules cloud-task.sh, cloud-rebase.sh, cloud-review.sh and
+# cloud-fixup.sh share (SPEC scripts:I.cmd, scripts:B19). Source it; it defines functions
 # only. Every function takes the caller's LABEL first ("cloud", "rebase",
 # "review"), which prefixes its messages.
 
@@ -96,6 +96,58 @@ cloud_branch_regex() {
 cloud_require_remote() {
     if ! git remote get-url "$2" >/dev/null 2>&1; then
         echo "$1: no remote $2 -- push the project to GitHub first" >&2
+        return 1
+    fi
+}
+
+# cloud_require_url_repo LABEL REMOTE ARG: a pull request URL (set $url_repo
+# by cloud_parse_pr) must name the repository REMOTE points at, case folded
+# (B21, B25); a bare number passes.
+cloud_require_url_repo() {
+    local remote_repo
+    [ -n "$url_repo" ] || return 0
+    remote_repo="$(git remote get-url "$2" | sed -E 's#^.*[:/]([^/]+/[^/]+)$#\1#; s#\.git$##')"
+    # GitHub names ignore case; `tr`, as bash 3.2 has no ${var,,}.
+    if [ "$(printf %s "$url_repo" | tr '[:upper:]' '[:lower:]')" != "$(printf %s "$remote_repo" | tr '[:upper:]' '[:lower:]')" ]; then
+        echo "$1: $3 is a pull request of $url_repo, but remote $2 is $remote_repo -- run it from a checkout of $url_repo" >&2
+        return 1
+    fi
+}
+
+# cloud_require_open_pr LABEL REMOTE ARG: the pull request $pr (from
+# cloud_parse_pr) must be one a session may push to: open, of this
+# repository (not a fork), based on main, with a head that is not main and
+# a plain ref. Sets $head, $base and $url. The one source of these
+# refusals, so a fix like B20 lands once.
+cloud_require_open_pr() {
+    local info state cross
+    cloud_require_url_repo "$1" "$2" "$3" || return 1
+    # </dev/null: gh must not share the terminal the y/N answer comes from (B19).
+    if ! info="$(gh pr view "$pr" --json number,state,headRefName,baseRefName,url,isCrossRepository \
+        --jq '[.number, .state, .headRefName, .baseRefName, .url, .isCrossRepository] | @tsv' </dev/null)"; then
+        echo "$1: gh could not read pull request #$pr -- check the number and that gh is signed in" >&2
+        return 1
+    fi
+    # shellcheck disable=SC2034 # head, base and url are read by the caller
+    IFS="$(printf '\t')" read -r _ state head base url cross <<<"$info"
+    if [ "$state" != OPEN ]; then
+        echo "$1: #$pr is $state, not OPEN -- nothing to do" >&2
+        return 1
+    fi
+    if [ "$cross" = true ]; then
+        echo "$1: #$pr is from a fork; its branch $head is not a branch of $2 -- handle it by hand" >&2
+        return 1
+    fi
+    if [ "$base" != main ]; then
+        echo "$1: #$pr targets $base, not main -- handle it by hand" >&2
+        return 1
+    fi
+    if [ "$head" = main ]; then
+        echo "$1: #$pr's branch is main; a cloud session never pushes main" >&2
+        return 1
+    fi
+    if [[ ! "$head" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+        echo "$1: #$pr's branch $head is not a plain branch name (letters, digits, ._/-) -- it would reach the session's commands" >&2
         return 1
     fi
 }

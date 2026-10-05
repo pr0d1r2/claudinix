@@ -65,53 +65,16 @@ done
 # shellcheck source=/dev/null # lib/cloud-launch.sh, beside this script
 source "$(dirname "${BASH_SOURCE[0]}")/lib/cloud-launch.sh"
 pr= # set by cloud_parse_pr
+head=""
+base=""
+url="" # head, base and url: set by cloud_require_open_pr
 cloud_parse_pr "$arg" || usage
 
 lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 remote="${CLOUD_TASK_REMOTE:-origin}"
 
 cloud_require_remote fixup "$remote" || exit 1
-remote_url="$(git remote get-url "$remote")"
-if [ -n "$url_repo" ]; then
-    # owner/repo of the remote, from https://github.com/o/r(.git) or
-    # git@github.com:o/r(.git).
-    repo="${remote_url%.git}"
-    repo="${repo#*github.com[:/]}"
-    # GitHub names ignore case; `tr`, as bash 3.2 has no ${var,,}.
-    if [ "$(printf %s "$url_repo" | tr '[:upper:]' '[:lower:]')" != "$(printf %s "$repo" | tr '[:upper:]' '[:lower:]')" ]; then
-        echo "fixup: $arg is a pull request of $url_repo, but $remote is $repo -- run it from that repository's checkout" >&2
-        exit 1
-    fi
-fi
-
-# </dev/null: gh must not share the terminal the y/N answer comes from (B19).
-if ! info="$(gh pr view "$pr" --json number,state,headRefName,baseRefName,url,isCrossRepository \
-    --jq '[.number, .state, .headRefName, .baseRefName, .url, .isCrossRepository] | @tsv' </dev/null)"; then
-    echo "fixup: gh could not read pull request #$pr -- check the number and that gh is signed in" >&2
-    exit 1
-fi
-IFS="$(printf '\t')" read -r _ state head base url cross <<<"$info"
-
-if [ "$state" != OPEN ]; then
-    echo "fixup: #$pr is $state, not OPEN -- nothing to fix up" >&2
-    exit 1
-fi
-if [ "$cross" = true ]; then
-    echo "fixup: #$pr is from a fork; its branch $head is not a branch of $remote -- fix it up by hand" >&2
-    exit 1
-fi
-if [ "$base" != main ]; then
-    echo "fixup: #$pr targets $base, not main -- fix it up by hand" >&2
-    exit 1
-fi
-if [ "$head" = main ]; then
-    echo "fixup: #$pr's branch is main; a cloud session never pushes main" >&2
-    exit 1
-fi
-if [[ ! "$head" =~ ^[A-Za-z0-9._/-]+$ ]]; then
-    echo "fixup: #$pr's branch $head is not a plain branch name (letters, digits, ._/-) -- it would reach the session's commands" >&2
-    exit 1
-fi
+cloud_require_open_pr fixup "$remote" "$arg" || exit 1
 
 cloud_require_pushed_branch fixup "$remote" || exit 1
 cloud_resolve_model "$lib" || exit "$?"
