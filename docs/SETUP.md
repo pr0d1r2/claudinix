@@ -291,6 +291,41 @@ To steer a running session from the terminal, send a follow-up:
 claude -p "<message>" --cloud <session-id>
 ```
 
+### Permission prompts
+
+The session stops on a prompt such as "Allow Claude to use add repo
+(claude-code-remote)?" and waits until you answer. The tool is
+`add_repo` from the `claude-code-remote` server; its id in a rule is
+`mcp__claude-code-remote__add_repo` (read from a session's tool list,
+2026-10-05). Three ways to answer it before the session needs it:
+
+a. **Commit an allow rule in the target repository.** A cloud session reads
+   the repository's committed `.claude/settings.json`; your own
+   `~/.claude` does not reach the cloud. Add the one tool, not a wildcard:
+
+   ```json
+   {
+     "permissions": {
+       "allow": ["mcp__claude-code-remote__add_repo"]
+     }
+   }
+   ```
+
+   Commit it on its own. Nothing here grants write access by default (least
+   privilege): allow only the tools you have seen prompt, one rule each.
+   Whether a rule in the target repository silences the prompt is not
+   measured yet (experiment T62).
+b. **Choose a permission mode when the session starts**, from the mode
+   dropdown in the browser or a CLI flag. Whether `--permission-mode` is
+   honoured together with `--cloud` is not measured yet (experiment T62), so
+   do not rely on it. A mode that skips prompts also skips them for
+   commands you would want to see; prefer (a).
+c. **Answer in the browser** when the prompt appears. This unblocks that
+   one session. Which scope "Always allow" gives (this session, this
+   repository, or your account) is not measured yet.
+
+An unattended run (`just cloud`, a routine) cannot answer, so it needs (a).
+
 ## Updating the environment (after a change here)
 
 When a new release publishes a new setup line, or your project needs other
