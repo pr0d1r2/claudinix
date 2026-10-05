@@ -234,7 +234,9 @@ comment_count() {
 review_head="^#* *$CLOUD_REVIEW_HEADING "
 fixup_head="^#* *$CLOUD_FIXUP_HEADING"
 
-# reviews_in SKIP: 0 when every role has a comment after the first SKIP.
+# reviews_in SKIP: 0 when every role has a comment after the first SKIP;
+# else 2, with the roles still missing in $missing for the caller's message
+# (wait_for runs it in this shell).
 reviews_in() {
     local lines r
     lines="$(comments)" || return 2
