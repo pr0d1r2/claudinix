@@ -65,18 +65,16 @@ while [ "$#" -gt 0 ]; do
 done
 [ -n "$arg" ] || usage
 
-if [[ "$arg" =~ ^(([A-Za-z0-9._-]+):)?(T[0-9]+)$ ]]; then
-    want_node="${BASH_REMATCH[2]}"
-    id="${BASH_REMATCH[3]}"
-else
+lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
+# shellcheck source=/dev/null # lib/cloud-launch.sh, beside this script
+source "$(dirname "${BASH_SOURCE[0]}")/lib/cloud-launch.sh"
+want_node= # set by cloud_parse_task
+id=
+if ! cloud_parse_task "$arg"; then
     echo "cloud: bad task $arg -- want Tn or node:Tn (e.g. T100, scripts:T98)" >&2
     exit 2
 fi
 [ "$want_node" != root ] || want_node=.
-
-lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
-# shellcheck source=/dev/null # lib/cloud-launch.sh, beside this script
-source "$(dirname "${BASH_SOURCE[0]}")/lib/cloud-launch.sh"
 remote="${CLOUD_TASK_REMOTE:-origin}"
 
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -164,9 +162,8 @@ cloud_require_pushed_branch cloud "$remote" || exit 1
 # config.sh supplying sonnet when there is no file.
 cloud_resolve_model "$lib" || exit "$?"
 
-label="$node"
-[ "$label" != . ] || label=root
-branch="$(printf '%q' "claude/$label-$id")"
+branch_name="$(cloud_branch_name "$node" "$id")"
+branch="$(printf '%q' "$branch_name")"
 
 # The row goes in last, so a placeholder spelled inside it is not filled.
 prompt="$(cat "$lib/cloud-task-prompt.txt")"
@@ -186,4 +183,4 @@ fi
 
 cloud_launch "$prompt" "$model"
 
-echo "cloud: started $node:$id; it pushes claude/$label-$id (the harness may add a suffix) and opens a pull request -- follow it at claude.ai/code"
+echo "cloud: started $node:$id; it pushes $branch_name (the harness may add a suffix) and opens a pull request -- follow it at claude.ai/code"
