@@ -1,18 +1,23 @@
 #!/usr/bin/env bash
-# Run one spec task's whole cloud flow from your terminal, waiting for
-# each step (SPEC scripts:T135, .:C29): build it (cloud-task.sh), wait
-# for its pull request and green CI, review it by every role
-# (cloud-review.sh all), wait for every role's comment, fix the findings
-# up (cloud-fixup.sh), wait for its reply and green CI again, then open
-# the pull request in Safari. It never merges; the owner does.
+# Run a pull request's whole cloud flow from your terminal, waiting for
+# each step (SPEC scripts:T135, scripts:T139, .:C29): for a task, build it
+# first (cloud-task.sh) and wait for its pull request; then wait for green
+# CI, review it by every role (cloud-review.sh all), wait for every role's
+# comment, fix the findings up (cloud-fixup.sh), wait for its reply and
+# green CI again, then open the pull request in Safari. It never merges;
+# the owner does.
 #
-# TASK is `Tn` or `node:Tn`, as for cloud-task.sh. Before anything
-# starts, cloud-task.sh --dry-run runs the build's checks (the task, the
-# remote, the pushed branch, the model); a refusal exits with its status.
-# One y/N answer, naming how many billed sessions start (1 build, 1 per
-# role, 1 fixup) and the model, covers them all; --yes skips it, and each
-# child then runs with --yes. --dry-run runs the checks and prints the
-# plan instead.
+# The argument is a task (`Tn` or `node:Tn`, as for cloud-task.sh) or an
+# existing pull request (PR# or its URL, made by hand or by an earlier
+# run), which skips the build. Before anything starts, a dry run checks
+# it and a refusal exits with its status: cloud-task.sh --dry-run for a
+# task (the task, the remote, the pushed branch, the model),
+# cloud-fixup.sh --dry-run for a pull request. The children get the
+# argument as given.
+# One y/N answer, naming how many billed sessions start (1 build for a
+# task, 1 per role, 1 fixup) and the model, covers them all; --yes skips
+# it, and each child then runs with --yes. --dry-run runs the checks and
+# prints the plan instead.
 #
 # The sessions run in the cloud; this script only waits, polling GitHub
 # with gh every CLOUD_ALL_POLL seconds (default 10) and printing one dot
@@ -28,11 +33,6 @@
 # - the fixup: a comment after its launch headed "Fixup:".
 # A child that fails, red CI or a wait that runs out names the step,
 # opens the pull request when there is one, and exits 1.
-#
-# PR# or a pull request URL (scripts:T139) skips the build: an existing
-# pull request, made by hand or by an earlier run, gets the same CI,
-# review, fixup and CI steps. cloud-fixup.sh --dry-run checks it, and the
-# children get the argument as given.
 #
 # Usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run]
 # Env:   CLOUD_ALL_POLL     seconds between polls (default 10)
