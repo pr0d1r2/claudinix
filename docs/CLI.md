@@ -804,7 +804,12 @@ all: gave up waiting for the pull request of <task> after 1080 polls of 10s
 all: CI failed on #<n>
 all: no review of #<n> by <roles>
 all: the fixup of #<n> never replied
+all: gave up waiting for <step>: 3 gh calls failed in a row; the last said:
 ```
+
+A failed `gh` call counts as "not yet" until 3 come in a row in one wait;
+then the wait stops and prints what `gh` last said. Any call that works
+resets the count.
 
 Sessions that already started keep running. Fix the cause, then run the
 remaining steps one by one (`just review all <PR>`, `just fixup <PR>`).
