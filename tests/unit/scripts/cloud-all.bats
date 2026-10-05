@@ -262,6 +262,16 @@ fixup 14 --yes --model sonnet" ]
     run ! grep -q -- '--yes' "$STATE/children.log"
 }
 
+@test "a CLOUD_ALL_POLL that is not a positive integer: exit 2 naming it, no session" {
+    for bad in 0 abc -5 1.5 ""; do
+        CLOUD_ALL_POLL="$bad" run bash "$SCRIPT" docs:T47 --yes
+        [ "$status" -eq 2 ]
+        [[ "$output" == *"CLOUD_ALL_POLL"* ]]
+        [[ "$output" == *"'$bad'"* ]]
+    done
+    [ ! -e "$STATE/children.log" ]
+}
+
 @test "no task, a bad task, two tasks or an unknown flag: usage, no session" {
     for args in "" "docs:47" "T1 T2" "T1 --bogus" "T1 --model"; do
         # shellcheck disable=SC2086 # split on purpose: each word one arg
