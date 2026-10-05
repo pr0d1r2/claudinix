@@ -738,13 +738,20 @@ At the end it opens the green pull request in Safari for you to review and
 merge. **It starts several billed sessions**, so it asks once, first.
 
 ```text
-usage: cloud-all.sh <node:Tn | Tn> [--model M] [--yes] [--dry-run]
+usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run]
 ```
 
 Run it as `scripts/cloud-all.sh ...` or `just all ...`, for example
 `just all docs:T47`. The task argument and the model order are the same as
 for [`cloud`](#cloud). `CLAUDINIX_SCRIPTS` holds the three launchers,
 `review/` and `config.sh`.
+
+**An existing pull request.** Give a PR number or URL instead of a task,
+for example `just all 16`, and the build is skipped. This is for a pull
+request made by hand, such as a spec-only one. `cloud-fixup.sh --dry-run`
+checks it (open, not from a fork, based on `main`, a plain branch name),
+and the flow starts at step 2. It starts one session per role and one
+fixup, and the children get the argument as given.
 
 **Before anything starts.** It runs `cloud-task.sh --dry-run`, so every
 check of `cloud` applies: the task, the remote, the pushed branch and the
@@ -1129,7 +1136,7 @@ Arguments pass through, and each recipe is one plain command.
 | `just guide [args]` | `scripts/guide.sh`; `just guide update` for the update flow |
 | `just probe [args]` | `scripts/probe-launch.sh` |
 | `just cloud <task> [args]` | `scripts/cloud-task.sh` |
-| `just all <task> [args]` | `scripts/cloud-all.sh` |
+| `just all <task \| PR> [args]` | `scripts/cloud-all.sh` |
 | `just bump-nix <version>` | `scripts/bump-nix.sh` |
 | `just release [args]` | `scripts/release.sh` (maintainer) |
 

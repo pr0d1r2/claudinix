@@ -41,7 +41,7 @@ review *args:
 fixup *args:
     scripts/cloud-fixup.sh {{ args }}
 
-# Build a task, wait for CI, review by every role, fix up, wait for CI, open the PR in Safari; `--dry-run` prints the plan.
+# Build a task (or take a PR#), wait for CI, review by every role, fix up, wait for CI, open the PR in Safari; `--dry-run` prints the plan.
 all *args:
     scripts/cloud-all.sh {{ args }}
 
