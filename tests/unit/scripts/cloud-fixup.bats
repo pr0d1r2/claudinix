@@ -233,6 +233,13 @@ pr() {
     run ! grep -qF '@CI_WATCH@' "$STATE/claude.task"
 }
 
+@test "the prompt: a red round pushes to the pull request's head branch, not the first push's command (scripts:B36)" {
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 0 ]
+    grep -qF 'git push origin HEAD:<head branch>' "$STATE/claude.task"
+    run ! grep -qF 'push again with the same command' "$STATE/claude.task"
+}
+
 # shellcheck disable=SC2016 # literal backticks in the prompt
 @test "the prompt: a CI fix never edits the files that define CI (scripts:V42)" {
     run bash "$SCRIPT" 8 --yes
