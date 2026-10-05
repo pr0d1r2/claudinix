@@ -12,7 +12,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     # Long polls keep the timed-out waits to a few polls each.
     export CLOUD_ALL_POLL=600
-    unset TASK_REFUSE FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL
+    unset TASK_REFUSE FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS
     mkdir -p "$STUBS" "$STATE" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
@@ -61,6 +61,8 @@ setup() {
         '  [ -z "${LIST_FAIL_FIRST:-}" ] || [ "$n" -ne 1 ] || exit 1' \
         '  [ "$n" -le "${PR_AFTER:-0}" ] || cat "$STATE/prs" 2>/dev/null; exit 0 ;;' \
         '*statusCheckRollup*)' \
+        '  n=$(( $(cat "$STATE/ci.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/ci.n"' \
+        '  [ "${CI_GH_FAILS:0:$n}" != "${CI_GH_FAILS:0:$n-1}f" ] || { echo "HTTP 502: bad gateway" >&2; exit 1; }' \
         '  [ -f "$STATE/ci" ] || exit 0' \
         '  head -n 1 "$STATE/ci" | tr " " "\n" | grep -v "^$"' \
         '  [ "$(wc -l <"$STATE/ci")" -le 1 ] || { tail -n +2 "$STATE/ci" >"$STATE/ci.t"; mv "$STATE/ci.t" "$STATE/ci"; }' \
@@ -69,6 +71,7 @@ setup() {
         '*comments*)' \
         '  n=$(( $(cat "$STATE/comments.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/comments.n"' \
         '  [ -z "${COMMENTS_FAIL_FIRST:-}" ] || [ "$n" -ne 1 ] || exit 1' \
+        '  [ "${COMMENTS_GH_FAILS:0:$n}" != "${COMMENTS_GH_FAILS:0:$n-1}f" ] || { echo "HTTP 502: bad gateway" >&2; exit 1; }' \
         '  cat "$STATE/comments" 2>/dev/null; exit 0 ;;' \
         'esac' \
         'exit 9' >"$STUBS/gh"
@@ -356,4 +359,34 @@ fixup 16 --yes --model sonnet" ]
     [ "$status" -eq 1 ]
     [[ "$output" == *"#14"* ]]
     run ! grep -q 'review all' "$STATE/children.log"
+}
+
+# --- three failed gh calls in a row (T138, B32) ---
+# CI_GH_FAILS / COMMENTS_GH_FAILS: one letter per gh call of that kind,
+# f = fails with stderr, anything else answers.
+
+@test "3 failed gh calls in a row in the CI wait: shows gh's stderr, names the step, opens the PR, exit 1" {
+    CI_GH_FAILS=fff run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"HTTP 502: bad gateway"* ]]
+    [[ "$output" == *"CI on #14"* ]]
+    [[ "$output" == *"3 "* ]]
+    [ "$(cat "$STATE/open.log")" = "-a Safari https://github.com/o/p/pull/14" ]
+    run ! grep -q 'review all' "$STATE/children.log"
+}
+
+@test "a success resets the count: 2 failures, a success, 2 failures go on" {
+    ci PENDING SUCCESS
+    CI_GH_FAILS=ffsff run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 0 ]
+    grep -q 'fixup 14 ' "$STATE/children.log"
+}
+
+@test "3 failed gh calls in a row in the review wait: stops, shows stderr, names the step" {
+    COMMENTS_GH_FAILS=sfff run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"HTTP 502: bad gateway"* ]]
+    [[ "$output" == *"the reviews of #14"* ]]
+    [ "$(cat "$STATE/open.log")" = "-a Safari https://github.com/o/p/pull/14" ]
+    run ! grep -q 'fixup 14 ' "$STATE/children.log"
 }
