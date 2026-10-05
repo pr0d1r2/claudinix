@@ -363,8 +363,10 @@ fixup 16 --yes --model sonnet" ]
 }
 
 # --- three failed gh calls in a row (T138, B32) ---
-# CI_GH_FAILS / COMMENTS_GH_FAILS: one letter per gh call of that kind,
-# f = fails with stderr, anything else answers.
+# CI_GH_FAILS / COMMENTS_GH_FAILS: one letter per gh call
+# of that kind, f = fails with stderr, anything else answers. The script
+# reads the comments once before each child launch (the count the wait
+# skips), so those calls take a leading s.
 
 @test "3 failed gh calls in a row in the CI wait: shows gh's stderr, names the step, opens the PR, exit 1" {
     CI_GH_FAILS=fff run bash "$SCRIPT" docs:T47 --yes
@@ -385,6 +387,7 @@ fixup 16 --yes --model sonnet" ]
 }
 
 @test "3 failed gh calls in a row in the review wait: stops, shows stderr, names the step" {
+    # s: the count before the reviews; fff: the wait's first 3 polls
     COMMENTS_GH_FAILS=sfff run bash "$SCRIPT" docs:T47 --yes
     [ "$status" -eq 1 ]
     [[ "$output" == *"HTTP 502: bad gateway"* ]]
