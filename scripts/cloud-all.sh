@@ -35,6 +35,10 @@
 #   request given by number fails on its first red run;
 # - the reviews: one comment headed "Review: <role>" for every role;
 # - the fixup: a comment after its launch headed "Fixup:".
+# - conflicts (scripts:T146): once the pull request is known and again
+#   after the fixup, a pull request that conflicts with main (it gets no
+#   CI) is rebased by cloud-rebase.sh; the flow goes on once a new head
+#   is pushed, and stops naming the conflict when none comes.
 # A child that fails, red CI (where no session fixes it) or a wait that
 # runs out names the step, opens the pull request when there is one, and
 # exits 1.
@@ -368,9 +372,51 @@ fixup_replied() {
     tail -n +$(($1 + 1)) <<<"$lines" | grep -qE "$fixup_head" || return 2
 }
 
+# merge_state: 0 when the pull request merges cleanly into its base, 4 when
+# it conflicts, 2 while GitHub has not worked it out; sets $head_sha.
+head_sha=
+merge_state() {
+    local out m
+    out="$(gh pr view "$pr" --json mergeable,headRefOid --jq '[.mergeable, .headRefOid] | @tsv' </dev/null 2>"$gh_err")" || return "$gh_failed"
+    IFS="$(printf '\t')" read -r m head_sha <<<"$out"
+    case "$m" in
+    MERGEABLE) return 0 ;;
+    CONFLICTING) return 4 ;;
+    *) return 2 ;;
+    esac
+}
+
+# head_moved OLD: 0 once the pull request's head is no longer OLD.
+head_moved() {
+    local rc=0
+    merge_state || rc=$?
+    [ "$rc" != "$gh_failed" ] || return "$gh_failed"
+    if [ -n "$head_sha" ] && [ "$head_sha" != "$1" ]; then return 0; fi
+    return 2
+}
+
+# resolve_conflicts: a pull request that conflicts with main gets no CI, so
+# send the rebase agent (cloud-rebase.sh, scripts:T145) and wait for the
+# head it pushes; no new head means a conflict the owner must settle.
+resolve_conflicts() {
+    local rc=0 old
+    wait_for "GitHub to say whether #$pr merges" "$polls_ci" merge_state || rc=$?
+    case "$rc" in
+    0) return 0 ;;
+    4) ;;
+    *) wait_failed "$rc" "GitHub never said whether #$pr merges" ;;
+    esac
+    old="$head_sha"
+    echo "all: #$pr conflicts with main; starting a rebase"
+    "$scripts_dir/cloud-rebase.sh" "$target" "${child_args[@]}" || fail "the rebase of #$pr did not start"
+    wait_for "the rebase of #$pr" "$polls_fixup" head_moved "$old" ||
+        wait_failed $? "the rebase of #$pr pushed no new head: a conflict needs the owner"
+}
+
 if [ -n "$given_pr" ]; then
     target="$arg" # the children check a URL's repo themselves
     built=
+    resolve_conflicts
     echo "all: waiting for CI on #$pr ($url)"
     wait_ci || wait_failed $? "CI is not green on #$pr"
 else
@@ -379,6 +425,7 @@ else
     wait_for "the pull request of $arg" "$polls_pr" find_pr || wait_failed $? "no pull request of $arg appeared"
     target="$pr"
     built="the build, "
+    resolve_conflicts
     echo "all: #$pr is open ($url); waiting for CI"
     wait_ci 1 || wait_failed $? "CI is not green on #$pr after the build"
 fi
@@ -393,6 +440,7 @@ echo "all: every role reviewed #$pr; starting the fixup"
 skip="$(comment_count)"
 "$scripts_dir/cloud-fixup.sh" "$target" "${child_args[@]}" || fail "the fixup of #$pr did not start"
 wait_for "the fixup of #$pr" "$polls_fixup" fixup_replied "$skip" || wait_failed $? "the fixup of #$pr never replied"
+resolve_conflicts
 echo "all: the fixup replied on #$pr; waiting for CI"
 wait_ci 1 || wait_failed $? "CI is not green on #$pr after the fixup"
 
