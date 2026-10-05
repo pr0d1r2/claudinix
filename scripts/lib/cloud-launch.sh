@@ -27,6 +27,19 @@ cloud_fill() {
     prompt="$out$text"
 }
 
+# cloud_roles DIR: the review roles, one per line: the name of every
+# ROLE.md file in DIR. The one source of the role list, which sets how
+# many sessions `review all` starts and which reviews `all` waits for.
+cloud_roles() {
+    local f
+    for f in "$1"/*.md; do
+        if [ -f "$f" ]; then
+            f="${f##*/}"
+            echo "${f%.md}"
+        fi
+    done
+}
+
 # cloud_require_remote LABEL REMOTE: the project must be on GitHub.
 cloud_require_remote() {
     if ! git remote get-url "$2" >/dev/null 2>&1; then

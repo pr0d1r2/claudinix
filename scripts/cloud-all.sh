@@ -93,11 +93,9 @@ cloud_resolve_model "$lib" || exit "$?"
 "$lib/cloud-task.sh" "$arg" --dry-run --model "$model" >/dev/null || exit "$?"
 
 roles=()
-for f in "$lib"/review/*.md; do
-    [ -e "$f" ] || continue
-    r="${f##*/}"
-    roles+=("${r%.md}")
-done
+while IFS= read -r r; do
+    roles+=("$r")
+done < <(cloud_roles "$lib/review")
 if [ "${#roles[@]}" -eq 0 ]; then
     echo "all: no review roles in $lib/review -- add one (ROLE.md) first" >&2
     exit 1
