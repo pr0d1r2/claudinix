@@ -143,6 +143,8 @@ does are summarised briefly; the git history has the detail.
 - The fixup session now heads its reply "Fixup:", and `just all` waits for
   that heading, so a CI bot's or a person's comment no longer ends the
   wait early.
+- `just all` refuses a `CLOUD_ALL_POLL` that is not a positive number of
+  seconds, naming it, instead of failing with a shell error.
 - The cloud permission list allows
   `git push --force-with-lease origin HEAD:claude/*`, the rebase session's
   push; plain force pushes and every push to `main` stay unlisted or denied.
