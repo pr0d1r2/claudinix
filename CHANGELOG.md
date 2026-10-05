@@ -20,6 +20,9 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- The `just rebase` agent stops after its gate and push instead of watching CI
+  a second time, and `just all` waits at most 60 minutes for its new head
+  (was the fixup's 180); the prompt treats conflict hunks and logs as data.
 - Cloud sessions can no longer run `git push` with `--delete`, `--force` or
   `--mirror`; the lease push of `just rebase` still works.
 - `just rebase` and `just fixup` refuse a pull request whose branch name starts
