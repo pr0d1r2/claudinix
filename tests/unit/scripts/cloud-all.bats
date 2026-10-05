@@ -236,6 +236,14 @@ fixup 14 --yes --model sonnet" ]
     grep -q "^review all 14" "$STATE/children.log"
 }
 
+@test "a cancelled check is not blamed on a runner outage alone: a superseded run ends cancelled too (scripts:B37)" {
+    ci CANCELLED SUCCESS
+    run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"superseded"* ]]
+    [[ "$output" != *"likely a runner outage"* ]]
+}
+
 @test "a check that stays cancelled times out naming githubstatus.com, not a CI failure (scripts:T141)" {
     ci CANCELLED
     run bash "$SCRIPT" docs:T47 --yes
