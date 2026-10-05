@@ -21,7 +21,7 @@
 # - the pull request: a newly open one whose branch is
 #   claude/<node>-<task>, maybe with the harness's suffix, compared with
 #   the case folded (any node for a bare Tn); one open before the launch
-#   is not it;
+#   or from a fork is not it;
 # - CI: the head commit's checks, none pending and none failed (skipped
 #   and neutral pass); no checks yet counts as pending;
 # - the reviews: one comment headed "Review: <role>" for every role;
@@ -161,10 +161,11 @@ wait_for() {
     done
 }
 
-# open_prs: the open pull requests, as number TAB branch TAB URL.
+# open_prs: the open pull requests, as number TAB branch TAB URL TAB
+# whether it comes from a fork.
 open_prs() {
-    gh pr list --state open --limit 200 --json number,headRefName,url \
-        --jq '.[] | [.number, .headRefName, .url] | @tsv' </dev/null
+    gh pr list --state open --limit 200 --json number,headRefName,url,isCrossRepository \
+        --jq '.[] | [.number, .headRefName, .url, .isCrossRepository] | @tsv' </dev/null
 }
 
 # The PRs open before the launch; an unreadable list stops the flow, as an
@@ -174,16 +175,17 @@ snapshot="$(open_prs)" || {
     exit 1
 }
 before=" "
-while IFS="$(printf '\t')" read -r n _ _; do
+while IFS="$(printf '\t')" read -r n _ _ _; do
     [ -z "$n" ] || before="$before$n "
 done <<<"$snapshot"
 
-# find_pr: sets $pr and $url to the build's pull request.
+# find_pr: sets $pr and $url to the build's pull request, never a fork's.
 find_pr() {
-    local n head link lines
+    local n head link fork lines
     lines="$(open_prs)" || return 2
-    while IFS="$(printf '\t')" read -r n head link; do
+    while IFS="$(printf '\t')" read -r n head link fork; do
         [ -n "$n" ] || continue
+        [ "$fork" != true ] || continue
         [[ "$before" != *" $n "* ]] || continue
         if [[ "$(printf %s "$head" | tr '[:upper:]' '[:lower:]')" =~ $want_head ]]; then
             pr="$n"

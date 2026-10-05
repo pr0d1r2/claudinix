@@ -138,6 +138,8 @@ does are summarised briefly; the git history has the detail.
 - `just all` stops, before any session starts, when it cannot list the
   open pull requests, instead of taking an old open pull request of the
   same task for the build's.
+- `just all` ignores a pull request from a fork when it looks for the
+  build's, even if its branch is named like the build's.
 - The cloud permission list allows
   `git push --force-with-lease origin HEAD:claude/*`, the rebase session's
   push; plain force pushes and every push to `main` stay unlisted or denied.
