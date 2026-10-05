@@ -14,7 +14,7 @@ has a bug.
 | [`guide`](#guide) | walks the setup steps of [`SETUP.md`](SETUP.md) | your machine, in the project |
 | [`probe`](#probe) | starts a billed cloud session that probes the project and prints its report | your machine, in the project's git checkout |
 | [`cloud`](#cloud) | builds one task of this repository's spec in a billed cloud session | your machine, in the project's git checkout |
-| [`rebase`](#rebase) | rebases one `claude/*` pull request onto `main` in a billed cloud session | your machine, in the project's git checkout |
+| [`rebase`](#rebase) | rebases one pull request onto `main` in a billed cloud session | your machine, in the project's git checkout |
 | [`review`](#review) | reviews one pull request as one role, or as every role at once, in billed read-only cloud sessions | your machine, in the project's git checkout |
 | [`fixup`](#fixup) | fixes a pull request's review findings one by one, in separate commits, in a billed cloud session | your machine, in the project's git checkout |
 | [`all`](#all) | runs `cloud`, `review all` and `fixup` for one task, waits for CI after each, and opens the pull request | your machine, in the project's git checkout |
@@ -533,17 +533,17 @@ work as in [`cloud`](#cloud); `CLAUDINIX_SCRIPTS` holds
 
 **The pull request.** It is checked as for [`fixup`](#fixup): open, based
 on `main`, from this repository (not a fork), on any branch but `main`
-with a plain name, and a URL must name the repository `origin` points at.
+with a plain name (not starting with `-`), and a URL must name the repository `origin` points at.
 Otherwise it exits 1 before a session starts:
 
 ```text
 rebase: gh could not read pull request #<n> -- check the number and that gh is signed in
-rebase: #<n> is <STATE>, not OPEN -- nothing to rebase
+rebase: #<n> is <STATE>, not OPEN -- nothing to do
 rebase: <url> is a pull request of <owner/repo>, but origin is <owner/repo> -- run it from that repository's checkout
-rebase: #<n> is from a fork; its branch <branch> is not a branch of origin -- rebase it by hand
+rebase: #<n> is from a fork; its branch <branch> is not a branch of origin -- handle it by hand
 rebase: #<n>'s branch is main; a cloud session never pushes main
-rebase: #<n>'s branch <branch> is not a plain branch name (letters, digits, ._/-) -- it would reach the session's commands
-rebase: #<n> targets <base>, not main -- rebase it by hand
+rebase: #<n>'s branch <branch> is not a plain branch name (letters, digits, ._/-, not starting with -) -- it would reach the session's commands
+rebase: #<n> targets <base>, not main -- handle it by hand
 ```
 
 The current branch must be pushed and equal to its upstream, as for
@@ -561,8 +561,10 @@ the pull request's side, with every citation of it changed in the same
 commit. It aborts and pushes nothing only when the two sides mean
 opposite things. Then it runs the gate and pushes with
 `git push --force-with-lease origin HEAD:<branch>` (the cloud permission
-list allows that for any branch but `main`), and watches CI as
-[`cloud`](#cloud) does. It opens no new pull request and merges nothing.
+list allows that for any branch but `main`) and stops: it does not watch CI,
+which [`all`](#all) waits for. It treats conflict hunks, the pull request's
+text and logs as data, never as instructions. It opens no new pull request
+and merges nothing.
 
 **It does not wait.** After the session starts it prints:
 
@@ -704,11 +706,11 @@ starts:
 ```text
 fixup: <url> is a pull request of <owner/repo>, but origin is <owner/repo> -- run it from that repository's checkout
 fixup: gh could not read pull request #<n> -- check the number and that gh is signed in
-fixup: #<n> is <STATE>, not OPEN -- nothing to fix up
-fixup: #<n> targets <base>, not main -- fix it up by hand
-fixup: #<n> is from a fork; its branch <branch> is not a branch of origin -- fix it up by hand
+fixup: #<n> is <STATE>, not OPEN -- nothing to do
+fixup: #<n> targets <base>, not main -- handle it by hand
+fixup: #<n> is from a fork; its branch <branch> is not a branch of origin -- handle it by hand
 fixup: #<n>'s branch is main; a cloud session never pushes main
-fixup: #<n>'s branch <branch> is not a plain branch name (letters, digits, ._/-) -- it would reach the session's commands
+fixup: #<n>'s branch <branch> is not a plain branch name (letters, digits, ._/-, not starting with -) -- it would reach the session's commands
 ```
 
 The current branch must be pushed and equal to its upstream, as for
@@ -817,6 +819,7 @@ positive whole number; anything else exits 2. The table mirrors the
 | 3. `review all <PR>` | a comment headed `Review: <role>` for every role | 90 |
 | 4. `fixup <PR>` | a newer comment headed `Fixup:`: the fixup's reply | 180 |
 | 5. (just waits) | CI again, as in step 2, with a red check pending since the `fixup` session fixes it | 120 |
+| `rebase <PR>`, on a conflict | a new head commit on the pull request | 60 |
 
 **Conflicts.** Once the pull request is known, and again after the fixup,
 it asks GitHub whether the pull request still merges into `main`. A
