@@ -710,7 +710,7 @@ pull request filled in.
 - It runs the gate and pushes with `git push origin HEAD:<branch>`,
   without force. If the branch moved, it stops and reports.
 - It adds a +1 reaction to each comment whose findings it all fixed, and
-  posts one reply that maps each finding to its commit or its reason.
+  posts one reply, headed `Fixup:`, that maps each finding to its commit or its reason.
 - It does not merge, approve or request changes, and opens no new pull
   request.
 
