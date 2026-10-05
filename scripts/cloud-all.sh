@@ -34,7 +34,7 @@
 #   pending too, for up to 120 minutes: that session fixes it. A pull
 #   request given by number fails on its first red run;
 # - the reviews: one comment headed "Review: <role>" for every role;
-# - the fixup: a comment after its launch headed "Fixup:".
+# - the fixup: a comment after its launch headed "Fixup:";
 # - conflicts (scripts:T146): once the pull request is known and again
 #   after the fixup, a pull request that conflicts with main (it gets no
 #   CI) is rebased by cloud-rebase.sh; the flow goes on once a new head
