@@ -40,6 +40,35 @@ cloud_roles() {
     done
 }
 
+# cloud_parse_task ARG: split a task argument, Tn or node:Tn, into $want_node
+# (empty for a bare Tn) and $id. Returns 1 for anything else.
+cloud_parse_task() {
+    [[ "$1" =~ ^(([A-Za-z0-9._-]+):)?(T[0-9]+)$ ]] || return 1
+    # shellcheck disable=SC2034 # read by the caller
+    want_node="${BASH_REMATCH[2]}"
+    # shellcheck disable=SC2034 # read by the caller
+    id="${BASH_REMATCH[3]}"
+}
+
+# cloud_branch_name NODE ID: the branch the build's session pushes. The
+# root node, `.`, is spelled root.
+cloud_branch_name() {
+    local label="$1"
+    [ "$label" != . ] || label=root
+    echo "claude/$label-$2"
+}
+
+# cloud_branch_regex NODE ID: an ERE for cloud_branch_name, as seen once
+# the harness lowered the case and added its suffix; an empty NODE takes
+# any node.
+cloud_branch_regex() {
+    local label="${1:-[^/]+}"
+    [ "$label" != . ] || label=root
+    printf '^claude/%s-%s(-[a-z0-9]+)?$\n' \
+        "$(printf %s "$label" | tr '[:upper:]' '[:lower:]')" \
+        "$(printf %s "$2" | tr '[:upper:]' '[:lower:]')"
+}
+
 # cloud_require_remote LABEL REMOTE: the project must be on GitHub.
 cloud_require_remote() {
     if ! git remote get-url "$2" >/dev/null 2>&1; then

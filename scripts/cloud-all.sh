@@ -63,13 +63,13 @@ while [ "$#" -gt 0 ]; do
     shift
 done
 [ -n "$arg" ] || usage
-[[ "$arg" =~ ^(([A-Za-z0-9._-]+):)?(T[0-9]+)$ ]] || usage
-want_node="${BASH_REMATCH[2]}"
-id="${BASH_REMATCH[3]}"
 
 lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 # shellcheck source=/dev/null # lib/cloud-launch.sh, beside this script
 source "$(dirname "${BASH_SOURCE[0]}")/lib/cloud-launch.sh"
+want_node= # set by cloud_parse_task
+id=
+cloud_parse_task "$arg" || usage
 poll="${CLOUD_ALL_POLL-10}"
 if [[ ! "$poll" =~ ^[1-9][0-9]*$ ]]; then
     echo "all: CLOUD_ALL_POLL must be a positive integer of seconds, got '$poll'" >&2
@@ -102,11 +102,7 @@ if [ "${#roles[@]}" -eq 0 ]; then
 fi
 sessions=$((${#roles[@]} + 2))
 
-# The branch the build pushes, lower case, as a regex: the harness may
-# add a suffix and lower the case. A bare Tn may be in any node.
-label="$(printf %s "${want_node:-[^/]+}" | tr '[:upper:]' '[:lower:]')"
-[ "$label" != . ] || label=root
-want_head="^claude/$label-$(printf %s "$id" | tr '[:upper:]' '[:lower:]')(-[a-z0-9]+)?\$"
+want_head="$(cloud_branch_regex "$want_node" "$id")"
 
 plan="all: $arg runs $sessions billed Claude Code cloud sessions (model $model), one after another: 1 build, ${#roles[@]} reviews (${roles[*]}), 1 fixup; it waits for each and for green CI, up to hours"
 if [ "$dry" = 1 ]; then
