@@ -796,7 +796,7 @@ positive whole number; anything else exits 2. The table mirrors the
 | step | waits for | at most (minutes) |
 |---|---|---|
 | 1. `cloud <task>` | a pull request that was not open before, from branch `claude/<node>-<task>` in this repository, not a fork (the harness may add a suffix; case is ignored; any node for a bare `Tn`) | 180 |
-| 2. (just waits) | CI on the head commit: no check pending, none failed (skipped and neutral count as passed; no checks yet counts as pending) | 60 |
+| 2. (just waits) | CI on the head commit: no check pending, none failed (skipped and neutral count as passed; no checks yet counts as pending; a cancelled check, as a runner outage leaves it, counts as pending and is reported once with githubstatus.com and `gh run rerun`) | 60 |
 | 3. `review all <PR>` | a comment headed `Review: <role>` for every role | 90 |
 | 4. `fixup <PR>` | a newer comment headed `Fixup:`: the fixup's reply | 180 |
 | 5. (just waits) | CI again, as in step 2 | 60 |
