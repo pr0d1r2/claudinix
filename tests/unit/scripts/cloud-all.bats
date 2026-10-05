@@ -12,7 +12,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     # Long polls keep the timed-out waits to a few polls each.
     export CLOUD_ALL_POLL=600
-    unset TASK_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT PR_AFTER LIST_FAIL_FIRST
+    unset TASK_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST
     mkdir -p "$STUBS" "$STATE" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
@@ -34,7 +34,7 @@ setup() {
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "review $*" >>"$STATE/children.log"' \
         '[ -z "${REVIEW_FAIL:-}" ] || exit 1' \
-        'for r in ${REVIEW_ONLY:-alpha beta}; do echo "## Review: $r" >>"$STATE/comments"; done' >"$CLAUDINIX_SCRIPTS/cloud-review.sh"
+        'for r in ${REVIEW_ONLY:-alpha beta}; do printf "## Review: %s%b\n" "$r" "${REVIEW_CRLF:+\\r}" >>"$STATE/comments"; done' >"$CLAUDINIX_SCRIPTS/cloud-review.sh"
     # cloud-fixup.sh: posts its one reply.
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
@@ -207,6 +207,12 @@ fixup 14 --yes --model sonnet" ]
     [ "$status" -eq 1 ]
     [[ "$output" == *"the fixup of #14 never replied"* ]]
     [ -s "$STATE/open.log" ]
+}
+
+@test "a CRLF comment (written in the web UI) still matches its heading" {
+    REVIEW_CRLF=1 run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 0 ]
+    grep -q '^fixup 14' "$STATE/children.log"
 }
 
 @test "a child that fails stops the flow naming its stage" {
