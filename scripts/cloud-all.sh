@@ -70,7 +70,11 @@ id="${BASH_REMATCH[3]}"
 lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 # shellcheck source=/dev/null # lib/cloud-launch.sh, beside this script
 source "$(dirname "${BASH_SOURCE[0]}")/lib/cloud-launch.sh"
-poll="${CLOUD_ALL_POLL:-10}"
+poll="${CLOUD_ALL_POLL-10}"
+if [[ ! "$poll" =~ ^[1-9][0-9]*$ ]]; then
+    echo "all: CLOUD_ALL_POLL must be a positive integer of seconds, got '$poll'" >&2
+    exit 2
+fi
 
 # polls MINUTES: how many polls a wait of MINUTES takes, at least 1.
 polls() {
