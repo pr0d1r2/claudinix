@@ -175,25 +175,9 @@ later, in the push or in CI.
 
 On 2026-10-03 a session in `sherd` stopped on a prompt, "Allow Claude to use
 add repo (claude-code-remote)?", until someone answered it, because the
-`add_repo` tool asks first. The tool id for a rule is
-`mcp__claude-code-remote__add_repo`. Your repository can pre-approve it by
-committing this in `.claude/settings.json` (a cloud session reads the
-repository's file; your user `~/.claude` never reaches the cloud):
-
-```json
-{
-  "permissions": {
-    "allow": ["mcp__claude-code-remote__add_repo"]
-  }
-}
-```
-
-Keep the list to the tools you have seen prompt, and grant no write access
-by default. The other two ways, a permission mode chosen at session start
-and answering in the browser, are described in
-[`SETUP.md`](SETUP.md#permission-prompts), together with what is not
-measured yet. An unattended session cannot answer a prompt, so it needs the
-committed rule.
+`add_repo` tool asks first. The three ways to avoid that, the rule to
+commit and what is not measured yet are in
+[`SETUP.md`](SETUP.md#permission-prompts).
 
 ## Network
 
