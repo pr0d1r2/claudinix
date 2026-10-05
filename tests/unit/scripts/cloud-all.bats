@@ -190,12 +190,32 @@ fixup 14 --yes --model sonnet" ]
 }
 
 @test "CI red after the fixup: exit 1, opens the PR" {
-    ci SUCCESS CANCELLED
+    ci SUCCESS FAILURE
     run bash "$SCRIPT" docs:T47 --yes
     [ "$status" -eq 1 ]
     grep -q '^fixup 14' "$STATE/children.log"
     [[ "$output" == *"CI"* ]]
     [ -s "$STATE/open.log" ]
+}
+
+@test "a cancelled check (runner outage) is not red: it waits, says so once, and goes on when CI passes (scripts:T141)" {
+    ci CANCELLED CANCELLED SUCCESS
+    run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"cancelled"* ]]
+    [[ "$output" == *"githubstatus.com"* ]]
+    [[ "$output" != *"CI failed"* ]]
+    [ "$(grep -c "githubstatus.com" <<<"$output")" -eq 1 ]
+    grep -q "^review all 14" "$STATE/children.log"
+}
+
+@test "a check that stays cancelled times out naming githubstatus.com, not a CI failure (scripts:T141)" {
+    ci CANCELLED
+    run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"githubstatus.com"* ]]
+    [[ "$output" != *"CI failed"* ]]
+    run ! grep -q "^review" "$STATE/children.log"
 }
 
 # --- reviews and the fixup ---
