@@ -36,6 +36,13 @@
 
 set -euo pipefail
 
+# The longest each wait lasts, in minutes; the table in docs/CLI.md
+# mirrors them.
+minutes_pr=180
+minutes_ci=60
+minutes_reviews=90
+minutes_fixup=180
+
 usage() {
     echo "usage: cloud-all.sh <node:Tn | Tn> [--model M] [--yes] [--dry-run]" >&2
     exit 2
@@ -83,11 +90,10 @@ polls() {
     echo "$n"
 }
 
-# The longest each wait lasts.
-polls_pr="$(polls 180)"
-polls_ci="$(polls 60)"
-polls_reviews="$(polls 90)"
-polls_fixup="$(polls 180)"
+polls_pr="$(polls "$minutes_pr")"
+polls_ci="$(polls "$minutes_ci")"
+polls_reviews="$(polls "$minutes_reviews")"
+polls_fixup="$(polls "$minutes_fixup")"
 
 cloud_resolve_model "$scripts_dir" || exit "$?"
 "$scripts_dir/cloud-task.sh" "$arg" --dry-run --model "$model" >/dev/null || exit "$?"
