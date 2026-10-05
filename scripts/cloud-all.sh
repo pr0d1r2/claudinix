@@ -64,7 +64,7 @@ while [ "$#" -gt 0 ]; do
 done
 [ -n "$arg" ] || usage
 
-lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
+scripts_dir="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 # shellcheck source=/dev/null # lib/cloud-launch.sh, beside this script
 source "$(dirname "${BASH_SOURCE[0]}")/lib/cloud-launch.sh"
 want_node= # set by cloud_parse_task
@@ -89,15 +89,15 @@ polls_ci="$(polls 60)"
 polls_reviews="$(polls 90)"
 polls_fixup="$(polls 180)"
 
-cloud_resolve_model "$lib" || exit "$?"
-"$lib/cloud-task.sh" "$arg" --dry-run --model "$model" >/dev/null || exit "$?"
+cloud_resolve_model "$scripts_dir" || exit "$?"
+"$scripts_dir/cloud-task.sh" "$arg" --dry-run --model "$model" >/dev/null || exit "$?"
 
 roles=()
 while IFS= read -r r; do
     roles+=("$r")
-done < <(cloud_roles "$lib/review")
+done < <(cloud_roles "$scripts_dir/review")
 if [ "${#roles[@]}" -eq 0 ]; then
-    echo "all: no review roles in $lib/review -- add one (ROLE.md) first" >&2
+    echo "all: no review roles in $scripts_dir/review -- add one (ROLE.md) first" >&2
     exit 1
 fi
 sessions=$((${#roles[@]} + 2))
@@ -247,7 +247,7 @@ fixup_replied() {
     tail -n +$(($1 + 1)) <<<"$lines" | grep -qE "$fixup_head" || return 2
 }
 
-"$lib/cloud-task.sh" "$arg" --yes --model "$model" || fail "the build of $arg did not start"
+"$scripts_dir/cloud-task.sh" "$arg" --yes --model "$model" || fail "the build of $arg did not start"
 echo "all: waiting for the pull request of $arg"
 wait_for "the pull request of $arg" "$polls_pr" find_pr || fail "no pull request of $arg appeared"
 echo "all: #$pr is open ($url); waiting for CI"
@@ -255,7 +255,7 @@ wait_for "CI on #$pr" "$polls_ci" ci_state || fail "CI is not green on #$pr afte
 
 echo "all: CI is green on #$pr; starting the reviews"
 skip="$(comment_count)"
-"$lib/cloud-review.sh" all "$pr" --yes --model "$model" || fail "the reviews of #$pr did not all start"
+"$scripts_dir/cloud-review.sh" all "$pr" --yes --model "$model" || fail "the reviews of #$pr did not all start"
 missing=()
 if ! wait_for "the reviews of #$pr" "$polls_reviews" reviews_in "$skip"; then
     fail "no review of #$pr by ${missing[*]}"
@@ -263,7 +263,7 @@ fi
 
 echo "all: every role reviewed #$pr; starting the fixup"
 skip="$(comment_count)"
-"$lib/cloud-fixup.sh" "$pr" --yes --model "$model" || fail "the fixup of #$pr did not start"
+"$scripts_dir/cloud-fixup.sh" "$pr" --yes --model "$model" || fail "the fixup of #$pr did not start"
 wait_for "the fixup of #$pr" "$polls_fixup" fixup_replied "$skip" || fail "the fixup of #$pr never replied"
 echo "all: the fixup replied on #$pr; waiting for CI"
 wait_for "CI on #$pr" "$polls_ci" ci_state || fail "CI is not green on #$pr after the fixup"
