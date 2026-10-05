@@ -194,3 +194,11 @@ beta" ]
     [[ claude/docs-t98-x =~ $re ]]
     [[ ! claude/docs-t99 =~ $re ]]
 }
+
+@test "cloud_branch_regex takes a dot in the node literally" {
+    # shellcheck source=/dev/null
+    source "$LIB"
+    re="$(cloud_branch_regex a.b T1)"
+    [[ claude/a.b-t1 =~ $re ]]
+    [[ ! claude/axb-t1 =~ $re ]]
+}
