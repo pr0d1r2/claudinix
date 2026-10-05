@@ -483,6 +483,13 @@ node name for the root, for example `claude/scripts-T98` or
 `claude/root-T103`. The harness may add a suffix. It then opens a pull request into `main`,
 titled after its feat or fix commit, and never merges it.
 
+Then it watches CI on the pull request. On a red run it reads the failed
+job's log, fixes the cause in `AGENTS.md` order, runs the gate and pushes
+again, for at most 3 rounds, then reports what stayed red. A check that
+was cancelled before any step ran, or that no runner picks up, is a GitHub
+problem: the session changes nothing for it and reports it. It never
+weakens a check to get green.
+
 **It does not wait.** After the session starts it prints:
 
 ```text
@@ -709,6 +716,9 @@ pull request filled in.
   a reason.
 - It runs the gate and pushes with `git push origin HEAD:<branch>`,
   without force. If the branch moved, it stops and reports.
+- It then watches CI and fixes a red run as [`cloud`](#cloud) does: at
+  most 3 rounds, and a check cancelled before any step ran is reported,
+  not fixed. Its reply ends with the CI result.
 - It adds a +1 reaction to each comment whose findings it all fixed, and
   posts one reply, headed `Fixup:`, that maps each finding to its commit or its reason.
 - It does not merge, approve or request changes, and opens no new pull
