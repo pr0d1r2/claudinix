@@ -138,6 +138,9 @@ does are summarised briefly; the git history has the detail.
   `just all <PR# | URL>` gives an existing pull request, such as one made
   by hand, the same steps without the build: CI, `review all`, `fixup`
   and CI again, then Safari.
+- `just all` stops, naming the pull request, when it cannot read a pull
+  request's comments before a review or fixup starts, instead of taking
+  an old review or fixup comment for the new session's.
 - `just all` stops, before any session starts, when it cannot list the
   open pull requests, instead of taking an old open pull request of the
   same task for the build's.

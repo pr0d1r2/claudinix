@@ -254,10 +254,11 @@ comments() {
         tr -d '\r'
 }
 
-# comment_count: how many comments the pull request has now.
+# comment_count: how many comments the pull request has now; an unreadable
+# list stops the flow, as 0 would make an old comment look new (B33).
 comment_count() {
     local lines
-    lines="$(comments)" || lines=
+    lines="$(comments)" || fail "cannot read the comments of #$pr -- check gh auth status"
     if [ -z "$lines" ]; then echo 0; else wc -l <<<"$lines" | tr -d ' '; fi
 }
 
