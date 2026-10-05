@@ -166,6 +166,10 @@ does are summarised briefly; the git history has the detail.
   and a spec id both sides added is renumbered to the next free one. It
   aborts only when the two sides mean opposite things. After its push it
   watches CI and fixes what the rebase broke, for at most 3 rounds.
+- The cloud permission list allows
+  `git push --force-with-lease origin HEAD:*`, so the rebase agent can
+  push any pull request branch; the deny rules for `main`, `+` refspecs
+  and tags still win.
 - `just all` stops, naming the pull request, when it cannot read a pull
   request's comments before a review or fixup starts, instead of taking
   an old review or fixup comment for the new session's.

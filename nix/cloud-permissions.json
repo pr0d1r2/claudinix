@@ -30,6 +30,7 @@
     "Bash(git push -u origin claude/*)",
     "Bash(git push origin claude/*)",
     "Bash(git push --force-with-lease origin HEAD:claude/*)",
+    "Bash(git push --force-with-lease origin HEAD:*)",
     "Bash(git push origin HEAD:*)",
     "Edit(/gate.log)",
     "Bash(nix develop -c cargo fmt *)",
