@@ -67,9 +67,9 @@ remote="${CLOUD_TASK_REMOTE:-origin}"
 
 # The roles: one per file in review/; `all` runs every one of them.
 all_roles=()
-for f in "$scripts_dir"/review/*.md; do
-    [ -f "$f" ] && all_roles+=("$(basename "$f" .md)")
-done
+while IFS= read -r r; do
+    all_roles+=("$r")
+done < <(cloud_roles "$scripts_dir/review")
 if [ "$role" = all ] && [ "${#all_roles[@]}" -eq 0 ]; then
     echo "review: no role files in scripts/review/ -- add one, such as scripts/review/correctness.md" >&2
     exit 2
