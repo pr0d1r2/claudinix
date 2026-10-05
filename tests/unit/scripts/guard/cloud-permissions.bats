@@ -96,6 +96,30 @@ list() {
     [ "$denied" -eq 1 ]
 }
 
+@test "the repo's own list denies --delete, --force and --mirror after any push, and keeps the lease flag (nix:T147)" {
+    for cmd in 'git push origin HEAD:x --delete' 'git push --force-with-lease origin HEAD:x --force' \
+        'git push --force origin HEAD:x' 'git push --mirror origin' 'git push origin --delete x'; do
+        denied=0
+        while IFS= read -r rule; do
+            glob="${rule#Bash(}"
+            glob="${glob%)}"
+            # shellcheck disable=SC2053 # the rule is a glob on purpose
+            [[ "$cmd" == $glob ]] && denied=1
+        done < <(jq -r '.deny[]' "$REPO_ROOT/nix/cloud-permissions.json")
+        [ "$denied" -eq 1 ] || {
+            echo "not denied: $cmd"
+            return 1
+        }
+    done
+    # the lease push the rebase session needs is not caught by the --force deny
+    while IFS= read -r rule; do
+        glob="${rule#Bash(}"
+        glob="${glob%)}"
+        # shellcheck disable=SC2053 # the rule is a glob on purpose
+        [[ "git push --force-with-lease origin HEAD:feature/x" != $glob ]] || return 1
+    done < <(jq -r '.deny[]' "$REPO_ROOT/nix/cloud-permissions.json")
+}
+
 @test "whole-tool rule Bash: refused and named" {
     list '["Bash(bats *)", "Bash"]'
     run bash "$SCRIPT"
