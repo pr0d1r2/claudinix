@@ -88,3 +88,4 @@ B25|2026-10-04|`just fixup https://github.com/Pr0d1r2/…/pull/N`: owner/repo co
 B26|2026-10-05|`just all`: a failed `gh pr list` before the launch → empty snapshot ∴ an old open PR counted as the build's|an unreadable PR list → refuse, ⊥ session
 B27|2026-10-05|`just all` adopted a fork PR named `claude/<node>-<task>`|`find_pr` skips a cross-repository PR
 B28|2026-10-05|`just all` took any newer comment ⊥ `Review:` (a bot, a person) as the fixup's reply \& checked CI on the old head|reply headed `Fixup:`; both headings named once in `lib/cloud-launch.sh`, pinned to the prompts by bats
+B29|2026-10-05|`CLOUD_ALL_POLL=0` \| `abc` → raw shell error|exit 2 naming it unless a positive integer
