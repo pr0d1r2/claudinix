@@ -68,6 +68,12 @@ access. That makes the following the classes worth reporting:
    `.claude/settings.local.json`, only in a cloud session. Whether the
    agent home's file survives to launch, and whether the fallback applies in
    the same session, is not measured yet (experiment T104).
+   **A rule you commit into your own repository is a separate grant.**
+   [`SETUP.md`](SETUP.md#permission-prompts) describes allowing the
+   `add_repo` tool that way. The rule cannot limit the tool's arguments, so
+   it also allows attaching a repository with push access without a prompt,
+   and a session reads it from whatever branch it runs on. Review that file
+   like any permission change.
 3. **A binary cache you did not choose.** The script adds
    `pr0d1r2.cachix.org` and its public key next to `cache.nixos.org`.
    Anything signed with that key can land in the session's `/nix/store`
