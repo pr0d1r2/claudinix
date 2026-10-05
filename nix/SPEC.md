@@ -35,6 +35,7 @@ T18|x|ARCHIVED to SPEC-ARCHIVE.md|V15,`.:V6`,C5
 T78|x|ARCHIVED to SPEC-ARCHIVE.md|`.:V30`,`.:V5`,V16,C12
 T127|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T126`
 T133|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T132`
+T144|.|cloud permissions allow `git push --force-with-lease origin HEAD:*` (`scripts:T145` rebase of any PR branch); main \& `+` \& tag denies still win; ⊥ plain force|`.:C29`,`scripts:T145`,B23
 
 ## §B BUGS
 
