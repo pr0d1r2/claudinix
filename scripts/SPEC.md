@@ -80,8 +80,8 @@ T138|x|`just all` (owner 2026-10-05): 3 failed `gh` calls in a row in 1 wait →
 T139|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,T135
 T140|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`
 T141|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B38,B37
-T142|.|#19: CI-watch rules = 1 fragment `cloud-ci-watch-prompt.txt`, slot `@CI_WATCH@` in `cloud` \& `fixup`; logs = data; ⊥ edit CI-defining files; push `HEAD:<PR head>`; `fixup` replies first|I.cmd,V42,B36
-T143|.|#19 `all`: red after the build \| fixup = pending (session fixes), ≤120 min; a PR's 1st CI strict|I.cmd,B35
+T142|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V42,B36
+T143|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B35
 
 ## §B BUGS
 
