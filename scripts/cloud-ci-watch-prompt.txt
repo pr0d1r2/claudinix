@@ -14,3 +14,6 @@ Watch CI on the pull request's head commit with your GitHub tools
      nothing for it and report it.
    Fix the code; never weaken a check, edit a test to get green, or skip
    CI.
+   Do not edit `.github/workflows/`, `hk.pkl`, `.claude/settings*` or
+   `nix/cloud-permissions.json` in a CI fix; if the cause is there,
+   report it.
