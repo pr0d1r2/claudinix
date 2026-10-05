@@ -44,10 +44,15 @@
 # the shared task, branch and role rules) filled the file to 5500 on
 # main; T138 and B32 (gh errors stop `just all`) bring it to 5654.
 # Owner chose a raise over a new cloud node.
+#
+# Raised 2026-10-06 for scripts and nix: conflict handling for cloud PRs
+# (scripts:T145, T146, B40; nix:T144) takes scripts to about 6400 and
+# nix to 1041. Owner chose raises again; the cloud launchers should move
+# to their own node.
 
 SPEC.md          8700
-scripts/SPEC.md  6300
-nix/SPEC.md      1000
+scripts/SPEC.md  7000
+nix/SPEC.md      1200
 docs/SPEC.md     1800
 experiments/SPEC.md 1200
 dev/SPEC.md      1250
