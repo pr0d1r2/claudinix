@@ -146,3 +146,51 @@ beta" ]
     [ "$status" -eq 0 ]
     [ -z "$output" ]
 }
+
+@test "cloud_parse_task splits Tn and node:Tn into want_node and id" {
+    # shellcheck source=/dev/null
+    source "$LIB"
+    want_node=x id=x
+    cloud_parse_task scripts:T98
+    [ "$want_node" = scripts ] && [ "$id" = T98 ]
+    cloud_parse_task T7
+    [ -z "$want_node" ] && [ "$id" = T7 ]
+    cloud_parse_task root:T5
+    [ "$want_node" = root ] && [ "$id" = T5 ]
+}
+
+@test "cloud_parse_task refuses anything else" {
+    # shellcheck source=/dev/null
+    source "$LIB"
+    for bad in "" 47 docs:47 T1x a/b:T1 :T1 "T1 T2"; do
+        run cloud_parse_task "$bad"
+        [ "$status" -eq 1 ]
+    done
+}
+
+@test "cloud_branch_name is claude/<node>-<task>, the root node as root" {
+    # shellcheck source=/dev/null
+    source "$LIB"
+    [ "$(cloud_branch_name scripts T98)" = claude/scripts-T98 ]
+    [ "$(cloud_branch_name . T5)" = claude/root-T5 ]
+}
+
+@test "cloud_branch_regex matches the branch name, lower case, with the harness suffix, and no other task" {
+    # shellcheck source=/dev/null
+    source "$LIB"
+    re="$(cloud_branch_regex scripts T98)"
+    [[ claude/scripts-t98 =~ $re ]]
+    [[ claude/scripts-t98-dk9i03 =~ $re ]]
+    [[ ! claude/scripts-t980 =~ $re ]]
+    [[ ! claude/docs-t98 =~ $re ]]
+    re="$(cloud_branch_regex root T5)"
+    [[ claude/root-t5-x1 =~ $re ]]
+}
+
+@test "cloud_branch_regex without a node takes any node" {
+    # shellcheck source=/dev/null
+    source "$LIB"
+    re="$(cloud_branch_regex "" T98)"
+    [[ claude/docs-t98-x =~ $re ]]
+    [[ ! claude/docs-t99 =~ $re ]]
+}
