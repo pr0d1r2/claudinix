@@ -89,4 +89,4 @@ B26|2026-10-05|failed `gh pr list` before `just all` launches → empty snapshot
 B27|2026-10-05|`just all` adopted a fork PR named `claude/<node>-<task>`|skip cross-repository PRs
 B28|2026-10-05|`just all` took any newer comment ⊥ `Review:` as the fixup's reply|reply headed `Fixup:`; headings named once in `lib/cloud-launch.sh`, bats pins the prompts
 B29|2026-10-05|`CLOUD_ALL_POLL=0` \| `abc` → raw shell error|exit 2 naming it unless a positive integer
-B30|2026-10-05|`all` comment reader: a `\r\n` heading ⊥ matched; a blank 1st line ⊥ counted|jq trims `\r`; count = `.comments \| length`
+B30|2026-10-05|`all` comment reader: a `\r\n` heading ⊥ matched|`comments` trims the `\r`
