@@ -58,17 +58,12 @@ while [ "$#" -gt 0 ]; do
 done
 [ -n "$arg" ] || usage
 
-if [[ "$arg" =~ ^[0-9]+$ ]]; then
-    pr="$arg"
-elif [[ "$arg" =~ ^https://github\.com/[^/]+/[^/]+/pull/([0-9]+)/?$ ]]; then
-    pr="${BASH_REMATCH[1]}"
-else
-    usage
-fi
-
-lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 # shellcheck source=/dev/null # lib/cloud-launch.sh, beside this script
 source "$(dirname "${BASH_SOURCE[0]}")/lib/cloud-launch.sh"
+pr= # set by cloud_parse_pr
+cloud_parse_pr "$arg" || usage
+
+lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 remote="${CLOUD_TASK_REMOTE:-origin}"
 
 if ! info="$(gh pr view "$pr" --json number,state,headRefName,baseRefName,url \

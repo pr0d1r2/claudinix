@@ -82,13 +82,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/cloud-launch.sh"
 want_node= # set by cloud_parse_task
 id=
 pr=
-if [[ "$arg" =~ ^[0-9]+$ ]]; then
-    pr="$arg"
-elif [[ "$arg" =~ ^https://github\.com/[^/]+/[^/]+/pull/([0-9]+)/?$ ]]; then
-    pr="${BASH_REMATCH[1]}"
-else
-    cloud_parse_task "$arg" || usage
-fi
+cloud_parse_pr "$arg" || cloud_parse_task "$arg" || usage
 poll="${CLOUD_ALL_POLL-10}"
 if [[ ! "$poll" =~ ^[1-9][0-9]*$ ]]; then
     echo "all: CLOUD_ALL_POLL must be a positive integer of seconds, got '$poll'" >&2
