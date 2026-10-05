@@ -12,7 +12,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     # Long polls keep the timed-out waits to a few polls each.
     export CLOUD_ALL_POLL=600
-    unset TASK_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT PR_AFTER LIST_FAIL_FIRST
+    unset TASK_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT PR_AFTER LIST_FAIL_FIRST
     mkdir -p "$STUBS" "$STATE" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
@@ -39,7 +39,8 @@ setup() {
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "fixup $*" >>"$STATE/children.log"' \
-        '[ -n "${FIXUP_SILENT:-}" ] || echo "## Fixes pushed" >>"$STATE/comments"' >"$CLAUDINIX_SCRIPTS/cloud-fixup.sh"
+        '[ -z "${FIXUP_BOT:-}" ] || echo "Coverage 92%" >>"$STATE/comments"' \
+        '[ -n "${FIXUP_SILENT:-}" ] || [ -n "${FIXUP_BOT:-}" ] || echo "## Fixup: pushed" >>"$STATE/comments"' >"$CLAUDINIX_SCRIPTS/cloud-fixup.sh"
     printf '%s\n' '#!/usr/bin/env bash' 'echo sonnet' >"$CLAUDINIX_SCRIPTS/config.sh"
     chmod +x "$CLAUDINIX_SCRIPTS"/*.sh
 
@@ -198,6 +199,13 @@ fixup 14 --yes --model sonnet" ]
     FIXUP_SILENT=1 run bash "$SCRIPT" docs:T47 --yes
     [ "$status" -eq 1 ]
     [[ "$output" == *"fixup"* ]]
+    [ -s "$STATE/open.log" ]
+}
+
+@test "another comment during the fixup is not its reply: it times out" {
+    FIXUP_BOT=1 run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"the fixup of #14 never replied"* ]]
     [ -s "$STATE/open.log" ]
 }
 

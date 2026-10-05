@@ -117,3 +117,10 @@ repo_with_upstream() {
     run cloud_launch p m
     [ "$status" -ne 0 ]
 }
+
+@test "the heading constants are the ones the review and fixup prompts tell the session to use" {
+    # shellcheck source=/dev/null
+    source "$LIB"
+    grep -qF "\"$CLOUD_REVIEW_HEADING @ROLE@\"" "$REPO/scripts/cloud-review-prompt.txt"
+    grep -qF "\"$CLOUD_FIXUP_HEADING\"" "$REPO/scripts/cloud-fixup-prompt.txt"
+}
