@@ -198,6 +198,33 @@ fixup 14 --yes --model sonnet" ]
     [ -s "$STATE/open.log" ]
 }
 
+@test "red after the build waits: the session fixes it, and the flow goes on once CI is green (scripts:T143)" {
+    ci FAILURE FAILURE SUCCESS
+    run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 0 ]
+    [[ "$output" != *"CI failed"* ]]
+    [[ "$output" == *"fixing"* ]]
+    grep -q '^review all 14' "$STATE/children.log"
+}
+
+@test "red after the fixup waits as well, and the flow ends green (scripts:T143)" {
+    ci SUCCESS FAILURE SUCCESS
+    run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 0 ]
+    [[ "$output" != *"CI failed"* ]]
+    [[ "$output" == *"fixing"* ]]
+    [ -s "$STATE/open.log" ]
+}
+
+@test "red that never clears runs the wait out: exit 1 \"gave up\", not an instant failure (scripts:T143)" {
+    ci FAILURE
+    run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"gave up waiting for CI on #14"* ]]
+    [[ "$output" != *"CI failed"* ]]
+    run ! grep -q '^review' "$STATE/children.log"
+}
+
 @test "a cancelled check (runner outage) is not red: it waits, says so once, and goes on when CI passes (scripts:T141)" {
     ci CANCELLED CANCELLED SUCCESS
     run bash "$SCRIPT" docs:T47 --yes
