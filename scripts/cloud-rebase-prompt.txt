@@ -18,9 +18,18 @@ unattended: nobody answers questions, so do not stop to ask.
      `claudinix-dev badges --write`, `claudinix-dev steps --write` or
      `claudinix-dev notices --write`, and stage the result in that same
      commit. Never merge generated lines by hand.
-   - A spec, doc or code file: keep what both sides meant.
-   - A conflict that needs a decision the pull request does not make:
-     run `git rebase --abort`, push nothing, and report the conflict.
+   - CHANGELOG.md, a spec table (rows such as `T12|...`) or any list
+     both sides added to: keep both sides' lines, in order.
+   - A spec id (`T`, `V`, `B` or `C` plus a number) that the pull request
+     adds and `@BASE@` already has: give the pull request's row the
+     next free id, the highest of that letter over every `SPEC*.md` plus 1,
+     and change every citation of it in the files the pull request
+     changes, in the same commit. Commit messages keep the old id; name
+     the change in your report.
+   - Any other spec, doc or code file: keep what both sides meant.
+   - Resolve every conflict yourself. Only when the two sides mean
+     opposite things and the pull request does not say which wins: run
+     `git rebase --abort`, push nothing, and report the conflict.
 4. Keep every commit and its message; change nothing beyond resolving
    conflicts. Never use --no-verify.
 5. Run the gate over the rebased branch:
@@ -34,5 +43,18 @@ unattended: nobody answers questions, so do not stop to ask.
    `git push --force-with-lease origin HEAD:@BRANCH@`.
    Push to no other branch and open no new pull request. Do not merge
    anything; the owner reviews and merges.
-7. End with a short report: the branch's old and new head, each conflict
-   and how you resolved it, the gate's rc, and anything blocked.
+7. CI, after the push:
+   Watch CI on the pull request's head commit with your GitHub tools
+   (its check runs, and the failed job's log), checking about once a
+   minute, for up to 30 minutes a round.
+   - Green (every check passed or was skipped): go on.
+   - Red: read the failed job's log and find the cause. Fix what the
+     rebase broke, run the gate again, push again with the same command
+     and watch again. Stop after at most 3 red rounds and report the
+     failing check and the log line that shows why.
+   - A check cancelled before any step ran, or one that never starts,
+     is GitHub's trouble, not your code: change nothing and report it.
+   Never weaken a check or edit a test to get green.
+8. End with a short report: the branch's old and new head, each conflict
+   and how you resolved it (each renumbered id, old and new), the gate's
+   rc, the CI result, and anything blocked.

@@ -159,6 +159,13 @@ does are summarised briefly; the git history has the detail.
   fixup, because that session is fixing it: it says so once and waits, for
   up to 120 minutes. A pull request given by number still fails on a red
   first run, since no session fixes it.
+- `just rebase <PR>` takes any branch of this repository but `main`, as
+  `just fixup` does, and refuses a fork or a URL of another repository.
+  Its agent resolves mechanical conflicts itself: generated files are
+  re-written, changelog and spec table lines from both sides are kept,
+  and a spec id both sides added is renumbered to the next free one. It
+  aborts only when the two sides mean opposite things. After its push it
+  watches CI and fixes what the rebase broke, for at most 3 rounds.
 - `just all` stops, naming the pull request, when it cannot read a pull
   request's comments before a review or fixup starts, instead of taking
   an old review or fixup comment for the new session's.
