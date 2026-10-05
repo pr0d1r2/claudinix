@@ -311,20 +311,29 @@ a. **Commit an allow rule in the target repository.** A cloud session reads
    }
    ```
 
-   Commit it on its own. Nothing here grants write access by default (least
-   privilege): allow only the tools you have seen prompt, one rule each.
-   Whether a rule in the target repository silences the prompt is not
-   measured yet (experiment T62).
+   Commit it on its own, and allow only the tools you have seen prompt, one
+   rule each.
 b. **Choose a permission mode when the session starts**, from the mode
-   dropdown in the browser or a CLI flag. Whether `--permission-mode` is
-   honoured together with `--cloud` is not measured yet (experiment T62), so
-   do not rely on it. A mode that skips prompts also skips them for
-   commands you would want to see; prefer (a).
+   dropdown in the browser or a CLI flag. A mode that skips prompts also
+   skips them for commands you would want to see; prefer (a).
 c. **Answer in the browser** when the prompt appears. This unblocks that
-   one session. Which scope "Always allow" gives (this session, this
-   repository, or your account) is not measured yet.
+   one session.
 
-An unattended run (`just cloud`, a routine) cannot answer, so it needs (a).
+An unattended run (`just cloud`, a routine) cannot answer a prompt, so (a)
+is the expected route for it, until the measurements below say otherwise.
+
+Not measured yet (experiment T62 and T51; this list is the one place to
+update when they report):
+
+- Whether the committed rule in (a) silences the prompt, and whether the
+  rule form `mcp__claude-code-remote__add_repo` is the right one.
+- Whether a cloud session reads the target repository's file when it holds
+  more than one repository, which `add_repo` creates: the session starts in
+  one repository and adds another, so the added one's file probably does not
+  govern. Treat (a) as a route for a session of one repository.
+- Whether `--permission-mode` is honoured together with `--cloud`.
+- Which scope "Always allow" in (c) gives: this session, this repository, or
+  your account.
 
 ## Updating the environment (after a change here)
 
