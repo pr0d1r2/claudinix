@@ -12,7 +12,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     # Long polls keep the timed-out waits to a few polls each.
     export CLOUD_ALL_POLL=600
-    unset TASK_REFUSE FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST
+    unset TASK_REFUSE FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL
     mkdir -p "$STUBS" "$STATE" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
@@ -65,8 +65,11 @@ setup() {
         '  head -n 1 "$STATE/ci" | tr " " "\n" | grep -v "^$"' \
         '  [ "$(wc -l <"$STATE/ci")" -le 1 ] || { tail -n +2 "$STATE/ci" >"$STATE/ci.t"; mv "$STATE/ci.t" "$STATE/ci"; }' \
         '  exit 0 ;;' \
-        '*"--json url"*) echo "https://github.com/o/p/pull/$3"; exit 0 ;;' \
-        '*comments*) cat "$STATE/comments" 2>/dev/null; exit 0 ;;' \
+        '*"--json url"*) [ -z "${URL_FAIL:-}" ] || exit 1; echo "https://github.com/o/p/pull/$3"; exit 0 ;;' \
+        '*comments*)' \
+        '  n=$(( $(cat "$STATE/comments.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/comments.n"' \
+        '  [ -z "${COMMENTS_FAIL_FIRST:-}" ] || [ "$n" -ne 1 ] || exit 1' \
+        '  cat "$STATE/comments" 2>/dev/null; exit 0 ;;' \
         'esac' \
         'exit 9' >"$STUBS/gh"
     # shellcheck disable=SC2016 # expands inside the stub, not here
@@ -338,4 +341,11 @@ fixup 16 --yes --model sonnet" ]
     [[ "$output" == *"#16"* ]]
     [ -s "$STATE/open.log" ]
     run ! grep -q '^review' "$STATE/children.log"
+}
+
+@test "an unreadable PR URL: exit 1 naming the PR, no review or fixup starts" {
+    URL_FAIL=1 run bash "$SCRIPT" 14 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"could not read pull request #14"* ]]
+    run ! grep -q -- '--yes' "$STATE/children.log"
 }
