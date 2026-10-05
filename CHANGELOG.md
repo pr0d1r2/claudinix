@@ -140,6 +140,9 @@ does are summarised briefly; the git history has the detail.
   same task for the build's.
 - `just all` ignores a pull request from a fork when it looks for the
   build's, even if its branch is named like the build's.
+- The fixup session now heads its reply "Fixup:", and `just all` waits for
+  that heading, so a CI bot's or a person's comment no longer ends the
+  wait early.
 - The cloud permission list allows
   `git push --force-with-lease origin HEAD:claude/*`, the rebase session's
   push; plain force pushes and every push to `main` stay unlisted or denied.
