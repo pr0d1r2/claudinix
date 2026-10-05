@@ -124,3 +124,25 @@ repo_with_upstream() {
     grep -qF "\"$CLOUD_REVIEW_HEADING @ROLE@\"" "$REPO/scripts/cloud-review-prompt.txt"
     grep -qF "\"$CLOUD_FIXUP_HEADING\"" "$REPO/scripts/cloud-fixup-prompt.txt"
 }
+
+@test "cloud_roles lists the role files of a directory, by name, and skips what is not a file" {
+    # shellcheck source=/dev/null
+    source "$LIB"
+    mkdir -p "$BATS_TEST_TMPDIR/review/dir.md"
+    : >"$BATS_TEST_TMPDIR/review/beta.md"
+    : >"$BATS_TEST_TMPDIR/review/alpha.md"
+    : >"$BATS_TEST_TMPDIR/review/notes.txt"
+    run cloud_roles "$BATS_TEST_TMPDIR/review"
+    [ "$status" -eq 0 ]
+    [ "$output" = "alpha
+beta" ]
+}
+
+@test "cloud_roles prints nothing for a directory without role files" {
+    # shellcheck source=/dev/null
+    source "$LIB"
+    mkdir -p "$BATS_TEST_TMPDIR/empty"
+    run cloud_roles "$BATS_TEST_TMPDIR/empty"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
