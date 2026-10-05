@@ -170,6 +170,11 @@ does are summarised briefly; the git history has the detail.
   `git push --force-with-lease origin HEAD:*`, so the rebase agent can
   push any pull request branch; the deny rules for `main`, `+` refspecs
   and tags still win.
+- `just all` checks whether its pull request still merges into `main`,
+  once the pull request is known and again after the fixup. A conflicting
+  one gets no CI, so it starts `just rebase` and goes on once the rebase
+  agent pushes a new head; with no new head it stops and names the
+  conflict.
 - `just all` stops, naming the pull request, when it cannot read a pull
   request's comments before a review or fixup starts, instead of taking
   an old review or fixup comment for the new session's.
