@@ -171,10 +171,13 @@ trap 'rm -f "$gh_err"' EXIT
 # The failed gh calls in a row that stop a wait (B32).
 max_gh_failures=3
 
+# What a wait's check returns for a failed gh call, and wait_for for the stop.
+readonly gh_failed=3
+
 # wait_failed RC MESSAGE: stop the flow after a failed wait_for. RC 3 is the
 # gh stop, which already said why; any other RC gets MESSAGE.
 wait_failed() {
-    if [ "$1" = 3 ]; then
+    if [ "$1" = "$gh_failed" ]; then
         open_pr
         exit 1
     fi
@@ -193,13 +196,13 @@ wait_for() {
         rc=0
         : >"$gh_err"
         "$@" || rc=$?
-        if [ "$rc" = 3 ]; then
+        if [ "$rc" = "$gh_failed" ]; then
             gh_failures=$((gh_failures + 1))
             if [ "$gh_failures" -ge "$max_gh_failures" ]; then
                 [ "$i" = 0 ] || echo
                 echo "all: gave up waiting for $what: $gh_failures gh calls failed in a row; the last said:" >&2
                 cat "$gh_err" >&2
-                return 3
+                return "$gh_failed"
             fi
             rc=2
         else
@@ -249,7 +252,7 @@ fi
 # find_pr: sets $pr and $url to the build's pull request, never a fork's.
 find_pr() {
     local n head link fork lines
-    lines="$(open_prs 2>"$gh_err")" || return 3
+    lines="$(open_prs 2>"$gh_err")" || return "$gh_failed"
     while IFS="$(printf '\t')" read -r n head link fork; do
         [ -n "$n" ] || continue
         [ "$fork" != true ] || continue
@@ -268,7 +271,7 @@ ci_state() {
     local states
     states="$(gh pr view "$pr" --json statusCheckRollup --jq '.statusCheckRollup[] |
         if .__typename == "CheckRun" then (if .status == "COMPLETED" then .conclusion else "PENDING" end)
-        else .state end' </dev/null 2>"$gh_err")" || return 3
+        else .state end' </dev/null 2>"$gh_err")" || return "$gh_failed"
     [ -n "$states" ] || return 2
     if grep -qE '^(FAILURE|CANCELLED|TIMED_OUT|ERROR|ACTION_REQUIRED|STARTUP_FAILURE)$' <<<"$states"; then
         echo "all: CI failed on #$pr" >&2
@@ -302,7 +305,7 @@ fixup_head="^#* *$CLOUD_FIXUP_HEADING"
 # (wait_for runs it in this shell).
 reviews_in() {
     local lines r
-    lines="$(comments 2>"$gh_err")" || return 3
+    lines="$(comments 2>"$gh_err")" || return "$gh_failed"
     lines="$(tail -n +$(($1 + 1)) <<<"$lines")"
     missing=()
     for r in "${roles[@]}"; do
@@ -315,7 +318,7 @@ reviews_in() {
 # "Fixup:", as cloud-fixup-prompt.txt tells the session.
 fixup_replied() {
     local lines
-    lines="$(comments 2>"$gh_err")" || return 3
+    lines="$(comments 2>"$gh_err")" || return "$gh_failed"
     tail -n +$(($1 + 1)) <<<"$lines" | grep -qE "$fixup_head" || return 2
 }
 
