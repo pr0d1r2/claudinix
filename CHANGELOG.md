@@ -21,7 +21,8 @@ does are summarised briefly; the git history has the detail.
 ## Unreleased
 
 - `just all` stops a wait after 3 failed `gh` calls in a row, showing gh's
-  last error and naming the step, instead of printing dots to the limit.
+  last error and naming the step, instead of printing dots to the limit,
+  with no second line that names another cause.
   This runs on your machine, not in the session VM.
 
 - **Renamed to claudinix** ("Claude in cloud on Nix") before the first

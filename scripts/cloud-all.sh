@@ -171,6 +171,16 @@ trap 'rm -f "$gh_err"' EXIT
 # The failed gh calls in a row that stop a wait (B32).
 max_gh_failures=3
 
+# wait_failed RC MESSAGE: stop the flow after a failed wait_for. RC 3 is the
+# gh stop, which already said why; any other RC gets MESSAGE.
+wait_failed() {
+    if [ "$1" = 3 ]; then
+        open_pr
+        exit 1
+    fi
+    fail "$2"
+}
+
 # wait_for WHAT MAX CHECK...: run CHECK every $poll s until it returns 0
 # (done) or 1 (failed); 2 is not yet, printed as a dot; 3 is a failed gh
 # call, which counts as not yet until $max_gh_failures come in a row (a
@@ -189,7 +199,7 @@ wait_for() {
                 [ "$i" = 0 ] || echo
                 echo "all: gave up waiting for $what: $gh_failures gh calls failed in a row; the last said:" >&2
                 cat "$gh_err" >&2
-                return 1
+                return 3
             fi
             rc=2
         else
@@ -313,31 +323,29 @@ if [ -n "$given_pr" ]; then
     target="$arg" # the children check a URL's repo themselves
     built=
     echo "all: waiting for CI on #$pr ($url)"
-    wait_for "CI on #$pr" "$polls_ci" ci_state || fail "CI is not green on #$pr"
+    wait_for "CI on #$pr" "$polls_ci" ci_state || wait_failed $? "CI is not green on #$pr"
 else
     "$scripts_dir/cloud-task.sh" "$arg" "${child_args[@]}" || fail "the build of $arg did not start"
     echo "all: waiting for the pull request of $arg"
-    wait_for "the pull request of $arg" "$polls_pr" find_pr || fail "no pull request of $arg appeared"
+    wait_for "the pull request of $arg" "$polls_pr" find_pr || wait_failed $? "no pull request of $arg appeared"
     target="$pr"
     built="the build, "
     echo "all: #$pr is open ($url); waiting for CI"
-    wait_for "CI on #$pr" "$polls_ci" ci_state || fail "CI is not green on #$pr after the build"
+    wait_for "CI on #$pr" "$polls_ci" ci_state || wait_failed $? "CI is not green on #$pr after the build"
 fi
 
 echo "all: CI is green on #$pr; starting the reviews"
 skip="$(comment_count)"
 "$scripts_dir/cloud-review.sh" all "$target" "${child_args[@]}" || fail "the reviews of #$pr did not all start"
 missing=()
-if ! wait_for "the reviews of #$pr" "$polls_reviews" reviews_in "$skip"; then
-    fail "no review of #$pr by ${missing[*]}"
-fi
+wait_for "the reviews of #$pr" "$polls_reviews" reviews_in "$skip" || wait_failed $? "no review of #$pr by ${missing[*]}"
 
 echo "all: every role reviewed #$pr; starting the fixup"
 skip="$(comment_count)"
 "$scripts_dir/cloud-fixup.sh" "$target" "${child_args[@]}" || fail "the fixup of #$pr did not start"
-wait_for "the fixup of #$pr" "$polls_fixup" fixup_replied "$skip" || fail "the fixup of #$pr never replied"
+wait_for "the fixup of #$pr" "$polls_fixup" fixup_replied "$skip" || wait_failed $? "the fixup of #$pr never replied"
 echo "all: the fixup replied on #$pr; waiting for CI"
-wait_for "CI on #$pr" "$polls_ci" ci_state || fail "CI is not green on #$pr after the fixup"
+wait_for "CI on #$pr" "$polls_ci" ci_state || wait_failed $? "CI is not green on #$pr after the fixup"
 
 echo "all: CI is green on #$pr after ${built}the reviews and the fixup; opening $url"
 open_pr
