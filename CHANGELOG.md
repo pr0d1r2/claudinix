@@ -148,6 +148,10 @@ does are summarised briefly; the git history has the detail.
   run the gate and push again, for at most 3 rounds, then report. A check
   cancelled before any step ran (a runner outage) is reported, not
   "fixed".
+- `just all` no longer stops on a check that was cancelled, which is what a
+  GitHub Actions runner outage does to a job that never started. It says
+  so once, points at githubstatus.com and `gh run rerun`, and keeps
+  waiting.
 - `just all` stops, naming the pull request, when it cannot read a pull
   request's comments before a review or fixup starts, instead of taking
   an old review or fixup comment for the new session's.
