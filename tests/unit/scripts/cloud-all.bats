@@ -12,7 +12,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     # Long polls keep the timed-out waits to a few polls each.
     export CLOUD_ALL_POLL=600
-    unset TASK_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST
+    unset TASK_REFUSE FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST
     mkdir -p "$STUBS" "$STATE" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
@@ -35,10 +35,14 @@ setup() {
         'echo "review $*" >>"$STATE/children.log"' \
         '[ -z "${REVIEW_FAIL:-}" ] || exit 1' \
         'for r in ${REVIEW_ONLY:-alpha beta}; do printf "## Review: %s%b\n" "$r" "${REVIEW_CRLF:+\\r}" >>"$STATE/comments"; done' >"$CLAUDINIX_SCRIPTS/cloud-review.sh"
-    # cloud-fixup.sh: posts its one reply.
+    # cloud-fixup.sh: --dry-run checks only; a launch posts its one reply.
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "fixup $*" >>"$STATE/children.log"' \
+        'if [[ " $* " == *" --dry-run "* ]]; then' \
+        '  [ -z "${FIXUP_REFUSE:-}" ] || { echo "fixup: #$1 is MERGED, not OPEN -- nothing to fix up" >&2; exit 1; }' \
+        '  exit 0' \
+        'fi' \
         '[ -z "${FIXUP_BOT:-}" ] || echo "Coverage 92%" >>"$STATE/comments"' \
         '[ -n "${FIXUP_SILENT:-}" ] || [ -n "${FIXUP_BOT:-}" ] || echo "## Fixup: pushed" >>"$STATE/comments"' >"$CLAUDINIX_SCRIPTS/cloud-fixup.sh"
     printf '%s\n' '#!/usr/bin/env bash' 'echo sonnet' >"$CLAUDINIX_SCRIPTS/config.sh"
@@ -61,6 +65,7 @@ setup() {
         '  head -n 1 "$STATE/ci" | tr " " "\n" | grep -v "^$"' \
         '  [ "$(wc -l <"$STATE/ci")" -le 1 ] || { tail -n +2 "$STATE/ci" >"$STATE/ci.t"; mv "$STATE/ci.t" "$STATE/ci"; }' \
         '  exit 0 ;;' \
+        '*"--json url"*) echo "https://github.com/o/p/pull/$3"; exit 0 ;;' \
         '*comments*) cat "$STATE/comments" 2>/dev/null; exit 0 ;;' \
         'esac' \
         'exit 9' >"$STUBS/gh"
@@ -286,4 +291,51 @@ fixup 14 --yes --model sonnet" ]
         [[ "$output" == *"usage: cloud-all.sh"* ]]
     done
     [ ! -e "$STATE/children.log" ]
+}
+
+# --- an existing pull request (scripts:T139) ---
+
+@test "a PR number: no build; checks as fixup, then CI, reviews, fixup, CI, opens it" {
+    run bash "$SCRIPT" 16 --yes
+    [ "$status" -eq 0 ]
+    [ "$(cat "$STATE/children.log")" = "fixup 16 --dry-run --model sonnet
+review all 16 --yes --model sonnet
+fixup 16 --yes --model sonnet" ]
+    [ "$(cat "$STATE/open.log")" = "-a Safari https://github.com/o/p/pull/16" ]
+    run ! grep -q '^pr list' "$STATE/gh.log"
+}
+
+@test "a PR URL is passed to the children as given" {
+    run bash "$SCRIPT" https://github.com/o/p/pull/16 --yes
+    [ "$status" -eq 0 ]
+    grep -q '^review all https://github.com/o/p/pull/16 --yes' "$STATE/children.log"
+    grep -q '^fixup https://github.com/o/p/pull/16 --yes' "$STATE/children.log"
+}
+
+@test "a PR the fixup checks refuse: its exit, no session, no question" {
+    FIXUP_REFUSE=1 run bash "$SCRIPT" 16
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"#16 is MERGED"* ]]
+    [[ "$output" != *"[y/N]"* ]]
+    [ "$(cat "$STATE/children.log")" = "fixup 16 --dry-run --model sonnet" ]
+}
+
+@test "a PR: the y/N and the plan count the reviews and the fixup only" {
+    run bash "$SCRIPT" 16 --dry-run
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"3 billed"* ]]
+    [[ "$output" != *"build"* ]]
+    run bash "$SCRIPT" 16 <<<"n"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"3 billed"* ]]
+    [ "$(wc -l <"$STATE/children.log")" -eq 2 ]
+}
+
+@test "a PR whose CI is red: no review, exit 1, opens it" {
+    ci FAILURE
+    run bash "$SCRIPT" 16 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"#16"* ]]
+    [ -s "$STATE/open.log" ]
+    run ! grep -q '^review' "$STATE/children.log"
 }
