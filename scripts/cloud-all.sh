@@ -32,7 +32,9 @@
 # - the reviews: one comment headed "Review: <role>" for every role;
 # - the fixup: a comment after its launch headed "Fixup:".
 # A child that fails, red CI or a wait that runs out names the step,
-# opens the pull request when there is one, and exits 1.
+# opens the pull request when there is one, and exits 1. So do 3 failed gh
+# calls in a row in one wait (a success resets the count): it shows gh's
+# last stderr instead of dots to the limit (SPEC scripts:T138).
 #
 # Usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run]
 # Env:   CLOUD_ALL_POLL     seconds between polls (default 10)
@@ -162,15 +164,37 @@ fail() {
     exit 1
 }
 
+# gh_err: where a check's failed gh call leaves its stderr, for wait_for.
+gh_err="$(mktemp)"
+trap 'rm -f "$gh_err"' EXIT
+
+# The failed gh calls in a row that stop a wait (B32).
+max_gh_failures=3
+
 # wait_for WHAT MAX CHECK...: run CHECK every $poll s until it returns 0
-# (done) or 1 (failed); 2 is not yet, printed as a dot. Returns 1 when MAX
-# polls run out.
+# (done) or 1 (failed); 2 is not yet, printed as a dot; 3 is a failed gh
+# call, which counts as not yet until $max_gh_failures come in a row (a
+# success resets the count), then stops the wait with gh's last stderr.
+# Returns 1 when MAX polls run out.
 wait_for() {
-    local what="$1" max="$2" i=0 rc
+    local what="$1" max="$2" i=0 rc gh_failures=0
     shift 2
     while :; do
         rc=0
+        : >"$gh_err"
         "$@" || rc=$?
+        if [ "$rc" = 3 ]; then
+            gh_failures=$((gh_failures + 1))
+            if [ "$gh_failures" -ge "$max_gh_failures" ]; then
+                [ "$i" = 0 ] || echo
+                echo "all: gave up waiting for $what: $gh_failures gh calls failed in a row; the last said:" >&2
+                cat "$gh_err" >&2
+                return 1
+            fi
+            rc=2
+        else
+            gh_failures=0
+        fi
         if [ "$rc" != 2 ]; then
             [ "$i" = 0 ] || echo
             return "$rc"
@@ -215,7 +239,7 @@ fi
 # find_pr: sets $pr and $url to the build's pull request, never a fork's.
 find_pr() {
     local n head link fork lines
-    lines="$(open_prs)" || return 2
+    lines="$(open_prs 2>"$gh_err")" || return 3
     while IFS="$(printf '\t')" read -r n head link fork; do
         [ -n "$n" ] || continue
         [ "$fork" != true ] || continue
@@ -234,7 +258,7 @@ ci_state() {
     local states
     states="$(gh pr view "$pr" --json statusCheckRollup --jq '.statusCheckRollup[] |
         if .__typename == "CheckRun" then (if .status == "COMPLETED" then .conclusion else "PENDING" end)
-        else .state end' </dev/null)" || return 2
+        else .state end' </dev/null 2>"$gh_err")" || return 3
     [ -n "$states" ] || return 2
     if grep -qE '^(FAILURE|CANCELLED|TIMED_OUT|ERROR|ACTION_REQUIRED|STARTUP_FAILURE)$' <<<"$states"; then
         echo "all: CI failed on #$pr" >&2
@@ -268,7 +292,7 @@ fixup_head="^#* *$CLOUD_FIXUP_HEADING"
 # (wait_for runs it in this shell).
 reviews_in() {
     local lines r
-    lines="$(comments)" || return 2
+    lines="$(comments 2>"$gh_err")" || return 3
     lines="$(tail -n +$(($1 + 1)) <<<"$lines")"
     missing=()
     for r in "${roles[@]}"; do
@@ -281,7 +305,7 @@ reviews_in() {
 # "Fixup:", as cloud-fixup-prompt.txt tells the session.
 fixup_replied() {
     local lines
-    lines="$(comments)" || return 2
+    lines="$(comments 2>"$gh_err")" || return 3
     tail -n +$(($1 + 1)) <<<"$lines" | grep -qE "$fixup_head" || return 2
 }
 
