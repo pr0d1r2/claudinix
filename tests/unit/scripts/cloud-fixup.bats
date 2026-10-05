@@ -222,6 +222,17 @@ pr() {
     grep -qF 'never weaken a check' "$STATE/claude.task"
 }
 
+@test "the prompt: the CI-watch rules come from the one shared fragment, not a copy (scripts:T142)" {
+    scripts="$BATS_TEST_DIRNAME/../../../scripts"
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 0 ]
+    [ -f "$scripts/cloud-ci-watch-prompt.txt" ]
+    grep -qF '@CI_WATCH@' "$scripts/cloud-fixup-prompt.txt"
+    run ! grep -qF 'Watch CI' "$scripts/cloud-fixup-prompt.txt"
+    grep -qF "$(head -n 1 "$scripts/cloud-ci-watch-prompt.txt")" "$STATE/claude.task"
+    run ! grep -qF '@CI_WATCH@' "$STATE/claude.task"
+}
+
 # --- just ---
 
 @test "just fixup runs the script, one plain command" {
