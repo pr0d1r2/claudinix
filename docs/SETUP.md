@@ -312,7 +312,16 @@ a. **Commit an allow rule in the target repository.** A cloud session reads
    ```
 
    Commit it on its own, and allow only the tools you have seen prompt, one
-   rule each.
+   rule each. This is not read-only: a rule names the tool, not its
+   arguments, so it also allows `add_repo` with `access: "push"` and any
+   repository your GitHub grant reaches, private ones included. The prompt
+   was the only check. A session that reads untrusted content (an issue, a
+   comment, a fetched file) could be steered into attaching and pushing to
+   another repository. The session reads the file from the branch it runs
+   on, so review it like any permission change (CODEOWNERS or branch
+   protection) and do not rely on it for sessions on branches you do not
+   trust. Prefer (c) for interactive work and (a) only for unattended runs
+   on trusted repositories.
 b. **Choose a permission mode when the session starts**, from the mode
    dropdown in the browser or a CLI flag. A mode that skips prompts also
    skips them for commands you would want to see; prefer (a).
