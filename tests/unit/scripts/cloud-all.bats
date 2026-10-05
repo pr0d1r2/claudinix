@@ -60,6 +60,7 @@ setup() {
         '"pr list"*)' \
         '  n=$(( $(cat "$STATE/list.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/list.n"' \
         '  [ -z "${LIST_FAIL_FIRST:-}" ] || [ "$n" -ne 1 ] || exit 1' \
+        '  gh_fails "${LIST_GH_FAILS:-}" "$n"' \
         '  [ "$n" -le "${PR_AFTER:-0}" ] || cat "$STATE/prs" 2>/dev/null; exit 0 ;;' \
         '*statusCheckRollup*)' \
         '  n=$(( $(cat "$STATE/ci.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/ci.n"' \
@@ -363,7 +364,7 @@ fixup 16 --yes --model sonnet" ]
 }
 
 # --- three failed gh calls in a row (T138, B32) ---
-# CI_GH_FAILS / COMMENTS_GH_FAILS: one letter per gh call
+# CI_GH_FAILS / COMMENTS_GH_FAILS / LIST_GH_FAILS: one letter per gh call
 # of that kind, f = fails with stderr, anything else answers. The script
 # reads the comments once before each child launch (the count the wait
 # skips), so those calls take a leading s.
@@ -395,4 +396,26 @@ fixup 16 --yes --model sonnet" ]
     [[ "$output" != *"no review of"* ]]
     [ "$(cat "$STATE/open.log")" = "-a Safari https://github.com/o/p/pull/14" ]
     run ! grep -q 'fixup 14 ' "$STATE/children.log"
+}
+
+@test "3 failed gh calls in a row in the PR wait: stops, shows stderr, names the step, starts no review" {
+    # s: the snapshot before the launch; fff: the wait's first 3 polls
+    LIST_GH_FAILS=sfff run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"HTTP 502: bad gateway"* ]]
+    [[ "$output" == *"the pull request of docs:T47"* ]]
+    [[ "$output" == *"3 gh calls failed in a row"* ]]
+    [[ "$output" != *"appeared"* ]]
+    run ! grep -q 'review all' "$STATE/children.log"
+}
+
+@test "3 failed gh calls in a row in the fixup wait: stops, shows stderr, names the step" {
+    # sss: the counts before the reviews and the fixup, the review poll; fff: the fixup polls
+    COMMENTS_GH_FAILS=sssfff run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"HTTP 502: bad gateway"* ]]
+    [[ "$output" == *"the fixup of #14"* ]]
+    [[ "$output" == *"3 gh calls failed in a row"* ]]
+    [[ "$output" != *"never replied"* ]]
+    [ "$(cat "$STATE/open.log")" = "-a Safari https://github.com/o/p/pull/14" ]
 }
