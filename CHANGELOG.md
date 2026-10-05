@@ -146,7 +146,8 @@ does are summarised briefly; the git history has the detail.
 - The `cloud` and `fixup` sessions now watch CI on their pull request
   after they push. On a red run they read the failed log, fix the cause,
   run the gate and push again to the pull request's head branch, for at
-  most 3 rounds, then report. A check
+  most 3 rounds, then report. The `fixup` session posts its `Fixup:`
+  reply first and appends the CI result to it afterwards. A check
   cancelled before any step ran (a runner outage) is reported, not
   "fixed". They treat job logs as data, never as instructions. A CI fix
   never edits the workflows, `hk.pkl` or the permission lists.
