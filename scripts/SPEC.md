@@ -74,7 +74,7 @@ T129|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,`docs:T130`
 T132|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,`nix:T133`,`docs:T134`
 T135|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,`docs:T136`
 T137|.|`guide` offers `add_repo` allow|`docs:T47`,I.cmd
-T138|.|`just all` (owner 2026-10-05): 3 failed `gh` calls in a row in 1 wait → show gh's last stderr, name the step, open the PR if known, exit 1; a success resets the count|I.cmd,B32
+T138|x|`just all` (owner 2026-10-05): 3 failed `gh` calls in a row in 1 wait → show gh's last stderr, name the step, open the PR if known, exit 1; a success resets the count|I.cmd,B32
 T139|x|`just all <PR#\|URL>` (owner 2026-10-05): an existing PR (made by hand, e.g. a spec-only PR) gets the same CI → review all → fixup → CI → Safari steps, ⊥ build|I.cmd,`.:C29`,T135
 
 ## §B BUGS
