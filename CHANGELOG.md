@@ -147,6 +147,8 @@ does are summarised briefly; the git history has the detail.
   seconds, naming it, instead of failing with a shell error.
 - `just all` matches the review and fixup headings of comments written in the
   GitHub web UI, which end their lines with a carriage return.
+- `just all` takes a dot in a node name literally when it looks for the
+  build's pull request, so `a.b` no longer matches `axb`.
 - The cloud permission list allows
   `git push --force-with-lease origin HEAD:claude/*`, the rebase session's
   push; plain force pushes and every push to `main` stay unlisted or denied.

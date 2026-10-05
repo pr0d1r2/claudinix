@@ -62,8 +62,12 @@ cloud_branch_name() {
 # the harness lowered the case and added its suffix; an empty NODE takes
 # any node.
 cloud_branch_regex() {
-    local label="${1:-[^/]+}"
-    [ "$label" != . ] || label=root
+    local label="[^/]+"
+    if [ -n "$1" ]; then
+        label="$1"
+        [ "$label" != . ] || label=root
+        label="${label//./\\.}"
+    fi
     printf '^claude/%s-%s(-[a-z0-9]+)?$\n' \
         "$(printf %s "$label" | tr '[:upper:]' '[:lower:]')" \
         "$(printf %s "$2" | tr '[:upper:]' '[:lower:]')"
