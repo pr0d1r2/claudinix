@@ -34,3 +34,4 @@ T124|x|cloud prompt step 6: after the push, open a PR to `main` (title = 1st com
 T126|x|`just rebase <PR>` (owner 2026-10-04: #8 conflicted only in README badges after #9): 1 cloud session rebases a `claude/*` PR onto `main`|I.cmd,`.:C29`,`nix:T127`
 T129|x|`just review` (owner 2026-10-04): 6 roles to start, more to come; `all` = 1 session per role, 1 y/N naming count, model, roles \& per-session billing|I.cmd,`.:C29`,`docs:T130`
 T132|x|`just fixup <PR>` (owner 2026-10-04): fix a PR's review findings 1 by 1 in separate commits, push, 👍 the originating comment; any branch but `main`|I.cmd,`.:C29`,`nix:T133`,`docs:T134`
+T135|x|`just all <node:Tn>` (owner 2026-10-04): 1 command runs cloud → CI → review all → fixup → CI, waits for each, opens the PR in Safari|I.cmd,`.:C29`,`docs:T136`

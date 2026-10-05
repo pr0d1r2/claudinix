@@ -70,7 +70,7 @@ T124|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`
 T126|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,`nix:T127`
 T129|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,`docs:T130`
 T132|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,`nix:T133`,`docs:T134`
-T135|x|`just all <node:Tn>` (owner 2026-10-04): 1 command runs cloud → CI → review all → fixup → CI, waits for each, opens the PR in Safari|I.cmd,`.:C29`,`docs:T136`
+T135|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,`docs:T136`
 
 ## §B BUGS
 
