@@ -12,7 +12,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     # Long polls keep the timed-out waits to a few polls each.
     export CLOUD_ALL_POLL=600
-    unset TASK_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT PR_AFTER
+    unset TASK_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT PR_AFTER LIST_FAIL_FIRST
     mkdir -p "$STUBS" "$STATE" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
@@ -53,6 +53,7 @@ setup() {
         'case "$*" in' \
         '"pr list"*)' \
         '  n=$(( $(cat "$STATE/list.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/list.n"' \
+        '  [ -z "${LIST_FAIL_FIRST:-}" ] || [ "$n" -ne 1 ] || exit 1' \
         '  [ "$n" -le "${PR_AFTER:-0}" ] || cat "$STATE/prs" 2>/dev/null; exit 0 ;;' \
         '*statusCheckRollup*)' \
         '  [ -f "$STATE/ci" ] || exit 0' \
@@ -120,6 +121,14 @@ fixup 14 --yes --model sonnet" ]
     [ "$status" -eq 0 ]
     grep -q 'review all 14 ' "$STATE/children.log"
     run ! grep -q 'review all 9 \|review all 12 ' "$STATE/children.log"
+}
+
+@test "an unreadable PR list before the launch: refused, no session, an old PR is not adopted" {
+    printf '9\tclaude/docs-t47-old\thttps://github.com/o/p/pull/9\n' >"$STATE/prs"
+    LIST_FAIL_FIRST=1 run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"cannot list"* ]]
+    run ! grep -q -- '--yes' "$STATE/children.log"
 }
 
 @test "a bare Tn takes the build's PR from any node; case is folded" {
