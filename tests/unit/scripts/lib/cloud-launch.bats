@@ -202,3 +202,22 @@ beta" ]
     [[ claude/a.b-t1 =~ $re ]]
     [[ ! claude/axb-t1 =~ $re ]]
 }
+
+@test "cloud_parse_pr takes PR# or a PR URL into pr and url_repo" {
+    # shellcheck source=/dev/null
+    source "$LIB"
+    pr=x url_repo=x
+    cloud_parse_pr 17
+    [ "$pr" = 17 ] && [ -z "$url_repo" ]
+    cloud_parse_pr https://github.com/o/p/pull/23/
+    [ "$pr" = 23 ] && [ "$url_repo" = o/p ]
+}
+
+@test "cloud_parse_pr refuses anything else" {
+    # shellcheck source=/dev/null
+    source "$LIB"
+    for bad in "" T1 docs:T1 17x http://github.com/o/p/pull/1 https://github.com/o/p/issues/1 https://github.com/o/p/pull/1/files; do
+        run cloud_parse_pr "$bad"
+        [ "$status" -eq 1 ]
+    done
+}
