@@ -18,7 +18,8 @@
 # --model, else the project's .claudinix.toml session.model
 # (scripts/config.sh, scripts:V34), else sonnet.
 #
-# The prompt is cloud-fixup-prompt.txt with @PR@, @URL@, @BRANCH@ and
+# The prompt is cloud-fixup-prompt.txt with @CI_WATCH@ (the shared
+# cloud-ci-watch-prompt.txt, scripts:T142), @PR@, @URL@, @BRANCH@ and
 # @BASE@ filled in. The session works through the findings one at a
 # time, each fixed in its own commits or declined with a reason, runs the
 # gate, pushes to the same branch without force, gives a thumbs-up to
@@ -116,6 +117,7 @@ cloud_require_pushed_branch fixup "$remote" || exit 1
 cloud_resolve_model "$lib" || exit "$?"
 
 prompt="$(cat "$lib/cloud-fixup-prompt.txt")"
+cloud_fill @CI_WATCH@ "$(cat "$lib/cloud-ci-watch-prompt.txt")"
 cloud_fill @PR@ "$pr"
 cloud_fill @BASE@ "$base"
 cloud_fill @BRANCH@ "$head"

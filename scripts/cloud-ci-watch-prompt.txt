@@ -1,0 +1,14 @@
+Watch CI on the pull request's head commit with your GitHub tools
+   (its check runs, and the failed job's log), checking about once a
+   minute, for up to 30 minutes a round.
+   - Green (every check passed or was skipped): go on.
+   - Red: read the failed job's log and find the cause. Fix it in
+     AGENTS.md order (a bug gets its §B row and a failing test before the
+     fix), run the gate again, push again with the same command, never
+     force, and watch again. Stop after at most 3 red rounds and report
+     the failing check and the log line that shows why.
+   - A check cancelled before any step ran, or one that never starts
+     (no runner picks it up), is GitHub's trouble, not your code: change
+     nothing for it and report it.
+   Fix the code; never weaken a check, edit a test to get green, or skip
+   CI.
