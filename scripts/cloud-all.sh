@@ -83,6 +83,10 @@ want_node= # set by cloud_parse_task
 id=
 pr=
 cloud_parse_pr "$arg" || cloud_parse_task "$arg" || usage
+# The mode: $pr is also what find_pr fills after a build, so only this flag
+# says a PR was given.
+given_pr=
+[ -z "$pr" ] || given_pr=1
 poll="${CLOUD_ALL_POLL-10}"
 if [[ ! "$poll" =~ ^[1-9][0-9]*$ ]]; then
     echo "all: CLOUD_ALL_POLL must be a positive integer of seconds, got '$poll'" >&2
@@ -103,7 +107,7 @@ polls_fixup="$(polls "$minutes_fixup")"
 
 cloud_resolve_model "$scripts_dir" || exit "$?"
 child_args=(--yes --model "$model") # every child runs unasked, on the one model
-if [ -n "$pr" ]; then
+if [ -n "$given_pr" ]; then
     "$scripts_dir/cloud-fixup.sh" "$arg" --dry-run --model "$model" >/dev/null || exit "$?"
 else
     "$scripts_dir/cloud-task.sh" "$arg" --dry-run --model "$model" >/dev/null || exit "$?"
@@ -117,7 +121,7 @@ if [ "${#roles[@]}" -eq 0 ]; then
     echo "all: no review roles in $scripts_dir/review -- add one (ROLE.md) first" >&2
     exit 1
 fi
-if [ -n "$pr" ]; then
+if [ -n "$given_pr" ]; then
     sessions=$((${#roles[@]} + 1))
     steps=
     name="#$pr"
@@ -193,7 +197,7 @@ open_prs() {
 # empty one would make any old PR of the task look new. A given PR needs
 # only its URL.
 before=" "
-if [ -n "$pr" ]; then
+if [ -n "$given_pr" ]; then
     url="$(gh pr view "$pr" --json url --jq .url </dev/null)" || {
         echo "all: gh could not read pull request #$pr -- check gh auth status" >&2
         exit 1
@@ -281,7 +285,7 @@ fixup_replied() {
     tail -n +$(($1 + 1)) <<<"$lines" | grep -qE "$fixup_head" || return 2
 }
 
-if [ -n "$pr" ]; then
+if [ -n "$given_pr" ]; then
     target="$arg" # the children check a URL's repo themselves
     built=
     echo "all: waiting for CI on #$pr ($url)"
