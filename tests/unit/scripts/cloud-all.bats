@@ -370,7 +370,8 @@ fixup 16 --yes --model sonnet" ]
     [ "$status" -eq 1 ]
     [[ "$output" == *"HTTP 502: bad gateway"* ]]
     [[ "$output" == *"CI on #14"* ]]
-    [[ "$output" == *"3 "* ]]
+    [[ "$output" == *"3 gh calls failed in a row"* ]]
+    [[ "$output" != *"not green"* ]]
     [ "$(cat "$STATE/open.log")" = "-a Safari https://github.com/o/p/pull/14" ]
     run ! grep -q 'review all' "$STATE/children.log"
 }
@@ -387,6 +388,7 @@ fixup 16 --yes --model sonnet" ]
     [ "$status" -eq 1 ]
     [[ "$output" == *"HTTP 502: bad gateway"* ]]
     [[ "$output" == *"the reviews of #14"* ]]
+    [[ "$output" != *"no review of"* ]]
     [ "$(cat "$STATE/open.log")" = "-a Safari https://github.com/o/p/pull/14" ]
     run ! grep -q 'fixup 14 ' "$STATE/children.log"
 }
