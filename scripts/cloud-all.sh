@@ -270,16 +270,23 @@ find_pr() {
     return 2
 }
 
-# ci_state: the head commit's checks: 0 green, 1 red, 2 pending.
+# ci_state: the head commit's checks: 0 green, 1 red, 2 pending. A cancelled
+# check is pending, not red: a runner outage cancels jobs that never ran
+# a step (B38); it is said once, with where to look.
+cancel_said=
 ci_state() {
     local states
     states="$(gh pr view "$pr" --json statusCheckRollup --jq '.statusCheckRollup[] |
         if .__typename == "CheckRun" then (if .status == "COMPLETED" then .conclusion else "PENDING" end)
         else .state end' </dev/null 2>"$gh_err")" || return "$gh_failed"
     [ -n "$states" ] || return 2
-    if grep -qE '^(FAILURE|CANCELLED|TIMED_OUT|ERROR|ACTION_REQUIRED|STARTUP_FAILURE)$' <<<"$states"; then
+    if grep -qE '^(FAILURE|TIMED_OUT|ERROR|ACTION_REQUIRED|STARTUP_FAILURE)$' <<<"$states"; then
         echo "all: CI failed on #$pr" >&2
         return 1
+    fi
+    if [ -z "$cancel_said" ] && grep -qx CANCELLED <<<"$states"; then
+        printf '\nall: a check on #%s was cancelled, likely a runner outage (see https://www.githubstatus.com); re-run it (gh run rerun) -- still waiting\n' "$pr" >&2
+        cancel_said=1
     fi
     if grep -qvE '^(SUCCESS|SKIPPED|NEUTRAL)$' <<<"$states"; then
         return 2
