@@ -20,7 +20,8 @@
 # (scripts/config.sh, scripts:V34), else sonnet. A bad file exits 2
 # before anything starts.
 #
-# The prompt is cloud-task-prompt.txt with @TASK@, @NODE@, @BRANCH@ and
+# The prompt is cloud-task-prompt.txt with @CI_WATCH@ (the shared
+# cloud-ci-watch-prompt.txt, scripts:T142), @TASK@, @NODE@, @BRANCH@ and
 # @TASK_TEXT@ (the spec row as written) filled in. The session pushes
 # `claude/<node>-<task>` (`root` for the root node), to which the harness
 # may add a suffix, and opens a pull request into main (scripts:T124);
@@ -167,6 +168,7 @@ branch="$(printf '%q' "$branch_name")"
 
 # The row goes in last, so a placeholder spelled inside it is not filled.
 prompt="$(cat "$lib/cloud-task-prompt.txt")"
+cloud_fill @CI_WATCH@ "$(cat "$lib/cloud-ci-watch-prompt.txt")"
 cloud_fill @TASK@ "$id"
 cloud_fill @NODE@ "$node"
 cloud_fill @BRANCH@ "$branch"
