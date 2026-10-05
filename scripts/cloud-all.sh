@@ -167,10 +167,16 @@ open_prs() {
         --jq '.[] | [.number, .headRefName, .url] | @tsv' </dev/null
 }
 
+# The PRs open before the launch; an unreadable list stops the flow, as an
+# empty one would make any old PR of the task look new.
+snapshot="$(open_prs)" || {
+    echo "all: cannot list the open pull requests -- check gh auth status" >&2
+    exit 1
+}
 before=" "
 while IFS="$(printf '\t')" read -r n _ _; do
     [ -z "$n" ] || before="$before$n "
-done < <(open_prs || true)
+done <<<"$snapshot"
 
 # find_pr: sets $pr and $url to the build's pull request.
 find_pr() {
