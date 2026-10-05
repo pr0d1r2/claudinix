@@ -132,7 +132,7 @@ pr() {
 
 # shellcheck disable=SC2016 # a literal $( in a branch name, not expanded
 @test "a branch name that is not a plain ref is refused before it reaches the prompt" {
-    for head in 'a$(id)' 'a;b' 'a`b`' "a'b"; do
+    for head in 'a$(id)' 'a;b' 'a`b`' "a'b" -x; do
         pr OPEN "$head" main
         run bash "$SCRIPT" 8 --yes
         [ "$status" -eq 1 ]

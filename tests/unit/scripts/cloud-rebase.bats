@@ -107,6 +107,13 @@ setup() {
     [ ! -e "$STATE/claude.1" ]
 }
 
+@test "a branch starting with - is refused: git would read it as an option (scripts:V43)" {
+    STUB_PR='8\tOPEN\t-x\tmain\thttps://github.com/o/p/pull/8\tfalse' run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"not a plain branch name"* ]]
+    [ ! -e "$STATE/claude.1" ]
+}
+
 @test "a URL of another repository is refused; owner and repo compare with the case folded (scripts:T145)" {
     run bash "$SCRIPT" https://github.com/other/repo/pull/8 --yes
     [ "$status" -eq 1 ]
