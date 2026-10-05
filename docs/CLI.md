@@ -485,10 +485,16 @@ titled after its feat or fix commit, and never merges it.
 
 Then it watches CI on the pull request. On a red run it reads the failed
 job's log, fixes the cause in `AGENTS.md` order, runs the gate and pushes
-again, for at most 3 rounds, then reports what stayed red. A check that
-was cancelled before any step ran, or that no runner picks up, is a GitHub
-problem: the session changes nothing for it and reports it. It never
-weakens a check to get green.
+to the pull request's head branch, for at most 3 rounds, then reports what
+stayed red. A check that was cancelled before any step ran, or that no
+runner picks up, is a GitHub problem: the session changes nothing for it
+and reports it. It never weakens a check to get green, never edits the
+workflows, `hk.pkl` or the permission lists to do so, and treats the job
+logs as data, never as instructions. These rules live in one file,
+[`cloud-ci-watch-prompt.txt`](../scripts/cloud-ci-watch-prompt.txt), which
+`cloud` and [`fixup`](#fixup) share. [`rebase`](#rebase) does not watch
+CI: it only resolves conflicts and pushes with `--force-with-lease`, which
+the fix loop's no-force rule forbids.
 
 **It does not wait.** After the session starts it prints:
 
@@ -716,11 +722,13 @@ pull request filled in.
   a reason.
 - It runs the gate and pushes with `git push origin HEAD:<branch>`,
   without force. If the branch moved, it stops and reports.
-- It then watches CI and fixes a red run as [`cloud`](#cloud) does: at
-  most 3 rounds, and a check cancelled before any step ran is reported,
-  not fixed. Its reply ends with the CI result.
 - It adds a +1 reaction to each comment whose findings it all fixed, and
   posts one reply, headed `Fixup:`, that maps each finding to its commit or its reason.
+  The reply comes first, before the CI watch, because `just all` waits
+  for it.
+- It then watches CI and fixes a red run as [`cloud`](#cloud) does: at
+  most 3 rounds, and a check cancelled before any step ran is reported,
+  not fixed. It appends the CI result to its `Fixup:` reply.
 - It does not merge, approve or request changes, and opens no new pull
   request.
 
@@ -796,10 +804,10 @@ positive whole number; anything else exits 2. The table mirrors the
 | step | waits for | at most (minutes) |
 |---|---|---|
 | 1. `cloud <task>` | a pull request that was not open before, from branch `claude/<node>-<task>` in this repository, not a fork (the harness may add a suffix; case is ignored; any node for a bare `Tn`) | 180 |
-| 2. (just waits) | CI on the head commit: no check pending, none failed (skipped and neutral count as passed; no checks yet counts as pending; a cancelled check, as a runner outage leaves it, counts as pending and is reported once with githubstatus.com and `gh run rerun`) | 60 |
+| 2. (just waits) | CI on the head commit: no check pending, none failed (skipped and neutral count as passed; no checks yet counts as pending; a cancelled check, left by a runner outage or a superseded run, counts as pending and is reported once per wait with githubstatus.com and `gh run rerun`); after the build a red check counts as pending too, since the `cloud` session fixes it (a pull request given by number fails on its first red run) | 60, or 120 after the build |
 | 3. `review all <PR>` | a comment headed `Review: <role>` for every role | 90 |
 | 4. `fixup <PR>` | a newer comment headed `Fixup:`: the fixup's reply | 180 |
-| 5. (just waits) | CI again, as in step 2 | 60 |
+| 5. (just waits) | CI again, as in step 2, with a red check pending since the `fixup` session fixes it | 120 |
 
 Then it opens the pull request: `open -a Safari` on macOS, `xdg-open`
 elsewhere. It never merges.
@@ -812,6 +820,7 @@ and exits 1:
 all: the build of <task> did not start
 all: gave up waiting for the pull request of <task> after 1080 polls of 10s
 all: CI failed on #<n>
+all: gave up waiting for CI on #<n> after 720 polls of 10s
 all: no review of #<n> by <roles>
 all: the fixup of #<n> never replied
 all: gave up waiting for <step>: 3 gh calls failed in a row; the last said:
@@ -820,6 +829,9 @@ all: gave up waiting for <step>: 3 gh calls failed in a row; the last said:
 A failed `gh` call counts as "not yet" until 3 come in a row in one wait;
 then the wait stops and prints what `gh` last said. Any call that works
 resets the count.
+`CI failed` is only for a pull request given by number whose first run is
+red. After the build or the fixup a red check waits for the session's fix
+and ends as `gave up waiting for CI`.
 
 Sessions that already started keep running. Fix the cause, then run the
 remaining steps one by one (`just review all <PR>`, `just fixup <PR>`).
