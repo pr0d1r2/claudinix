@@ -96,6 +96,7 @@ polls_reviews="$(polls "$minutes_reviews")"
 polls_fixup="$(polls "$minutes_fixup")"
 
 cloud_resolve_model "$scripts_dir" || exit "$?"
+child_args=(--yes --model "$model") # every child runs unasked, on the one model
 "$scripts_dir/cloud-task.sh" "$arg" --dry-run --model "$model" >/dev/null || exit "$?"
 
 roles=()
@@ -253,7 +254,7 @@ fixup_replied() {
     tail -n +$(($1 + 1)) <<<"$lines" | grep -qE "$fixup_head" || return 2
 }
 
-"$scripts_dir/cloud-task.sh" "$arg" --yes --model "$model" || fail "the build of $arg did not start"
+"$scripts_dir/cloud-task.sh" "$arg" "${child_args[@]}" || fail "the build of $arg did not start"
 echo "all: waiting for the pull request of $arg"
 wait_for "the pull request of $arg" "$polls_pr" find_pr || fail "no pull request of $arg appeared"
 echo "all: #$pr is open ($url); waiting for CI"
@@ -261,7 +262,7 @@ wait_for "CI on #$pr" "$polls_ci" ci_state || fail "CI is not green on #$pr afte
 
 echo "all: CI is green on #$pr; starting the reviews"
 skip="$(comment_count)"
-"$scripts_dir/cloud-review.sh" all "$pr" --yes --model "$model" || fail "the reviews of #$pr did not all start"
+"$scripts_dir/cloud-review.sh" all "$pr" "${child_args[@]}" || fail "the reviews of #$pr did not all start"
 missing=()
 if ! wait_for "the reviews of #$pr" "$polls_reviews" reviews_in "$skip"; then
     fail "no review of #$pr by ${missing[*]}"
@@ -269,7 +270,7 @@ fi
 
 echo "all: every role reviewed #$pr; starting the fixup"
 skip="$(comment_count)"
-"$scripts_dir/cloud-fixup.sh" "$pr" --yes --model "$model" || fail "the fixup of #$pr did not start"
+"$scripts_dir/cloud-fixup.sh" "$pr" "${child_args[@]}" || fail "the fixup of #$pr did not start"
 wait_for "the fixup of #$pr" "$polls_fixup" fixup_replied "$skip" || fail "the fixup of #$pr never replied"
 echo "all: the fixup replied on #$pr; waiting for CI"
 wait_for "CI on #$pr" "$polls_ci" ci_state || fail "CI is not green on #$pr after the fixup"
