@@ -748,7 +748,9 @@ for [`cloud`](#cloud). `CLAUDINIX_SCRIPTS` holds the three launchers,
 
 **Before anything starts.** It runs `cloud-task.sh --dry-run`, so every
 check of `cloud` applies: the task, the remote, the pushed branch and the
-model. A refusal exits with the status `cloud` gives it. With no role
+model. A refusal exits with the status `cloud` gives it. After your
+answer it lists the open pull requests once, to know which are not the
+build's; if `gh` cannot list them, it exits 1 before any session starts. With no role
 files in `scripts/review/`, it exits 1. Then one question covers every
 session:
 
@@ -764,14 +766,16 @@ question, and starts nothing.
 wait polls GitHub with `gh` every `CLOUD_ALL_POLL` seconds (default 10)
 and prints one `.` per poll, so you can see it is alive. Each wait lasts a
 fixed number of minutes, counted in polls (minutes × 60 /
-`CLOUD_ALL_POLL`), not against a clock time.
+`CLOUD_ALL_POLL`), not against a clock time. `CLOUD_ALL_POLL` must be a
+positive whole number; anything else exits 2. The table mirrors the
+`minutes_*` constants at the top of `cloud-all.sh`.
 
 | step | waits for | at most (minutes) |
 |---|---|---|
-| 1. `cloud <task>` | a pull request that was not open before, from branch `claude/<node>-<task>` (the harness may add a suffix; case is ignored; any node for a bare `Tn`) | 180 |
+| 1. `cloud <task>` | a pull request that was not open before, from branch `claude/<node>-<task>` in this repository, not a fork (the harness may add a suffix; case is ignored; any node for a bare `Tn`) | 180 |
 | 2. | CI on the head commit: no check pending, none failed (skipped and neutral count as passed; no checks yet counts as pending) | 60 |
 | 3. `review all <PR>` | a comment headed `Review: <role>` for every role | 90 |
-| 4. `fixup <PR>` | the first newer comment that is not a review: the fixup's reply | 180 |
+| 4. `fixup <PR>` | a newer comment headed `Fixup:`: the fixup's reply | 180 |
 | 5. | CI again, as in step 2 | 60 |
 
 Then it opens the pull request: `open -a Safari` on macOS, `xdg-open`
