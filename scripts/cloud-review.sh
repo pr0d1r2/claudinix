@@ -82,15 +82,8 @@ else
     exit 2
 fi
 
-url_repo=
-if [[ "$arg" =~ ^[0-9]+$ ]]; then
-    pr="$arg"
-elif [[ "$arg" =~ ^https://github\.com/([^/]+/[^/]+)/pull/([0-9]+)/?$ ]]; then
-    url_repo="${BASH_REMATCH[1]}"
-    pr="${BASH_REMATCH[2]}"
-else
-    usage
-fi
+pr= # set by cloud_parse_pr
+cloud_parse_pr "$arg" || usage
 
 # </dev/null: gh must not share the terminal the y/N answer comes from (B19).
 if ! info="$(gh pr view "$pr" --json number,state,headRefName,baseRefName,url \
