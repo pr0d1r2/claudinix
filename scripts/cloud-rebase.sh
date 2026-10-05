@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# Rebase one claude/* pull request onto main in a fresh cloud session,
-# from your terminal (SPEC scripts:T126, .:C29).
+# Rebase one pull request onto main in a fresh cloud session,
+# from your terminal (SPEC scripts:T126, scripts:T145, .:C29).
 #
 # PR is a number or a GitHub pull request URL. `gh pr view` must find it
-# open, with a `claude/*` head (the only branches a cloud session may
-# push) and `main` as its base; anything else is refused before a
-# session starts.
+# open, from this repository (not a fork), with `main` as its base and a
+# head that is any branch but `main` with a plain name (letters, digits,
+# ._/-), as cloud-fixup.sh checks it; a URL must name the remote's
+# repository (case folded). Anything else is refused before a session
+# starts.
 #
 # The launch rules are cloud-task.sh's: the remote must exist, the
 # current branch must be pushed and equal to its upstream (the session
@@ -66,30 +68,48 @@ cloud_parse_pr "$arg" || usage
 lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 remote="${CLOUD_TASK_REMOTE:-origin}"
 
-if ! info="$(gh pr view "$pr" --json number,state,headRefName,baseRefName,url \
-    --jq '[.number, .state, .headRefName, .baseRefName, .url] | @tsv' </dev/null)"; then
+cloud_require_remote rebase "$remote" || exit 1
+remote_url="$(git remote get-url "$remote")"
+if [ -n "$url_repo" ]; then
+    # owner/repo of the remote, from https://github.com/o/r(.git) or
+    # git@github.com:o/r(.git).
+    repo="${remote_url%.git}"
+    repo="${repo#*github.com[:/]}"
+    # GitHub names ignore case; `tr`, as bash 3.2 has no ${var,,}.
+    if [ "$(printf %s "$url_repo" | tr '[:upper:]' '[:lower:]')" != "$(printf %s "$repo" | tr '[:upper:]' '[:lower:]')" ]; then
+        echo "rebase: $arg is a pull request of $url_repo, but $remote is $repo -- run it from that repository's checkout" >&2
+        exit 1
+    fi
+fi
+
+if ! info="$(gh pr view "$pr" --json number,state,headRefName,baseRefName,url,isCrossRepository \
+    --jq '[.number, .state, .headRefName, .baseRefName, .url, .isCrossRepository] | @tsv' </dev/null)"; then
     echo "rebase: gh could not read pull request #$pr -- check the number and that gh is signed in" >&2
     exit 1
 fi
-IFS="$(printf '\t')" read -r _ state head base url <<<"$info"
+IFS="$(printf '\t')" read -r _ state head base url cross <<<"$info"
 
 if [ "$state" != OPEN ]; then
     echo "rebase: #$pr is $state, not OPEN -- nothing to rebase" >&2
     exit 1
 fi
-case "$head" in
-claude/*) ;;
-*)
-    echo "rebase: #$pr's branch is $head; a cloud session may push only claude/* branches" >&2
+if [ "$cross" = true ]; then
+    echo "rebase: #$pr is from a fork; its branch $head is not a branch of $remote -- rebase it by hand" >&2
     exit 1
-    ;;
-esac
+fi
+if [ "$head" = main ]; then
+    echo "rebase: #$pr's branch is main; a cloud session never pushes main" >&2
+    exit 1
+fi
+if [[ ! "$head" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+    echo "rebase: #$pr's branch $head is not a plain branch name (letters, digits, ._/-) -- it would reach the session's commands" >&2
+    exit 1
+fi
 if [ "$base" != main ]; then
     echo "rebase: #$pr targets $base, not main -- rebase it by hand" >&2
     exit 1
 fi
 
-cloud_require_remote rebase "$remote" || exit 1
 cloud_require_pushed_branch rebase "$remote" || exit 1
 cloud_resolve_model "$lib" || exit "$?"
 
