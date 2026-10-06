@@ -242,3 +242,15 @@ beta" ]
 scripts
 docs" ]
 }
+
+@test "cloud_spec_of: the root's spec is SPEC.md, a node's is <node>/SPEC.md" {
+    [ "$(cloud_spec_of .)" = SPEC.md ]
+    [ "$(cloud_spec_of scripts)" = scripts/SPEC.md ]
+}
+
+@test "cloud_require_node: a listed node passes; another is refused naming it and the nodes (scripts:V26)" {
+    cloud_require_node cloud docs . scripts docs
+    run cloud_require_node spec-optimize nope . scripts docs
+    [ "$status" -eq 1 ]
+    [ "$output" = "spec-optimize: no node nope in SPEC.md §F (nodes: . scripts docs)" ]
+}
