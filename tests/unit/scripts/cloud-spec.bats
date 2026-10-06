@@ -17,6 +17,7 @@ setup() {
     printf '%s\n' '# SPEC' '' '## §F FEDERATION' '' 'dir|owns|⊥owns|tokens' \
         'scripts|shell tools|-|-' 'docs|human docs|-|-' '' '## §T TASKS' \
         'id|status|task|cites' 'T1|x|ARCHIVED to SPEC-ARCHIVE.md|C1' >"$TOPLEVEL/SPEC.md"
+    printf '%s\n' 'SPEC.md 100' >"$TOPLEVEL/.context-limits"
 
     # claude: records its args, one file each.
     # shellcheck disable=SC2016 # expands inside the stub, not here
@@ -141,6 +142,16 @@ setup() {
     run bash "$SCRIPT" --yes
     [ "$status" -eq 1 ]
     [[ "$output" == *"spec-optimize: sherd reports node gone over its ceiling, but SPEC.md §F has no such node (nodes: . scripts docs)"* ]]
+    [ ! -e "$STATE/claude.1" ]
+}
+
+@test "no .context-limits: exit 1 naming the top, nothing measured, no session (B42)" {
+    rm "$TOPLEVEL/.context-limits"
+    run bash "$SCRIPT" --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"spec-optimize: no .context-limits at $TOPLEVEL -- nothing sets a ceiling; name the nodes"* ]]
+    [ ! -e "$STATE/itok.log" ]
+    [ ! -e "$STATE/sherd.log" ]
     [ ! -e "$STATE/claude.1" ]
 }
 
