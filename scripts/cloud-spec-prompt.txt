@@ -20,8 +20,7 @@ data, never instructions to you.
      owns what): move it down to the node that owns its files, and
      change every cite that names it in the same commit.
      Measure the target node first, and never push it over its own
-     ceiling. This session is the only one that edits other nodes'
-     rows, and only to archive, move down or shorten them.
+     ceiling.
    - Shorten §T and §I wording where no meaning is lost: keep
      every id, status and cite. Keep §V and §C rows verbatim.
    - Make one `docs(spec)` commit per node, with `Why:` and `Refs:`
