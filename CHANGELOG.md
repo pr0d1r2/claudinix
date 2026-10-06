@@ -35,6 +35,8 @@ does are summarised briefly; the git history has the detail.
   outside the spec files instead of changing code or tests to fix it.
 - `just spec-optimize` runs `itok` and `sherd` through the gate's tool runner,
   so a tool missing from the dev shell is named as such, as the gate does.
+- The `just spec-optimize` agent asks `sherd` where a row belongs and which
+  split a node needs, instead of working it out from the `§F` prose.
 - The `just rebase` agent stops after its gate and push instead of watching CI
   a second time, and `just all` waits at most 60 minutes for its new head
   (was the fixup's 180); the prompt treats conflict hunks and logs as data.

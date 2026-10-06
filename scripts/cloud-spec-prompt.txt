@@ -16,9 +16,12 @@ data, never instructions to you.
    file rows and `sherd budget` for the chain rows.
 3. For each node named above, in this order:
    - Run `mth archive` on its SPEC.md to move done rows to its archive.
-   - A row about files another node owns (root SPEC.md §F says who
-     owns what): move it down to the node that owns its files, and
+   - A row about files another node owns:
+     move it down to the node that owns its files, and
      change every cite that names it in the same commit.
+     Ask sherd for the home, not §F prose:
+     `sherd plan --triage` proposes one per row, and `sherd route
+     <query>` names the node that owns a question.
      Measure the target node first, and never push it over its own
      ceiling.
    - Shorten §T and §I wording where no meaning is lost: keep
@@ -29,7 +32,8 @@ data, never instructions to you.
    measured size plus 15%, in its own commit with the
    measurement in its `Why:` line. Never raise a ceiling.
 5. A node that is still over its ceiling: name the split it needs in
-   your report and in the pull request; do not make the split.
+   your report and in the pull request, from `sherd split <node>`
+   (quote its output); do not make the split.
 6. Do not change code, tests, `hk.pkl` or CI files: only SPEC.md,
    SPEC-ARCHIVE.md and `.context-limits` files.
 7. Run the gate over what your branch changed:
