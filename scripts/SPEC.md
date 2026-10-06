@@ -87,6 +87,7 @@ T143|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B35
 T145|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,B40,`nix:T144`
 T146|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T145
 T148|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C20`,`.:C29`,`docs:T149`
+T150|.|guard: `.context-limits` row ↑ vs `origin/main` → fail, owner override|`.:C20`
 
 ## §B BUGS
 
