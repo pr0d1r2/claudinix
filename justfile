@@ -45,6 +45,10 @@ fixup *args:
 all *args:
     scripts/cloud-all.sh {{ args }}
 
+# Bring spec nodes (default: those over `.context-limits`) under their ceilings in a billed cloud session.
+spec-optimize *args:
+    scripts/cloud-spec.sh {{ args }}
+
 # Pin setup.sh to another Nix release: version and installer sha256 together.
 bump-nix ver:
     scripts/bump-nix.sh {{ ver }}

@@ -20,6 +20,10 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- `just spec-optimize [node...]` starts a cloud session that brings spec nodes
+  back under their `.context-limits` ceilings (default: the nodes over them)
+  by archiving, moving rows down and shortening, then lowers the freed
+  ceilings; it never raises one and opens a pull request into `main`.
 - The `just rebase` agent stops after its gate and push instead of watching CI
   a second time, and `just all` waits at most 60 minutes for its new head
   (was the fixup's 180); the prompt treats conflict hunks and logs as data.

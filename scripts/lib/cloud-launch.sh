@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# The launch rules cloud-task.sh, cloud-rebase.sh, cloud-review.sh and
-# cloud-fixup.sh share (SPEC scripts:I.cmd, scripts:B19). Source it; it defines functions
+# The launch rules cloud-task.sh, cloud-rebase.sh, cloud-review.sh,
+# cloud-fixup.sh and cloud-spec.sh share (SPEC scripts:I.cmd, scripts:B19). Source it; it defines functions
 # only. Every function takes the caller's LABEL first ("cloud", "rebase",
 # "review"), which prefixes its messages.
 
@@ -75,6 +75,25 @@ cloud_branch_name() {
     local label="$1"
     [ "$label" != . ] || label=root
     echo "claude/$label-$2"
+}
+
+# cloud_spec_branch_name NODE...: the branch a spec-optimize session
+# pushes: claude/spec-optimize, then each node after a `-`, the root node
+# spelled root.
+cloud_spec_branch_name() {
+    local name=claude/spec-optimize node
+    for node in "$@"; do
+        [ "$node" != . ] || node=root
+        name="$name-$node"
+    done
+    echo "$name"
+}
+
+# cloud_nodes SPEC: the spec nodes, one per line: the root (`.`), then
+# every dir of the §F table of SPEC, the root SPEC.md.
+cloud_nodes() {
+    echo .
+    awk '/^## / { f = ($2 == "§F") } f && /\|/ && !/^dir\|/ { split($0, a, "|"); print a[1] }' "$1"
 }
 
 # cloud_branch_regex NODE ID: an ERE for cloud_branch_name, as seen once
