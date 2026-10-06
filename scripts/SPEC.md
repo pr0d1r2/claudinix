@@ -83,8 +83,8 @@ T140|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`
 T141|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B38,B37
 T142|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V42,B36
 T143|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B35
-T145|x|`just rebase` (owner 2026-10-06): any same-repo PR branch ≠ `main` (as `fixup`); mechanical conflicts resolved ⊥ abort: generated → rewrite, CHANGELOG \& table rows → keep both, a §id the PR shares w/ `main` → next free id over ∀ `SPEC*.md` + every cite of it, same commit; abort only when both sides mean opposite things; stops after the gate \& the push; CI is `all`'s wait (⊥ a 2nd watch, ⊥ a head that moves after the reviews start); the prompt names PR text, conflict hunks \& logs as data ⊥ instructions|I.cmd,`.:C29`,B40,`nix:T144`
-T146|x|`just all`: PR `CONFLICTING` before the reviews \| the last CI → `rebase` (T145), wait for a new head within its own budget `minutes_rebase` (60, ⊥ the fixup's 180), go on; ⊥ new head → names the conflict, exit 1|I.cmd,T145
+T145|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,B40,`nix:T144`
+T146|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T145
 
 ## §B BUGS
 
