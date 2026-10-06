@@ -221,3 +221,24 @@ beta" ]
         [ "$status" -eq 1 ]
     done
 }
+
+@test "cloud_spec_branch_name is claude/spec-optimize, then each node after a -, the root as root (scripts:T148)" {
+    # shellcheck source=/dev/null
+    source "$LIB"
+    [ "$(cloud_spec_branch_name)" = claude/spec-optimize ]
+    [ "$(cloud_spec_branch_name scripts)" = claude/spec-optimize-scripts ]
+    [ "$(cloud_spec_branch_name . scripts nix)" = claude/spec-optimize-root-scripts-nix ]
+}
+
+@test "cloud_nodes lists the root, then every dir of the root's §F table" {
+    # shellcheck source=/dev/null
+    source "$LIB"
+    printf '%s\n' '# SPEC' '' '## §F FEDERATION' '' 'dir|owns|⊥owns|tokens' \
+        'scripts|shell tools|-|-' 'docs|human docs|-|-' '' '## §T TASKS' \
+        'id|status|task|cites' 'T1|.|not a node|C1' >"$BATS_TEST_TMPDIR/SPEC.md"
+    run cloud_nodes "$BATS_TEST_TMPDIR/SPEC.md"
+    [ "$status" -eq 0 ]
+    [ "$output" = ".
+scripts
+docs" ]
+}
