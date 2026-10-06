@@ -94,28 +94,16 @@ while IFS= read -r dir; do
     nodes+=("$dir")
 done < <(cloud_nodes "$top/SPEC.md")
 
-# spec_of NODE: the node's SPEC.md, relative to the top.
-spec_of() {
-    if [ "$1" = . ]; then echo SPEC.md; else echo "$1/SPEC.md"; fi
-}
-
 search=("${nodes[@]}")
 if [ -n "$want_node" ]; then
-    known=0
-    for n in "${nodes[@]}"; do
-        [ "$n" != "$want_node" ] || known=1
-    done
-    if [ "$known" = 0 ]; then
-        echo "cloud: no node $want_node in SPEC.md §F (nodes: ${nodes[*]})" >&2
-        exit 1
-    fi
+    cloud_require_node cloud "$want_node" "${nodes[@]}" || exit 1
     search=("$want_node")
 fi
 
 hit_nodes=()
 hit_rows=()
 for n in "${search[@]}"; do
-    file="$top/$(spec_of "$n")"
+    file="$top/$(cloud_spec_of "$n")"
     [ -f "$file" ] || continue
     while IFS= read -r row; do
         hit_nodes+=("$n")
@@ -125,7 +113,7 @@ done
 
 if [ "${#hit_rows[@]}" -eq 0 ]; then
     if [ -n "$want_node" ]; then
-        echo "cloud: no task $arg in $(spec_of "$want_node")" >&2
+        echo "cloud: no task $arg in $(cloud_spec_of "$want_node")" >&2
     else
         echo "cloud: no task $arg in any node's SPEC.md (${nodes[*]})" >&2
     fi
@@ -137,7 +125,7 @@ if [ "${#hit_rows[@]}" -gt 1 ]; then
 fi
 node="${hit_nodes[0]}"
 row="${hit_rows[0]}"
-spec="$(spec_of "$node")"
+spec="$(cloud_spec_of "$node")"
 rest="${row#*|}"
 state="${rest%%|*}"
 case "$state" in
