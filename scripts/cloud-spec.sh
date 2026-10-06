@@ -152,10 +152,7 @@ add_node() {
 if [ "${#wanted[@]}" -gt 0 ]; then
     for n in "${wanted[@]}"; do
         [ "$n" != root ] || n=.
-        if ! is_node "$n"; then
-            echo "spec-optimize: no node $n in SPEC.md §F (nodes: ${all_nodes[*]})" >&2
-            exit 1
-        fi
+        cloud_require_node spec-optimize "$n" "${all_nodes[@]}" || exit 1
         add_node "$n"
     done
 else
@@ -184,8 +181,7 @@ cloud_resolve_model "$lib" || exit "$?"
 branch_name="$(cloud_spec_branch_name "${nodes[@]}")"
 specs=
 for n in "${nodes[@]}"; do
-    if [ "$n" = . ]; then spec=SPEC.md; else spec="$n/SPEC.md"; fi
-    specs="$specs${specs:+, }\`$spec\`"
+    specs="$specs${specs:+, }\`$(cloud_spec_of "$n")\`"
 done
 
 prompt="$(cat "$lib/cloud-spec-prompt.txt")"

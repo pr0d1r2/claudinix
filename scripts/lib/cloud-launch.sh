@@ -96,6 +96,23 @@ cloud_nodes() {
     awk '/^## / { f = ($2 == "§F") } f && /\|/ && !/^dir\|/ { split($0, a, "|"); print a[1] }' "$1"
 }
 
+# cloud_spec_of NODE: the node's SPEC.md, relative to the top.
+cloud_spec_of() {
+    if [ "$1" = . ]; then echo SPEC.md; else echo "$1/SPEC.md"; fi
+}
+
+# cloud_require_node LABEL NODE NODES...: NODE must be one of NODES (from
+# cloud_nodes); else refuse naming it and listing them (scripts:V26).
+cloud_require_node() {
+    local label="$1" node="$2" n
+    shift 2
+    for n in "$@"; do
+        [ "$n" != "$node" ] || return 0
+    done
+    echo "$label: no node $node in SPEC.md §F (nodes: $*)" >&2
+    return 1
+}
+
 # cloud_branch_regex NODE ID: an ERE for cloud_branch_name, as seen once
 # the harness lowered the case and added its suffix; an empty NODE takes
 # any node.
