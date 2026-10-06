@@ -155,14 +155,16 @@ setup() {
     [ ! -e "$STATE/claude.1" ]
 }
 
-@test "a measuring tool that is not on PATH: exit 1, nothing measured counts as under (.:V18)" {
-    CLOUD_SPEC_ITOK=no-such-itok run bash "$SCRIPT" --yes
+@test "a measuring tool that is not on PATH: refused by the gate's runner, exit 1, nothing measured counts as under (.:V18)" {
+    CLOUD_SPEC_ITOK=no-such-itok IN_NIX_SHELL='' run bash "$SCRIPT" --yes
     [ "$status" -eq 1 ]
-    [[ "$output" == *"spec-optimize: no-such-itok is not on PATH -- cannot measure the ceilings; enter the dev shell, or name the nodes"* ]]
+    [[ "$output" == *"hk: no-such-itok is not on PATH"*"Enter the dev shell"* ]]
+    [[ "$output" == *"spec-optimize: no-such-itok check gave no report (exit 1) -- could not measure the ceilings"* ]]
     [ ! -e "$STATE/claude.1" ]
-    CLOUD_SPEC_SHERD=no-such-sherd run bash "$SCRIPT" --yes
+    CLOUD_SPEC_SHERD=no-such-sherd IN_NIX_SHELL=impure run bash "$SCRIPT" --yes
     [ "$status" -eq 1 ]
-    [[ "$output" == *"no-such-sherd is not on PATH"* ]]
+    [[ "$output" == *"hk: no-such-sherd is missing from the dev shell -- add it to nix/dev-shell.nix"* ]]
+    [ ! -e "$STATE/claude.1" ]
 }
 
 @test "a measuring tool that prints no report: exit 1 naming it, no session (.:V18)" {
