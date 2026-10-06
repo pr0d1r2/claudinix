@@ -89,10 +89,10 @@ if [ ! -f "$top/SPEC.md" ]; then
 fi
 
 # The nodes: the root, then every dir of the root's §F table.
-nodes=(.)
+nodes=()
 while IFS= read -r dir; do
     nodes+=("$dir")
-done < <(awk '/^## / { f = ($2 == "§F") } f && /\|/ && !/^dir\|/ { split($0, a, "|"); print a[1] }' "$top/SPEC.md")
+done < <(cloud_nodes "$top/SPEC.md")
 
 # spec_of NODE: the node's SPEC.md, relative to the top.
 spec_of() {
