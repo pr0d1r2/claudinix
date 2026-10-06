@@ -8,10 +8,10 @@
 # (scripts:V26). With no NODE, the nodes are the ones over their
 # `.context-limits` row: the owner of a file row `itok check` reports
 # (the longest §F dir the file is under, else the root) or a chain row
-# `sherd budget` reports (B41). When none is over, there is nothing to
-# do: exit 0, no session. A measuring tool that is missing or prints no
-# report, or a chain node §F lacks, is a failure, never "none over"
-# (.:V18).
+# `sherd budget` reports (B41). No `.context-limits` is refused (B42).
+# When none is over, there is nothing to do: exit 0, no session. A
+# measuring tool that is missing or prints no report, or a chain node §F
+# lacks, is a failure, never "none over" (.:V18).
 #
 # The launch rules are cloud-task.sh's: the remote must exist, the
 # current branch must be pushed and equal to its upstream, and a y/N
@@ -160,6 +160,10 @@ if [ "${#wanted[@]}" -gt 0 ]; then
         add_node "$n"
     done
 else
+    if [ ! -f "$top/.context-limits" ]; then
+        echo "spec-optimize: no .context-limits at $top -- nothing sets a ceiling; name the nodes" >&2
+        exit 1
+    fi
     over="$(over_nodes)" || exit 1
     # In §F order, each once.
     for n in "${all_nodes[@]}"; do
