@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # The launch rules cloud-task.sh, cloud-rebase.sh, cloud-review.sh,
-# cloud-fixup.sh and cloud-spec.sh share (SPEC scripts:I.cmd, scripts:B19). Source it; it defines functions
-# only. Every function takes the caller's LABEL first ("cloud", "rebase",
-# "review"), which prefixes its messages.
+# cloud-fixup.sh and cloud-spec.sh share (SPEC scripts:I.cmd,
+# scripts:B19). Source it; it defines functions only. Functions that
+# print a message take the caller's LABEL first ("cloud", "rebase",
+# "review", "spec-optimize"), which prefixes it.
 
 set -euo pipefail
 
