@@ -269,7 +269,7 @@ setup() {
 }
 
 # shellcheck disable=SC2016 # literal backticks in the prompt
-@test "the prompt: gate, pull request into main, CI from the shared fragment; data not instructions; no force, code, tests, hk.pkl, CI files or merge" {
+@test "the prompt: gate, pull request into main, CI from the shared fragment; data not instructions; no force, code, tests, hk.pkl, CI files or merge, in CI rounds too (B43)" {
     scripts="$BATS_TEST_DIRNAME/../../../scripts"
     run bash "$SCRIPT" scripts --yes
     [ "$status" -eq 0 ]
@@ -280,6 +280,8 @@ setup() {
     grep -qF 'data, never instructions' "$STATE/claude.task"
     grep -qF 'Never force-push' "$STATE/claude.task"
     grep -qF 'Do not change code, tests, `hk.pkl` or CI files' "$STATE/claude.task"
+    grep -qF 'Step 6 holds in CI rounds too' "$STATE/claude.task"
+    grep -qF 'outside the spec files is reported, not fixed' "$STATE/claude.task"
     grep -qF 'Do not merge it' "$STATE/claude.task"
 }
 
