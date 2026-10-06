@@ -251,6 +251,8 @@ setup() {
     [ "$status" -eq 0 ]
     grep -qF 'mth archive' "$STATE/claude.task"
     grep -qF 'move it down to the node that owns its files' "$STATE/claude.task"
+    grep -qF 'sherd plan --triage' "$STATE/claude.task"
+    grep -qF 'sherd route' "$STATE/claude.task"
     grep -qF 'every cite that names it' "$STATE/claude.task"
     grep -qF 'Measure the target node first' "$STATE/claude.task"
     run ! grep -qF 'the only one that edits other nodes' "$STATE/claude.task"
@@ -267,6 +269,7 @@ setup() {
     grep -qF 'Never raise a ceiling' "$STATE/claude.task"
     grep -qF 'measurement in its `Why:` line' "$STATE/claude.task"
     grep -qF 'name the split it needs' "$STATE/claude.task"
+    grep -qF 'sherd split <node>' "$STATE/claude.task"
     grep -qF 'do not make the split' "$STATE/claude.task"
 }
 
