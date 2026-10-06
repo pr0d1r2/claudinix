@@ -123,10 +123,24 @@ setup() {
     [ ! -e "$STATE/claude.1" ]
 }
 
-@test "a breach of a file that is no node's SPEC.md is not a node" {
-    printf '%s\n' '{"ok":false,"breaches":[{"path":"SPEC-ARCHIVE.md","tokens":9,"limit":1}]}' >"$STATE/itok.json"
+@test "a breach of any file row goes to the node that owns the file: the longest §F dir it is under, else the root (B41)" {
+    printf '%s\n' '{"ok":false,"breaches":[{"path":"docs/a/SPEC-ARCHIVE.md","tokens":9,"limit":1},{"path":"scriptsx/SPEC.md","tokens":9,"limit":1}]}' >"$STATE/itok.json"
+    echo 1 >"$STATE/itok.rc"
     run bash "$SCRIPT" --yes
     [ "$status" -eq 0 ]
+    grep -qF 'git push -u origin claude/spec-optimize-root-docs`' "$STATE/claude.task"
+    printf '%s\n' '{"ok":false,"breaches":[{"path":"scripts/SPEC-ARCHIVE.md","tokens":9,"limit":1}]}' >"$STATE/itok.json"
+    run bash "$SCRIPT" --yes
+    [ "$status" -eq 0 ]
+    grep -qF 'git push -u origin claude/spec-optimize-scripts`' "$STATE/claude.task"
+}
+
+@test "a chain breach of a node not in §F: exit 1 naming it, never nothing to do, no session (B41, .:V18)" {
+    printf '%s\n' '{"ok":false,"over":1,"nodes":[{"node":"gone","over_by":5}]}' >"$STATE/sherd.json"
+    echo 1 >"$STATE/sherd.rc"
+    run bash "$SCRIPT" --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"spec-optimize: sherd reports node gone over its ceiling, but SPEC.md §F has no such node (nodes: . scripts docs)"* ]]
     [ ! -e "$STATE/claude.1" ]
 }
 
