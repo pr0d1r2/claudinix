@@ -31,6 +31,8 @@ does are summarised briefly; the git history has the detail.
   nodes' spec rows; moving rows down stays every contributor's job.
 - `just spec-optimize` with no node refuses a project that has no
   `.context-limits` instead of starting a session for every node.
+- The `just spec-optimize` agent reports a red CI check whose cause lies
+  outside the spec files instead of changing code or tests to fix it.
 - The `just rebase` agent stops after its gate and push instead of watching CI
   a second time, and `just all` waits at most 60 minutes for its new head
   (was the fixup's 180); the prompt treats conflict hunks and logs as data.
