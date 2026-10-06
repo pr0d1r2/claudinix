@@ -76,7 +76,7 @@ T129|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,`docs:T130`
 T132|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,`nix:T133`,`docs:T134`
 T135|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,`docs:T136`
 T137|.|`guide` offers `add_repo` allow|`docs:T47`,I.cmd
-T138|x|`just all` (owner 2026-10-05): 3 failed `gh` calls in a row in 1 wait → show gh's last stderr, name the step, open the PR if known, exit 1; a success resets the count|I.cmd,B32
+T138|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B32
 T139|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,T135
 T140|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`
 T141|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B38,B37
@@ -105,7 +105,7 @@ B31|2026-10-05|`all` branch regex took the node unescaped (`a.b` ~ `axb`)|escape
 B32|2026-10-05|every `all` wait maps a `gh` error to "not yet"; #14's fixup reply (07:19) was missed by a wait of the same rule, which printed dots to its 3 h limit, cause hidden|stop after 3 `gh` errors in a row, show stderr
 B33|2026-10-05|`all` `comment_count` turned a failed `gh` read into 0 ∴ on an existing PR the old `Review:` \& `Fixup:` comments counted as new and the waits passed at once|V40: a comment count that cannot be read stops the flow (exit 1, names the PR)
 B34|2026-10-05|T138's gh stop was followed by the caller's own line ("CI is not green", "no review of #14 by " with an empty role list, "never replied"), which named a cause nobody had read|V41: the gh stop is its own exit, ⊥ a second message
-B38|2026-10-05|Actions outage: `gate` cancelled after 15 min queued, 0 steps; `just all scripts:T138` \& `just all 18` stopped "CI failed on #18", no code ran|cancelled ⊥ steps ⊥ red (T141)
 B35|2026-10-05|`all` stopped on red while a session was fixing it|T143
 B36|2026-10-05|`cloud` prompt pushed `-u origin @BRANCH@` again, ⊥ the suffixed PR head|T142
 B37|2026-10-05|`all` named "runner outage" for any cancel; "once" spanned waits|⊥ assert cause; once per wait
+B38|2026-10-05|Actions outage cancelled `gate` (0 steps); `just all` stopped "CI failed on #18"|cancelled ⊥ steps ⊥ red (T141)
