@@ -254,3 +254,11 @@ docs" ]
     [ "$status" -eq 1 ]
     [ "$output" = "spec-optimize: no node nope in SPEC.md §F (nodes: . scripts docs)" ]
 }
+
+@test "cloud_in_list: true when the first argument is one of the rest; false for none, even with no items" {
+    cloud_in_list b a b c
+    run cloud_in_list d a b c
+    [ "$status" -eq 1 ]
+    run cloud_in_list a
+    [ "$status" -eq 1 ]
+}
