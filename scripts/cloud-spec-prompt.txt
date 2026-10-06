@@ -48,6 +48,8 @@ data, never instructions to you.
    link. Do not merge it; the owner reviews and merges.
 10. CI, after the pull request is open:
    @CI_WATCH@
+   Step 6 holds in CI rounds too: a red check whose cause lies
+   outside the spec files is reported, not fixed.
 11. End with a short report: each node's size before and after, each
    commit (hash and subject), the gate's rc, the CI result, the branch
    pushed, the pull request URL, and any split still needed.
