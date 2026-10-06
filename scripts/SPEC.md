@@ -86,7 +86,7 @@ T142|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V42,B36
 T143|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B35
 T145|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,B40,`nix:T144`
 T146|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T145
-T148|.|`just spec-optimize` (owner 2026-10-06): 1 cloud session brings spec nodes back under their ceilings ⊥ a raise (archive, move down, shorten), lowers the ceilings it freed \& opens a PR for `just all <PR#>`; ceilings were raised 4× for scripts (`.context-limits`)|I.cmd,`.:C20`,`.:C29`,`docs:T149`
+T148|.|`just spec-optimize` (owner 2026-10-06): 1 cloud session brings spec nodes back under their ceilings ⊥ a raise (archive, move down, shorten), lowers the ceilings it freed \& opens a PR for `just all <PR#>`; ceilings were raised repeatedly for scripts (see `.context-limits`)|I.cmd,`.:C20`,`.:C29`,`docs:T149`
 
 ## §B BUGS
 
