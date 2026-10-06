@@ -101,14 +101,23 @@ cloud_spec_of() {
     if [ "$1" = . ]; then echo SPEC.md; else echo "$1/SPEC.md"; fi
 }
 
+# cloud_in_list NEEDLE ITEM...: NEEDLE is one of the ITEMs. Pass an array
+# as ${a[@]+"${a[@]}"}: bash 3.2 calls an empty "${a[@]}" unbound.
+cloud_in_list() {
+    local needle="$1" item
+    shift
+    for item in "$@"; do
+        [ "$item" != "$needle" ] || return 0
+    done
+    return 1
+}
+
 # cloud_require_node LABEL NODE NODES...: NODE must be one of NODES (from
 # cloud_nodes); else refuse naming it and listing them (scripts:V26).
 cloud_require_node() {
-    local label="$1" node="$2" n
+    local label="$1" node="$2"
     shift 2
-    for n in "$@"; do
-        [ "$n" != "$node" ] || return 0
-    done
+    cloud_in_list "$node" "$@" && return 0
     echo "$label: no node $node in SPEC.md §F (nodes: $*)" >&2
     return 1
 }

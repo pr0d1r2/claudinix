@@ -83,15 +83,6 @@ while IFS= read -r n; do
     all_nodes+=("$n")
 done < <(cloud_nodes "$top/SPEC.md")
 
-# is_node NAME: NAME is one of the spec's nodes.
-is_node() {
-    local n
-    for n in "${all_nodes[@]}"; do
-        [ "$n" != "$1" ] || return 0
-    done
-    return 1
-}
-
 # owner_of PATH: the node that owns PATH, a file relative to the top: the
 # longest §F dir it is under, else the root (B41).
 owner_of() {
@@ -131,7 +122,7 @@ over_nodes() {
         owner_of "$path"
     done < <(jq -r '.breaches[].path' <<<"$files")
     while IFS= read -r n; do
-        if ! is_node "$n"; then
+        if ! cloud_in_list "$n" "${all_nodes[@]}"; then
             echo "spec-optimize: sherd reports node $n over its ceiling, but SPEC.md §F has no such node (nodes: ${all_nodes[*]})" >&2
             return 1
         fi
@@ -142,11 +133,7 @@ over_nodes() {
 nodes=()
 # add_node NAME: append NAME once.
 add_node() {
-    local n
-    for n in ${nodes[@]+"${nodes[@]}"}; do
-        [ "$n" != "$1" ] || return 0
-    done
-    nodes+=("$1")
+    cloud_in_list "$1" ${nodes[@]+"${nodes[@]}"} || nodes+=("$1")
 }
 
 if [ "${#wanted[@]}" -gt 0 ]; then
