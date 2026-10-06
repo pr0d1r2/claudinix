@@ -262,3 +262,8 @@ docs" ]
     run cloud_in_list a
     [ "$status" -eq 1 ]
 }
+
+@test "cloud_node_label: the root, ., is spelled root; another node as is" {
+    [ "$(cloud_node_label .)" = root ]
+    [ "$(cloud_node_label scripts)" = scripts ]
+}
