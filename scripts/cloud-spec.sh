@@ -11,7 +11,8 @@
 # `sherd budget` reports (B41). No `.context-limits` is refused (B42).
 # When none is over, there is nothing to do: exit 0, no session. A
 # measuring tool that is missing or prints no report, or a chain node §F
-# lacks, is a failure, never "none over" (.:V18).
+# lacks, is a failure, never "none over" (.:V18). Measuring needs itok,
+# sherd and jq: run it from the dev shell, or name the nodes.
 #
 # The launch rules are cloud-task.sh's: the remote must exist, the
 # current branch must be pushed and equal to its upstream, and a y/N
@@ -65,6 +66,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/cloud-launch.sh"
 remote="${CLOUD_TASK_REMOTE:-origin}"
 itok="${CLOUD_SPEC_ITOK:-itok}"
 sherd="${CLOUD_SPEC_SHERD:-sherd}"
+run_tool="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/hk/run-tool.sh"
 
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     echo "spec-optimize: not inside a git work tree -- run it from the project the session clones" >&2
@@ -102,16 +104,13 @@ owner_of() {
     echo "${best:-.}"
 }
 
-# measure TOOL ARGS...: the tool's JSON report, run at the top. It exits
-# 1 when something is over, so its status counts only when no report
-# came out.
+# measure TOOL ARGS...: the tool's JSON report, run at the top through
+# the gate's runner, which refuses a missing tool (.:V18). It exits 1
+# when something is over, so its status counts only when no report came
+# out.
 measure() {
     local out rc=0
-    if ! command -v "$1" >/dev/null 2>&1; then
-        echo "spec-optimize: $1 is not on PATH -- cannot measure the ceilings; enter the dev shell, or name the nodes" >&2
-        return 1
-    fi
-    out="$(cd "$top" && "$@")" || rc=$?
+    out="$(cd "$top" && "$run_tool" "$@")" || rc=$?
     if ! jq -e 'type == "object"' <<<"$out" >/dev/null 2>&1; then
         echo "spec-optimize: $1 $2 gave no report (exit $rc) -- could not measure the ceilings" >&2
         return 1
