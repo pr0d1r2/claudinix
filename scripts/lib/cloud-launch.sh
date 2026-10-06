@@ -69,22 +69,23 @@ cloud_parse_pr() {
     fi
 }
 
-# cloud_branch_name NODE ID: the branch the build's session pushes. The
-# root node, `.`, is spelled root.
+# cloud_node_label NODE: NODE as a branch name spells it: the root node,
+# `.`, as root.
+cloud_node_label() {
+    if [ "$1" = . ]; then echo root; else echo "$1"; fi
+}
+
+# cloud_branch_name NODE ID: the branch the build's session pushes.
 cloud_branch_name() {
-    local label="$1"
-    [ "$label" != . ] || label=root
-    echo "claude/$label-$2"
+    echo "claude/$(cloud_node_label "$1")-$2"
 }
 
 # cloud_spec_branch_name NODE...: the branch a spec-optimize session
-# pushes: claude/spec-optimize, then each node after a `-`, the root node
-# spelled root.
+# pushes: claude/spec-optimize, then each node's label after a `-`.
 cloud_spec_branch_name() {
     local name=claude/spec-optimize node
     for node in "$@"; do
-        [ "$node" != . ] || node=root
-        name="$name-$node"
+        name="$name-$(cloud_node_label "$node")"
     done
     echo "$name"
 }
@@ -128,8 +129,7 @@ cloud_require_node() {
 cloud_branch_regex() {
     local label="[^/]+"
     if [ -n "$1" ]; then
-        label="$1"
-        [ "$label" != . ] || label=root
+        label="$(cloud_node_label "$1")"
         label="${label//./\\.}"
     fi
     printf '^claude/%s-%s(-[a-z0-9]+)?$\n' \
