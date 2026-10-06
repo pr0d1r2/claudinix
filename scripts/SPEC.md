@@ -86,7 +86,7 @@ T142|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V42,B36
 T143|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B35
 T145|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,B40,`nix:T144`
 T146|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T145
-T148|.|`just spec-optimize` (owner 2026-10-06): brings spec nodes back under their ceilings, mechanics in `I.cmd`; ceilings raised repeatedly (`.context-limits`)|I.cmd,`.:C20`,`.:C29`,`docs:T149`
+T148|x|`just spec-optimize` (owner 2026-10-06): brings spec nodes back under their ceilings, mechanics in `I.cmd`; ceilings raised repeatedly (`.context-limits`)|I.cmd,`.:C20`,`.:C29`,`docs:T149`
 
 ## §B BUGS
 
