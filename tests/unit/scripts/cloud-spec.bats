@@ -240,6 +240,7 @@ setup() {
     grep -qF 'move it down to the node that owns its files' "$STATE/claude.task"
     grep -qF 'every cite that names it' "$STATE/claude.task"
     grep -qF 'Measure the target node first' "$STATE/claude.task"
+    run ! grep -qF 'the only one that edits other nodes' "$STATE/claude.task"
     grep -qF 'every id, status and cite' "$STATE/claude.task"
     grep -qF 'Keep §V and §C rows verbatim' "$STATE/claude.task"
     grep -qF 'one `docs(spec)` commit per node' "$STATE/claude.task"
