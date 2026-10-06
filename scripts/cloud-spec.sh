@@ -6,11 +6,12 @@
 # NODE is a dir of the root SPEC.md §F table, or the root itself (`.`,
 # also spelled `root`); an unknown one is refused, listing the nodes
 # (scripts:V26). With no NODE, the nodes are the ones over their
-# `.context-limits` row: a file row `itok check` reports (SPEC.md is the
-# root, DIR/SPEC.md is DIR) or a chain row `sherd budget` reports. When
-# none is over, there is nothing to do: exit 0, no session. A measuring
-# tool that is missing or prints no report is a failure, never "none
-# over" (.:V18).
+# `.context-limits` row: the owner of a file row `itok check` reports
+# (the longest §F dir the file is under, else the root) or a chain row
+# `sherd budget` reports (B41). When none is over, there is nothing to
+# do: exit 0, no session. A measuring tool that is missing or prints no
+# report, or a chain node §F lacks, is a failure, never "none over"
+# (.:V18).
 #
 # The launch rules are cloud-task.sh's: the remote must exist, the
 # current branch must be pushed and equal to its upstream, and a y/N
@@ -89,6 +90,18 @@ is_node() {
     return 1
 }
 
+# owner_of PATH: the node that owns PATH, a file relative to the top: the
+# longest §F dir it is under, else the root (B41).
+owner_of() {
+    local n best=
+    for n in "${all_nodes[@]}"; do
+        if [ "$n" != . ] && [[ "$1" == "$n"/* ]] && [ "${#n}" -gt "${#best}" ]; then
+            best="$n"
+        fi
+    done
+    echo "${best:-.}"
+}
+
 # measure TOOL ARGS...: the tool's JSON report, run at the top. It exits
 # 1 when something is over, so its status counts only when no report
 # came out.
@@ -115,11 +128,16 @@ over_nodes() {
     fi
     files="$(measure "$itok" check -C "$top" --format json)" || return 1
     chains="$(measure "$sherd" budget --format json)" || return 1
-    {
-        jq -r '.breaches[].path | select(. == "SPEC.md" or endswith("/SPEC.md")) |
-            if . == "SPEC.md" then "." else rtrimstr("/SPEC.md") end' <<<"$files"
-        jq -r '.nodes[] | select(.over_by != null) | .node' <<<"$chains"
-    }
+    while IFS= read -r path; do
+        owner_of "$path"
+    done < <(jq -r '.breaches[].path' <<<"$files")
+    while IFS= read -r n; do
+        if ! is_node "$n"; then
+            echo "spec-optimize: sherd reports node $n over its ceiling, but SPEC.md §F has no such node (nodes: ${all_nodes[*]})" >&2
+            return 1
+        fi
+        echo "$n"
+    done < <(jq -r '.nodes[] | select(.over_by != null) | .node' <<<"$chains")
 }
 
 nodes=()
@@ -143,7 +161,7 @@ if [ "${#wanted[@]}" -gt 0 ]; then
     done
 else
     over="$(over_nodes)" || exit 1
-    # In §F order, and only what is a node.
+    # In §F order, each once.
     for n in "${all_nodes[@]}"; do
         if grep -qxF -- "$n" <<<"$over"; then
             add_node "$n"
