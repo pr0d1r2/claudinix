@@ -65,6 +65,7 @@ T128|x|CLI `rebase` section, RUNBOOK review step: a conflicting `claude/*` PR �
 T130|x|CLI `review` section (roles = files in `scripts/review/`, how to add one), RUNBOOK review step|`scripts:T129`,C22
 T134|x|CLI `fixup` section, RUNBOOK: after `just review`, `just fixup <PR>`|`scripts:T132`,C22
 T136|x|CLI `all` section (stages, waits, `CLOUD_ALL_POLL`, Safari), RUNBOOK: `just all <task>` = cloud + review + fixup in 1|`scripts:T135`,C22
+T149|.|CLI `spec-optimize` section, RUNBOOK: a node near its ceiling → `just spec-optimize [node]`, then `just all <PR#>`|`scripts:T148`,C22
 
 ## §B BUGS
 
