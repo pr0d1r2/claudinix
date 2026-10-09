@@ -105,6 +105,17 @@ else
             status=1
         fi
     done
+    # Every absolute path in a hook or statusLine command must exist: a
+    # tag bump that moves a script would otherwise fail every session
+    # start (nix:V46).
+    while read -r command_line; do
+        for word in $command_line; do
+            if [[ "$word" == /* ]] && [ ! -e "$word" ]; then
+                echo "cloud-home-check: settings.json runs $word, which does not exist" >&2
+                status=1
+            fi
+        done
+    done < <(jq -r '[.hooks[]?[]?.hooks[]?.command, .statusLine.command?] | .[] | strings' "$scratch/.claude/settings.json" 2>/dev/null)
     if ! jq -e '.statusLine.command | type == "string"' "$scratch/.claude/settings.json" >/dev/null 2>&1; then
         echo "cloud-home-check: ~/.claude/settings.json has no statusLine command" >&2
         status=1
