@@ -27,7 +27,8 @@ does are summarised briefly; the git history has the detail.
   skills.
 - The agent home's check (`checks.cloud-home`) now fails when a caveman hook or the
   `statusLine` runs a script missing from the store or a command that is not an
-  absolute path, and the `statusLine` runs under the store's `bash`, not PATH's.
+  absolute path, and the `statusLine` runs under the store's `bash`, not PATH's. The caveman hooks
+  get 30 s, as upstream gives them, so a cold start is not killed.
 - The agent home (`--agent-home`) ships `rtk` from nix-rtk's cached build: its
   Claude Code hook rewrites Bash commands to `rtk <cmd>` for condensed
   output, and `~/.claude/CLAUDE.md` loads `RTK.md`.

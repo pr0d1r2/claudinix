@@ -162,7 +162,7 @@ home-manager.lib.homeManagerConfiguration {
                 {
                   type = "command";
                   command = cavemanHook "caveman-activate.js";
-                  timeout = 5;
+                  timeout = 30;
                 }
               ];
             }
@@ -173,7 +173,7 @@ home-manager.lib.homeManagerConfiguration {
                 {
                   type = "command";
                   command = "${cavemanHook "caveman-activate.js"} --subagent";
-                  timeout = 5;
+                  timeout = 30;
                 }
               ];
             }
@@ -184,7 +184,7 @@ home-manager.lib.homeManagerConfiguration {
                 {
                   type = "command";
                   command = cavemanHook "caveman-mode-tracker.js";
-                  timeout = 5;
+                  timeout = 30;
                 }
               ];
             }
