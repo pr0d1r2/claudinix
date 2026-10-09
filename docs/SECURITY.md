@@ -60,6 +60,12 @@ access. That makes the following the classes worth reporting:
    `rtk git status`, and setup links `rtk` into `/usr/local/bin`. rtk then
    runs the real command and condenses its output, so you trust rtk with
    every command Claude runs. `rtk proxy <cmd>` runs a command unfiltered.
+   **It also injects instructions on every prompt.** caveman's hooks run
+   Node scripts from the pinned caveman source at session start, at
+   subagent start and on every prompt; each adds the caveman rules to
+   Claude's context and writes a mode flag under `/root/.claude`. They
+   make no network calls. You trust those scripts and rules as you trust
+   the skills.
    **It also pre-approves commands.** It writes a narrow permission list
    (`nix/cloud-permissions.json`) into `/root/.claude/settings.json`: the
    gate's own commands (`hk`, `bats`, `mth`, `sherd`, `itok`, `scripts/*`,
