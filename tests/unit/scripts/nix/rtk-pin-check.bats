@@ -1,55 +1,83 @@
 #!/usr/bin/env bats
 bats_require_minimum_version 1.5.0
-# Unit tests for scripts/nix/rtk-pin-check.sh (SPEC nix:T151, .:C14):
-# nix-rtk follows our nixpkgs-lock, so rtk's store path matches the one
-# its CI pushed to cachix only while our nixpkgs-lock rev equals the rev
-# in nix-rtk's own flake.lock. Any other rev means a cloud setup compiles
-# rtk, so the check fails and names both revs.
+# Unit tests for scripts/nix/rtk-pin-check.sh (SPEC nix:T151, B44,
+# .:C14): nix-rtk follows our nixpkgs-lock and rtk-src, so rtk's store
+# path matches the one its CI pushed to cachix only while both inputs are
+# locked at the revs in nix-rtk's own flake.lock. Any other rev means a
+# cloud setup compiles rtk, so the check fails and names both revs.
 
 setup() {
     SCRIPT="$BATS_TEST_DIRNAME/../../../../scripts/nix/rtk-pin-check.sh"
-    LOCK="$BATS_TEST_TMPDIR/flake.lock"
+    OURS="$BATS_TEST_TMPDIR/ours.lock"
+    THEIRS="$BATS_TEST_TMPDIR/theirs.lock"
     OUT="$BATS_TEST_TMPDIR/out"
-    OURS=57c28adf21be97c4eb31b65279a6bfa1c8e34da6
+    PKGS=57c28adf21be97c4eb31b65279a6bfa1c8e34da6
+    SRC=e001f773f80b22b7dc4c7a79521b30e35aaef026
 }
 
-# rtk_lock REV: nix-rtk's flake.lock with nixpkgs-lock locked at REV.
-rtk_lock() {
-    printf '{"nodes":{"nixpkgs-lock":{"locked":{"rev":"%s","type":"github"}},"root":{"inputs":{"nixpkgs-lock":"nixpkgs-lock"}}},"root":"root","version":7}\n' "$1" >"$LOCK"
+# lock FILE NIXPKGS_LOCK_REV RTK_SRC_REV: a flake.lock whose root input
+# nixpkgs-lock and rtk-src are locked at those revs, under node names
+# other than the input names (as nix writes them once two inputs clash).
+lock() {
+    printf '{"nodes":{"nixpkgs-lock_2":{"locked":{"rev":"%s"}},"rtk-src_3":{"locked":{"rev":"%s"}},"root":{"inputs":{"nixpkgs-lock":"nixpkgs-lock_2","rtk-src":"rtk-src_3"}}},"root":"root","version":7}\n' "$2" "$3" >"$1"
 }
 
-@test "same rev: passes and writes OUT" {
-    rtk_lock "$OURS"
-    run bash "$SCRIPT" "$OURS" "$LOCK" "$OUT"
+@test "same revs: passes and writes OUT" {
+    lock "$OURS" "$PKGS" "$SRC"
+    lock "$THEIRS" "$PKGS" "$SRC"
+    run bash "$SCRIPT" "$OURS" "$THEIRS" "$OUT"
     [ "$status" -eq 0 ]
     [ -e "$OUT" ]
 }
 
-@test "other rev: fails, names both revs, writes no OUT" {
-    rtk_lock 9285cde52c7e8baff0b60685ae755b911db9ebaa
-    run bash "$SCRIPT" "$OURS" "$LOCK" "$OUT"
+@test "other nixpkgs-lock rev: fails, names both revs, writes no OUT" {
+    lock "$OURS" "$PKGS" "$SRC"
+    lock "$THEIRS" 9285cde52c7e8baff0b60685ae755b911db9ebaa "$SRC"
+    run bash "$SCRIPT" "$OURS" "$THEIRS" "$OUT"
     [ "$status" -eq 1 ]
-    [[ "$output" == *"$OURS"* ]]
+    [[ "$output" == *"nixpkgs-lock"* ]]
+    [[ "$output" == *"$PKGS"* ]]
     [[ "$output" == *"9285cde52c7e8baff0b60685ae755b911db9ebaa"* ]]
     [ ! -e "$OUT" ]
 }
 
-@test "lock without nixpkgs-lock: fails and says so" {
-    printf '{"nodes":{"root":{}},"root":"root","version":7}\n' >"$LOCK"
-    run bash "$SCRIPT" "$OURS" "$LOCK" "$OUT"
+@test "other rtk-src rev: fails and names it (B44)" {
+    lock "$OURS" "$PKGS" "$SRC"
+    lock "$THEIRS" "$PKGS" 1111111111111111111111111111111111111111
+    run bash "$SCRIPT" "$OURS" "$THEIRS" "$OUT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"rtk-src"* ]]
+    [[ "$output" == *"1111111111111111111111111111111111111111"* ]]
+    [ ! -e "$OUT" ]
+}
+
+@test "both differ: both are reported" {
+    lock "$OURS" "$PKGS" "$SRC"
+    lock "$THEIRS" 9285cde52c7e8baff0b60685ae755b911db9ebaa 1111111111111111111111111111111111111111
+    run bash "$SCRIPT" "$OURS" "$THEIRS" "$OUT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"nixpkgs-lock"* ]]
+    [[ "$output" == *"rtk-src"* ]]
+}
+
+@test "lock without one of the inputs: fails and names it" {
+    lock "$OURS" "$PKGS" "$SRC"
+    printf '{"nodes":{"root":{"inputs":{}}},"root":"root","version":7}\n' >"$THEIRS"
+    run bash "$SCRIPT" "$OURS" "$THEIRS" "$OUT"
     [ "$status" -eq 1 ]
     [[ "$output" == *"nixpkgs-lock"* ]]
     [ ! -e "$OUT" ]
 }
 
 @test "unreadable lock: fails" {
+    lock "$OURS" "$PKGS" "$SRC"
     run bash "$SCRIPT" "$OURS" "$BATS_TEST_TMPDIR/none.lock" "$OUT"
     [ "$status" -eq 1 ]
     [ ! -e "$OUT" ]
 }
 
 @test "missing arguments is a usage error" {
-    run bash "$SCRIPT" "$OURS" "$LOCK"
+    run bash "$SCRIPT" "$OURS" "$THEIRS"
     [ "$status" -eq 2 ]
     [[ "$output" == *"usage"* ]]
 }
