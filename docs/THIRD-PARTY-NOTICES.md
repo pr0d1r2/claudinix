@@ -88,8 +88,9 @@ recorded here.
 
 ### cavekit
 
-The spec skills (`spec`, `build`, `check`, `backprop`, `caveman`) and the
-`FORMAT.md` they cite come from cavekit, as a non-flake input. The owner's
+The spec skills (`spec`, `build`, `check`, `backprop`, `caveman`, `deepen`,
+`grill`, `research`, `review`) and the `FORMAT.md` they cite come from
+cavekit v4.1.0, as a non-flake input. The owner's
 microlith vendors the same project's format file under the same terms.
 
 - Upstream: <https://github.com/JuliusBrussee/cavekit>
@@ -119,6 +120,20 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+### caveman
+
+The agent home runs caveman v3.2.0's hook scripts and statusline script
+from its pinned source, and links its `caveman-commit`, `caveman-review`,
+`caveman-help` and `caveman-compress` skills into `~/.claude/skills`.
+None of it is redistributed in this repository. "Caveman" is a trademark
+of Julius Brussee, named here only to identify the project.
+
+- Upstream: <https://github.com/JuliusBrussee/caveman>
+- Copyright 2026 Julius Brussee
+- Licensed under the Apache License 2.0 from v3.0.0 on (its `LICENSE`,
+  `NOTICE` and `LICENSING.md` at the pinned tag); code contributed before
+  v3.0.0 also stays available under the MIT License (`LICENSE-MIT`)
 
 ### set-and-setting
 

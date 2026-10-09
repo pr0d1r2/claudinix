@@ -139,8 +139,12 @@ The agent home is the owner's own Claude setup, activated for the session's
 user (root) before Claude starts. It installs:
 
 - the owner's set of rules, in `~/.claude/rules`;
-- the cavekit skills `spec`, `build`, `check`, `backprop` and `caveman`, and
-  the `FORMAT.md` they read;
+- the cavekit v4.1.0 skills `spec`, `build`, `check`, `backprop`, `caveman`,
+  `deepen`, `grill`, `research` and `review`, and the `FORMAT.md` they read;
+- [caveman](https://github.com/JuliusBrussee/caveman) v3.2.0: its hooks put
+  every session and subagent in terse caveman mode (written text such as
+  commits and PR comments stays plain English), with the `caveman-commit`,
+  `caveman-review`, `caveman-help` and `caveman-compress` skills;
 - a `claude-code` home-manager configuration;
 - [rtk](https://github.com/rtk-ai/rtk), whose Claude Code hook rewrites
   each Bash command to `rtk <cmd>` so its output comes back condensed, with

@@ -36,7 +36,8 @@ defaults.
 - A failing test or a bug goes into `§B` with the invariant that would
   have caught it (backprop). Do not fix the root cause silently.
 - Skills: `/ck:spec`, `/ck:build`, `/ck:check`, `/ck:backprop`; in cloud
-  sessions `/spec`, `/build`, `/check`, `/backprop`, `/caveman`. If they
+  sessions `/spec`, `/build`, `/check`, `/backprop`, `/caveman` (cavekit
+  v4.1.0 also brings `/grill`, `/research`, `/review`, `/deepen`). If they
   are not installed, edit `SPEC.md` by hand in the caveman format
   (`~/.claude/FORMAT.md` once the agent home is installed).
 - Cavekit asks the user before applying a spec change. An unattended run
