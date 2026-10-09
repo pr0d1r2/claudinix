@@ -239,7 +239,9 @@ agent_home() {
     export BUILD_OK=1 STORE_OK=1 ACTIVATE_OK=1
     export CLOUD_HOME_STOREPATH="$BATS_TEST_TMPDIR/cloud-home.storepath"
     export CLOUD_HOME_MARKER="$BATS_TEST_TMPDIR/state/agent-home.failed"
-    mkdir -p "$HOME_PKG"
+    mkdir -p "$HOME_PKG/home-path/bin"
+    printf '#!/usr/bin/env bash\necho rtk\n' >"$HOME_PKG/home-path/bin/rtk"
+    chmod +x "$HOME_PKG/home-path/bin/rtk"
     cat >"$HOME_PKG/activate" <<'EOF'
 #!/usr/bin/env bash
 echo "HOME=$HOME USER=$USER" >>"$ACTIVATE_LOG"
@@ -288,6 +290,20 @@ EOF
     [ "$status" -eq 0 ]
     # A root shell may leave $USER unset; setup then uses id -un (B16).
     [ "$(cat "$ACTIVATE_LOG")" = "HOME=$HOME USER=${USER:-$(id -un)}" ]
+}
+
+@test "agent home: links its home-path bins onto the PATH dir (nix:T151)" {
+    agent_home
+    run bash "$SCRIPT" --agent-home
+    [ "$status" -eq 0 ]
+    [ "$(readlink "$BIN_DIR/rtk")" = "$HOME_PKG/home-path/bin/rtk" ]
+}
+
+@test "agent home: a failed activation links no home bins (nix:T151)" {
+    agent_home
+    ACTIVATE_OK=0 run bash "$SCRIPT" --agent-home
+    [ "$status" -eq 0 ]
+    [ ! -e "$BIN_DIR/rtk" ]
 }
 
 @test "agent home: tier 1 fails, tier 2 realises the recorded path (nix:V15)" {
