@@ -25,6 +25,9 @@ does are summarised briefly; the git history has the detail.
   its hooks keep sessions and subagents in terse caveman mode, with the
   `caveman-review`, `caveman-help` and `caveman-compress`
   skills.
+- The agent home's check (`checks.cloud-home`) now fails when a caveman hook or the
+  `statusLine` runs a script missing from the store or a command that is not an
+  absolute path, and the `statusLine` runs under the store's `bash`, not PATH's.
 - The agent home (`--agent-home`) ships `rtk` from nix-rtk's cached build: its
   Claude Code hook rewrites Bash commands to `rtk <cmd>` for condensed
   output, and `~/.claude/CLAUDE.md` loads `RTK.md`.
