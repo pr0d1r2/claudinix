@@ -6,7 +6,6 @@
   src,
   cloudHome,
   claudinixDev,
-  nixpkgs-lock,
   nix-rtk,
 }:
 let
@@ -29,11 +28,11 @@ in
   # (dev:C30, dev:C31).
   claudinix-dev = claudinixDev;
 
-  # nix-rtk follows our nixpkgs-lock, so its cachix build is only hit
-  # while both lock the same rev (nix:T151, .:C14).
+  # nix-rtk follows our nixpkgs-lock and rtk-src, so its cachix build is
+  # only hit while both locks agree on their revs (nix:T151, B44, .:C14).
   rtk-pin = pkgs.runCommand "rtk-pin-check" {
     nativeBuildInputs = [ pkgs.jq ];
-  } "bash ${../scripts/nix/rtk-pin-check.sh} ${nixpkgs-lock.rev} ${nix-rtk}/flake.lock $out";
+  } "bash ${../scripts/nix/rtk-pin-check.sh} ${src}/flake.lock ${nix-rtk}/flake.lock $out";
 }
 // pkgs.lib.optionalAttrs onHomeSystem {
   # The cavekit skills, FORMAT.md and the set rules are in the
