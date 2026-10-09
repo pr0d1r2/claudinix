@@ -143,8 +143,8 @@ user (root) before Claude starts. It installs:
   `deepen`, `grill`, `research` and `review`, and the `FORMAT.md` they read;
 - [caveman](https://github.com/JuliusBrussee/caveman) v3.2.0: its hooks put
   every session and subagent in terse caveman mode (written text such as
-  commits and PR comments stays plain English), with the `caveman-commit`,
-  `caveman-review`, `caveman-help` and `caveman-compress` skills;
+  commits and PR comments stays plain English), with the `caveman-review`,
+  `caveman-help` and `caveman-compress` skills;
 - a `claude-code` home-manager configuration;
 - [rtk](https://github.com/rtk-ai/rtk), whose Claude Code hook rewrites
   each Bash command to `rtk <cmd>` so its output comes back condensed, with
