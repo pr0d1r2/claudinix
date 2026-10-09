@@ -6,6 +6,8 @@
   src,
   cloudHome,
   claudinixDev,
+  nixpkgs-lock,
+  nix-rtk,
 }:
 let
   # The agent home exists for one system only (x86_64-linux, the cloud
@@ -26,6 +28,12 @@ in
   # The dev crate builds and its `cargo test` passes in the checkPhase
   # (dev:C30, dev:C31).
   claudinix-dev = claudinixDev;
+
+  # nix-rtk follows our nixpkgs-lock, so its cachix build is only hit
+  # while both lock the same rev (nix:T151, .:C14).
+  rtk-pin = pkgs.runCommand "rtk-pin-check" {
+    nativeBuildInputs = [ pkgs.jq ];
+  } "bash ${../scripts/nix/rtk-pin-check.sh} ${nixpkgs-lock.rev} ${nix-rtk}/flake.lock $out";
 }
 // pkgs.lib.optionalAttrs onHomeSystem {
   # The cavekit skills, FORMAT.md and the set rules are in the

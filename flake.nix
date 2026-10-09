@@ -103,6 +103,14 @@
       url = "git+https://github.com/JuliusBrussee/cavekit?ref=main&shallow=1";
       flake = false;
     };
+    # rtk for the agent home (nix:T151). Branch `cached` only holds commits
+    # whose build is in cachix; following our nixpkgs-lock keeps one
+    # nixpkgs, and the `rtk-pin` check fails when our rev leaves the one
+    # that build used (it would then compile in every cloud setup).
+    nix-rtk = {
+      url = "git+https://github.com/pr0d1r2/nix-rtk?ref=cached&shallow=1";
+      inputs.nixpkgs-lock.follows = "nixpkgs-lock";
+    };
   };
 
   outputs =
@@ -118,6 +126,7 @@
       nix-home-manager-claude-code,
       set-and-setting,
       cavekit,
+      nix-rtk,
       ...
     }:
     let
@@ -194,6 +203,7 @@
           inherit pkgs xnl;
           src = self;
           cloudHome = self.homeConfigurations.cloud;
+          inherit (inputs) nixpkgs-lock nix-rtk;
           claudinixDev = self.packages.${system}.claudinix-dev;
         }
       );
@@ -206,6 +216,7 @@
           nix-home-manager-claude-code
           set-and-setting
           cavekit
+          nix-rtk
           ;
       };
     };
