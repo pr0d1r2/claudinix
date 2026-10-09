@@ -11,8 +11,8 @@ setup() {
     OURS="$BATS_TEST_TMPDIR/ours.lock"
     THEIRS="$BATS_TEST_TMPDIR/theirs.lock"
     OUT="$BATS_TEST_TMPDIR/out"
-    PKGS=57c28adf21be97c4eb31b65279a6bfa1c8e34da6
-    SRC=e001f773f80b22b7dc4c7a79521b30e35aaef026
+    PKGS=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    SRC=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
 }
 
 # lock FILE NIXPKGS_LOCK_REV RTK_SRC_REV: a flake.lock whose root input
@@ -32,12 +32,12 @@ lock() {
 
 @test "other nixpkgs-lock rev: fails, names both revs, writes no OUT" {
     lock "$OURS" "$PKGS" "$SRC"
-    lock "$THEIRS" 9285cde52c7e8baff0b60685ae755b911db9ebaa "$SRC"
+    lock "$THEIRS" cccccccccccccccccccccccccccccccccccccccc "$SRC"
     run bash "$SCRIPT" "$OURS" "$THEIRS" "$OUT"
     [ "$status" -eq 1 ]
     [[ "$output" == *"nixpkgs-lock"* ]]
     [[ "$output" == *"$PKGS"* ]]
-    [[ "$output" == *"9285cde52c7e8baff0b60685ae755b911db9ebaa"* ]]
+    [[ "$output" == *"cccccccccccccccccccccccccccccccccccccccc"* ]]
     [ ! -e "$OUT" ]
 }
 
@@ -53,7 +53,7 @@ lock() {
 
 @test "both differ: both are reported" {
     lock "$OURS" "$PKGS" "$SRC"
-    lock "$THEIRS" 9285cde52c7e8baff0b60685ae755b911db9ebaa 1111111111111111111111111111111111111111
+    lock "$THEIRS" cccccccccccccccccccccccccccccccccccccccc 1111111111111111111111111111111111111111
     run bash "$SCRIPT" "$OURS" "$THEIRS" "$OUT"
     [ "$status" -eq 1 ]
     [[ "$output" == *"nixpkgs-lock"* ]]

@@ -14,7 +14,7 @@ setup() {
     echo '{"allow":["Bash(bats *)"],"deny":["Bash(git push * main)"]}' >"$PERMS"
     MERGE="$BATS_TEST_TMPDIR/store/abc123-run-merge-settings.sh"
     MERGED="$BATS_TEST_TMPDIR/merged.json"
-    HOOKS='{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"/nix/store/abc-rtk-0.51.0/bin/rtk hook claude"}]}]}'
+    HOOKS='{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"/nix/store/abc-rtk/bin/rtk hook claude"}]}]}'
 }
 
 # merge_writes JSON: the settings merge the activation runs writes JSON
