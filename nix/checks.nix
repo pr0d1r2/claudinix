@@ -9,6 +9,9 @@
   nix-rtk,
 }:
 let
+  # The skills the agent home ships, one list for the home and its check.
+  skills = import ./cloud-skills.nix;
+
   # The agent home exists for one system only (x86_64-linux, the cloud
   # VM), so only that system checks its skills landed (nix:T16).
   homeSystem = cloudHome.pkgs.stdenv.hostPlatform.system;
@@ -40,5 +43,7 @@ in
   # exactly the cloud permissions (T101).
   cloud-home =
     pkgs.runCommand "cloud-home-check" { nativeBuildInputs = [ pkgs.jq ]; }
-      "bash ${../scripts/nix/cloud-home-check.sh} ${cloudHome.activationPackage} ${./cloud-permissions.json} $out";
+      "bash ${../scripts/nix/cloud-home-check.sh} ${cloudHome.activationPackage} ${./cloud-permissions.json} $out ${
+        toString (skills.cavekit ++ skills.caveman)
+      }";
 }
