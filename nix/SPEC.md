@@ -43,3 +43,4 @@ T151|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:C14`,`.:C6`
 
 id|date|cause|fix
 B23|2026-10-04|`HEAD:*` allow (T133) also matched `HEAD:+main` (force) \& tag pushes; no deny did|shared list denies `+` refspecs \& tag pushes; bats globs them
+B44|2026-10-09|nix-rtk locks `rtk-src` as `github:rtk-ai/rtk`; adding nix-rtk (T151) made it this repo's 2nd `github:` input, a 403 unless cached (`.:V30`, caught by `inputs.bats`)|own `rtk-src` over `git+https`, nix-rtk's follows it (same NAR ∴ same store path); `rtk-pin` compares its rev too
