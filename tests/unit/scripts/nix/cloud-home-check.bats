@@ -18,7 +18,7 @@ setup() {
     HOOKS='{"SessionStart":[{"hooks":[{"type":"command","command":"/nix/store/abc-nodejs/bin/node /nix/store/abc-source/src/hooks/caveman-activate.js"}]}],"SubagentStart":[{"hooks":[{"type":"command","command":"/nix/store/abc-nodejs/bin/node /nix/store/abc-source/src/hooks/caveman-activate.js --subagent"}]}],"UserPromptSubmit":[{"hooks":[{"type":"command","command":"/nix/store/abc-nodejs/bin/node /nix/store/abc-source/src/hooks/caveman-mode-tracker.js"}]}],"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"/nix/store/abc-rtk/bin/rtk hook claude"}]}]}'
     STATUSLINE='{"type":"command","command":"bash /nix/store/abc-source/src/hooks/caveman-statusline.sh"}'
     # cavekit v4.1.0 (all nine) and the caveman skills the owner uses (nix:T153).
-    SKILLS="spec build check backprop caveman deepen grill research review caveman-commit caveman-review caveman-help caveman-compress"
+    SKILLS="spec build check backprop caveman deepen grill research review caveman-review caveman-help caveman-compress"
 }
 
 # merge_writes JSON: the settings merge the activation runs writes JSON
@@ -202,10 +202,20 @@ full_home() {
 
 @test "missing caveman skill: fails and names it (nix:T153)" {
     full_home
-    rm "$CLAUDE/skills/caveman-commit/SKILL.md"
+    rm "$CLAUDE/skills/caveman-review/SKILL.md"
     run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
     [ "$status" -eq 1 ]
-    [[ "$output" == *"skills/caveman-commit/SKILL.md"* ]]
+    [[ "$output" == *"skills/caveman-review/SKILL.md"* ]]
+}
+
+@test "caveman-commit in the home: fails, it competes with commit-msg (nix:V45)" {
+    full_home
+    mkdir -p "$CLAUDE/skills/caveman-commit"
+    echo "# caveman-commit" >"$CLAUDE/skills/caveman-commit/SKILL.md"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"caveman-commit"* ]]
+    [ ! -e "$OUT" ]
 }
 
 # without_hook EVENT: the complete settings minus the hooks of EVENT.
