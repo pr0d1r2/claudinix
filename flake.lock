@@ -161,7 +161,9 @@
         "nixpkgs-lock": [
           "nixpkgs-lock"
         ],
-        "rtk-src": "rtk-src"
+        "rtk-src": [
+          "rtk-src"
+        ]
       },
       "locked": {
         "lastModified": 1791560397,
@@ -229,6 +231,7 @@
           "nixpkgs"
         ],
         "nixpkgs-lock": "nixpkgs-lock",
+        "rtk-src": "rtk-src",
         "set-and-setting": "set-and-setting",
         "sherd": "sherd",
         "xenolith": "xenolith"
@@ -239,16 +242,17 @@
       "locked": {
         "lastModified": 1790947987,
         "narHash": "sha256-KMDj+M23ZI2Oyglfyt6V9s1P6MMs6LOFBo3oYFMh8sU=",
-        "owner": "rtk-ai",
-        "repo": "rtk",
+        "ref": "refs/tags/v0.51.0",
         "rev": "e001f773f80b22b7dc4c7a79521b30e35aaef026",
-        "type": "github"
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/rtk-ai/rtk"
       },
       "original": {
-        "owner": "rtk-ai",
-        "ref": "v0.51.0",
-        "repo": "rtk",
-        "type": "github"
+        "ref": "refs/tags/v0.51.0",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/rtk-ai/rtk"
       }
     },
     "set-and-setting": {

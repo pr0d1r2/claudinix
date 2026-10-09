@@ -104,12 +104,22 @@
       flake = false;
     };
     # rtk for the agent home (nix:T151). Branch `cached` only holds commits
-    # whose build is in cachix; following our nixpkgs-lock keeps one
-    # nixpkgs, and the `rtk-pin` check fails when our rev leaves the one
-    # that build used (it would then compile in every cloud setup).
+    # whose build is in cachix. nix-rtk follows our nixpkgs-lock (one
+    # nixpkgs) and our rtk-src: its own is `github:`, a 403 in a cloud
+    # session unless cached (B44, V30); the same tag over git+https has
+    # the same NAR, so the store path and the cachix hit stay. The
+    # `rtk-pin` check fails when either rev leaves the one that build used
+    # (rtk would then compile in every cloud setup).
+    rtk-src = {
+      url = "git+https://github.com/rtk-ai/rtk?ref=refs/tags/v0.51.0&shallow=1";
+      flake = false;
+    };
     nix-rtk = {
       url = "git+https://github.com/pr0d1r2/nix-rtk?ref=cached&shallow=1";
-      inputs.nixpkgs-lock.follows = "nixpkgs-lock";
+      inputs = {
+        nixpkgs-lock.follows = "nixpkgs-lock";
+        rtk-src.follows = "rtk-src";
+      };
     };
   };
 
@@ -203,7 +213,7 @@
           inherit pkgs xnl;
           src = self;
           cloudHome = self.homeConfigurations.cloud;
-          inherit (inputs) nixpkgs-lock nix-rtk;
+          inherit (inputs) nix-rtk;
           claudinixDev = self.packages.${system}.claudinix-dev;
         }
       );
