@@ -116,6 +116,12 @@ else
             fi
         done
     done < <(jq -r '[.hooks[]?[]?.hooks[]?.command, .statusLine.command?] | .[] | strings' "$scratch/.claude/settings.json" 2>/dev/null)
+    # caveman's plugin.json gives each hook 30 s; a cold node start must
+    # not be killed (nix:V46).
+    if ! jq -e '[.hooks[]?[]?.hooks[]? | select((.command // "") | test("/bin/node ")) | (.timeout // 30) >= 30] | all' "$scratch/.claude/settings.json" >/dev/null 2>&1; then
+        echo "cloud-home-check: a node hook in settings.json has a timeout under 30 s" >&2
+        status=1
+    fi
     if ! jq -e '.statusLine.command | type == "string" and test("^/")' "$scratch/.claude/settings.json" >/dev/null 2>&1; then
         echo "cloud-home-check: ~/.claude/settings.json has no statusLine command under an absolute interpreter" >&2
         status=1
