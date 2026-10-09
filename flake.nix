@@ -137,6 +137,7 @@
       set-and-setting,
       cavekit,
       nix-rtk,
+      rtk-src,
       ...
     }:
     let
@@ -227,6 +228,7 @@
           set-and-setting
           cavekit
           nix-rtk
+          rtk-src
           ;
       };
     };
