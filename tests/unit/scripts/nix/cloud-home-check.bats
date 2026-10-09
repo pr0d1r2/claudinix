@@ -15,8 +15,12 @@ setup() {
     echo '{"allow":["Bash(bats *)"],"deny":["Bash(git push * main)"]}' >"$PERMS"
     MERGE="$BATS_TEST_TMPDIR/store/abc123-run-merge-settings.sh"
     MERGED="$BATS_TEST_TMPDIR/merged.json"
-    HOOKS='{"SessionStart":[{"hooks":[{"type":"command","command":"/nix/store/abc-nodejs/bin/node /nix/store/abc-source/src/hooks/caveman-activate.js"}]}],"SubagentStart":[{"hooks":[{"type":"command","command":"/nix/store/abc-nodejs/bin/node /nix/store/abc-source/src/hooks/caveman-activate.js --subagent"}]}],"UserPromptSubmit":[{"hooks":[{"type":"command","command":"/nix/store/abc-nodejs/bin/node /nix/store/abc-source/src/hooks/caveman-mode-tracker.js"}]}],"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"/nix/store/abc-rtk/bin/rtk hook claude"}]}]}'
-    STATUSLINE='{"type":"command","command":"bash /nix/store/abc-source/src/hooks/caveman-statusline.sh"}'
+    # What the hook commands point at; full_home creates them.
+    NODE="$BATS_TEST_TMPDIR/store/abc-nodejs/bin/node"
+    SRC="$BATS_TEST_TMPDIR/store/abc-source/src/hooks"
+    RTKBIN="$BATS_TEST_TMPDIR/store/abc-rtk/bin/rtk"
+    HOOKS="{\"SessionStart\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-activate.js\"}]}],\"SubagentStart\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-activate.js --subagent\"}]}],\"UserPromptSubmit\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-mode-tracker.js\"}]}],\"PreToolUse\":[{\"matcher\":\"Bash\",\"hooks\":[{\"type\":\"command\",\"command\":\"$RTKBIN hook claude\"}]}]}"
+    STATUSLINE="{\"type\":\"command\",\"command\":\"bash $SRC/caveman-statusline.sh\"}"
     # cavekit v4.1.0 (all nine) and the caveman skills the owner uses (nix:T153).
     SKILLS="spec build check backprop caveman deepen grill research review caveman-review caveman-help caveman-compress"
 }
@@ -45,6 +49,8 @@ full_home() {
     mkdir -p "$PKG/home-path/bin"
     printf "#!/usr/bin/env bash\n" >"$PKG/home-path/bin/rtk"
     chmod +x "$PKG/home-path/bin/rtk"
+    mkdir -p "$SRC" "$(dirname "$NODE")" "$(dirname "$RTKBIN")"
+    touch "$NODE" "$RTKBIN" "$SRC/caveman-activate.js" "$SRC/caveman-mode-tracker.js" "$SRC/caveman-statusline.sh"
     # shellcheck disable=SC2016 # $DRY_RUN_CMD is the activate script's own
     printf '#!/usr/bin/env bash\nnoteEcho claudeSettings\n$DRY_RUN_CMD bash %s\n' "$MERGE" >"$PKG/activate"
     merge_writes "{\"permissions\": $(cat "$PERMS"), \"model\": \"x\", \"hooks\": $HOOKS, \"statusLine\": $STATUSLINE}"
@@ -252,10 +258,27 @@ without_hook() {
 
 @test "caveman hook run by a bare node: fails (nix:T153)" {
     full_home
-    merge_writes "{\"permissions\": $(cat "$PERMS"), \"hooks\": ${HOOKS//\/nix\/store\/abc-nodejs\/bin\/node/node}, \"statusLine\": $STATUSLINE}"
+    merge_writes "{\"permissions\": $(cat "$PERMS"), \"hooks\": ${HOOKS//$NODE/node}, \"statusLine\": $STATUSLINE}"
     run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
     [ "$status" -eq 1 ]
     [[ "$output" == *"node"* ]]
+}
+
+@test "hook script missing from the store: fails and names it (nix:V46)" {
+    full_home
+    rm "$SRC/caveman-activate.js"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"caveman-activate.js"* ]]
+    [ ! -e "$OUT" ]
+}
+
+@test "statusLine script missing from the store: fails and names it (nix:V46)" {
+    full_home
+    rm "$SRC/caveman-statusline.sh"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"caveman-statusline.sh"* ]]
 }
 
 @test "settings without a statusLine: fails (nix:T153)" {
