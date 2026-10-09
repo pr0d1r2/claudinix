@@ -20,6 +20,11 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- The agent home (`--agent-home`) pins cavekit to v4.1.0 with all nine skills
+  (adding `deepen`, `grill`, `research` and `review`) and adds caveman v3.2.0:
+  its hooks keep sessions and subagents in terse caveman mode, with the
+  `caveman-commit`, `caveman-review`, `caveman-help` and `caveman-compress`
+  skills.
 - The agent home (`--agent-home`) ships `rtk` from nix-rtk's cached build: its
   Claude Code hook rewrites Bash commands to `rtk <cmd>` for condensed
   output, and `~/.claude/CLAUDE.md` loads `RTK.md`.
