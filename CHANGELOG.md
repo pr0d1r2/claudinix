@@ -23,6 +23,8 @@ does are summarised briefly; the git history has the detail.
 - The agent home (`--agent-home`) ships `rtk` from nix-rtk's cached build: its
   Claude Code hook rewrites Bash commands to `rtk <cmd>` for condensed
   output, and `~/.claude/CLAUDE.md` loads `RTK.md`.
+- The cloud permission list denies the `rtk git push` form of every main-push deny rule, since the
+  rtk hook rewrites `git push` to it and the bare rules would not match.
 - With `--agent-home`, setup links the agent home's named tools (today `rtk`) from
   its `home-path/bin` into the same PATH dir as `nix`, so Claude's Bash tool finds
   them; no other home binary is linked.

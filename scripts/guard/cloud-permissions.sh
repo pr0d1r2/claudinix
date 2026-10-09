@@ -10,7 +10,8 @@
 #     wildcard (`*`, `Bash(*)`), or allow an environment runner without
 #     its inner command (`Bash(nix develop *)`, `Bash(nix-dev *)`): the
 #     permissions docs note such a runner rule matches anything after it;
-#   - deny keeps every rule against pushing main;
+#   - deny keeps every rule against pushing main, and its `rtk` twin
+#     (`rtk git push ...`, what the agent home's hook rewrites it to);
 #   - the committed project settings carry no `permissions`: local
 #     sessions read that file, and they must not get these rules.
 #
@@ -68,10 +69,14 @@ for rule in \
     'Bash(git push *:main)' \
     'Bash(git push *:main *)' \
     'Bash(git push *refs/heads/main*)'; do
-    if ! jq -e --arg rule "$rule" '.deny | index($rule)' "$list" >/dev/null; then
-        fail "$list must deny \"$rule\" -- an unattended task never pushes main"
-        status=1
-    fi
+    # The rtk hook (nix:T151) rewrites `git push` to `rtk git push`, which
+    # a prefix rule for the bare command does not match (V44, B45).
+    for denied in "$rule" "${rule/git push/rtk git push}"; do
+        if ! jq -e --arg rule "$denied" '.deny | index($rule)' "$list" >/dev/null; then
+            fail "$list must deny \"$denied\" -- an unattended task never pushes main"
+            status=1
+        fi
+    done
 done
 
 if [ -f "$settings" ] && jq -e 'has("permissions")' "$settings" >/dev/null 2>&1; then

@@ -58,6 +58,18 @@
     "Bash(git push *--delete*)",
     "Bash(git push *--force)",
     "Bash(git push *--force *)",
-    "Bash(git push *--mirror*)"
+    "Bash(git push *--mirror*)",
+    "Bash(rtk git push * main)",
+    "Bash(rtk git push * main *)",
+    "Bash(rtk git push *:main)",
+    "Bash(rtk git push *:main *)",
+    "Bash(rtk git push *refs/heads/main*)",
+    "Bash(rtk git push *:+*)",
+    "Bash(rtk git push * +*)",
+    "Bash(rtk git push *refs/tags/*)",
+    "Bash(rtk git push *--delete*)",
+    "Bash(rtk git push *--force)",
+    "Bash(rtk git push *--force *)",
+    "Bash(rtk git push *--mirror*)"
   ]
 }
