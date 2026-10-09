@@ -16,7 +16,7 @@ sib|dev|`claudinix-dev`: repo-only Rust tool, generated README badges \\& doc nu
 
 ## §C CONSTRAINTS
 
-- C12: agent home reuses owner home-config pattern (`nix/modules/claude-home.nix`): `nix-home-manager-claude-code` module + set-and-setting `mkTrip` (today owner home config `lib/mk-trip.nix` → move upstream to set-and-setting, ⊥ copy) \| `lib.mkSet` meanwhile. cavekit = non-flake input `github:JuliusBrussee/cavekit` (plugins ⊥ installed in cloud ∴ skills materialized). standalone home-manager (Ubuntu, ⊥ NixOS). sources `nix-home-manager-claude-code`, set-and-setting \& cavekit as `flake = false` inputs (import `modules/default.nix`, `set/lib/mk-set.nix`) until upstream drops dev-only inputs (nix-home-manager-claude-code#34, set-and-setting#559); only `home-manager` is a flake input. since T78: nixpkgs-lock, home-manager, nix-home-manager-claude-code, set-and-setting, cavekit fetched as `git+https://github.com/<o>/<r>?ref=<branch>&shallow=1` (`.:V30`); `programs.man` \& `systemd.user` off (−~150 MiB closure, `.:V5`).
+- C12: agent home = owner home-config pattern: `nix-home-manager-claude-code` module + set-and-setting `lib.mkSet` (`mkTrip` upstream = T15, ⊥ copy); standalone home-manager (Ubuntu, ⊥ NixOS). plugins ⊥ installed in cloud ∴ plugin skills \& hooks materialized from `flake = false` sources: cavekit, caveman (both at a tag), the module \& set-and-setting (their flakes carry dev-only inputs: nix-home-manager-claude-code#34, set-and-setting#559); only `home-manager` \& `nix-rtk` are flake inputs. ∀ fetched `git+https://github.com/<o>/<r>?ref=<branch \| refs/tags/T>&shallow=1` (T78, `.:V30`); `programs.man` \& `systemd.user` off (−~150 MiB, `.:V5`).
 
 ## §I INTERFACES
 
@@ -38,6 +38,7 @@ T133|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T132`
 T144|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T145`,B23
 T147|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,T144,B23
 T151|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:C14`,`.:C6`
+T153|.|agent home: cavekit `v4.1.0`, ∀ 9 skills; caveman `v3.2.0`: hooks SessionStart, SubagentStart, UserPromptSubmit via nixpkgs `node` + `statusLine`; skills `caveman-commit`, `-review`, `-help`, `-compress` (⊥ its `caveman`: cavekit owns the name); check pins all|C12,V16,`.:V30`
 
 ## §B BUGS
 
