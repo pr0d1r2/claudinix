@@ -65,7 +65,8 @@ access. That makes the following the classes worth reporting:
    gate's own commands (`hk`, `bats`, `mth`, `sherd`, `itok`, `scripts/*`,
    `nix develop -c` or `nix-dev -c` followed by one of them), `git` commits,
    fetches and reads, and pushing `claude/*` branches run without a prompt.
-   Pushing `main` is denied. These rules exist only in cloud sessions; they
+   Pushing `main` is denied, both as `git push` and as `rtk git push`, because
+   the rtk hook rewrites the command and the rules match its start. These rules exist only in cloud sessions; they
    are never in the committed `.claude/settings.json`, so a local session
    never gets them. The `cloud-permissions` gate step refuses blanket rules
    and a missing main-push deny. With `CLAUDINIX_SESSION_PERMISSIONS=1` the
