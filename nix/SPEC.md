@@ -38,7 +38,7 @@ T133|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T132`
 T144|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T145`,B23
 T147|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,T144,B23
 T151|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:C14`,`.:C6`
-T153|.|agent home: cavekit `v4.1.0`, ∀ 9 skills; caveman `v3.2.0`: hooks SessionStart, SubagentStart, UserPromptSubmit via nixpkgs `node` + `statusLine`; skills `caveman-commit`, `-review`, `-help`, `-compress` (⊥ its `caveman`: cavekit owns the name); check pins all|C12,V16,`.:V30`
+T153|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:V30`
 
 ## §B BUGS
 
