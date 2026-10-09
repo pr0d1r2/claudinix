@@ -2,7 +2,7 @@
 
 ## §G GOAL
 
-flake outputs under `nix/`: pinned dev shell, flake checks, agent home `homeConfigurations.cloud` activated by `setup.sh` \& pushed to cachix.
+flake outputs under `nix/`: pinned dev shell, flake checks, agent home `homeConfigurations.cloud` activated by `setup.sh`, cached.
 
 ## §N NAV
 
@@ -16,15 +16,15 @@ sib|dev|`claudinix-dev`: repo-only Rust tool, generated README badges \\& doc nu
 
 ## §C CONSTRAINTS
 
-- C12: agent home = owner home-config pattern: `nix-home-manager-claude-code` module + set-and-setting `lib.mkSet` (`mkTrip` upstream = T15, ⊥ copy); standalone home-manager (⊥ NixOS). plugins ⊥ installed in cloud ∴ plugin skills \& hooks materialized from `flake = false` sources: cavekit, caveman (at tags), the module \& set-and-setting (dev-only inputs: nix-home-manager-claude-code#34, set-and-setting#559); flake inputs: only `home-manager` \& `nix-rtk`. ∀ fetched `git+https://github.com/<o>/<r>?ref=<branch \| refs/tags/T>&shallow=1` (T78, `.:V30`); `programs.man` \& `systemd.user` off (−~150 MiB, `.:V5`).
+- C12: agent home = owner home-config pattern: `nix-home-manager-claude-code` module + set-and-setting `lib.mkSet` (`mkTrip` upstream = T15); standalone home-manager. plugins ⊥ installed in cloud ∴ plugin skills \& hooks materialized from `flake = false` sources: cavekit, caveman (at tags), the module \& set-and-setting (dev-only inputs: module#34, set-and-setting#559); flake inputs: `home-manager`, `nix-rtk`. ∀ fetched `git+https://github.com/<o>/<r>?ref=<branch \| refs/tags/T>&shallow=1` (T78, `.:V30`); `programs.man` \& `systemd.user` off (−~150 MiB, `.:V5`).
 
 ## §I INTERFACES
 
 
 ## §V INVARIANTS
 V14: activation runs in `setup.sh` (before Claude launches) as Claude's uid \& `$HOME` ∴ skills present at launch, kept in snapshot.
-V15: activation failover, tier logged: (1) `nix build "git+https://github.com/pr0d1r2/claudinix?rev=<sha>&shallow=1#homeConfigurations.cloud.activationPackage"` (⊥ `github:`, C6); (2) `nix-store -r $(cat cloud-home.storepath)` from cachix. both fail → Nix usable, setup exit 0, loud warning + marker file, ⊥ silent.
-V16: agent home = agent-level tools \& skills only (what skills shell out to); ⊥ language toolchains (target devShell owns, C3).
+V15: activation failover (tier logged): (1) `nix build "git+https://github.com/pr0d1r2/claudinix?rev=<sha>&shallow=1#homeConfigurations.cloud.activationPackage"` (⊥ `github:`, C6); (2) `nix-store -r $(cat cloud-home.storepath)` from cachix. both fail → Nix usable, setup exit 0, loud warning + marker file.
+V16: agent home = agent-level tools \& skills only; ⊥ language toolchains (target devShell owns, C3).
 V45: agent home ⊥ ships a skill that competes with a gate rule (`caveman-commit` vs `commit-msg`); check fails on it.
 V46: caveman hook \& `statusLine` commands: absolute interpreter, script in store, hook timeout ≥ 30; check fails else.
 
@@ -46,6 +46,7 @@ T153|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:V30`
 
 id|date|cause|fix
 B23|2026-10-04|`HEAD:*` allow (T133) matched `HEAD:+main` \& tag pushes; no deny did|list denies `+` refspecs \& tag pushes; bats globs them
-B44|2026-10-09|nix-rtk locks `rtk-src` as `github:`; T151 made it the 2nd `github:` input, 403 unless cached (`.:V30`, `inputs.bats`)|own `rtk-src` over `git+https`, nix-rtk's follows it; `rtk-pin` compares its rev too
+B44|2026-10-09|nix-rtk locks `rtk-src` as `github:`; T151 made it the 2nd `github:` input, 403 unless cached (`.:V30`)|own `rtk-src` over `git+https`, nix-rtk follows it; `rtk-pin` compares its rev
 B46|2026-10-09|`caveman-commit` ("skip the body") linked into sessions; `commit-msg` refuses that|V45; skill dropped
 B47|2026-10-09|check matched hook strings only; a tag moving `src/hooks` passed|V46: script must exist
+B48|2026-10-09|`statusLine` ran `bash` from PATH|V46: absolute interpreter
