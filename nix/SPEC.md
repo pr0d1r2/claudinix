@@ -37,7 +37,7 @@ T127|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T126`
 T133|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T132`
 T144|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T145`,B23
 T147|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,T144,B23
-T151|.|agent home ships `rtk` (owner 2026-10-09): input `nix-rtk` (`git+https`, branch `cached`, its `nixpkgs-lock` follows ours; our rev = rev of its cachix build, else setup compiles rtk ⊥ silent, `just inputs` shows `uncached`; the pin also moves the gate toolchain `.:C14`, so a bump re-checks it), `rtk` on PATH, Bash rewrite hook in `settings.hooks`, `~/.claude/RTK.md` + `@RTK.md` in `~/.claude/CLAUDE.md`; a check pins all 3 + the follows|C12,V16,`.:C14`,`.:C6`
+T151|x|agent home ships `rtk` (owner 2026-10-09): input `nix-rtk` (`git+https`, branch `cached`, its `nixpkgs-lock` follows ours; our rev = rev of its cachix build, else setup compiles rtk ⊥ silent, `just inputs` shows `uncached`; the pin also moves the gate toolchain `.:C14`, so a bump re-checks it), `rtk` on PATH, Bash rewrite hook in `settings.hooks`, `~/.claude/RTK.md` + `@RTK.md` in `~/.claude/CLAUDE.md`; a check pins all 3 + the follows|C12,V16,`.:C14`,`.:C6`
 
 ## §B BUGS
 
