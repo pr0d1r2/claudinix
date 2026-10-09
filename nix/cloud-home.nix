@@ -195,7 +195,7 @@ home-manager.lib.homeManagerConfiguration {
         # the request (nix:T153).
         settings.statusLine = {
           type = "command";
-          command = "bash ${caveman}/src/hooks/caveman-statusline.sh";
+          command = "${pkgs.bash}/bin/bash ${caveman}/src/hooks/caveman-statusline.sh";
         };
         claudeMd.fragments = [
           {

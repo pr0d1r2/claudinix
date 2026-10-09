@@ -116,8 +116,8 @@ else
             fi
         done
     done < <(jq -r '[.hooks[]?[]?.hooks[]?.command, .statusLine.command?] | .[] | strings' "$scratch/.claude/settings.json" 2>/dev/null)
-    if ! jq -e '.statusLine.command | type == "string"' "$scratch/.claude/settings.json" >/dev/null 2>&1; then
-        echo "cloud-home-check: ~/.claude/settings.json has no statusLine command" >&2
+    if ! jq -e '.statusLine.command | type == "string" and test("^/")' "$scratch/.claude/settings.json" >/dev/null 2>&1; then
+        echo "cloud-home-check: ~/.claude/settings.json has no statusLine command under an absolute interpreter" >&2
         status=1
     fi
 fi
