@@ -20,7 +20,7 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
-- The agent home (`--agent-home`) ships `rtk` 0.51.0 from nix-rtk's cached build: its
+- The agent home (`--agent-home`) ships `rtk` from nix-rtk's cached build: its
   Claude Code hook rewrites Bash commands to `rtk <cmd>` for condensed
   output, and `~/.claude/CLAUDE.md` loads `RTK.md`.
 - With `--agent-home`, setup links the agent home's named tools (today `rtk`) from
