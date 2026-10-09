@@ -20,6 +20,9 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- The agent home (`--agent-home`) ships `rtk` 0.51.0 from nix-rtk's cached build: its
+  Claude Code hook rewrites Bash commands to `rtk <cmd>` for condensed
+  output, and `~/.claude/CLAUDE.md` loads `RTK.md`.
 - With `--agent-home`, setup links the agent home's tools (its `home-path/bin`)
   into the same PATH dir as `nix`, so Claude's Bash tool finds them.
 - `just spec-optimize [node...]` starts a cloud session that brings spec nodes

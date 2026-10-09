@@ -15,6 +15,7 @@
   nix-home-manager-claude-code,
   set-and-setting,
   cavekit,
+  nix-rtk,
 }:
 let
   # set-and-setting's flake exports exactly this as `lib.mkSet`.
@@ -50,6 +51,10 @@ let
     "caveman"
   ];
 
+  # rtk and the RTK.md `rtk init -g` writes, from the same source (nix:T151).
+  rtk = nix-rtk.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  rtkMd = "${nix-rtk.inputs.rtk-src}/hooks/rtk-awareness.md";
+
   skillFile = name: {
     name = ".claude/skills/${name}";
     value = {
@@ -71,11 +76,13 @@ home-manager.lib.homeManagerConfiguration {
         username = "root";
         homeDirectory = "/root";
         stateVersion = "26.05";
+        packages = [ rtk ];
 
         file = builtins.listToAttrs (map skillFile cavekitSkills) // {
           # The skills say "read FORMAT.md"; with no plugin root in the
           # cloud, ~/.claude is where they find it.
           ".claude/FORMAT.md".source = "${cavekit}/FORMAT.md";
+          ".claude/RTK.md".source = rtkMd;
           # The set's rules and their always-on manifest, as
           # set-and-setting's README places them for home-manager.
           ".claude/rules/set" = {
@@ -107,6 +114,25 @@ home-manager.lib.homeManagerConfiguration {
         enable = true;
         # The cloud harness installs Claude Code itself.
         package = null;
+        # rtk rewrites Bash commands to `rtk <cmd>` (nix:T151); setup links
+        # home-path/bin onto PATH so the rewritten command finds it.
+        hooks.PreToolUse = [
+          {
+            matcher = "Bash";
+            hooks = [
+              {
+                type = "command";
+                command = "${rtk}/bin/rtk hook claude";
+              }
+            ];
+          }
+        ];
+        claudeMd.fragments = [
+          {
+            content = "@RTK.md";
+            order = 10;
+          }
+        ];
         # The one narrow rule list unattended cloud tasks need (T101),
         # merged into ~/.claude/settings.json at activation, before
         # Claude starts. Through the freeform `settings`: the module's
