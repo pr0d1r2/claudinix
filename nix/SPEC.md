@@ -23,7 +23,7 @@ sib|dev|`claudinix-dev`: repo-only Rust tool, generated README badges \\& doc nu
 
 ## §V INVARIANTS
 V14: activation runs in `setup.sh` (before Claude launches) as the uid \& `$HOME` Claude runs as ∴ skills present at launch \& kept in snapshot.
-V15: activation failover, tier logged: (1) `nix build "git+https://github.com/pr0d1r2/claudinix?rev=<sha>&shallow=1#homeConfigurations.cloud.activationPackage"` (⊥ `github:`: 403 unless attached, C6); (2) `nix-store -r $(cat cloud-home.storepath)` from cachix (⊥ GitHub). both fail → Nix stays usable, setup exit 0, loud warning + marker file; consumer preflight sees missing skills, ⊥ silent.
+V15: activation failover, tier logged: (1) `nix build "git+https://github.com/pr0d1r2/claudinix?rev=<sha>&shallow=1#homeConfigurations.cloud.activationPackage"` (⊥ `github:`, C6); (2) `nix-store -r $(cat cloud-home.storepath)` from cachix. both fail → Nix usable, setup exit 0, loud warning + marker file, ⊥ silent.
 V16: agent home = agent-level tools \& skills only (what skills shell out to); ⊥ language toolchains (target devShell owns, C3).
 V45: agent home ⊥ ships a skill that competes with a gate rule (`caveman-commit` vs `commit-msg`); check fails on it.
 
@@ -44,6 +44,6 @@ T153|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:V30`
 ## §B BUGS
 
 id|date|cause|fix
-B23|2026-10-04|`HEAD:*` allow (T133) also matched `HEAD:+main` (force) \& tag pushes; no deny did|shared list denies `+` refspecs \& tag pushes; bats globs them
+B23|2026-10-04|`HEAD:*` allow (T133) matched `HEAD:+main` \& tag pushes; no deny did|list denies `+` refspecs \& tag pushes; bats globs them
 B44|2026-10-09|nix-rtk locks `rtk-src` as `github:`; T151 made it the 2nd `github:` input, 403 unless cached (`.:V30`, `inputs.bats`)|own `rtk-src` over `git+https`, nix-rtk's follows it; `rtk-pin` compares its rev too
 B46|2026-10-09|`caveman-commit` ("skip the body") linked into sessions; `commit-msg` refuses that|V45; skill dropped
