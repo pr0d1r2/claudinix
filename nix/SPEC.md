@@ -35,8 +35,8 @@ T18|x|ARCHIVED to SPEC-ARCHIVE.md|V15,`.:V6`,C5
 T78|x|ARCHIVED to SPEC-ARCHIVE.md|`.:V30`,`.:V5`,V16,C12
 T127|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T126`
 T133|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T132`
-T144|x|cloud permissions allow `git push --force-with-lease origin HEAD:*` (`scripts:T145` rebase of any PR branch); main \& `+` \& tag denies still win; ⊥ plain force; the list is one for ∀ roles (the launcher cannot hand one role an extra rule), so the grant stays global \& T147 closes the flag forms|`.:C29`,`scripts:T145`,B23
-T147|x|cloud permissions deny `--delete`, `--force` \& `--mirror` after any `git push` (a trailing `*` in an allow rule let `HEAD:x --delete` through); the guard test pins the three forms|`.:C29`,T144,B23
+T144|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T145`,B23
+T147|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,T144,B23
 
 ## §B BUGS
 
