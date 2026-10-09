@@ -84,9 +84,9 @@
     # evaluation in a cloud session would have to fetch, and a `github:`
     # fetch there is a 403 unless cached (C6, B3). The files imported are
     # the ones their flakes export (`homeManagerModules.default`,
-    # `lib.mkSet`). cavekit ships skills, not a flake. All four are
-    # fetched over git+https (nix:T78, V30); `shallow=1` keeps the clone
-    # to the locked commit.
+    # `lib.mkSet`). cavekit and caveman are plugins, read as plain sources
+    # at a release tag (nix:T153). All are fetched over git+https (nix:T78,
+    # V30); `shallow=1` keeps the clone to the locked commit.
     home-manager = {
       url = "git+https://github.com/nix-community/home-manager?ref=release-26.05&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -100,7 +100,12 @@
       flake = false;
     };
     cavekit = {
-      url = "git+https://github.com/JuliusBrussee/cavekit?ref=main&shallow=1";
+      url = "git+https://github.com/JuliusBrussee/cavekit?ref=refs/tags/v4.1.0&shallow=1";
+      flake = false;
+    };
+    # caveman's hooks and skills (nix:T153), at a release tag like cavekit.
+    caveman = {
+      url = "git+https://github.com/JuliusBrussee/caveman?ref=refs/tags/v3.2.0&shallow=1";
       flake = false;
     };
     # rtk for the agent home (nix:T151). Branch `cached` only holds commits
@@ -136,6 +141,7 @@
       nix-home-manager-claude-code,
       set-and-setting,
       cavekit,
+      caveman,
       nix-rtk,
       rtk-src,
       ...
@@ -227,6 +233,7 @@
           nix-home-manager-claude-code
           set-and-setting
           cavekit
+          caveman
           nix-rtk
           rtk-src
           ;

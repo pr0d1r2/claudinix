@@ -3,19 +3,37 @@
     "cavekit": {
       "flake": false,
       "locked": {
-        "lastModified": 1786745271,
-        "narHash": "sha256-yU6ript+vuo6w5pYwj5bXXZHJ4WXoSy5ef/s1PM+Y7E=",
-        "ref": "main",
-        "rev": "7421e87d5b517c415c519ddf58a3dd10ba842530",
+        "lastModified": 1781762400,
+        "narHash": "sha256-7KXazRLxZoH85qXI3qHMl++B35QdrJhkGv9IGa7Y3Xw=",
+        "ref": "refs/tags/v4.1.0",
+        "rev": "c322f0bb6db82163041930467f3ce32754d42827",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/JuliusBrussee/cavekit"
       },
       "original": {
-        "ref": "main",
+        "ref": "refs/tags/v4.1.0",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/JuliusBrussee/cavekit"
+      }
+    },
+    "caveman": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791436257,
+        "narHash": "sha256-GfC8e+EGL7kotZQfZ9kD7ZEWJfhmXujHOHpMxeU3bEo=",
+        "ref": "refs/tags/v3.2.0",
+        "rev": "e20f07e8152a0c0360f58c09e79d30ac94329991",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/JuliusBrussee/caveman"
+      },
+      "original": {
+        "ref": "refs/tags/v3.2.0",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/JuliusBrussee/caveman"
       }
     },
     "home-manager": {
@@ -220,6 +238,7 @@
     "root": {
       "inputs": {
         "cavekit": "cavekit",
+        "caveman": "caveman",
         "home-manager": "home-manager",
         "itok": "itok",
         "microlith": "microlith",

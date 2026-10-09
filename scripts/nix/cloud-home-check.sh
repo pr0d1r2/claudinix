@@ -29,18 +29,19 @@ if [ ! -d "$1/home-files" ]; then
 fi
 
 status=0
-for file in \
-    skills/spec/SKILL.md \
-    skills/build/SKILL.md \
-    skills/check/SKILL.md \
-    skills/backprop/SKILL.md \
-    skills/caveman/SKILL.md \
-    FORMAT.md; do
-    if [ ! -s "$claude/$file" ]; then
-        echo "cloud-home-check: missing ~/.claude/$file" >&2
+# cavekit v4.1.0, all nine skills, and the caveman skills the owner uses
+# (nix:T153); caveman's own `caveman` skill is not one: cavekit owns the name.
+for skill in spec build check backprop caveman deepen grill research review \
+    caveman-commit caveman-review caveman-help caveman-compress; do
+    if [ ! -s "$claude/skills/$skill/SKILL.md" ]; then
+        echo "cloud-home-check: missing ~/.claude/skills/$skill/SKILL.md" >&2
         status=1
     fi
 done
+if [ ! -s "$claude/FORMAT.md" ]; then
+    echo "cloud-home-check: missing ~/.claude/FORMAT.md" >&2
+    status=1
+fi
 
 # rtk (nix:T151): the binary setup links onto PATH, the RTK.md it reads,
 # and the CLAUDE.md line that loads it.
@@ -84,6 +85,22 @@ else
     fi
     if ! jq -e '[.hooks.PreToolUse[]? | select(.matcher == "Bash") | .hooks[]?.command // "" | test("(^|/)rtk hook claude$")] | any' "$scratch/.claude/settings.json" >/dev/null 2>&1; then
         echo "cloud-home-check: ~/.claude/settings.json has no PreToolUse Bash hook running \`rtk hook claude\`" >&2
+        status=1
+    fi
+    # caveman (nix:T153): each hook runs its script under an absolute node,
+    # since a cloud session has no node on PATH, and a statusLine is set,
+    # else caveman-activate.js asks the agent to set one up.
+    for hook in SessionStart:caveman-activate.js SubagentStart:caveman-activate.js \
+        UserPromptSubmit:caveman-mode-tracker.js; do
+        event="${hook%%:*}"
+        script="${hook#*:}"
+        if ! jq -e --arg e "$event" --arg s "$script" '[.hooks[$e][]?.hooks[]?.command // "" | test("^/\\S+/bin/node \\S+/" + $s + "( |$)")] | any' "$scratch/.claude/settings.json" >/dev/null 2>&1; then
+            echo "cloud-home-check: ~/.claude/settings.json has no $event hook running $script under an absolute node" >&2
+            status=1
+        fi
+    done
+    if ! jq -e '.statusLine.command | type == "string"' "$scratch/.claude/settings.json" >/dev/null 2>&1; then
+        echo "cloud-home-check: ~/.claude/settings.json has no statusLine command" >&2
         status=1
     fi
 fi
