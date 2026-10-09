@@ -142,6 +142,10 @@ user (root) before Claude starts. It installs:
 - the cavekit skills `spec`, `build`, `check`, `backprop` and `caveman`, and
   the `FORMAT.md` they read;
 - a `claude-code` home-manager configuration;
+- [rtk](https://github.com/rtk-ai/rtk), whose Claude Code hook rewrites
+  each Bash command to `rtk <cmd>` so its output comes back condensed, with
+  its `RTK.md` loaded from `~/.claude/CLAUDE.md`. Setup links rtk into
+  `/usr/local/bin` beside `nix`;
 - a narrow list of permissions that pre-approves the gate's own commands and
   pushing `claude/*` branches in cloud sessions, and denies pushing `main`
   (`nix/cloud-permissions.json`). It is written to `~/.claude/settings.json`,
