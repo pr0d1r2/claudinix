@@ -3,10 +3,12 @@
 # carries what a cloud session needs at launch (SPEC nix:T16, nix:V14,
 # C12): the cavekit skills, the FORMAT.md they read, and the set rules;
 # and the settings.json its activation writes carries exactly the cloud
-# permissions in PERMISSIONS (T101) and the rtk Bash hook, beside rtk,
-# RTK.md and the @RTK.md line (nix:T151). That file is not a home file: the
-# claude-code module merges settings into ~/.claude/settings.json from a
-# `run-merge-settings.sh` the `activate` script calls, so the check
+# permissions in PERMISSIONS (T101). It also carries the rtk pieces
+# (nix:T151): the rtk binary, RTK.md and the @RTK.md line in the home
+# files, and the rtk Bash hook in settings.json. settings.json is not a
+# home file: the claude-code module merges settings into
+# ~/.claude/settings.json from a `run-merge-settings.sh` the `activate`
+# script calls, so the check
 # runs that merge against a scratch HOME and reads what it wrote.
 # Every missing file is reported; empty files and dangling links count as
 # missing. OUT is created only when nothing is missing.
