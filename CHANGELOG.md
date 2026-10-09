@@ -23,8 +23,9 @@ does are summarised briefly; the git history has the detail.
 - The agent home (`--agent-home`) ships `rtk` 0.51.0 from nix-rtk's cached build: its
   Claude Code hook rewrites Bash commands to `rtk <cmd>` for condensed
   output, and `~/.claude/CLAUDE.md` loads `RTK.md`.
-- With `--agent-home`, setup links the agent home's tools (its `home-path/bin`)
-  into the same PATH dir as `nix`, so Claude's Bash tool finds them.
+- With `--agent-home`, setup links the agent home's named tools (today `rtk`) from
+  its `home-path/bin` into the same PATH dir as `nix`, so Claude's Bash tool finds
+  them; no other home binary is linked.
 - `just spec-optimize [node...]` starts a cloud session that brings spec nodes
   back under their `.context-limits` ceilings (default: the nodes over them)
   by archiving, moving rows down and shortening, then lowers the freed
