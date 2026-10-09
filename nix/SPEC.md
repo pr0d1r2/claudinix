@@ -22,15 +22,16 @@ sib|dev|`claudinix-dev`: repo-only Rust tool, generated README badges \\& doc nu
 
 
 ## §V INVARIANTS
-V14: activation runs in `setup.sh` (before Claude launches) as the uid \& `$HOME` Claude runs as ∴ skills present at launch \& kept in snapshot.
+V14: activation runs in `setup.sh` (before Claude launches) as Claude's uid \& `$HOME` ∴ skills present at launch, kept in snapshot.
 V15: activation failover, tier logged: (1) `nix build "git+https://github.com/pr0d1r2/claudinix?rev=<sha>&shallow=1#homeConfigurations.cloud.activationPackage"` (⊥ `github:`, C6); (2) `nix-store -r $(cat cloud-home.storepath)` from cachix. both fail → Nix usable, setup exit 0, loud warning + marker file, ⊥ silent.
 V16: agent home = agent-level tools \& skills only (what skills shell out to); ⊥ language toolchains (target devShell owns, C3).
 V45: agent home ⊥ ships a skill that competes with a gate rule (`caveman-commit` vs `commit-msg`); check fails on it.
+V46: caveman hook \& `statusLine` commands: absolute interpreter, script in store, hook timeout ≥ 30; check fails else.
 
 ## §T TASKS
 
 id|status|task|cites
-T15|.|set-and-setting issue: move `mkTrip` from owner home config `lib/mk-trip.nix` upstream; add cavekit category (non-flake input). via its spec|C12,C9
+T15|.|set-and-setting issue: move `mkTrip` upstream (from owner home config); add cavekit category|C12,C9
 T16|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,I.file
 T18|x|ARCHIVED to SPEC-ARCHIVE.md|V15,`.:V6`,C5
 T78|x|ARCHIVED to SPEC-ARCHIVE.md|`.:V30`,`.:V5`,V16,C12
@@ -47,3 +48,4 @@ id|date|cause|fix
 B23|2026-10-04|`HEAD:*` allow (T133) matched `HEAD:+main` \& tag pushes; no deny did|list denies `+` refspecs \& tag pushes; bats globs them
 B44|2026-10-09|nix-rtk locks `rtk-src` as `github:`; T151 made it the 2nd `github:` input, 403 unless cached (`.:V30`, `inputs.bats`)|own `rtk-src` over `git+https`, nix-rtk's follows it; `rtk-pin` compares its rev too
 B46|2026-10-09|`caveman-commit` ("skip the body") linked into sessions; `commit-msg` refuses that|V45; skill dropped
+B47|2026-10-09|check matched hook strings only; a tag moving `src/hooks` passed|V46: script must exist
