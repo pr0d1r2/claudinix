@@ -20,7 +20,7 @@ setup() {
     NODE="$BATS_TEST_TMPDIR/store/abc-nodejs/bin/node"
     SRC="$BATS_TEST_TMPDIR/store/abc-source/src/hooks"
     RTKBIN="$BATS_TEST_TMPDIR/store/abc-rtk/bin/rtk"
-    HOOKS="{\"SessionStart\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-activate.js\"}]}],\"SubagentStart\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-activate.js --subagent\"}]}],\"UserPromptSubmit\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-mode-tracker.js\"}]}],\"PreToolUse\":[{\"matcher\":\"Bash\",\"hooks\":[{\"type\":\"command\",\"command\":\"$RTKBIN hook claude\"}]}]}"
+    HOOKS="{\"SessionStart\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-activate.js\",\"timeout\":30}]}],\"SubagentStart\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-activate.js --subagent\",\"timeout\":30}]}],\"UserPromptSubmit\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-mode-tracker.js\",\"timeout\":30}]}],\"PreToolUse\":[{\"matcher\":\"Bash\",\"hooks\":[{\"type\":\"command\",\"command\":\"$RTKBIN hook claude\"}]}]}"
     STATUSLINE="{\"type\":\"command\",\"command\":\"$BASH_BIN $SRC/caveman-statusline.sh\"}"
     # cavekit v4.1.0 (all nine) and the caveman skills the owner uses (nix:T153).
     SKILLS="spec build check backprop caveman deepen grill research review caveman-review caveman-help caveman-compress"
@@ -281,6 +281,15 @@ without_hook() {
     run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
     [ "$status" -eq 1 ]
     [[ "$output" == *"caveman-statusline.sh"* ]]
+}
+
+@test "caveman hook with a 5 s timeout: fails, upstream gives 30 s (nix:V46)" {
+    full_home
+    merge_writes "{\"permissions\": $(cat "$PERMS"), \"hooks\": ${HOOKS//\"timeout\":30/\"timeout\":5}, \"statusLine\": $STATUSLINE}"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"timeout"* ]]
+    [ ! -e "$OUT" ]
 }
 
 @test "statusLine run by a bare bash: fails (nix:V46)" {
