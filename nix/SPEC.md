@@ -16,7 +16,7 @@ sib|dev|`claudinix-dev`: repo-only Rust tool, generated README badges \\& doc nu
 
 ## §C CONSTRAINTS
 
-- C12: agent home = owner home-config pattern: `nix-home-manager-claude-code` module + set-and-setting `lib.mkSet` (`mkTrip` upstream = T15, ⊥ copy); standalone home-manager (Ubuntu, ⊥ NixOS). plugins ⊥ installed in cloud ∴ plugin skills \& hooks materialized from `flake = false` sources: cavekit, caveman (both at a tag), the module \& set-and-setting (their flakes carry dev-only inputs: nix-home-manager-claude-code#34, set-and-setting#559); only `home-manager` \& `nix-rtk` are flake inputs. ∀ fetched `git+https://github.com/<o>/<r>?ref=<branch \| refs/tags/T>&shallow=1` (T78, `.:V30`); `programs.man` \& `systemd.user` off (−~150 MiB, `.:V5`).
+- C12: agent home = owner home-config pattern: `nix-home-manager-claude-code` module + set-and-setting `lib.mkSet` (`mkTrip` upstream = T15, ⊥ copy); standalone home-manager (⊥ NixOS). plugins ⊥ installed in cloud ∴ plugin skills \& hooks materialized from `flake = false` sources: cavekit, caveman (at tags), the module \& set-and-setting (dev-only inputs: nix-home-manager-claude-code#34, set-and-setting#559); flake inputs: only `home-manager` \& `nix-rtk`. ∀ fetched `git+https://github.com/<o>/<r>?ref=<branch \| refs/tags/T>&shallow=1` (T78, `.:V30`); `programs.man` \& `systemd.user` off (−~150 MiB, `.:V5`).
 
 ## §I INTERFACES
 
@@ -45,5 +45,5 @@ T153|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:V30`
 
 id|date|cause|fix
 B23|2026-10-04|`HEAD:*` allow (T133) also matched `HEAD:+main` (force) \& tag pushes; no deny did|shared list denies `+` refspecs \& tag pushes; bats globs them
-B44|2026-10-09|nix-rtk locks `rtk-src` as `github:rtk-ai/rtk`; adding nix-rtk (T151) made it this repo's 2nd `github:` input, a 403 unless cached (`.:V30`, caught by `inputs.bats`)|own `rtk-src` over `git+https`, nix-rtk's follows it (same NAR ∴ same store path); `rtk-pin` compares its rev too
+B44|2026-10-09|nix-rtk locks `rtk-src` as `github:`; T151 made it the 2nd `github:` input, 403 unless cached (`.:V30`, `inputs.bats`)|own `rtk-src` over `git+https`, nix-rtk's follows it; `rtk-pin` compares its rev too
 B46|2026-10-09|`caveman-commit` ("skip the body") linked into sessions; `commit-msg` refuses that|V45; skill dropped
