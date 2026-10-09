@@ -1,7 +1,8 @@
 #!/usr/bin/env bats
 bats_require_minimum_version 1.5.0
 # Unit tests for scripts/nix/cloud-home-check.sh (SPEC nix:T16, nix:V14,
-# C12): the agent home's activation package carries the cavekit skills,
+# C12, nix:T153): the agent home's activation package carries the cavekit
+# and caveman skills, caveman's hooks and a statusLine, rtk (nix:T151),
 # FORMAT.md and the set rules under home-files/.claude, and its settings
 # merge writes exactly the cloud permissions into settings.json (T101).
 
@@ -14,7 +15,10 @@ setup() {
     echo '{"allow":["Bash(bats *)"],"deny":["Bash(git push * main)"]}' >"$PERMS"
     MERGE="$BATS_TEST_TMPDIR/store/abc123-run-merge-settings.sh"
     MERGED="$BATS_TEST_TMPDIR/merged.json"
-    HOOKS='{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"/nix/store/abc-rtk/bin/rtk hook claude"}]}]}'
+    HOOKS='{"SessionStart":[{"hooks":[{"type":"command","command":"/nix/store/abc-nodejs/bin/node /nix/store/abc-source/src/hooks/caveman-activate.js"}]}],"SubagentStart":[{"hooks":[{"type":"command","command":"/nix/store/abc-nodejs/bin/node /nix/store/abc-source/src/hooks/caveman-activate.js --subagent"}]}],"UserPromptSubmit":[{"hooks":[{"type":"command","command":"/nix/store/abc-nodejs/bin/node /nix/store/abc-source/src/hooks/caveman-mode-tracker.js"}]}],"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"/nix/store/abc-rtk/bin/rtk hook claude"}]}]}'
+    STATUSLINE='{"type":"command","command":"bash /nix/store/abc-source/src/hooks/caveman-statusline.sh"}'
+    # cavekit v4.1.0 (all nine) and the caveman skills the owner uses (nix:T153).
+    SKILLS="spec build check backprop caveman deepen grill research review caveman-commit caveman-review caveman-help caveman-compress"
 }
 
 # merge_writes JSON: the settings merge the activation runs writes JSON
@@ -29,7 +33,7 @@ merge_writes() {
 # A complete home: every required file, as the store links them.
 full_home() {
     local skill
-    for skill in spec build check backprop caveman; do
+    for skill in $SKILLS; do
         mkdir -p "$CLAUDE/skills/$skill"
         echo "# $skill" >"$CLAUDE/skills/$skill/SKILL.md"
     done
@@ -43,7 +47,7 @@ full_home() {
     chmod +x "$PKG/home-path/bin/rtk"
     # shellcheck disable=SC2016 # $DRY_RUN_CMD is the activate script's own
     printf '#!/usr/bin/env bash\nnoteEcho claudeSettings\n$DRY_RUN_CMD bash %s\n' "$MERGE" >"$PKG/activate"
-    merge_writes "{\"permissions\": $(cat "$PERMS"), \"model\": \"x\", \"hooks\": $HOOKS}"
+    merge_writes "{\"permissions\": $(cat "$PERMS"), \"model\": \"x\", \"hooks\": $HOOKS, \"statusLine\": $STATUSLINE}"
 }
 
 @test "complete home: passes and writes OUT" {
@@ -185,6 +189,71 @@ full_home() {
     run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
     [ "$status" -eq 1 ]
     [[ "$output" == *"rtk hook claude"* ]]
+}
+
+@test "missing cavekit 4.1 skill: fails and names it (nix:T153)" {
+    full_home
+    rm "$CLAUDE/skills/grill/SKILL.md"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"skills/grill/SKILL.md"* ]]
+    [ ! -e "$OUT" ]
+}
+
+@test "missing caveman skill: fails and names it (nix:T153)" {
+    full_home
+    rm "$CLAUDE/skills/caveman-commit/SKILL.md"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"skills/caveman-commit/SKILL.md"* ]]
+}
+
+# without_hook EVENT: the complete settings minus the hooks of EVENT.
+without_hook() {
+    merge_writes "{\"permissions\": $(cat "$PERMS"), \"hooks\": $(jq -c --arg e "$1" 'del(.[$e])' <<<"$HOOKS"), \"statusLine\": $STATUSLINE}"
+}
+
+@test "no caveman SessionStart hook: fails and names it (nix:T153)" {
+    full_home
+    without_hook SessionStart
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"SessionStart"* ]]
+    [[ "$output" == *"caveman-activate.js"* ]]
+    [ ! -e "$OUT" ]
+}
+
+@test "no caveman SubagentStart hook: fails and names it (nix:T153)" {
+    full_home
+    without_hook SubagentStart
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"SubagentStart"* ]]
+}
+
+@test "no caveman UserPromptSubmit hook: fails and names it (nix:T153)" {
+    full_home
+    without_hook UserPromptSubmit
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"UserPromptSubmit"* ]]
+    [[ "$output" == *"caveman-mode-tracker.js"* ]]
+}
+
+@test "caveman hook run by a bare node: fails (nix:T153)" {
+    full_home
+    merge_writes "{\"permissions\": $(cat "$PERMS"), \"hooks\": ${HOOKS//\/nix\/store\/abc-nodejs\/bin\/node/node}, \"statusLine\": $STATUSLINE}"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"node"* ]]
+}
+
+@test "settings without a statusLine: fails (nix:T153)" {
+    full_home
+    merge_writes "{\"permissions\": $(cat "$PERMS"), \"hooks\": $HOOKS}"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"statusLine"* ]]
 }
 
 @test "missing arguments is a usage error" {
