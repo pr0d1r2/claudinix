@@ -45,29 +45,8 @@ let
     ];
   };
 
-  # cavekit's skills (SPEC.md workflow): the commands `/ck:*` would run,
-  # all nine of v4.1.0 (nix:T153).
-  cavekitSkills = [
-    "spec"
-    "build"
-    "check"
-    "backprop"
-    "caveman"
-    "deepen"
-    "grill"
-    "research"
-    "review"
-  ];
-
-  # The caveman plugin's skills the owner runs locally (nix:T153). Its own
-  # `caveman` skill is left out: cavekit's holds that name, and the hooks
-  # below read caveman's copy straight from the source. `caveman-commit`
-  # is left out too: it competes with the commit-msg gate (nix:V45).
-  cavemanSkills = [
-    "caveman-review"
-    "caveman-help"
-    "caveman-compress"
-  ];
+  # The skills the home ships, in one list `checks.cloud-home` reads too.
+  skills = import ./cloud-skills.nix;
 
   # caveman's hooks are Node scripts; a cloud session has no node on PATH,
   # so each runs under this one by its store path. Built-ins only, no npm.
@@ -102,7 +81,7 @@ home-manager.lib.homeManagerConfiguration {
 
         file =
           builtins.listToAttrs (
-            map (skillFile cavekit) cavekitSkills ++ map (skillFile caveman) cavemanSkills
+            map (skillFile cavekit) skills.cavekit ++ map (skillFile caveman) skills.caveman
           )
           // {
             # The skills say "read FORMAT.md"; with no plugin root in the

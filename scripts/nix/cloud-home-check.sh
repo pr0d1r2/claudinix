@@ -13,12 +13,14 @@
 # Every missing file is reported; empty files and dangling links count as
 # missing. OUT is created only when nothing is missing.
 #
-# Usage: cloud-home-check.sh ACTIVATION_PACKAGE PERMISSIONS OUT
+# Usage: cloud-home-check.sh ACTIVATION_PACKAGE PERMISSIONS OUT SKILL...
+# SKILL... are the skills the home must carry: nix/cloud-skills.nix is
+# their one list.
 
 set -euo pipefail
 
-if [ "$#" -ne 3 ]; then
-    echo "usage: cloud-home-check.sh ACTIVATION_PACKAGE PERMISSIONS OUT" >&2
+if [ "$#" -lt 4 ]; then
+    echo "usage: cloud-home-check.sh ACTIVATION_PACKAGE PERMISSIONS OUT SKILL..." >&2
     exit 2
 fi
 
@@ -29,10 +31,7 @@ if [ ! -d "$1/home-files" ]; then
 fi
 
 status=0
-# cavekit v4.1.0, all nine skills, and the caveman skills the owner uses
-# (nix:T153); caveman's own `caveman` skill is not one: cavekit owns the name.
-for skill in spec build check backprop caveman deepen grill research review \
-    caveman-review caveman-help caveman-compress; do
+for skill in "${@:4}"; do
     if [ ! -s "$claude/skills/$skill/SKILL.md" ]; then
         echo "cloud-home-check: missing ~/.claude/skills/$skill/SKILL.md" >&2
         status=1
