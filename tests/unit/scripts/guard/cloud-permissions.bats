@@ -21,7 +21,12 @@ list() {
             "Bash(git push * main *)",
             "Bash(git push *:main)",
             "Bash(git push *:main *)",
-            "Bash(git push *refs/heads/main*)"
+            "Bash(git push *refs/heads/main*)",
+            "Bash(rtk git push * main)",
+            "Bash(rtk git push * main *)",
+            "Bash(rtk git push *:main)",
+            "Bash(rtk git push *:main *)",
+            "Bash(rtk git push *refs/heads/main*)"
         ]
     }' >"$PERMISSIONS_FILE"
 }
@@ -166,6 +171,15 @@ list() {
     run bash "$SCRIPT"
     [ "$status" -eq 1 ]
     [[ "$output" == *'Bash(git push *:main)'* ]]
+}
+
+@test "a main-push deny without its rtk twin: refused and named (.:V44)" {
+    list '["Bash(bats *)"]'
+    jq '.deny -= ["Bash(rtk git push *:main)"]' "$PERMISSIONS_FILE" >"$PERMISSIONS_FILE.new"
+    mv "$PERMISSIONS_FILE.new" "$PERMISSIONS_FILE"
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *'Bash(rtk git push *:main)'* ]]
 }
 
 @test "not an {allow, deny} object of strings: refused" {
