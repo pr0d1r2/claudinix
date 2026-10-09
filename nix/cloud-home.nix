@@ -61,9 +61,9 @@ let
 
   # The caveman plugin's skills the owner runs locally (nix:T153). Its own
   # `caveman` skill is left out: cavekit's holds that name, and the hooks
-  # below read caveman's copy straight from the source.
+  # below read caveman's copy straight from the source. `caveman-commit`
+  # is left out too: it competes with the commit-msg gate (nix:V45).
   cavemanSkills = [
-    "caveman-commit"
     "caveman-review"
     "caveman-help"
     "caveman-compress"
