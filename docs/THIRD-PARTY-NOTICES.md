@@ -67,8 +67,10 @@ licences are in the sections above and below it.
 | `microlith` | `git+https://github.com/pr0d1r2/microlith` | `refs/tags/v0.7.3` | `58a36c3bc90b76e1f561996b14cf3beaf9a40ed2` | git |
 | `nix-hk` | `git+https://github.com/pr0d1r2/nix-hk` | `main` | `a063d34d951e733086a63b6704dad12ac9934d3f` | git |
 | `nix-home-manager-claude-code` | `git+https://github.com/pr0d1r2/nix-home-manager-claude-code` | `main` | `0ba21fb0077d82ef8d25981426d5f8441fe3ac94` | git |
+| `nix-rtk` | `git+https://github.com/pr0d1r2/nix-rtk` | `cached` | `f63d210f647103ffac1d994ce59800d30e74053e` | git |
 | `nixpkgs` | `github:NixOS/nixpkgs` | `nixos-26.05` | `7c8764b7c7b09b34f632464276218ef9090eaa11` | github |
 | `nixpkgs-lock` | `git+https://github.com/pr0d1r2/nixpkgs-lock` | `main` | `9285cde52c7e8baff0b60685ae755b911db9ebaa` | git |
+| `rtk-src` | `github:rtk-ai/rtk` | `v0.51.0` | `e001f773f80b22b7dc4c7a79521b30e35aaef026` | github |
 | `set-and-setting` | `git+https://github.com/pr0d1r2/set-and-setting` | `main` | `c54b884879d64492523421472069bf7709c912d3` | git |
 | `sherd` | `git+https://github.com/pr0d1r2/sherd` | `refs/tags/v0.5.3` | `014357299f560b9a467341cd9db023e477347520` | git |
 | `xenolith` | `git+https://github.com/pr0d1r2/xenolith` | `main` | `917b3ee017d8e405314a246a09f78b7bbbf63dba` | git |
@@ -128,6 +130,17 @@ The owner's skill sets, built into the agent home with its `mkSet` helper.
 
 The agent home is a standalone home-manager configuration, which is MIT
 licensed upstream (not checked here): <https://github.com/nix-community/home-manager>.
+
+### rtk
+
+The agent home installs the `rtk` binary, built by the owner's nix-rtk
+from rtk's source, and copies rtk's `hooks/rtk-awareness.md` unchanged
+to `~/.claude/RTK.md`. Neither is redistributed in this repository.
+
+- Upstream: <https://github.com/rtk-ai/rtk>, by Patrick Szymkowiak
+- Licensed under the Apache License 2.0 (the `LICENSE` file at the pinned
+  tag; no `NOTICE` file there)
+- Packaged by <https://github.com/pr0d1r2/nix-rtk>
 
 ## Trademarks
 

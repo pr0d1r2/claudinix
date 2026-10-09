@@ -55,6 +55,11 @@ access. That makes the following the classes worth reporting:
    rules, skills and a claude-code configuration into `/root/.claude`
    ([`README.md`](../README.md#the-agent-home-is-opt-in)). Opt in only if
    you trust those rules and skills to steer your sessions.
+   **It also rewrites Bash commands.** Its `rtk` hook runs before every
+   Bash call and turns a command such as `git status` into
+   `rtk git status`, and setup links `rtk` into `/usr/local/bin`. rtk then
+   runs the real command and condenses its output, so you trust rtk with
+   every command Claude runs. `rtk proxy <cmd>` runs a command unfiltered.
    **It also pre-approves commands.** It writes a narrow permission list
    (`nix/cloud-permissions.json`) into `/root/.claude/settings.json`: the
    gate's own commands (`hk`, `bats`, `mth`, `sherd`, `itok`, `scripts/*`,
