@@ -14,6 +14,7 @@ setup() {
     echo '{"allow":["Bash(bats *)"],"deny":["Bash(git push * main)"]}' >"$PERMS"
     MERGE="$BATS_TEST_TMPDIR/store/abc123-run-merge-settings.sh"
     MERGED="$BATS_TEST_TMPDIR/merged.json"
+    HOOKS='{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"/nix/store/abc-rtk-0.51.0/bin/rtk hook claude"}]}]}'
 }
 
 # merge_writes JSON: the settings merge the activation runs writes JSON
@@ -35,9 +36,14 @@ full_home() {
     echo "# format" >"$CLAUDE/FORMAT.md"
     mkdir -p "$CLAUDE/rules/set"
     echo "# set" >"$CLAUDE/rules/set/generic.md"
+    echo "# rtk" >"$CLAUDE/RTK.md"
+    printf "@RTK.md\n" >"$CLAUDE/CLAUDE.md"
+    mkdir -p "$PKG/home-path/bin"
+    printf "#!/usr/bin/env bash\n" >"$PKG/home-path/bin/rtk"
+    chmod +x "$PKG/home-path/bin/rtk"
     # shellcheck disable=SC2016 # $DRY_RUN_CMD is the activate script's own
     printf '#!/usr/bin/env bash\nnoteEcho claudeSettings\n$DRY_RUN_CMD bash %s\n' "$MERGE" >"$PKG/activate"
-    merge_writes "{\"permissions\": $(cat "$PERMS"), \"model\": \"x\"}"
+    merge_writes "{\"permissions\": $(cat "$PERMS"), \"model\": \"x\", \"hooks\": $HOOKS}"
 }
 
 @test "complete home: passes and writes OUT" {
@@ -137,6 +143,48 @@ full_home() {
     run env HOME="$BATS_TEST_TMPDIR/realhome" bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
     [ "$status" -eq 0 ]
     [ ! -e "$BATS_TEST_TMPDIR/realhome" ]
+}
+
+@test "missing RTK.md: fails and names it (nix:T151)" {
+    full_home
+    rm "$CLAUDE/RTK.md"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"RTK.md"* ]]
+    [ ! -e "$OUT" ]
+}
+
+@test "CLAUDE.md without the @RTK.md line: fails (nix:T151)" {
+    full_home
+    echo "# other" >"$CLAUDE/CLAUDE.md"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"@RTK.md"* ]]
+}
+
+@test "no rtk in home-path/bin: fails (nix:T151)" {
+    full_home
+    rm "$PKG/home-path/bin/rtk"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"home-path/bin/rtk"* ]]
+}
+
+@test "settings without the rtk Bash hook: fails (nix:T151)" {
+    full_home
+    merge_writes "{\"permissions\": $(cat "$PERMS")}"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"rtk hook claude"* ]]
+    [ ! -e "$OUT" ]
+}
+
+@test "rtk hook on another matcher than Bash: fails (nix:T151)" {
+    full_home
+    merge_writes "{\"permissions\": $(cat "$PERMS"), \"hooks\": ${HOOKS/\"Bash\"/\"Read\"}}"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"rtk hook claude"* ]]
 }
 
 @test "missing arguments is a usage error" {
