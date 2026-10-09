@@ -5,7 +5,7 @@
 # home-manager module plus a set from set-and-setting. `mkTrip` is not
 # upstream yet (nix:T15), so the set is built with `mkSet` directly.
 # Plugins are not installed in the cloud, so the cavekit and caveman
-# skills, the FORMAT.md cavekit's read and caveman's hooks are
+# skills, the FORMAT.md they read and caveman's hooks are
 # materialized into ~/.claude as plain files and settings (nix:T153).
 #
 # Agent-level only (nix:V16): skills and the settings Claude reads. No

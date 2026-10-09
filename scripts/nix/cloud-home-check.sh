@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 # `checks.x86_64-linux.cloud-home`: the agent home's activation package
 # carries what a cloud session needs at launch (SPEC nix:T16, nix:V14,
-# C12): the cavekit skills, the FORMAT.md they read, and the set rules;
-# and the settings.json its activation writes carries exactly the cloud
-# permissions in PERMISSIONS (T101). It also carries the rtk pieces
-# (nix:T151): the rtk binary, RTK.md and the @RTK.md line in the home
-# files, and the rtk Bash hook in settings.json. settings.json is not a
-# home file: the claude-code module merges settings into
+# C12): the cavekit and caveman skills (the SKILL... arguments), the
+# FORMAT.md they read, and the set rules; and the settings.json its
+# activation writes carries exactly the cloud permissions in PERMISSIONS
+# (T101). It also carries the rtk pieces (nix:T151): the rtk binary,
+# RTK.md and the @RTK.md line in the home files, and the rtk Bash hook in
+# settings.json; and caveman's hooks and statusLine (nix:T153, nix:V46):
+# absolute commands, existing scripts, timeouts of 30 s. settings.json is
+# not a home file: the claude-code module merges settings into
 # ~/.claude/settings.json from a `run-merge-settings.sh` the `activate`
-# script calls, so the check
-# runs that merge against a scratch HOME and reads what it wrote.
+# script calls, so the check runs that merge against a scratch HOME and
+# reads what it wrote.
 # Every missing file is reported; empty files and dangling links count as
 # missing. OUT is created only when nothing is missing.
 #
