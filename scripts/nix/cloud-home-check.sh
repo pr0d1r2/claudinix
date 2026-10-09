@@ -32,12 +32,18 @@ status=0
 # cavekit v4.1.0, all nine skills, and the caveman skills the owner uses
 # (nix:T153); caveman's own `caveman` skill is not one: cavekit owns the name.
 for skill in spec build check backprop caveman deepen grill research review \
-    caveman-commit caveman-review caveman-help caveman-compress; do
+    caveman-review caveman-help caveman-compress; do
     if [ ! -s "$claude/skills/$skill/SKILL.md" ]; then
         echo "cloud-home-check: missing ~/.claude/skills/$skill/SKILL.md" >&2
         status=1
     fi
 done
+# caveman-commit tells a session to skip the commit body that the repo's
+# `commit-msg` gate requires (nix:V45).
+if [ -e "$claude/skills/caveman-commit" ]; then
+    echo "cloud-home-check: ~/.claude/skills/caveman-commit competes with the commit-msg gate" >&2
+    status=1
+fi
 if [ ! -s "$claude/FORMAT.md" ]; then
     echo "cloud-home-check: missing ~/.claude/FORMAT.md" >&2
     status=1
