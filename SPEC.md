@@ -94,6 +94,7 @@ V33: a released SHA contains `cloud-home.storepath` for its own agent home, \& e
 V35: every setting the agent home writes into `~/.claude` is checked in the GENERATED file's shape (`checks.x86_64-linux.cloud-home` runs the merge script \& reads `.permissions`), ⊥ trusting a module option's name (B11).
 V36: a commit that changes `hk.pkl` stages it w/ every file its fix steps regenerate (README badges, INTEGRATION counts) in the SAME commit; ⊥ commit other work while `hk.pkl` has unstaged edits (hk reads the worktree `hk.pkl` before `stash = "git"`) (B12).
 V38: ∀ host the setup line or `setup.sh` fetches from (`https://<host>`) ∈ `allowlist.txt` (B15).
+V44: ∀ main-push deny has an `rtk ` twin (`Bash(rtk git push * main)`): the rtk hook (`nix:T151`) rewrites Bash to `rtk <cmd>`.
 
 ## §T TASKS
 id|status|task|cites
@@ -157,3 +158,4 @@ B11|2026-10-03|nix-home-manager-claude-code `programs.claude-code.permissions.{a
 B12|2026-10-03|hk loads worktree `hk.pkl` before stashing ∴ unstaged new fix steps rewrote README \& INTEGRATION in unrelated commits; 2 messages claimed numbers their diffs lacked (reworded pre-push)|V36
 B15|2026-10-04|setup line downloads `setup.sh` from `raw.githubusercontent.com`; host ∉ `allowlist.txt` → fresh env setup: `curl: (22) ... 403`|V38
 B16|2026-10-04|cloud: probe test saw the session's `nix-dev`; setup test expected unset `$USER` (setup: `id -un`)|V21
+B45|2026-10-09|rtk rewrites `git push origin main` to `rtk git push …`; prefix deny rules may miss it (#24 review)|V44
