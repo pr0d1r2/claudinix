@@ -266,6 +266,11 @@ fi
 
 if [ -n "$home" ] && PATH="$bin_dir:$PATH" "$home/activate"; then
     rm -f "$home_marker"
+    # The home's tools (rtk, nix:T151) on the same PATH dir as nix:
+    # Claude's Bash tool may not source the profile that holds them.
+    if [ -d "$home/home-path/bin" ]; then
+        ln -sf "$home/home-path/bin"/* "$bin_dir/"
+    fi
 else
     echo "WARNING: agent home NOT activated (tier 1 $home_attr, tier 2 $home_storepath): Nix works, ~/.claude skills are missing" >&2
     mkdir -p "$(dirname "$home_marker")"

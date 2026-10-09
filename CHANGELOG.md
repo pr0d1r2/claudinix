@@ -20,6 +20,8 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- With `--agent-home`, setup links the agent home's tools (its `home-path/bin`)
+  into the same PATH dir as `nix`, so Claude's Bash tool finds them.
 - `just spec-optimize [node...]` starts a cloud session that brings spec nodes
   back under their `.context-limits` ceilings (default: the nodes over them)
   by archiving, moving rows down and shortening, then lowers the freed
