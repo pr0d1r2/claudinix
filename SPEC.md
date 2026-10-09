@@ -146,13 +146,13 @@ id|date|cause|fix
 B1|2026-10-03|assumed "include default list" covers `*.nixos.org` (docs); proxy refused `cache.nixos.org` \& `channels.nixos.org` → `nix develop` built from source \& failed|C6 names hosts explicitly; probe checks each host (T3)
 B2|2026-10-03|seed `setup.sh` appended `nix.conf` block only when marker absent ∴ adding `accept-flake-config` never reached a VM w/ old block|V3 managed block rewritten whole
 B3|2026-10-03|spec `nix:V15`/V20 fetched own repo via `github:` → would 403 in cloud (caught before build)|`nix:V15`, V20 use `git+https`
-B5|2026-10-03|`hk.pkl` put `///` doc comments inside `hooks {}`: official `pkl eval` rejects it; passed only via hk's lenient default parser (review R2-3)|V27
-B6|2026-10-03|`scripts/setup-line.sh` committed mode 100644; docs say run it directly → `permission denied`; tests call it via `bash` ∴ never caught (review R3-1, R5-1)|V28
-B7|2026-10-03|`tdd-order` in a shallow clone (every cloud session) counted the graft commit as adding all 27 scripts \& refused the push w/o saying the clone is shallow (review R4-1)|V29
-B8|2026-10-03|agent home tier 1 needs home-manager, nix-home-manager-claude-code \& set-and-setting sources at EVAL time; `github:` inputs ⊥ cached (cachix-action daemon pushes only built paths) → 403 in cloud; tier 2 `cloud-home.storepath` never written → agent home never activates (review R2-1, R2-2, R1-3)|V30
-B9|2026-10-03|hk 1.58 installs only config-based hooks under git ≥ 2.54 (dev shell); system git 2.50 committed a bad message unchecked ⇒ in cloud (image git) no hook fires (re-review RR-1)|V32
-B10|2026-10-03|`release.sh` pinned the line to REV, then asked to commit `cloud-home.storepath` after it ⇒ the released SHA lacks the file, tier 2 404s; release ⊥ checked input sources (re-review RR-2, RR-3)|V33
-B11|2026-10-03|nix-home-manager-claude-code `programs.claude-code.permissions.{allow,deny}` writes flat `"permissions.allow"` keys Claude Code ignores; caught by evaluating the generated JSON; workaround: freeform `programs.claude-code.settings.permissions` (pr0d1r2/nix-home-manager-claude-code#35)|V35
+B5|2026-10-03|`hk.pkl` put `///` doc comments inside `hooks {}`: official `pkl eval` rejects it; passed only via hk's lenient default parser|V27
+B6|2026-10-03|`scripts/setup-line.sh` committed mode 100644; docs say run it directly → `permission denied`; tests call it via `bash` ∴ never caught|V28
+B7|2026-10-03|`tdd-order` in a shallow clone (every cloud session) counted the graft commit as adding all 27 scripts \& refused the push w/o saying the clone is shallow|V29
+B8|2026-10-03|agent home tier 1 needs home-manager, nix-home-manager-claude-code \& set-and-setting sources at EVAL time; `github:` inputs ⊥ cached (cachix-action daemon pushes only built paths) → 403 in cloud; tier 2 `cloud-home.storepath` never written → agent home never activates|V30
+B9|2026-10-03|hk 1.58 installs only config-based hooks under git ≥ 2.54 (dev shell); system git 2.50 committed a bad message unchecked ⇒ in cloud (image git) no hook fires|V32
+B10|2026-10-03|`release.sh` pinned the line to REV, then asked to commit `cloud-home.storepath` after it ⇒ the released SHA lacks the file, tier 2 404s; release ⊥ checked input sources|V33
+B11|2026-10-03|nix-home-manager-claude-code `programs.claude-code.permissions.{allow,deny}` writes flat `"permissions.allow"` keys Claude Code ignores; workaround: freeform `programs.claude-code.settings.permissions` (pr0d1r2/nix-home-manager-claude-code#35)|V35
 B12|2026-10-03|hk loads worktree `hk.pkl` before stashing ∴ unstaged new fix steps rewrote README \& INTEGRATION in unrelated commits; 2 messages claimed numbers their diffs lacked (reworded pre-push)|V36
 B15|2026-10-04|setup line downloads `setup.sh` from `raw.githubusercontent.com`; host ∉ `allowlist.txt` → fresh env setup: `curl: (22) ... 403`|V38
 B16|2026-10-04|cloud: probe test saw the session's `nix-dev`; setup test expected unset `$USER` (setup: `id -un`)|V21
