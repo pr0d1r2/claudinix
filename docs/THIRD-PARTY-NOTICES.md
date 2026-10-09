@@ -124,7 +124,7 @@ SOFTWARE.
 ### caveman
 
 The agent home runs caveman v3.2.0's hook scripts and statusline script
-from its pinned source, and links its `caveman-commit`, `caveman-review`,
+from its pinned source, and links its `caveman-review`,
 `caveman-help` and `caveman-compress` skills into `~/.claude/skills`.
 None of it is redistributed in this repository. "Caveman" is a trademark
 of Julius Brussee, named here only to identify the project.
