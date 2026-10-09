@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# shellcheck disable=SC2086 # $SKILLS is a word list, the check's SKILL... arguments
 bats_require_minimum_version 1.5.0
 # Unit tests for scripts/nix/cloud-home-check.sh (SPEC nix:T16, nix:V14,
 # C12, nix:T153): the agent home's activation package carries the cavekit
@@ -22,7 +23,7 @@ setup() {
     RTKBIN="$BATS_TEST_TMPDIR/store/abc-rtk/bin/rtk"
     HOOKS="{\"SessionStart\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-activate.js\",\"timeout\":30}]}],\"SubagentStart\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-activate.js --subagent\",\"timeout\":30}]}],\"UserPromptSubmit\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-mode-tracker.js\",\"timeout\":30}]}],\"PreToolUse\":[{\"matcher\":\"Bash\",\"hooks\":[{\"type\":\"command\",\"command\":\"$RTKBIN hook claude\"}]}]}"
     STATUSLINE="{\"type\":\"command\",\"command\":\"$BASH_BIN $SRC/caveman-statusline.sh\"}"
-    # cavekit v4.1.0 (all nine) and the caveman skills the owner uses (nix:T153).
+    # What nix/cloud-home.nix ships, as the flake check passes it in (nix:T153).
     SKILLS="spec build check backprop caveman deepen grill research review caveman-review caveman-help caveman-compress"
 }
 
@@ -60,7 +61,7 @@ full_home() {
 
 @test "complete home: passes and writes OUT" {
     full_home
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 0 ]
     [ -e "$OUT" ]
 }
@@ -68,7 +69,7 @@ full_home() {
 @test "missing skill: fails, names it, writes no OUT" {
     full_home
     rm "$CLAUDE/skills/backprop/SKILL.md"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"skills/backprop/SKILL.md"* ]]
     [ ! -e "$OUT" ]
@@ -77,7 +78,7 @@ full_home() {
 @test "missing FORMAT.md: fails and names it" {
     full_home
     rm "$CLAUDE/FORMAT.md"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"FORMAT.md"* ]]
 }
@@ -85,7 +86,7 @@ full_home() {
 @test "every missing file is reported, not only the first" {
     full_home
     rm "$CLAUDE/skills/spec/SKILL.md" "$CLAUDE/skills/caveman/SKILL.md"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"skills/spec/SKILL.md"* ]]
     [[ "$output" == *"skills/caveman/SKILL.md"* ]]
@@ -94,7 +95,7 @@ full_home() {
 @test "empty skill file counts as missing" {
     full_home
     : >"$CLAUDE/skills/build/SKILL.md"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"skills/build/SKILL.md"* ]]
 }
@@ -103,7 +104,7 @@ full_home() {
     full_home
     rm "$CLAUDE/skills/check/SKILL.md"
     ln -s "$BATS_TEST_TMPDIR/nowhere" "$CLAUDE/skills/check/SKILL.md"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"skills/check/SKILL.md"* ]]
 }
@@ -111,14 +112,14 @@ full_home() {
 @test "set rules dir without any rule: fails" {
     full_home
     rm "$CLAUDE/rules/set/generic.md"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"rules/set"* ]]
 }
 
 @test "not an activation package: fails, nothing checked" {
     mkdir -p "$PKG"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"home-files"* ]]
     [ ! -e "$OUT" ]
@@ -127,7 +128,7 @@ full_home() {
 @test "settings carry other permissions than the list: fails and says so" {
     full_home
     merge_writes '{"permissions":{"allow":["Bash(bats *)","Bash"],"deny":["Bash(git push * main)"]}}'
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"permissions"* ]]
     [ ! -e "$OUT" ]
@@ -136,7 +137,7 @@ full_home() {
 @test "settings without permissions: fails" {
     full_home
     merge_writes '{"model":"x"}'
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"permissions"* ]]
 }
@@ -144,7 +145,7 @@ full_home() {
 @test "activation runs no settings merge: fails and names settings.json" {
     full_home
     printf '#!/usr/bin/env bash\n' >"$PKG/activate"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"settings.json"* ]]
     [ ! -e "$OUT" ]
@@ -152,7 +153,7 @@ full_home() {
 
 @test "the merge never touches the real HOME" {
     full_home
-    run env HOME="$BATS_TEST_TMPDIR/realhome" bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run env HOME="$BATS_TEST_TMPDIR/realhome" bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS $SKILLS
     [ "$status" -eq 0 ]
     [ ! -e "$BATS_TEST_TMPDIR/realhome" ]
 }
@@ -160,7 +161,7 @@ full_home() {
 @test "missing RTK.md: fails and names it (nix:T151)" {
     full_home
     rm "$CLAUDE/RTK.md"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"RTK.md"* ]]
     [ ! -e "$OUT" ]
@@ -169,7 +170,7 @@ full_home() {
 @test "CLAUDE.md without the @RTK.md line: fails (nix:T151)" {
     full_home
     echo "# other" >"$CLAUDE/CLAUDE.md"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"@RTK.md"* ]]
 }
@@ -177,7 +178,7 @@ full_home() {
 @test "no rtk in home-path/bin: fails (nix:T151)" {
     full_home
     rm "$PKG/home-path/bin/rtk"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"home-path/bin/rtk"* ]]
 }
@@ -185,7 +186,7 @@ full_home() {
 @test "settings without the rtk Bash hook: fails (nix:T151)" {
     full_home
     merge_writes "{\"permissions\": $(cat "$PERMS")}"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"rtk hook claude"* ]]
     [ ! -e "$OUT" ]
@@ -194,7 +195,7 @@ full_home() {
 @test "rtk hook on another matcher than Bash: fails (nix:T151)" {
     full_home
     merge_writes "{\"permissions\": $(cat "$PERMS"), \"hooks\": ${HOOKS/\"Bash\"/\"Read\"}}"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"rtk hook claude"* ]]
 }
@@ -202,7 +203,7 @@ full_home() {
 @test "missing cavekit 4.1 skill: fails and names it (nix:T153)" {
     full_home
     rm "$CLAUDE/skills/grill/SKILL.md"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"skills/grill/SKILL.md"* ]]
     [ ! -e "$OUT" ]
@@ -211,7 +212,7 @@ full_home() {
 @test "missing caveman skill: fails and names it (nix:T153)" {
     full_home
     rm "$CLAUDE/skills/caveman-review/SKILL.md"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"skills/caveman-review/SKILL.md"* ]]
 }
@@ -220,7 +221,7 @@ full_home() {
     full_home
     mkdir -p "$CLAUDE/skills/caveman-commit"
     echo "# caveman-commit" >"$CLAUDE/skills/caveman-commit/SKILL.md"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"caveman-commit"* ]]
     [ ! -e "$OUT" ]
@@ -234,7 +235,7 @@ without_hook() {
 @test "no caveman SessionStart hook: fails and names it (nix:T153)" {
     full_home
     without_hook SessionStart
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"SessionStart"* ]]
     [[ "$output" == *"caveman-activate.js"* ]]
@@ -244,7 +245,7 @@ without_hook() {
 @test "no caveman SubagentStart hook: fails and names it (nix:T153)" {
     full_home
     without_hook SubagentStart
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"SubagentStart"* ]]
 }
@@ -252,7 +253,7 @@ without_hook() {
 @test "no caveman UserPromptSubmit hook: fails and names it (nix:T153)" {
     full_home
     without_hook UserPromptSubmit
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"UserPromptSubmit"* ]]
     [[ "$output" == *"caveman-mode-tracker.js"* ]]
@@ -261,7 +262,7 @@ without_hook() {
 @test "caveman hook run by a bare node: fails (nix:T153)" {
     full_home
     merge_writes "{\"permissions\": $(cat "$PERMS"), \"hooks\": ${HOOKS//$NODE/node}, \"statusLine\": $STATUSLINE}"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"node"* ]]
 }
@@ -269,7 +270,7 @@ without_hook() {
 @test "hook script missing from the store: fails and names it (nix:V46)" {
     full_home
     rm "$SRC/caveman-activate.js"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"caveman-activate.js"* ]]
     [ ! -e "$OUT" ]
@@ -278,7 +279,7 @@ without_hook() {
 @test "statusLine script missing from the store: fails and names it (nix:V46)" {
     full_home
     rm "$SRC/caveman-statusline.sh"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"caveman-statusline.sh"* ]]
 }
@@ -286,7 +287,7 @@ without_hook() {
 @test "caveman hook with a 5 s timeout: fails, upstream gives 30 s (nix:V46)" {
     full_home
     merge_writes "{\"permissions\": $(cat "$PERMS"), \"hooks\": ${HOOKS//\"timeout\":30/\"timeout\":5}, \"statusLine\": $STATUSLINE}"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"timeout"* ]]
     [ ! -e "$OUT" ]
@@ -295,7 +296,7 @@ without_hook() {
 @test "statusLine run by a bare bash: fails (nix:V46)" {
     full_home
     merge_writes "{\"permissions\": $(cat "$PERMS"), \"hooks\": $HOOKS, \"statusLine\": ${STATUSLINE//$BASH_BIN/bash}}"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"statusLine"* ]]
     [ ! -e "$OUT" ]
@@ -304,9 +305,23 @@ without_hook() {
 @test "settings without a statusLine: fails (nix:T153)" {
     full_home
     merge_writes "{\"permissions\": $(cat "$PERMS"), \"hooks\": $HOOKS}"
-    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"statusLine"* ]]
+}
+
+@test "the skills to look for are the arguments, not a list in the script" {
+    full_home
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS not-shipped
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"skills/not-shipped/SKILL.md"* ]]
+    [ ! -e "$OUT" ]
+}
+
+@test "no skill argument is a usage error" {
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
+    [ "$status" -eq 2 ]
+    [[ "$output" == *"SKILL"* ]]
 }
 
 @test "missing arguments is a usage error" {
