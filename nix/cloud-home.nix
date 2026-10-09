@@ -16,6 +16,7 @@
   set-and-setting,
   cavekit,
   nix-rtk,
+  rtk-src,
 }:
 let
   # set-and-setting's flake exports exactly this as `lib.mkSet`.
@@ -53,7 +54,7 @@ let
 
   # rtk and the RTK.md `rtk init -g` writes, from the same source (nix:T151).
   rtk = nix-rtk.packages.${pkgs.stdenv.hostPlatform.system}.default;
-  rtkMd = "${nix-rtk.inputs.rtk-src}/hooks/rtk-awareness.md";
+  rtkMd = "${rtk-src}/hooks/rtk-awareness.md";
 
   skillFile = name: {
     name = ".claude/skills/${name}";
