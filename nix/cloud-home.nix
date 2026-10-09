@@ -52,6 +52,20 @@ let
   # so each runs under this one by its store path. Built-ins only, no npm.
   cavemanHook = script: "${pkgs.nodejs-slim}/bin/node ${caveman}/src/hooks/${script}";
 
+  # One event's hook list; 30 s is the timeout caveman's plugin.json gives
+  # each, so a cold node start is not killed (nix:V46).
+  cavemanHookEntry = command: [
+    {
+      hooks = [
+        {
+          type = "command";
+          inherit command;
+          timeout = 30;
+        }
+      ];
+    }
+  ];
+
   # rtk and the RTK.md `rtk init -g` writes, from the same source (nix:T151).
   rtk = nix-rtk.packages.${pkgs.stdenv.hostPlatform.system}.default;
   rtkMd = "${rtk-src}/hooks/rtk-awareness.md";
@@ -135,39 +149,9 @@ home-manager.lib.homeManagerConfiguration {
           ];
           # caveman's terse mode (nix:T153), as its plugin.json wires it:
           # set at session and subagent start, kept per prompt.
-          SessionStart = [
-            {
-              hooks = [
-                {
-                  type = "command";
-                  command = cavemanHook "caveman-activate.js";
-                  timeout = 30;
-                }
-              ];
-            }
-          ];
-          SubagentStart = [
-            {
-              hooks = [
-                {
-                  type = "command";
-                  command = "${cavemanHook "caveman-activate.js"} --subagent";
-                  timeout = 30;
-                }
-              ];
-            }
-          ];
-          UserPromptSubmit = [
-            {
-              hooks = [
-                {
-                  type = "command";
-                  command = cavemanHook "caveman-mode-tracker.js";
-                  timeout = 30;
-                }
-              ];
-            }
-          ];
+          SessionStart = cavemanHookEntry (cavemanHook "caveman-activate.js");
+          SubagentStart = cavemanHookEntry "${cavemanHook "caveman-activate.js"} --subagent";
+          UserPromptSubmit = cavemanHookEntry (cavemanHook "caveman-mode-tracker.js");
         };
         # Without a statusLine, caveman-activate.js asks the agent to set
         # one up every session; a cloud session shows none, but this stops
