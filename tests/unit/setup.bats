@@ -299,6 +299,16 @@ EOF
     [ "$(readlink "$BIN_DIR/rtk")" = "$HOME_PKG/home-path/bin/rtk" ]
 }
 
+@test "agent home: links only the named tools, never another home bin (nix:T151)" {
+    agent_home
+    printf '#!/usr/bin/env bash\necho git\n' >"$HOME_PKG/home-path/bin/git"
+    chmod +x "$HOME_PKG/home-path/bin/git"
+    run bash "$SCRIPT" --agent-home
+    [ "$status" -eq 0 ]
+    [ -L "$BIN_DIR/rtk" ]
+    [ ! -e "$BIN_DIR/git" ]
+}
+
 @test "agent home: a failed activation links no home bins (nix:T151)" {
     agent_home
     ACTIVATE_OK=0 run bash "$SCRIPT" --agent-home
