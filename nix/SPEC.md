@@ -50,3 +50,4 @@ B44|2026-10-09|nix-rtk locks `rtk-src` as `github:`; T151 made it the 2nd `githu
 B46|2026-10-09|`caveman-commit` ("skip the body") linked into sessions; `commit-msg` refuses that|V45; skill dropped
 B47|2026-10-09|check matched hook strings only; a tag moving `src/hooks` passed|V46: script must exist
 B48|2026-10-09|`statusLine` ran `bash` from PATH|V46: absolute interpreter
+B49|2026-10-09|hook timeout 5 vs upstream 30; a slow cold start drops terse mode|V46: timeout ≥ 30
