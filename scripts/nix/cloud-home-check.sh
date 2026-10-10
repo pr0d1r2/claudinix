@@ -75,17 +75,24 @@ while read -r file ref; do
     fi
 done < <(grep -rEo --include='*.md' '(^|[^[:alnum:]_./:-])/ck-[a-z]+' "$claude/skills" 2>/dev/null |
     sed -E 's/^([^:]*):[^/]*(\/ck-[a-z]+)$/\1 \2/' | sort -u)
-# cavecrew delegates to its three agents, which ship only with it (nix:T154).
-for agent in builder investigator reviewer; do
-    file="$claude/agents/cavecrew-$agent.md"
-    if shipped cavecrew && [ ! -s "$file" ]; then
-        echo "cloud-home-check: cavecrew is on but ~/.claude/agents/cavecrew-$agent.md is missing" >&2
-        status=1
-    elif ! shipped cavecrew && [ -e "$file" ]; then
-        echo "cloud-home-check: cavecrew is off but ~/.claude/agents/cavecrew-$agent.md ships" >&2
+# cavecrew delegates to its agents, which ship only with it (nix:T154);
+# their names come from the caveman source, so the check counts them.
+agents=("$claude"/agents/cavecrew-*.md)
+if shipped cavecrew; then
+    if [ ! -e "${agents[0]}" ]; then
+        echo "cloud-home-check: cavecrew is on but ~/.claude/agents has no cavecrew-*.md" >&2
         status=1
     fi
-done
+    for file in "${agents[@]}"; do
+        if [ -e "$file" ] && [ ! -s "$file" ]; then
+            echo "cloud-home-check: ~/.claude/agents/$(basename "$file") is empty" >&2
+            status=1
+        fi
+    done
+elif [ -e "${agents[0]}" ]; then
+    echo "cloud-home-check: cavecrew is off but ~/.claude/agents/$(basename "${agents[0]}") ships" >&2
+    status=1
+fi
 # caveman-commit tells a session to skip the commit body that the repo's
 # `commit-msg` gate requires (nix:V45).
 if [ -e "$claude/skills/caveman-commit" ]; then

@@ -84,11 +84,11 @@ let
     name:
     pkgs.runCommand "ck-${name}" { }
       "bash ${../scripts/nix/ck-skill.sh} ${cavekit}/skills/${name} ${name} $out ${toString skills.cavekit}";
-  cavecrewAgents = [
-    "builder"
-    "investigator"
-    "reviewer"
-  ];
+  # cavecrew's agents are whatever the caveman source ships as
+  # `agents/cavecrew-*.md` (nix:T154).
+  cavecrewAgents = pkgs.lib.filter (name: pkgs.lib.hasPrefix "cavecrew-" name) (
+    builtins.attrNames (builtins.readDir "${caveman}/agents")
+  );
 in
 home-manager.lib.homeManagerConfiguration {
   inherit pkgs;
@@ -111,9 +111,9 @@ home-manager.lib.homeManagerConfiguration {
             ++ map (name: skillLink name "${caveman}/skills/${name}") skills.caveman
             # cavecrew delegates to its own agents (nix:T154).
             ++ pkgs.lib.optionals skills.cavecrew (
-              map (agent: {
-                name = ".claude/agents/cavecrew-${agent}.md";
-                value.source = "${caveman}/agents/cavecrew-${agent}.md";
+              map (file: {
+                name = ".claude/agents/${file}";
+                value.source = "${caveman}/agents/${file}";
               }) cavecrewAgents
             )
           )

@@ -20,6 +20,8 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- The agent home links `cavecrew`'s agents from whatever `cavecrew-*.md` files
+  the caveman source ships, instead of a fixed list of three.
 - The agent home's check (`checks.cloud-home`) also fails when the
   `caveman-stats` SessionEnd hook is present with that skill switched off, and
   when a shipped skill
