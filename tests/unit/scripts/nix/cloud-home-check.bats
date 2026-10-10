@@ -361,12 +361,28 @@ without_hook() {
     [[ "$output" == *"name: spec"* ]]
 }
 
-@test "cavecrew on, one of its agents missing: fails and names it (nix:T154)" {
+@test "cavecrew on, no agent at all: fails (nix:T154)" {
     full_home
-    rm "$CLAUDE/agents/cavecrew-reviewer.md"
+    rm "$CLAUDE"/agents/cavecrew-*.md
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"cavecrew is on but"* ]]
+}
+
+@test "cavecrew on, an empty agent file: fails and names it (nix:T154)" {
+    full_home
+    : >"$CLAUDE/agents/cavecrew-reviewer.md"
     run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
     [[ "$output" == *"agents/cavecrew-reviewer.md"* ]]
+}
+
+@test "cavecrew on: agent names come from the source, not the check (nix:T154)" {
+    full_home
+    rm "$CLAUDE"/agents/cavecrew-*.md
+    echo "# planner" >"$CLAUDE/agents/cavecrew-planner.md"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
+    [ "$status" -eq 0 ]
 }
 
 @test "cavecrew off: its agents must be gone too (nix:T154)" {
