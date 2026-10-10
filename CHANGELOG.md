@@ -20,6 +20,25 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- `~/.claude/FORMAT.md` in the agent home names `/ck-spec`, `/ck-build`, ... like
+  the skills do, not cavekit's plugin commands.
+- The agent home links `cavecrew`'s agents from whatever `cavecrew-*.md` files
+  the caveman source ships, instead of a fixed list of three.
+- The agent home's check (`checks.cloud-home`) also fails when the
+  `caveman-stats` SessionEnd hook is present with that skill switched off, and
+  when a shipped skill
+  names a `/ck-<verb>` skill the home does not ship.
+- The agent home rewrites `/<verb>` references in cavekit's skills to `/ck-<verb>`
+  only for the cavekit skills switched on, so a toggle never leaves a dangling
+  `/ck-` name or an unpatched new one.
+- `just cloud` tells its build session to use `/ck-build`, the name cavekit's
+  build skill now has in the agent home.
+- The agent home's skills are toggled one by one in `nix/agent-home.toml`.
+  cavekit's are now `/ck-spec`, `/ck-build`, ... so caveman's own `/caveman`
+  ships under its bare name, alongside caveman's workflow skills
+  (`investigate-first`, `surgical-patch`, `safe-refactor`, `lean-build`,
+  `migration`, `verify-and-stop`), `ultracave`, `megacave`, `cavecrew` with its
+  agents, `caveman-explore` and `caveman-stats` with its SessionEnd hook.
 - The agent home (`--agent-home`) pins cavekit to v4.1.0 with all nine skills
   (adding `deepen`, `grill`, `research` and `review`) and adds caveman v3.2.0:
   its hooks keep sessions and subagents in terse caveman mode, with the

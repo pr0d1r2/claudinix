@@ -70,13 +70,31 @@ let
   rtk = nix-rtk.packages.${pkgs.stdenv.hostPlatform.system}.default;
   rtkMd = "${rtk-src}/hooks/rtk-awareness.md";
 
-  skillFile = src: name: {
+  # One skill directory linked into ~/.claude/skills under NAME.
+  skillLink = name: source: {
     name = ".claude/skills/${name}";
     value = {
-      source = "${src}/skills/${name}";
+      inherit source;
       recursive = true;
     };
   };
+  # cavekit's skills are renamed `ck-<name>` and their verb references
+  # patched, for the cavekit skills switched on (nix:T154, nix:V47, nix:B50); caveman's are linked as they are.
+  # ck-skill.sh calls ck-refs.sh next to it, so they travel as a directory.
+  cavekitScripts = ../scripts/nix;
+  ckSkill =
+    name:
+    pkgs.runCommand "ck-${name}" { }
+      "bash ${cavekitScripts}/ck-skill.sh ${cavekit}/skills/${name} ${name} $out ${toString skills.cavekit}";
+  # cavecrew's agents are whatever the caveman source ships as
+  # `agents/cavecrew-*.md` (nix:T154).
+  # FORMAT.md names the commands too: rewritten like the skills (nix:B51).
+  ckFormat =
+    pkgs.runCommand "ck-FORMAT.md" { }
+      "bash ${cavekitScripts}/ck-refs.sh ${cavekit}/FORMAT.md $out ${toString skills.cavekit}";
+  cavecrewAgents = pkgs.lib.filter (name: pkgs.lib.hasPrefix "cavecrew-" name) (
+    builtins.attrNames (builtins.readDir "${caveman}/agents")
+  );
 in
 home-manager.lib.homeManagerConfiguration {
   inherit pkgs;
@@ -95,12 +113,20 @@ home-manager.lib.homeManagerConfiguration {
 
         file =
           builtins.listToAttrs (
-            map (skillFile cavekit) skills.cavekit ++ map (skillFile caveman) skills.caveman
+            map (name: skillLink "ck-${name}" (ckSkill name)) skills.cavekit
+            ++ map (name: skillLink name "${caveman}/skills/${name}") skills.caveman
+            # cavecrew delegates to its own agents (nix:T154).
+            ++ pkgs.lib.optionals skills.cavecrew (
+              map (file: {
+                name = ".claude/agents/${file}";
+                value.source = "${caveman}/agents/${file}";
+              }) cavecrewAgents
+            )
           )
           // {
             # The skills say "read FORMAT.md"; with no plugin root in the
             # cloud, ~/.claude is where they find it.
-            ".claude/FORMAT.md".source = "${cavekit}/FORMAT.md";
+            ".claude/FORMAT.md".source = ckFormat;
             ".claude/RTK.md".source = rtkMd;
             # The set's rules and their always-on manifest, as
             # set-and-setting's README places them for home-manager.
@@ -152,6 +178,10 @@ home-manager.lib.homeManagerConfiguration {
           SessionStart = cavemanHookEntry (cavemanHook "caveman-activate.js");
           SubagentStart = cavemanHookEntry "${cavemanHook "caveman-activate.js"} --subagent";
           UserPromptSubmit = cavemanHookEntry (cavemanHook "caveman-mode-tracker.js");
+        }
+        # caveman-stats reads what this records at session end (nix:T154).
+        // pkgs.lib.optionalAttrs skills.stats {
+          SessionEnd = cavemanHookEntry "${cavemanHook "caveman-stats.js"} --record";
         };
         # Without a statusLine, caveman-activate.js asks the agent to set
         # one up every session; a cloud session shows none, but this stops

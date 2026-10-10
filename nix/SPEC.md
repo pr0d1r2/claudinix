@@ -28,6 +28,7 @@ V15: activation failover (tier logged): (1) `nix build "git+https://github.com/p
 V16: agent home = agent-level tools \& skills only; ⊥ language toolchains (target devShell owns, C3).
 V45: home ⊥ ships a skill that competes with a gate rule (`caveman-commit` vs `commit-msg`).
 V46: caveman hook \& `statusLine` commands: absolute interpreter, script in store, timeout ≥ 30.
+V47: `~/.claude/skills` = exactly the enabled toggles of `nix/agent-home.toml` (cavekit as `ck-<n>`); ∀ skill: dir name = its `name:`; `/<v>` → `/ck-<v>` ⇔ `v` shipped (B50), ∀ `/ck-<v>` resolves; FORMAT.md too (B51).
 
 ## §T TASKS
 
@@ -42,6 +43,7 @@ T144|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T145`,B23
 T147|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,T144,B23
 T151|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:C14`,`.:C6`
 T153|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:V30`
+T154|x|ARCHIVED to SPEC-ARCHIVE.md|C12,C33,V45,V46,V47
 
 ## §B BUGS
 
@@ -52,3 +54,5 @@ B46|2026-10-09|`caveman-commit` ("skip the body") in sessions; `commit-msg` refu
 B47|2026-10-09|check matched strings only; moved `src/hooks` passed|V46: script must exist
 B48|2026-10-09|`statusLine` ran `bash` from PATH|V46: absolute interpreter
 B49|2026-10-09|hook timeout 5 vs upstream 30; slow start drops terse mode|V46: timeout ≥ 30
+B50|2026-10-10|hardcoded verb list: toggle off/new skill → dangling `/ck-x`, unpatched `/x`; 2 passes missed `/a,/b,/c`|V47: nix passes verbs; refs checked
+B51|2026-10-10|FORMAT.md named `/spec`, `/build`: absent in home|V47: same rewrite, checked

@@ -11,7 +11,7 @@
 
 [![gate hk](https://img.shields.io/badge/gate-hk-6E4AFF)](hk.pkl)
 [![gate steps 37 commit / 41 push](https://img.shields.io/badge/gate_steps-37_commit_%2F_41_push-6E4AFF)](hk.pkl)
-[![bats tests 803](https://img.shields.io/badge/bats_tests-803-brightgreen)](tests/unit)
+[![bats tests 832](https://img.shields.io/badge/bats_tests-832-brightgreen)](tests/unit)
 [![federated nodes 6](https://img.shields.io/badge/federated_nodes-6-6E4AFF)](SPEC.md)
 
 [![built with Claude Code](https://img.shields.io/badge/built_with-Claude_Code-D97757)](https://claude.com/claude-code)
@@ -139,12 +139,19 @@ The agent home is the owner's own Claude setup, activated for the session's
 user (root) before Claude starts. It installs:
 
 - the owner's set of rules, in `~/.claude/rules`;
-- the cavekit v4.1.0 skills `spec`, `build`, `check`, `backprop`, `caveman`,
-  `deepen`, `grill`, `research` and `review`, and the `FORMAT.md` they read;
+- the cavekit v4.1.0 skills, as `ck-spec`, `ck-build`, `ck-check`,
+  `ck-backprop`, `ck-caveman`, `ck-deepen`, `ck-grill`, `ck-research` and
+  `ck-review`, and the `FORMAT.md` they read;
 - [caveman](https://github.com/JuliusBrussee/caveman) v3.2.0: its hooks put
   every session and subagent in terse caveman mode (written text such as
-  commits and PR comments stays plain English), with the `caveman-review`,
-  `caveman-help` and `caveman-compress` skills;
+  commits and PR comments stays plain English), with its skills: `caveman`
+  itself, `caveman-review`, `caveman-help`, `caveman-compress`, the
+  workflows `investigate-first`, `surgical-patch`, `safe-refactor`,
+  `lean-build`, `migration` and `verify-and-stop`, `ultracave`, `megacave`,
+  `cavecrew` (with its three agents), `caveman-explore` and `caveman-stats`
+  (with a hook that records token use at session end).
+  Each skill has its own toggle in
+  [`nix/agent-home.toml`](nix/agent-home.toml);
 - a `claude-code` home-manager configuration;
 - [rtk](https://github.com/rtk-ai/rtk), whose Claude Code hook rewrites
   each Bash command to `rtk <cmd>` so its output comes back condensed, with

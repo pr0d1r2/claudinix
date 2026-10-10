@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # `checks.x86_64-linux.cloud-home`: the agent home's activation package
 # carries what a cloud session needs at launch (SPEC nix:T16, nix:V14,
-# C12): the cavekit and caveman skills (the SKILL... arguments), the
+# C12): exactly the cavekit and caveman skills toggled on (the SKILL...
+# arguments, nix:V47), each named as its directory, with cavecrew's agents
+# and the caveman-stats SessionEnd hook when those are on (nix:T154), the
 # FORMAT.md they read, and the set rules; and the settings.json its
 # activation writes carries exactly the cloud permissions in PERMISSIONS
 # (T101). It also carries the rtk pieces (nix:T151): the rtk binary,
@@ -16,8 +18,8 @@
 # missing. OUT is created only when nothing is missing.
 #
 # Usage: cloud-home-check.sh ACTIVATION_PACKAGE PERMISSIONS OUT SKILL...
-# SKILL... are the skills the home must carry: nix/cloud-skills.nix is
-# their one list.
+# SKILL... are the skills the home must carry, as linked (cavekit's as
+# ck-<name>): nix/cloud-skills.nix reads them from nix/agent-home.toml.
 
 set -euo pipefail
 
@@ -33,12 +35,64 @@ if [ ! -d "$1/home-files" ]; then
 fi
 
 status=0
-for skill in "${@:4}"; do
+skills=("${@:4}")
+# shipped NAME: NAME is one of the SKILL... arguments.
+shipped() {
+    local skill
+    for skill in "${skills[@]}"; do
+        [ "$skill" = "$1" ] && return 0
+    done
+    return 1
+}
+for skill in "${skills[@]}"; do
     if [ ! -s "$claude/skills/$skill/SKILL.md" ]; then
         echo "cloud-home-check: missing ~/.claude/skills/$skill/SKILL.md" >&2
         status=1
+        continue
+    fi
+    # A skill is invoked by its frontmatter name; cavekit's are renamed
+    # to ck-<name>, so the name must follow the directory (nix:V47).
+    declared="$(awk '/^---$/ { n++; next } n == 1 && /^name: / { print; exit }' "$claude/skills/$skill/SKILL.md")"
+    if [ "$declared" != "name: $skill" ]; then
+        echo "cloud-home-check: ~/.claude/skills/$skill/SKILL.md says '$declared', not 'name: $skill'" >&2
+        status=1
     fi
 done
+# Exactly the toggled skills, nothing else (nix:V47).
+for dir in "$claude"/skills/*; do
+    [ -e "$dir" ] || continue
+    if ! shipped "$(basename "$dir")"; then
+        echo "cloud-home-check: ~/.claude/skills/$(basename "$dir") is not a toggled skill" >&2
+        status=1
+    fi
+done
+# Every `/ck-<verb>` a shipped skill names is a shipped skill (nix:V47,
+# nix:B50): a toggled-off cavekit skill must not stay referenced.
+while read -r file ref; do
+    if ! shipped "${ref#/}"; then
+        echo "cloud-home-check: ${file#"$claude"/} names $ref, which is not a shipped skill" >&2
+        status=1
+    fi
+done < <(grep -rEo --include='*.md' '(^|[^[:alnum:]_./:-])/ck-[a-z]+' "$claude/skills" 2>/dev/null |
+    sed -E 's/^([^:]*):[^/]*(\/ck-[a-z]+)$/\1 \2/' | sort -u)
+# cavecrew delegates to its agents, which ship only with it (nix:T154);
+# their names come from the caveman source, so the check counts them.
+agents=("$claude"/agents/cavecrew-*.md)
+if shipped cavecrew; then
+    if [ ! -e "${agents[0]}" ]; then
+        echo "cloud-home-check: cavecrew is on but ~/.claude/agents has no cavecrew-*.md" >&2
+        status=1
+    fi
+    for file in "${agents[@]}"; do
+        if [ -e "$file" ] && [ ! -s "$file" ]; then
+            echo "cloud-home-check: ~/.claude/agents/$(basename "$file") is empty" >&2
+            status=1
+        fi
+    done
+elif [ -e "${agents[0]}" ]; then
+    echo "cloud-home-check: cavecrew is off but ~/.claude/agents/$(basename "${agents[0]}") ships" >&2
+    status=1
+fi
 # caveman-commit tells a session to skip the commit body that the repo's
 # `commit-msg` gate requires (nix:V45).
 if [ -e "$claude/skills/caveman-commit" ]; then
@@ -48,6 +102,16 @@ fi
 if [ ! -s "$claude/FORMAT.md" ]; then
     echo "cloud-home-check: missing ~/.claude/FORMAT.md" >&2
     status=1
+else
+    # It names the commands the home has, not cavekit's plugin ones (nix:B51).
+    for skill in "${skills[@]}"; do
+        verb="${skill#ck-}"
+        if [ "$verb" != "$skill" ] &&
+            grep -qE "(^|[^[:alnum:]_./:-])/(ck:)?$verb([^[:alnum:]_/-]|\$)" "$claude/FORMAT.md"; then
+            echo "cloud-home-check: ~/.claude/FORMAT.md names /$verb, not /ck-$verb" >&2
+            status=1
+        fi
+    done
 fi
 
 # rtk (nix:T151): the binary setup links onto PATH, the RTK.md it reads,
@@ -97,8 +161,16 @@ else
     # caveman (nix:T153): each hook runs its script under an absolute node,
     # since a cloud session has no node on PATH, and a statusLine is set,
     # else caveman-activate.js asks the agent to set one up.
-    for hook in SessionStart:caveman-activate.js SubagentStart:caveman-activate.js \
-        UserPromptSubmit:caveman-mode-tracker.js; do
+    hooks=(SessionStart:caveman-activate.js SubagentStart:caveman-activate.js
+        UserPromptSubmit:caveman-mode-tracker.js)
+    # caveman-stats reads what its SessionEnd hook records (nix:T154).
+    if shipped caveman-stats; then
+        hooks+=(SessionEnd:caveman-stats.js)
+    elif jq -e '[.hooks.SessionEnd[]?.hooks[]?.command // "" | test("caveman-stats\\.js")] | any' "$scratch/.claude/settings.json" >/dev/null 2>&1; then
+        echo "cloud-home-check: caveman-stats is off but ~/.claude/settings.json has a SessionEnd hook running it" >&2
+        status=1
+    fi
+    for hook in "${hooks[@]}"; do
         event="${hook%%:*}"
         script="${hook#*:}"
         if ! jq -e --arg e "$event" --arg s "$script" '[.hooks[$e][]?.hooks[]?.command // "" | test("^/\\S+/bin/node \\S+/" + $s + "( |$)")] | any' "$scratch/.claude/settings.json" >/dev/null 2>&1; then

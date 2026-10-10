@@ -7,7 +7,7 @@ version = 1
 [session]
 # Cloud jobs here run on Sonnet (AGENTS.md "Choosing the model").
 model = "sonnet"
-# Its own cloud agents build it with cavekit `/build`, which the agent
+# Its own cloud agents build it with the cavekit skills (nix:V47), which the agent
 # home installs; this also dogfoods the opt-in (C24, C29, T101).
 agent_home = true
 
