@@ -66,6 +66,15 @@ for dir in "$claude"/skills/*; do
         status=1
     fi
 done
+# Every `/ck-<verb>` a shipped skill names is a shipped skill (nix:V47,
+# nix:B50): a toggled-off cavekit skill must not stay referenced.
+while read -r file ref; do
+    if ! shipped "${ref#/}"; then
+        echo "cloud-home-check: ${file#"$claude"/} names $ref, which is not a shipped skill" >&2
+        status=1
+    fi
+done < <(grep -rEo --include='*.md' '(^|[^[:alnum:]_./:-])/ck-[a-z]+' "$claude/skills" 2>/dev/null |
+    sed -E 's/^([^:]*):[^/]*(\/ck-[a-z]+)$/\1 \2/' | sort -u)
 # cavecrew delegates to its three agents, which ship only with it (nix:T154).
 for agent in builder investigator reviewer; do
     file="$claude/agents/cavecrew-$agent.md"
