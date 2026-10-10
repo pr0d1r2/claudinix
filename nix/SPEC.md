@@ -28,7 +28,7 @@ V15: activation failover (tier logged): (1) `nix build "git+https://github.com/p
 V16: agent home = agent-level tools \& skills only; ⊥ language toolchains (target devShell owns, C3).
 V45: home ⊥ ships a skill that competes with a gate rule (`caveman-commit` vs `commit-msg`).
 V46: caveman hook \& `statusLine` commands: absolute interpreter, script in store, timeout ≥ 30.
-V47: `~/.claude/skills` = exactly the enabled toggles of `nix/agent-home.toml` (cavekit as `ck-<n>`); ∀ skill: dir name = its `name:`.
+V47: `~/.claude/skills` = exactly the enabled toggles of `nix/agent-home.toml` (cavekit as `ck-<n>`); ∀ skill: dir name = its `name:`; `/ck-<v>` refs rewritten ⇔ `v` is a shipped cavekit skill (nix passes the verbs, B50), ∀ `/ck-<v>` in a shipped skill resolves.
 
 ## §T TASKS
 
@@ -54,3 +54,4 @@ B46|2026-10-09|`caveman-commit` ("skip the body") in sessions; `commit-msg` refu
 B47|2026-10-09|check matched strings only; moved `src/hooks` passed|V46: script must exist
 B48|2026-10-09|`statusLine` ran `bash` from PATH|V46: absolute interpreter
 B49|2026-10-09|hook timeout 5 vs upstream 30; slow start drops terse mode|V46: timeout ≥ 30
+B50|2026-10-10|`ck-skill.sh` hardcoded the verb list: toggle off or new skill → `/ck-x` dangling or `/x` unpatched; 2 sed passes missed `/a,/b,/c`|V47: verbs passed from nix; refs checked; rewrite to fixpoint
