@@ -381,7 +381,7 @@ DEFAULTS='{"cache":{"name":"pr0d1r2","push_sources":false},"devshell":{"installa
 }
 
 @test "this repo's own .claudinix.toml turns the agent home on (.:T101, .:C29)" {
-    # Its cloud agents build it with cavekit `/build`, which the agent
+    # Its cloud agents build it with the cavekit skills (nix:V47), which the agent
     # home installs; the file also dogfoods the opt-in (C24).
     cp "$BATS_TEST_DIRNAME/../../../.claudinix.toml" "$PROJECT/.claudinix.toml"
     run --separate-stderr bash "$SCRIPT" get session.agent_home
