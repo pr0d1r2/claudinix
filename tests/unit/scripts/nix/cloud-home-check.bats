@@ -71,6 +71,25 @@ full_home() {
     [ -e "$OUT" ]
 }
 
+@test "a /ck-<verb> reference to a skill not shipped: fails, names it (nix:V47, nix:B50)" {
+    full_home
+    rm -r "$CLAUDE/skills/ck-research"
+    echo "Run /ck-research first, then /ck-build." >>"$CLAUDE/skills/ck-spec/SKILL.md"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" ${SKILLS/ck-research /}
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"skills/ck-spec/SKILL.md"* ]]
+    [[ "$output" == *"/ck-research"* ]]
+    [[ "$output" != *"/ck-build"* ]]
+    [ ! -e "$OUT" ]
+}
+
+@test "a /ck-<verb> reference to a shipped skill: passes (nix:V47)" {
+    full_home
+    echo "Run /ck-build, see skills/ck-spec/SKILL.md." >>"$CLAUDE/skills/ck-spec/SKILL.md"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
+    [ "$status" -eq 0 ]
+}
+
 @test "missing skill: fails, names it, writes no OUT" {
     full_home
     rm "$CLAUDE/skills/ck-backprop/SKILL.md"
