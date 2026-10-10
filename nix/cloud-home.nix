@@ -79,11 +79,11 @@ let
     };
   };
   # cavekit's skills are renamed `ck-<name>` and their verb references
-  # patched (nix:T154, nix:V47); caveman's are linked as they are.
+  # patched, for the cavekit skills switched on (nix:T154, nix:V47, nix:B50); caveman's are linked as they are.
   ckSkill =
     name:
     pkgs.runCommand "ck-${name}" { }
-      "bash ${../scripts/nix/ck-skill.sh} ${cavekit}/skills/${name} ${name} $out";
+      "bash ${../scripts/nix/ck-skill.sh} ${cavekit}/skills/${name} ${name} $out ${toString skills.cavekit}";
   cavecrewAgents = [
     "builder"
     "investigator"
