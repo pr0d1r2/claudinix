@@ -62,8 +62,9 @@ access. That makes the following the classes worth reporting:
    every command Claude runs. `rtk proxy <cmd>` runs a command unfiltered.
    **It also injects instructions on every prompt.** caveman's hooks run
    Node scripts from the pinned caveman source at session start, at
-   subagent start and on every prompt; each adds the caveman rules to
-   Claude's context and writes a mode flag under `/root/.claude`. They
+   subagent start and on every prompt (and, with `caveman-stats`, at
+   session end to record token use); each adds the caveman rules to
+   Claude's context or writes a flag or log under `/root/.claude`. They
    make no network calls. You trust those scripts and rules as you trust
    the skills.
    **It also pre-approves commands.** It writes a narrow permission list
