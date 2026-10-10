@@ -70,13 +70,25 @@ let
   rtk = nix-rtk.packages.${pkgs.stdenv.hostPlatform.system}.default;
   rtkMd = "${rtk-src}/hooks/rtk-awareness.md";
 
-  skillFile = src: name: {
+  # One skill directory linked into ~/.claude/skills under NAME.
+  skillLink = name: source: {
     name = ".claude/skills/${name}";
     value = {
-      source = "${src}/skills/${name}";
+      inherit source;
       recursive = true;
     };
   };
+  # cavekit's skills are renamed `ck-<name>` and their verb references
+  # patched (nix:T154, nix:V47); caveman's are linked as they are.
+  ckSkill =
+    name:
+    pkgs.runCommand "ck-${name}" { }
+      "bash ${../scripts/nix/ck-skill.sh} ${cavekit}/skills/${name} ${name} $out";
+  cavecrewAgents = [
+    "builder"
+    "investigator"
+    "reviewer"
+  ];
 in
 home-manager.lib.homeManagerConfiguration {
   inherit pkgs;
@@ -95,7 +107,15 @@ home-manager.lib.homeManagerConfiguration {
 
         file =
           builtins.listToAttrs (
-            map (skillFile cavekit) skills.cavekit ++ map (skillFile caveman) skills.caveman
+            map (name: skillLink "ck-${name}" (ckSkill name)) skills.cavekit
+            ++ map (name: skillLink name "${caveman}/skills/${name}") skills.caveman
+            # cavecrew delegates to its own agents (nix:T154).
+            ++ pkgs.lib.optionals skills.cavecrew (
+              map (agent: {
+                name = ".claude/agents/cavecrew-${agent}.md";
+                value.source = "${caveman}/agents/cavecrew-${agent}.md";
+              }) cavecrewAgents
+            )
           )
           // {
             # The skills say "read FORMAT.md"; with no plugin root in the
@@ -152,6 +172,10 @@ home-manager.lib.homeManagerConfiguration {
           SessionStart = cavemanHookEntry (cavemanHook "caveman-activate.js");
           SubagentStart = cavemanHookEntry "${cavemanHook "caveman-activate.js"} --subagent";
           UserPromptSubmit = cavemanHookEntry (cavemanHook "caveman-mode-tracker.js");
+        }
+        # caveman-stats reads what this records at session end (nix:T154).
+        // pkgs.lib.optionalAttrs skills.stats {
+          SessionEnd = cavemanHookEntry "${cavemanHook "caveman-stats.js"} --record";
         };
         # Without a statusLine, caveman-activate.js asks the agent to set
         # one up every session; a cloud session shows none, but this stops

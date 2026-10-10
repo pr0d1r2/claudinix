@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # `checks.x86_64-linux.cloud-home`: the agent home's activation package
 # carries what a cloud session needs at launch (SPEC nix:T16, nix:V14,
-# C12): the cavekit and caveman skills (the SKILL... arguments), the
+# C12): exactly the cavekit and caveman skills toggled on (the SKILL...
+# arguments, nix:V47), each named as its directory, with cavecrew's agents
+# and the caveman-stats SessionEnd hook when those are on (nix:T154), the
 # FORMAT.md they read, and the set rules; and the settings.json its
 # activation writes carries exactly the cloud permissions in PERMISSIONS
 # (T101). It also carries the rtk pieces (nix:T151): the rtk binary,
@@ -16,8 +18,8 @@
 # missing. OUT is created only when nothing is missing.
 #
 # Usage: cloud-home-check.sh ACTIVATION_PACKAGE PERMISSIONS OUT SKILL...
-# SKILL... are the skills the home must carry: nix/cloud-skills.nix is
-# their one list.
+# SKILL... are the skills the home must carry, as linked (cavekit's as
+# ck-<name>): nix/cloud-skills.nix reads them from nix/agent-home.toml.
 
 set -euo pipefail
 
@@ -33,9 +35,45 @@ if [ ! -d "$1/home-files" ]; then
 fi
 
 status=0
-for skill in "${@:4}"; do
+skills=("${@:4}")
+# shipped NAME: NAME is one of the SKILL... arguments.
+shipped() {
+    local skill
+    for skill in "${skills[@]}"; do
+        [ "$skill" = "$1" ] && return 0
+    done
+    return 1
+}
+for skill in "${skills[@]}"; do
     if [ ! -s "$claude/skills/$skill/SKILL.md" ]; then
         echo "cloud-home-check: missing ~/.claude/skills/$skill/SKILL.md" >&2
+        status=1
+        continue
+    fi
+    # A skill is invoked by its frontmatter name; cavekit's are renamed
+    # to ck-<name>, so the name must follow the directory (nix:V47).
+    declared="$(awk '/^---$/ { n++; next } n == 1 && /^name: / { print; exit }' "$claude/skills/$skill/SKILL.md")"
+    if [ "$declared" != "name: $skill" ]; then
+        echo "cloud-home-check: ~/.claude/skills/$skill/SKILL.md says '$declared', not 'name: $skill'" >&2
+        status=1
+    fi
+done
+# Exactly the toggled skills, nothing else (nix:V47).
+for dir in "$claude"/skills/*; do
+    [ -e "$dir" ] || continue
+    if ! shipped "$(basename "$dir")"; then
+        echo "cloud-home-check: ~/.claude/skills/$(basename "$dir") is not a toggled skill" >&2
+        status=1
+    fi
+done
+# cavecrew delegates to its three agents, which ship only with it (nix:T154).
+for agent in builder investigator reviewer; do
+    file="$claude/agents/cavecrew-$agent.md"
+    if shipped cavecrew && [ ! -s "$file" ]; then
+        echo "cloud-home-check: cavecrew is on but ~/.claude/agents/cavecrew-$agent.md is missing" >&2
+        status=1
+    elif ! shipped cavecrew && [ -e "$file" ]; then
+        echo "cloud-home-check: cavecrew is off but ~/.claude/agents/cavecrew-$agent.md ships" >&2
         status=1
     fi
 done
@@ -97,8 +135,13 @@ else
     # caveman (nix:T153): each hook runs its script under an absolute node,
     # since a cloud session has no node on PATH, and a statusLine is set,
     # else caveman-activate.js asks the agent to set one up.
-    for hook in SessionStart:caveman-activate.js SubagentStart:caveman-activate.js \
-        UserPromptSubmit:caveman-mode-tracker.js; do
+    hooks=(SessionStart:caveman-activate.js SubagentStart:caveman-activate.js
+        UserPromptSubmit:caveman-mode-tracker.js)
+    # caveman-stats reads what its SessionEnd hook records (nix:T154).
+    if shipped caveman-stats; then
+        hooks+=(SessionEnd:caveman-stats.js)
+    fi
+    for hook in "${hooks[@]}"; do
         event="${hook%%:*}"
         script="${hook#*:}"
         if ! jq -e --arg e "$event" --arg s "$script" '[.hooks[$e][]?.hooks[]?.command // "" | test("^/\\S+/bin/node \\S+/" + $s + "( |$)")] | any' "$scratch/.claude/settings.json" >/dev/null 2>&1; then
