@@ -80,12 +80,18 @@ let
   };
   # cavekit's skills are renamed `ck-<name>` and their verb references
   # patched, for the cavekit skills switched on (nix:T154, nix:V47, nix:B50); caveman's are linked as they are.
+  # ck-skill.sh calls ck-refs.sh next to it, so they travel as a directory.
+  cavekitScripts = ../scripts/nix;
   ckSkill =
     name:
     pkgs.runCommand "ck-${name}" { }
-      "bash ${../scripts/nix/ck-skill.sh} ${cavekit}/skills/${name} ${name} $out ${toString skills.cavekit}";
+      "bash ${cavekitScripts}/ck-skill.sh ${cavekit}/skills/${name} ${name} $out ${toString skills.cavekit}";
   # cavecrew's agents are whatever the caveman source ships as
   # `agents/cavecrew-*.md` (nix:T154).
+  # FORMAT.md names the commands too: rewritten like the skills (nix:B51).
+  ckFormat =
+    pkgs.runCommand "ck-FORMAT.md" { }
+      "bash ${cavekitScripts}/ck-refs.sh ${cavekit}/FORMAT.md $out ${toString skills.cavekit}";
   cavecrewAgents = pkgs.lib.filter (name: pkgs.lib.hasPrefix "cavecrew-" name) (
     builtins.attrNames (builtins.readDir "${caveman}/agents")
   );
@@ -120,7 +126,7 @@ home-manager.lib.homeManagerConfiguration {
           // {
             # The skills say "read FORMAT.md"; with no plugin root in the
             # cloud, ~/.claude is where they find it.
-            ".claude/FORMAT.md".source = "${cavekit}/FORMAT.md";
+            ".claude/FORMAT.md".source = ckFormat;
             ".claude/RTK.md".source = rtkMd;
             # The set's rules and their always-on manifest, as
             # set-and-setting's README places them for home-manager.
