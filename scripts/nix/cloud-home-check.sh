@@ -149,6 +149,9 @@ else
     # caveman-stats reads what its SessionEnd hook records (nix:T154).
     if shipped caveman-stats; then
         hooks+=(SessionEnd:caveman-stats.js)
+    elif jq -e '[.hooks.SessionEnd[]?.hooks[]?.command // "" | test("caveman-stats\\.js")] | any' "$scratch/.claude/settings.json" >/dev/null 2>&1; then
+        echo "cloud-home-check: caveman-stats is off but ~/.claude/settings.json has a SessionEnd hook running it" >&2
+        status=1
     fi
     for hook in "${hooks[@]}"; do
         event="${hook%%:*}"

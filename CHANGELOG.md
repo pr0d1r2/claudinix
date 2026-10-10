@@ -20,7 +20,9 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
-- The agent home's check (`checks.cloud-home`) now fails when a shipped skill
+- The agent home's check (`checks.cloud-home`) also fails when the
+  `caveman-stats` SessionEnd hook is present with that skill switched off, and
+  when a shipped skill
   names a `/ck-<verb>` skill the home does not ship.
 - The agent home rewrites `/<verb>` references in cavekit's skills to `/ck-<verb>`
   only for the cavekit skills switched on, so a toggle never leaves a dangling
