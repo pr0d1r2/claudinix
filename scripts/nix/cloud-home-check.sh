@@ -102,6 +102,16 @@ fi
 if [ ! -s "$claude/FORMAT.md" ]; then
     echo "cloud-home-check: missing ~/.claude/FORMAT.md" >&2
     status=1
+else
+    # It names the commands the home has, not cavekit's plugin ones (nix:B51).
+    for skill in "${skills[@]}"; do
+        verb="${skill#ck-}"
+        if [ "$verb" != "$skill" ] &&
+            grep -qE "(^|[^[:alnum:]_./:-])/(ck:)?$verb([^[:alnum:]_/-]|\$)" "$claude/FORMAT.md"; then
+            echo "cloud-home-check: ~/.claude/FORMAT.md names /$verb, not /ck-$verb" >&2
+            status=1
+        fi
+    done
 fi
 
 # rtk (nix:T151): the binary setup links onto PATH, the RTK.md it reads,
