@@ -90,6 +90,23 @@ full_home() {
     [ "$status" -eq 0 ]
 }
 
+@test "FORMAT.md naming a shipped cavekit skill by its bare verb: fails (nix:B51)" {
+    full_home
+    echo "Run /spec new, then /ck-build." >"$CLAUDE/FORMAT.md"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"FORMAT.md"* ]]
+    [[ "$output" == *"/spec"* ]]
+    [ ! -e "$OUT" ]
+}
+
+@test "FORMAT.md naming a verb that is not shipped: passes (nix:B51)" {
+    full_home
+    echo "Run /ck-build, not /zzz." >"$CLAUDE/FORMAT.md"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
+    [ "$status" -eq 0 ]
+}
+
 @test "missing skill: fails, names it, writes no OUT" {
     full_home
     rm "$CLAUDE/skills/ck-backprop/SKILL.md"
