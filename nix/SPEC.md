@@ -28,6 +28,7 @@ V15: activation failover (tier logged): (1) `nix build "git+https://github.com/p
 V16: agent home = agent-level tools \& skills only; ⊥ language toolchains (target devShell owns, C3).
 V45: home ⊥ ships a skill that competes with a gate rule (`caveman-commit` vs `commit-msg`).
 V46: caveman hook \& `statusLine` commands: absolute interpreter, script in store, timeout ≥ 30.
+V47: `~/.claude/skills` = exactly the enabled toggles of `nix/agent-home.toml` (cavekit as `ck-<n>`); ∀ skill: dir name = its `name:`.
 
 ## §T TASKS
 
@@ -42,6 +43,7 @@ T144|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T145`,B23
 T147|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,T144,B23
 T151|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:C14`,`.:C6`
 T153|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:V30`
+T154|.|per-skill toggles (owner 2026-10-10): `nix/agent-home.toml`, 1 bool/skill; cavekit as `ck-<n>` (`name:` \& `/<v>` refs patched; docs \& cloud-task prompt say `/ck-<v>`) ∴ caveman's `caveman` ships bare; + caveman's workflow, mode, subagent \& stats skills (`cavecrew` + its agents, `caveman-stats` + SessionEnd hook)|C12,C33,V45,V46,V47
 
 ## §B BUGS
 
