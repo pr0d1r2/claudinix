@@ -20,6 +20,8 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- `just cloud` tells its build session to use `/ck-build`, the name cavekit's
+  build skill now has in the agent home.
 - The agent home's skills are toggled one by one in `nix/agent-home.toml`.
   cavekit's are now `/ck-spec`, `/ck-build`, ... so caveman's own `/caveman`
   ships under its bare name, alongside caveman's workflow skills

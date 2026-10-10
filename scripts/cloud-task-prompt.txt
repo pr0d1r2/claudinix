@@ -12,8 +12,8 @@ The task row, as it stands in the spec:
 2. If the SessionStart hook warned, do what it says before you commit.
    Run tools inside the dev shell: `nix-dev --command <cmd>` when
    nix-dev is on PATH, else `nix develop --command <cmd>`.
-3. Implement exactly this task, nothing else. Use `/build @NODE@:@TASK@`
-   if the /build skill is installed; otherwise do it by hand as
+3. Implement exactly this task, nothing else. Use `/ck-build @NODE@:@TASK@`
+   if the /ck-build skill is installed; otherwise do it by hand as
    AGENTS.md says. Commits, in order: RED (`test:`, the failing bats
    file), GREEN (`feat:` or `fix:`), an optional REFACTOR, then the status
    flip `docs(spec): mark @TASK@ done` as its own commit. Each message
