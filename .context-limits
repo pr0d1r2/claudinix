@@ -49,10 +49,15 @@
 # (scripts:T145, T146, B40; nix:T144) takes scripts to about 6400 and
 # nix to 1041. Owner chose raises again; the cloud launchers should move
 # to their own node.
+#
+# Raised 2026-10-10 for nix: the agent home rows (C12, C33, V45, V46,
+# B44, B46-B49) filled the file to 1200 with every done task archived;
+# per-skill toggles (T154) need about 100 more. Owner chose a raise over
+# splitting an agent-home node. Measured 1200 before the row.
 
 SPEC.md          8700
 scripts/SPEC.md  7000
-nix/SPEC.md      1200
+nix/SPEC.md      1400
 docs/SPEC.md     1800
 experiments/SPEC.md 1200
 dev/SPEC.md      1250
