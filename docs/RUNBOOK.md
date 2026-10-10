@@ -185,7 +185,7 @@ repository.
    `just guide --rev <sha>`. A short SHA works. The guide adds
    `--agent-home` to the line by itself, because this repository's
    `.claudinix.toml` sets `session.agent_home = true`. The cloud agent
-   needs the agent home for the `/build` skill and the cloud permissions.
+   needs the agent home for the `/ck-build` skill and the cloud permissions.
 5. **Create the environment** in the browser as step 3 of the guide says:
    name `claudinix` (the guide offers it), network **Custom** with the
    default package-manager list, the domains the guide copies, and the
@@ -267,7 +267,7 @@ pull request in Safari. You still review and merge it. See
 
 The environment's setup line must include `--agent-home`. This repository's
 `.claudinix.toml` turns the agent home on, so the cloud agent gets the
-`/build` skill; without the flag it builds by hand from `AGENTS.md`. See
+`/ck-build` skill; without the flag it builds by hand from `AGENTS.md`. See
 [`SETUP.md`](SETUP.md) for the line.
 
 `--agent-home` also installs the cloud permissions: a narrow list that
