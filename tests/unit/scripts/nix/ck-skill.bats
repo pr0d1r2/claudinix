@@ -11,6 +11,7 @@ setup() {
     SCRIPT="$BATS_TEST_DIRNAME/../../../../scripts/nix/ck-skill.sh"
     SRC="$BATS_TEST_TMPDIR/src/spec"
     OUT="$BATS_TEST_TMPDIR/out"
+    VERBS=(spec build check backprop caveman deepen grill research review)
     mkdir -p "$SRC/refs"
     cat >"$SRC/SKILL.md" <<'EOF'
 ---
@@ -25,14 +26,14 @@ EOF
 }
 
 @test "frontmatter name becomes ck-<name>" {
-    run bash "$SCRIPT" "$SRC" spec "$OUT"
+    run bash "$SCRIPT" "$SRC" spec "$OUT" "${VERBS[@]}"
     [ "$status" -eq 0 ]
     grep -qx 'name: ck-spec' "$OUT/SKILL.md"
     run ! grep -qx 'name: spec' "$OUT/SKILL.md"
 }
 
 @test "plugin and bare verb references become /ck-<verb>" {
-    run bash "$SCRIPT" "$SRC" spec "$OUT"
+    run bash "$SCRIPT" "$SRC" spec "$OUT" "${VERBS[@]}"
     [ "$status" -eq 0 ]
     grep -qF 'Loaded by /ck-build and /ck-check.' "$OUT/SKILL.md"
     grep -qF 'Run /ck-review, then /ck-build T1' "$OUT/SKILL.md"
@@ -41,20 +42,20 @@ EOF
 }
 
 @test "paths and other words are left alone" {
-    run bash "$SCRIPT" "$SRC" spec "$OUT"
+    run bash "$SCRIPT" "$SRC" spec "$OUT" "${VERBS[@]}"
     [ "$status" -eq 0 ]
     grep -qF '(see skills/spec/SKILL.md)' "$OUT/SKILL.md"
     grep -qF 'Not a verb: /specs, /usr/bin/check, the /reviewer, path/build.' "$OUT/SKILL.md"
 }
 
 @test "every markdown file in the skill is patched, the tree is kept" {
-    run bash "$SCRIPT" "$SRC" spec "$OUT"
+    run bash "$SCRIPT" "$SRC" spec "$OUT" "${VERBS[@]}"
     [ "$status" -eq 0 ]
     grep -qxF 'See /ck-backprop and /ck-caveman.' "$OUT/refs/notes.md"
 }
 
 @test "a skill whose name: is not its directory name: fails" {
-    run bash "$SCRIPT" "$SRC" build "$OUT"
+    run bash "$SCRIPT" "$SRC" build "$OUT" "${VERBS[@]}"
     [ "$status" -eq 1 ]
     [[ "$output" == *"name: spec"* ]]
     [ ! -e "$OUT" ]
@@ -62,9 +63,29 @@ EOF
 
 @test "a skill without SKILL.md: fails" {
     rm "$SRC/SKILL.md"
-    run bash "$SCRIPT" "$SRC" spec "$OUT"
+    run bash "$SCRIPT" "$SRC" spec "$OUT" "${VERBS[@]}"
     [ "$status" -eq 1 ]
     [ ! -e "$OUT" ]
+}
+
+@test "only the verbs passed are rewritten (nix:B50)" {
+    run bash "$SCRIPT" "$SRC" spec "$OUT" spec build
+    [ "$status" -eq 0 ]
+    grep -qF 'Loaded by /ck-build and /ck:check.' "$OUT/SKILL.md"
+    grep -qxF 'See /backprop and /caveman.' "$OUT/refs/notes.md"
+}
+
+@test "references in a row are all rewritten (nix:B50)" {
+    echo "Run /spec,/build,/check,/grill." >"$SRC/refs/notes.md"
+    run bash "$SCRIPT" "$SRC" spec "$OUT" "${VERBS[@]}"
+    [ "$status" -eq 0 ]
+    grep -qxF 'Run /ck-spec,/ck-build,/ck-check,/ck-grill.' "$OUT/refs/notes.md"
+}
+
+@test "no verbs is a usage error" {
+    run bash "$SCRIPT" "$SRC" spec "$OUT"
+    [ "$status" -eq 2 ]
+    [[ "$output" == *"usage"* ]]
 }
 
 @test "missing arguments is a usage error" {
