@@ -401,6 +401,16 @@ without_hook() {
     [ "$status" -eq 0 ]
 }
 
+@test "caveman-stats off but its SessionEnd hook in settings: fails (nix:V47)" {
+    full_home
+    rm -r "$CLAUDE/skills/caveman-stats"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" ${SKILLS/ caveman-stats/}
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"caveman-stats is off"* ]]
+    [[ "$output" == *"SessionEnd"* ]]
+    [ ! -e "$OUT" ]
+}
+
 @test "no skill argument is a usage error" {
     run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT"
     [ "$status" -eq 2 ]
