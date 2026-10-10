@@ -21,10 +21,10 @@ setup() {
     NODE="$BATS_TEST_TMPDIR/store/abc-nodejs/bin/node"
     SRC="$BATS_TEST_TMPDIR/store/abc-source/src/hooks"
     RTKBIN="$BATS_TEST_TMPDIR/store/abc-rtk/bin/rtk"
-    HOOKS="{\"SessionStart\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-activate.js\",\"timeout\":30}]}],\"SubagentStart\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-activate.js --subagent\",\"timeout\":30}]}],\"UserPromptSubmit\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-mode-tracker.js\",\"timeout\":30}]}],\"PreToolUse\":[{\"matcher\":\"Bash\",\"hooks\":[{\"type\":\"command\",\"command\":\"$RTKBIN hook claude\"}]}]}"
+    HOOKS="{\"SessionStart\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-activate.js\",\"timeout\":30}]}],\"SubagentStart\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-activate.js --subagent\",\"timeout\":30}]}],\"UserPromptSubmit\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-mode-tracker.js\",\"timeout\":30}]}],\"SessionEnd\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-stats.js --record\",\"timeout\":30}]}],\"PreToolUse\":[{\"matcher\":\"Bash\",\"hooks\":[{\"type\":\"command\",\"command\":\"$RTKBIN hook claude\"}]}]}"
     STATUSLINE="{\"type\":\"command\",\"command\":\"$BASH_BIN $SRC/caveman-statusline.sh\"}"
-    # What nix/cloud-home.nix ships, as the flake check passes it in (nix:T153).
-    SKILLS="spec build check backprop caveman deepen grill research review caveman-review caveman-help caveman-compress"
+    # Every toggle of nix/agent-home.toml on but caveman-commit (nix:T154, V45).
+    SKILLS="ck-spec ck-build ck-check ck-backprop ck-caveman ck-deepen ck-grill ck-research ck-review caveman caveman-review caveman-help caveman-compress investigate-first surgical-patch safe-refactor lean-build migration verify-and-stop ultracave megacave cavecrew caveman-explore caveman-stats"
 }
 
 # merge_writes JSON: the settings merge the activation runs writes JSON
@@ -41,7 +41,7 @@ full_home() {
     local skill
     for skill in $SKILLS; do
         mkdir -p "$CLAUDE/skills/$skill"
-        echo "# $skill" >"$CLAUDE/skills/$skill/SKILL.md"
+        printf -- "---\nname: %s\n---\n# %s\n" "$skill" "$skill" >"$CLAUDE/skills/$skill/SKILL.md"
     done
     echo "# format" >"$CLAUDE/FORMAT.md"
     mkdir -p "$CLAUDE/rules/set"
@@ -53,7 +53,12 @@ full_home() {
     chmod +x "$PKG/home-path/bin/rtk"
     mkdir -p "$SRC" "$(dirname "$NODE")" "$(dirname "$RTKBIN")"
     mkdir -p "$(dirname "$BASH_BIN")"
-    touch "$BASH_BIN" "$NODE" "$RTKBIN" "$SRC/caveman-activate.js" "$SRC/caveman-mode-tracker.js" "$SRC/caveman-statusline.sh"
+    touch "$BASH_BIN" "$NODE" "$RTKBIN" "$SRC/caveman-activate.js" "$SRC/caveman-mode-tracker.js" "$SRC/caveman-statusline.sh" "$SRC/caveman-stats.js"
+    # cavecrew delegates to its three agents (nix:T154).
+    mkdir -p "$CLAUDE/agents"
+    for agent in builder investigator reviewer; do
+        echo "# cavecrew-$agent" >"$CLAUDE/agents/cavecrew-$agent.md"
+    done
     # shellcheck disable=SC2016 # $DRY_RUN_CMD is the activate script's own
     printf '#!/usr/bin/env bash\nnoteEcho claudeSettings\n$DRY_RUN_CMD bash %s\n' "$MERGE" >"$PKG/activate"
     merge_writes "{\"permissions\": $(cat "$PERMS"), \"model\": \"x\", \"hooks\": $HOOKS, \"statusLine\": $STATUSLINE}"
@@ -68,10 +73,10 @@ full_home() {
 
 @test "missing skill: fails, names it, writes no OUT" {
     full_home
-    rm "$CLAUDE/skills/backprop/SKILL.md"
+    rm "$CLAUDE/skills/ck-backprop/SKILL.md"
     run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
-    [[ "$output" == *"skills/backprop/SKILL.md"* ]]
+    [[ "$output" == *"skills/ck-backprop/SKILL.md"* ]]
     [ ! -e "$OUT" ]
 }
 
@@ -85,28 +90,28 @@ full_home() {
 
 @test "every missing file is reported, not only the first" {
     full_home
-    rm "$CLAUDE/skills/spec/SKILL.md" "$CLAUDE/skills/caveman/SKILL.md"
+    rm "$CLAUDE/skills/ck-spec/SKILL.md" "$CLAUDE/skills/caveman/SKILL.md"
     run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
-    [[ "$output" == *"skills/spec/SKILL.md"* ]]
+    [[ "$output" == *"skills/ck-spec/SKILL.md"* ]]
     [[ "$output" == *"skills/caveman/SKILL.md"* ]]
 }
 
 @test "empty skill file counts as missing" {
     full_home
-    : >"$CLAUDE/skills/build/SKILL.md"
+    : >"$CLAUDE/skills/ck-build/SKILL.md"
     run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
-    [[ "$output" == *"skills/build/SKILL.md"* ]]
+    [[ "$output" == *"skills/ck-build/SKILL.md"* ]]
 }
 
 @test "dangling link counts as missing" {
     full_home
-    rm "$CLAUDE/skills/check/SKILL.md"
-    ln -s "$BATS_TEST_TMPDIR/nowhere" "$CLAUDE/skills/check/SKILL.md"
+    rm "$CLAUDE/skills/ck-check/SKILL.md"
+    ln -s "$BATS_TEST_TMPDIR/nowhere" "$CLAUDE/skills/ck-check/SKILL.md"
     run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
-    [[ "$output" == *"skills/check/SKILL.md"* ]]
+    [[ "$output" == *"skills/ck-check/SKILL.md"* ]]
 }
 
 @test "set rules dir without any rule: fails" {
@@ -202,10 +207,10 @@ full_home() {
 
 @test "missing cavekit 4.1 skill: fails and names it (nix:T153)" {
     full_home
-    rm "$CLAUDE/skills/grill/SKILL.md"
+    rm "$CLAUDE/skills/ck-grill/SKILL.md"
     run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 1 ]
-    [[ "$output" == *"skills/grill/SKILL.md"* ]]
+    [[ "$output" == *"skills/ck-grill/SKILL.md"* ]]
     [ ! -e "$OUT" ]
 }
 
@@ -316,6 +321,65 @@ without_hook() {
     [ "$status" -eq 1 ]
     [[ "$output" == *"skills/not-shipped/SKILL.md"* ]]
     [ ! -e "$OUT" ]
+}
+
+@test "a skill that is not toggled on: fails and names it (nix:V47)" {
+    full_home
+    mkdir -p "$CLAUDE/skills/stray"
+    printf -- "---\nname: stray\n---\n" >"$CLAUDE/skills/stray/SKILL.md"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"skills/stray"* ]]
+    [ ! -e "$OUT" ]
+}
+
+@test "a skill whose name: is not its directory: fails and names both (nix:V47)" {
+    full_home
+    printf -- "---\nname: spec\n---\n" >"$CLAUDE/skills/ck-spec/SKILL.md"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"ck-spec"* ]]
+    [[ "$output" == *"name: spec"* ]]
+}
+
+@test "cavecrew on, one of its agents missing: fails and names it (nix:T154)" {
+    full_home
+    rm "$CLAUDE/agents/cavecrew-reviewer.md"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"agents/cavecrew-reviewer.md"* ]]
+}
+
+@test "cavecrew off: its agents must be gone too (nix:T154)" {
+    full_home
+    rm -r "$CLAUDE/skills/cavecrew"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" ${SKILLS/ cavecrew/}
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"agents/cavecrew-"* ]]
+}
+
+@test "cavecrew off and no agents: passes (nix:T154)" {
+    full_home
+    rm -r "$CLAUDE/skills/cavecrew" "$CLAUDE/agents"
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" ${SKILLS/ cavecrew/}
+    [ "$status" -eq 0 ]
+}
+
+@test "caveman-stats on without its SessionEnd hook: fails (nix:T154)" {
+    full_home
+    without_hook SessionEnd
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"SessionEnd"* ]]
+    [[ "$output" == *"caveman-stats.js"* ]]
+}
+
+@test "caveman-stats off: no SessionEnd hook needed (nix:T154)" {
+    full_home
+    rm -r "$CLAUDE/skills/caveman-stats"
+    without_hook SessionEnd
+    run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" ${SKILLS/ caveman-stats/}
+    [ "$status" -eq 0 ]
 }
 
 @test "no skill argument is a usage error" {
