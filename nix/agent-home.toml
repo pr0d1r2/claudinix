@@ -1,0 +1,45 @@
+# The agent home's skills, one toggle each (SPEC nix:T154, nix:V47).
+# Flip a line and push: CI rebuilds the agent home and pushes it to
+# cachix, so cloud sessions still substitute it. `checks.cloud-home`
+# holds the home to exactly the skills switched on here.
+
+# cavekit v4.1.0, linked as `ck-<name>` (`/ck-spec`, `/ck-build`, ...):
+# with no plugin namespace in the cloud, the prefix keeps them apart
+# from caveman's skills.
+[cavekit]
+spec = true
+build = true
+check = true
+backprop = true
+caveman = true
+deepen = true
+grill = true
+research = true
+review = true
+
+# caveman v3.2.0, under their own names. Its hooks (terse mode at session
+# and subagent start, kept per prompt) run whatever is switched on here.
+[caveman]
+# The mode itself: `/caveman lite|full|ultra`, "stop caveman".
+caveman = true
+caveman-review = true
+caveman-help = true
+caveman-compress = true
+# Must stay false: it drops the commit body the `commit-msg` gate requires
+# (nix:V45); the flake refuses to evaluate with it on.
+caveman-commit = false
+# Engineering workflows.
+investigate-first = true
+surgical-patch = true
+safe-refactor = true
+lean-build = true
+migration = true
+verify-and-stop = true
+# More compression: maximum, and Classical Chinese.
+ultracave = true
+megacave = true
+# Delegation: cavecrew also installs its three `cavecrew-*` agents.
+cavecrew = true
+caveman-explore = true
+# Token stats: also adds the SessionEnd hook that records them.
+caveman-stats = true

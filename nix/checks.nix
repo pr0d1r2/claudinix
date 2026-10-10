@@ -44,7 +44,5 @@ in
   # statusLine run existing scripts by absolute paths (nix:V46).
   cloud-home =
     pkgs.runCommand "cloud-home-check" { nativeBuildInputs = [ pkgs.jq ]; }
-      "bash ${../scripts/nix/cloud-home-check.sh} ${cloudHome.activationPackage} ${./cloud-permissions.json} $out ${
-        toString (skills.cavekit ++ skills.caveman)
-      }";
+      "bash ${../scripts/nix/cloud-home-check.sh} ${cloudHome.activationPackage} ${./cloud-permissions.json} $out ${toString skills.linked}";
 }

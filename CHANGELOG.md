@@ -20,6 +20,12 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- The agent home's skills are toggled one by one in `nix/agent-home.toml`.
+  cavekit's are now `/ck-spec`, `/ck-build`, ... so caveman's own `/caveman`
+  ships under its bare name, alongside caveman's workflow skills
+  (`investigate-first`, `surgical-patch`, `safe-refactor`, `lean-build`,
+  `migration`, `verify-and-stop`), `ultracave`, `megacave`, `cavecrew` with its
+  agents, `caveman-explore` and `caveman-stats` with its SessionEnd hook.
 - The agent home (`--agent-home`) pins cavekit to v4.1.0 with all nine skills
   (adding `deepen`, `grill`, `research` and `review`) and adds caveman v3.2.0:
   its hooks keep sessions and subagents in terse caveman mode, with the
