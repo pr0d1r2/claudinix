@@ -278,11 +278,11 @@ config() {
 
 # --- the prompt ---
 
-@test "the prompt: AGENTS.md, /build, RED GREEN flip, gate, branch, report" {
+@test "the prompt: AGENTS.md, /ck-build, RED GREEN flip, gate, branch, report" {
     run bash "$SCRIPT" T20 --yes
     [ "$status" -eq 0 ]
     grep -qF 'AGENTS.md' "$STATE/claude.task"
-    grep -qF '/build scripts:T20' "$STATE/claude.task"
+    grep -qF '/ck-build scripts:T20' "$STATE/claude.task"
     grep -qF 'docs(spec): mark T20 done' "$STATE/claude.task"
     grep -qF 'hk check --from-ref origin/main --to-ref HEAD >gate.log 2>&1; echo rc=$?' "$STATE/claude.task"
     run ! grep -qF 'hk check --all' "$STATE/claude.task"
