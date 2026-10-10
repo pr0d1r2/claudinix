@@ -43,7 +43,7 @@ T144|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T145`,B23
 T147|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,T144,B23
 T151|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:C14`,`.:C6`
 T153|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:V30`
-T154|.|per-skill toggles (owner 2026-10-10): `nix/agent-home.toml`, 1 bool/skill; cavekit as `ck-<n>` (`name:` \& `/<v>` refs patched; docs \& cloud-task prompt say `/ck-<v>`) ∴ caveman's `caveman` ships bare; + caveman's workflow, mode, subagent \& stats skills (`cavecrew` + its agents, `caveman-stats` + SessionEnd hook)|C12,C33,V45,V46,V47
+T154|x|per-skill toggles (owner 2026-10-10): `nix/agent-home.toml`, 1 bool/skill; cavekit as `ck-<n>` (`name:` \& `/<v>` refs patched; docs \& cloud-task prompt say `/ck-<v>`) ∴ caveman's `caveman` ships bare; + caveman's workflow, mode, subagent \& stats skills (`cavecrew` + its agents, `caveman-stats` + SessionEnd hook)|C12,C33,V45,V46,V47
 
 ## §B BUGS
 
