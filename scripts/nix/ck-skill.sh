@@ -9,18 +9,27 @@
 # bare `/<verb>`) to `/ck-<verb>`. Paths such as `skills/spec/SKILL.md`
 # and longer words such as `/specs` are left as they are.
 #
-# Usage: ck-skill.sh SRC NAME OUT
+# VERB... are the cavekit skills the home ships (nix/cloud-skills.nix); a
+# reference to any other word, or to a skill that is switched off, is left
+# as it is (nix:B50).
+#
+# Usage: ck-skill.sh SRC NAME OUT VERB...
 
 set -euo pipefail
 
-if [ "$#" -ne 3 ]; then
-    echo "usage: ck-skill.sh SRC NAME OUT" >&2
+if [ "$#" -lt 4 ]; then
+    echo "usage: ck-skill.sh SRC NAME OUT VERB..." >&2
     exit 2
 fi
 
 src="$1"
 name="$2"
 out="$3"
+shift 3
+verbs="$(
+    IFS='|'
+    echo "$*"
+)"
 
 if [ ! -f "$src/SKILL.md" ]; then
     echo "ck-skill: $src has no SKILL.md" >&2
@@ -32,10 +41,10 @@ if [ "$declared" != "name: $name" ]; then
     exit 1
 fi
 
-verbs='spec|build|check|backprop|caveman|deepen|grill|research|review'
 # One verb reference: not preceded by a word or path character, not
-# followed by one. Applied twice, so a reference right after another one
-# (whose closing character the first pass consumed) is caught too.
+# followed by one. A match consumes its closing character, so a reference
+# right after another one is caught by the next pass: `rewrite_refs`
+# repeats until the text stops changing.
 ref="(^|[^[:alnum:]_./:-])/(ck:)?($verbs)([^[:alnum:]_/-]|\$)"
 
 cp -R "$src" "$out"
@@ -44,7 +53,17 @@ awk -v from="name: $name" -v to="name: ck-$name" \
     '/^---$/ { n++ } n == 1 && $0 == from && !done { $0 = to; done = 1 } { print }' \
     "$out/SKILL.md" >"$out/SKILL.md.new"
 mv "$out/SKILL.md.new" "$out/SKILL.md"
-find "$out" -type f -name '*.md' | while read -r file; do
-    sed -E -e "s#$ref#\\1/ck-\\3\\4#g" -e "s#$ref#\\1/ck-\\3\\4#g" "$file" >"$file.new"
+# rewrite_refs FILE: FILE with every verb reference rewritten.
+rewrite_refs() {
+    local file="$1" before="" after
+    after="$(cat "$file")"
+    while [ "$before" != "$after" ]; do
+        before="$after"
+        after="$(sed -E "s#$ref#\\1/ck-\\3\\4#g" <<<"$before")"
+    done
+    printf '%s\n' "$after" >"$file.new"
     mv "$file.new" "$file"
+}
+find "$out" -type f -name '*.md' | while read -r file; do
+    rewrite_refs "$file"
 done

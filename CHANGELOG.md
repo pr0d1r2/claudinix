@@ -20,6 +20,9 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- The agent home rewrites `/<verb>` references in cavekit's skills to `/ck-<verb>`
+  only for the cavekit skills switched on, so a toggle never leaves a dangling
+  `/ck-` name or an unpatched new one.
 - `just cloud` tells its build session to use `/ck-build`, the name cavekit's
   build skill now has in the agent home.
 - The agent home's skills are toggled one by one in `nix/agent-home.toml`.
