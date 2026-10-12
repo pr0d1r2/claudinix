@@ -258,6 +258,17 @@ denied_by_repo_list() {
     done
 }
 
+@test "the repo's own list denies -f bundled with -u (B56)" {
+    for cmd in 'git push origin HEAD:claude/x -uf' 'git push origin HEAD:claude/x -fu' \
+        'git push -uf origin HEAD:claude/x' 'rtk git push -fu origin HEAD:claude/x' \
+        'rtk git push origin HEAD:claude/x -uf'; do
+        denied_by_repo_list "$cmd" || {
+            echo "not denied: $cmd"
+            return 1
+        }
+    done
+}
+
 @test "the repo's own list does not deny a branch that merely ends in -f (B55)" {
     for cmd in 'git push origin claude/review-f' 'rtk git push origin claude/review-f' \
         'git push -u origin claude/x-f'; do
