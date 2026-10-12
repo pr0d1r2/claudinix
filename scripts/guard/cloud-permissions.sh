@@ -10,7 +10,8 @@
 #     wildcard (`*`, `Bash(*)`), or allow an environment runner without
 #     its inner command (`Bash(nix develop *)`, `Bash(nix-dev *)`): the
 #     permissions docs note such a runner rule matches anything after it;
-#   - deny keeps every rule against pushing main and forcing a push;
+#   - deny keeps every rule that confines a push to one ref (no main, no
+#     force, no option after the remote, no second ref);
 #   - every git or cargo rule, in allow and in deny, has its `rtk` twin
 #     (what the agent home's hook rewrites it to), and every `rtk` rule
 #     its bare one;
@@ -94,7 +95,7 @@ required_denies=(
 )
 for rule in "${required_denies[@]}"; do
     if ! jq -e --arg rule "$rule" '.deny | index($rule)' "$list" >/dev/null; then
-        fail "$list must deny \"$rule\" -- an unattended task never pushes main or forces a push"
+        fail "$list must deny \"$rule\" -- see the comment above required_denies"
         status=1
     fi
 done
