@@ -94,7 +94,7 @@ V32: the gate's git hooks fire under the git that actually commits (cloud: image
 V33: a released SHA contains `cloud-home.storepath` for its own agent home, \& every eval-time input source has narinfo 200 (`verify-cachix.sh --sources`) before the line is published (B10).
 V36: a commit that changes `hk.pkl` stages it w/ every file its fix steps regenerate (README badges, INTEGRATION counts) in the SAME commit; ⊥ commit other work while `hk.pkl` has unstaged edits (hk reads the worktree `hk.pkl` before `stash = "git"`) (B12).
 V38: ∀ host the setup line or `setup.sh` fetches from (`https://<host>`) ∈ `allowlist.txt` (B15).
-V44: cloud permission list: ∀ `git`/`cargo` rule (allow \& deny) has its `rtk ` twin in the same list \& ∀ `rtk ` rule its bare one; the pinned rtk decides which commands it rewrites (`checks.rtk-twins`). The hook (`nix:T151`) rewrites Bash to `rtk <cmd>`; its matcher ⊥ accepts `claude/*` ∴ Claude Code judges the twin (B53).
+V44: cloud permission list: ∀ `git`/`cargo` rule (allow \& deny) has its `rtk ` twin in the same list \& ∀ `rtk ` rule its bare one; the pinned rtk decides which commands it rewrites (`checks.rtk-twins`; the fast guard knows `git`/`cargo` only).
 
 ## §T TASKS
 id|status|task|cites
@@ -158,4 +158,4 @@ B12|2026-10-03|hk loads worktree `hk.pkl` before stashing ∴ unstaged new fix s
 B15|2026-10-04|setup line downloads `setup.sh` from `raw.githubusercontent.com`; host ∉ `allowlist.txt` → fresh env setup: `curl: (22) ... 403`|V38
 B16|2026-10-04|cloud: probe test saw the session's `nix-dev`; setup test expected unset `$USER` (setup: `id -un`)|V21
 B45|2026-10-09|rtk rewrites `git push origin main` to `rtk git push …`; prefix deny rules may miss it (#24 review)|V44
-B53|2026-10-12|guard: twins 1 way, deny side only main-push, rewritten set `(git\|cargo)` hand-kept, rtk 0.51 behaviour unchecked by CI (#28 review)|V44
+B53|2026-10-12|guard: twins 1 way, deny side only main-push, rewritten set `(git\|cargo)` hand-kept, rtk 0.51 behaviour unchecked by CI; rtk's matcher ⊥ accepts `claude/*` ∴ Claude Code judges the twin (#28 review)|V44
