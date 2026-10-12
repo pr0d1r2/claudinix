@@ -217,6 +217,7 @@ that already staged its entry pass.
 | `checks.<system>.claudinix-dev` | builds `packages.<system>.claudinix-dev` from `dev/` and runs its `cargo test` |
 | `checks.x86_64-linux.cloud-home` | [`scripts/nix/cloud-home-check.sh`](../scripts/nix/cloud-home-check.sh): the agent home's activation package holds exactly the cavekit (`ck-*`) and caveman skills toggled on in `nix/agent-home.toml`, each named as its directory, cavecrew's agents and the caveman-stats `SessionEnd` hook when those are on, caveman's hooks under an absolute `node`, a `statusLine`, `FORMAT.md`, the set rules, `rtk` with its Bash hook, `RTK.md` and the `@RTK.md` line (only on `x86_64-linux`, the one system the agent home is built for) |
 | `checks.<system>.rtk-pin` | [`scripts/nix/rtk-pin-check.sh`](../scripts/nix/rtk-pin-check.sh): our `nixpkgs-lock` and `rtk-src` revs equal the ones in nix-rtk's `flake.lock`, so rtk comes from cachix instead of compiling in every cloud setup |
+| `checks.<system>.rtk-twins` | [`scripts/nix/rtk-twins-check.sh`](../scripts/nix/rtk-twins-check.sh): feeds every rule of `nix/cloud-permissions.json` to the pinned rtk's `rtk hook claude`, and each rule rtk rewrites has its `rtk` twin in the same list |
 
 ### In CI only
 

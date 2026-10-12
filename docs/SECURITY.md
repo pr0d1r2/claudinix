@@ -72,18 +72,21 @@ access. That makes the following the classes worth reporting:
    gate's own commands (`hk`, `bats`, `mth`, `sherd`, `itok`, `scripts/*`,
    `nix develop -c` or `nix-dev -c` followed by one of them), `git` commits,
    fetches and reads, and pushing `claude/*` branches run without a prompt.
-   Pushing `main` is denied, both as `git push` and as `rtk git push`, because
-   the rtk hook rewrites the command and the rules match its start. For the
-   same reason each allowed `git` or `cargo` rule has an `rtk` twin
-   (`rtk git push origin claude/*`); the deny rules still win over them.
-   These rules exist only in cloud sessions; they
-   are never in the committed `.claude/settings.json`, so a local session
-   never gets them. The `cloud-permissions` gate step refuses blanket rules
-   and a missing main-push deny. With `CLAUDINIX_SESSION_PERMISSIONS=1` the
-   SessionStart hook also writes the list into the gitignored
-   `.claude/settings.local.json`, only in a cloud session. Whether the
-   agent home's file survives to launch, and whether the fallback applies in
-   the same session, is not measured yet (experiment T104).
+   Pushing `main`, force pushes (`--force`, `-f`, `+` refspecs), tag pushes,
+   `--delete` and `--mirror` are denied. The rtk hook rewrites `git` and
+   `cargo` commands to `rtk <cmd>`, and the rules match a command's start, so
+   every `git` and `cargo` rule, allow or deny, has an `rtk` twin
+   (`rtk git push origin claude/*`), and the deny rules still win. The
+   `rtk-twins` check asks the pinned rtk which rules it rewrites. These rules
+   exist only in cloud sessions; they are never in the committed
+   `.claude/settings.json`, so a local session never gets them. The
+   `cloud-permissions` gate step refuses blanket rules, a missing main-push
+   deny and a rule without its `rtk` twin. With
+   `CLAUDINIX_SESSION_PERMISSIONS=1` the SessionStart hook also writes the
+   list into the gitignored `.claude/settings.local.json`, only in a cloud
+   session. Whether the agent home's file survives to launch, and whether
+   the fallback applies in the same session, is not measured yet (experiment
+   T104).
    **A rule you commit into your own repository is a separate grant.**
    [`SETUP.md`](SETUP.md#permission-prompts) describes allowing the
    `add_repo` tool that way. The rule cannot limit the tool's arguments, so
