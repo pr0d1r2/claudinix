@@ -12,23 +12,10 @@ setup() {
     echo '{"hooks":{}}' >"$SETTINGS_FILE"
 }
 
-# list ALLOW_JSON: write a rule list with ALLOW and the required denies.
+# list ALLOW_JSON: write a rule list with ALLOW and the repo's own denies.
 list() {
-    jq -n --argjson allow "$1" '{
-        allow: $allow,
-        deny: [
-            "Bash(git push * main)",
-            "Bash(git push * main *)",
-            "Bash(git push *:main)",
-            "Bash(git push *:main *)",
-            "Bash(git push *refs/heads/main*)",
-            "Bash(rtk git push * main)",
-            "Bash(rtk git push * main *)",
-            "Bash(rtk git push *:main)",
-            "Bash(rtk git push *:main *)",
-            "Bash(rtk git push *refs/heads/main*)"
-        ]
-    }' >"$PERMISSIONS_FILE"
+    jq -n --argjson allow "$1" --slurpfile repo "$REPO_ROOT/nix/cloud-permissions.json" \
+        '{allow: $allow, deny: $repo[0].deny}' >"$PERMISSIONS_FILE"
 }
 
 @test "a narrow list passes silently" {
@@ -228,8 +215,8 @@ list() {
     done <<'TABLE'
 allow|Bash(rtk git diff *)|Bash(git diff *)
 allow|Bash(git push -u origin claude/*)|Bash(rtk git push -u origin claude/*)
-deny|Bash(git push *--mirror*)|Bash(rtk git push *--mirror*)
-deny|Bash(rtk git push *--mirror*)|Bash(git push *--mirror*)
+deny|Bash(git reset *)|Bash(rtk git reset *)
+deny|Bash(rtk git reset *)|Bash(git reset *)
 deny|Bash(cargo publish *)|Bash(rtk cargo publish *)
 TABLE
 }
@@ -274,6 +261,24 @@ denied_by_repo_list() {
         'git push -u origin claude/x-f'; do
         ! denied_by_repo_list "$cmd" || {
             echo "wrongly denied: $cmd"
+            return 1
+        }
+    done
+}
+
+@test "dropping a required deny is refused: -f, --force, --delete, --mirror (nix:B54)" {
+    for rule in 'Bash(git push * -f)' 'Bash(git push -f *)' 'Bash(git push *--force)' \
+        'Bash(git push *--delete*)' 'Bash(git push *--mirror*)'; do
+        list '["Bash(bats *)"]'
+        jq --arg rule "$rule" '.deny -= [$rule, "Bash(rtk git push" + $rule[13:]]' "$PERMISSIONS_FILE" >"$PERMISSIONS_FILE.new"
+        mv "$PERMISSIONS_FILE.new" "$PERMISSIONS_FILE"
+        run bash "$SCRIPT"
+        [ "$status" -eq 1 ] || {
+            echo "passed without: $rule"
+            return 1
+        }
+        [[ "$output" == *"$rule"* ]] || {
+            echo "did not name $rule: $output"
             return 1
         }
     done
