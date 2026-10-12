@@ -75,6 +75,10 @@
     "Bash(git push * -f)",
     "Bash(git push -f *)",
     "Bash(git push * -f *)",
+    "Bash(git push -uf*)",
+    "Bash(git push * -uf*)",
+    "Bash(git push -fu*)",
+    "Bash(git push * -fu*)",
     "Bash(git push *--mirror*)",
     "Bash(rtk git push * main)",
     "Bash(rtk git push * main *)",
@@ -90,6 +94,10 @@
     "Bash(rtk git push * -f)",
     "Bash(rtk git push -f *)",
     "Bash(rtk git push * -f *)",
+    "Bash(rtk git push -uf*)",
+    "Bash(rtk git push * -uf*)",
+    "Bash(rtk git push -fu*)",
+    "Bash(rtk git push * -fu*)",
     "Bash(rtk git push *--mirror*)"
   ]
 }
