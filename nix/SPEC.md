@@ -13,7 +13,7 @@ sib|scripts|repo shell: gate guards, hk runners, CI checks, target-project apps 
 sib|docs|plain-English docs: setup, facts, runbook, security, release
 sib|experiments|cloud-session experiments \\& dated results, fed to `docs/FACTS.md`
 sib|dev|`claudinix-dev`: repo-only Rust tool for generated badges \\& doc numbers
-sib|agent-home|`~/.claude` content: skills \\& toggles, rtk, caveman hooks, cloud permission rules
+sib|home|`~/.claude` content: skills \\& toggles, rtk, caveman hooks, cloud permission rules
 
 ## §C CONSTRAINTS
 
@@ -43,7 +43,7 @@ T144|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T145`,B23
 T147|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,T144,B23
 T151|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:C14`,`.:C6`
 T153|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:V30`
-T154|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V45,V46,V47
+T154|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V45,V46,V47,`home:C33`
 
 ## §B BUGS
 
