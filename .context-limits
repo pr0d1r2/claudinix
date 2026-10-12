@@ -66,13 +66,19 @@
 # 2026-10-12: the agent-home node is renamed home (sherd reads a hyphen
 # in a cite as a node boundary); same ceilings.
 
+#
+# Raised 2026-10-12 for home: T155 moves the skill, hook and toggle
+# invariants and their bugs (V45-V47, B50, B51) down from nix. Measured
+# with them in: file 1061 (nix falls from 1263 to 1066). ~15% margin.
+# Owner approved.
+
 SPEC.md          8700
 scripts/SPEC.md  7000
 nix/SPEC.md      1400
 docs/SPEC.md     1800
 experiments/SPEC.md 1200
 dev/SPEC.md      1250
-home/SPEC.md       850
+home/SPEC.md       1220
 
 scripts 11050
 nix      8950
