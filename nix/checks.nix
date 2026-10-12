@@ -12,6 +12,9 @@ let
   # The skills the agent home ships, one list for the home and its check.
   skills = import ./cloud-skills.nix;
 
+  # The rtk the agent home installs, for this system.
+  rtk = nix-rtk.packages.${pkgs.stdenv.hostPlatform.system}.default;
+
   # The agent home exists for one system only (x86_64-linux, the cloud
   # VM), so only that system checks its skills landed (nix:T16).
   homeSystem = cloudHome.pkgs.stdenv.hostPlatform.system;
@@ -36,6 +39,13 @@ in
   rtk-pin = pkgs.runCommand "rtk-pin-check" {
     nativeBuildInputs = [ pkgs.jq ];
   } "bash ${../scripts/nix/rtk-pin-check.sh} ${src}/flake.lock ${nix-rtk}/flake.lock $out";
+
+  # The pinned rtk's own hook says which cloud permission rules it
+  # rewrites; each needs its `rtk ` twin (.:V44, B53). The fast guard
+  # knows git and cargo only; this catches a tool a new rtk rewrites.
+  rtk-twins = pkgs.runCommand "rtk-twins-check" {
+    nativeBuildInputs = [ pkgs.jq ];
+  } "bash ${../scripts/nix/rtk-twins-check.sh} ${rtk}/bin/rtk ${./cloud-permissions.json} $out";
 }
 // pkgs.lib.optionalAttrs onHomeSystem {
   # The cavekit and caveman skills, FORMAT.md, the set rules and rtk are in
