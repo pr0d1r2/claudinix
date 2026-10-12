@@ -2,7 +2,7 @@
 
 ## §G GOAL
 
-what the agent home puts in `~/.claude` \& how it behaves in a session: skills \& their toggles, rtk, caveman hooks, the cloud permission list's rules; wiring stays in `nix`. Staged: the skill, hook & toggle invariants stay in `nix` until T155.
+what the agent home puts in `~/.claude` \& how it behaves in a session: skills \& their toggles, rtk, caveman hooks, the cloud permission list's rules; wiring stays in `nix`.
 
 ## §N NAV
 
