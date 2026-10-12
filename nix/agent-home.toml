@@ -1,4 +1,4 @@
-# The agent home's skills, one toggle each (SPEC nix:T154, nix:V47).
+# The agent home's skills, one toggle each (SPEC nix:T154, home:V47).
 # Flip a line and push: CI rebuilds the agent home and pushes it to
 # cachix, so cloud sessions still substitute it. `checks.cloud-home`
 # holds the home to exactly the skills switched on here.
@@ -26,7 +26,7 @@ caveman-review = true
 caveman-help = true
 caveman-compress = true
 # Must stay false: it drops the commit body the `commit-msg` gate requires
-# (nix:V45); the flake refuses to evaluate with it on.
+# (home:V45); the flake refuses to evaluate with it on.
 caveman-commit = false
 # Engineering workflows.
 investigate-first = true

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# A cavekit skill under the name `ck-<name>` (SPEC nix:T154, nix:V47).
+# A cavekit skill under the name `ck-<name>` (SPEC nix:T154, home:V47).
 # Plugins are not installed in the cloud, so the `ck:` namespace a plugin
 # gives cavekit's skills is lost; naming them `ck-<name>` keeps them
 # apart from caveman's own skills, whose `caveman` then ships bare.
@@ -9,7 +9,7 @@
 #
 # VERB... are the cavekit skills the home ships (nix/cloud-skills.nix); a
 # reference to any other word, or to a skill that is switched off, is left
-# as it is (nix:B50).
+# as it is (home:B50).
 #
 # Usage: ck-skill.sh SRC NAME OUT VERB...
 

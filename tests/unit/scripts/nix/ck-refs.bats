@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 bats_require_minimum_version 1.5.0
-# Unit tests for scripts/nix/ck-refs.sh (SPEC nix:V47, nix:B51): the
+# Unit tests for scripts/nix/ck-refs.sh (SPEC home:V47, home:B51): the
 # references to cavekit's verbs in markdown file (`/ck:<verb>` from
 # the plugin, bare `/<verb>`) become `/ck-<verb>`, for the verbs given only.
 

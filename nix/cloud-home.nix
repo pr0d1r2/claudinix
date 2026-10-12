@@ -53,7 +53,7 @@ let
   cavemanHook = script: "${pkgs.nodejs-slim}/bin/node ${caveman}/src/hooks/${script}";
 
   # One event's hook list; 30 s is the timeout caveman's plugin.json gives
-  # each, so a cold node start is not killed (nix:V46).
+  # each, so a cold node start is not killed (home:V46).
   cavemanHookEntry = command: [
     {
       hooks = [
@@ -79,7 +79,7 @@ let
     };
   };
   # cavekit's skills are renamed `ck-<name>` and their verb references
-  # patched, for the cavekit skills switched on (nix:T154, nix:V47, nix:B50); caveman's are linked as they are.
+  # patched, for the cavekit skills switched on (nix:T154, home:V47, home:B50); caveman's are linked as they are.
   # ck-skill.sh calls ck-refs.sh next to it, so they travel as a directory.
   cavekitScripts = ../scripts/nix;
   ckSkill =
@@ -88,7 +88,7 @@ let
       "bash ${cavekitScripts}/ck-skill.sh ${cavekit}/skills/${name} ${name} $out ${toString skills.cavekit}";
   # cavecrew's agents are whatever the caveman source ships as
   # `agents/cavecrew-*.md` (nix:T154).
-  # FORMAT.md names the commands too: rewritten like the skills (nix:B51).
+  # FORMAT.md names the commands too: rewritten like the skills (home:B51).
   ckFormat =
     pkgs.runCommand "ck-FORMAT.md" { }
       "bash ${cavekitScripts}/ck-refs.sh ${cavekit}/FORMAT.md $out ${toString skills.cavekit}";
