@@ -52,5 +52,3 @@ B23|2026-10-04|`HEAD:*` allow (T133) matched `HEAD:+main` \& tag pushes; no deny
 B44|2026-10-09|nix-rtk locks `rtk-src` as `github:`; T151 made it the 2nd `github:` input, 403 unless cached (`.:V30`)|own `rtk-src` (`git+https`), nix-rtk follows; `rtk-pin` checks rev
 B50|2026-10-10|hardcoded verb list: toggle off/new skill → dangling `/ck-x`, unpatched `/x`; 2 passes missed `/a,/b,/c`|V47: nix passes verbs; refs checked
 B51|2026-10-10|FORMAT.md named `/spec`, `/build`: absent in home|V47: same rewrite, checked
-B54|2026-10-12|`-f` ⊥ denied: `git push origin HEAD:claude/x -f` matched the `HEAD:*` allow (#28 review)|deny `*-f`, `*-f *` \& rtk twins
-B55|2026-10-12|deny `*-f` matched branch `claude/review-f`: unattended push refused (#29 review)|deny ` -f` as its own word only: `-f *`, `* -f`, `* -f *`
