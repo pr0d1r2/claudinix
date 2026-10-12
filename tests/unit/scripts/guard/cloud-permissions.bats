@@ -182,6 +182,34 @@ list() {
     [[ "$output" == *'Bash(rtk git push *:main)'* ]]
 }
 
+@test "a git allow without its rtk twin: refused and named (agent-home:V48)" {
+    list '["Bash(git push origin claude/*)"]'
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *'Bash(rtk git push origin claude/*)'* ]]
+}
+
+@test "a cargo allow without its rtk twin: refused and named (agent-home:V48)" {
+    list '["Bash(cargo test *)"]'
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *'Bash(rtk cargo test *)'* ]]
+}
+
+@test "git and cargo allows with their rtk twins pass (agent-home:V48)" {
+    list '["Bash(git push origin claude/*)", "Bash(rtk git push origin claude/*)", "Bash(cargo test *)", "Bash(rtk cargo test *)"]'
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
+
+@test "a command rtk leaves alone needs no twin (agent-home:V48)" {
+    list '["Bash(nix-dev -c cargo test *)", "Bash(hk check *)", "Bash(claudinix-dev *)"]'
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
+
 @test "not an {allow, deny} object of strings: refused" {
     echo '{"allow": "Bash(bats *)"}' >"$PERMISSIONS_FILE"
     run bash "$SCRIPT"
