@@ -50,7 +50,7 @@ Root `SPEC.md` §F lists the nodes and what each owns. Work under the
 spec of the node that owns the files you touch; repo-wide rules live in
 root `SPEC.md`. What the agent home puts in `~/.claude` and how it behaves
 (skills, rtk, caveman, the cloud permission rules) lives in
-`agent-home/SPEC.md`; its Nix wiring stays in `nix/SPEC.md`.
+`home/SPEC.md`; its Nix wiring stays in `nix/SPEC.md`.
 
 - Ids are unique across all nodes. The next id is the highest over every
   `SPEC*.md`, plus 1 (same for `V`, `B`, `C`).
