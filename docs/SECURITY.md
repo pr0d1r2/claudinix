@@ -73,7 +73,10 @@ access. That makes the following the classes worth reporting:
    `nix develop -c` or `nix-dev -c` followed by one of them), `git` commits,
    fetches and reads, and pushing `claude/*` branches run without a prompt.
    Pushing `main` is denied, both as `git push` and as `rtk git push`, because
-   the rtk hook rewrites the command and the rules match its start. These rules exist only in cloud sessions; they
+   the rtk hook rewrites the command and the rules match its start. For the
+   same reason each allowed `git` or `cargo` rule has an `rtk` twin
+   (`rtk git push origin claude/*`); the deny rules still win over them.
+   These rules exist only in cloud sessions; they
    are never in the committed `.claude/settings.json`, so a local session
    never gets them. The `cloud-permissions` gate step refuses blanket rules
    and a missing main-push deny. With `CLAUDINIX_SESSION_PERMISSIONS=1` the
