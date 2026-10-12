@@ -12,6 +12,7 @@
 #     permissions docs note such a runner rule matches anything after it;
 #   - deny keeps every rule against pushing main, and its `rtk` twin
 #     (`rtk git push ...`, what the agent home's hook rewrites it to);
+#   - every git or cargo allow has its `rtk` twin, for the same reason;
 #   - the committed project settings carry no `permissions`: local
 #     sessions read that file, and they must not get these rules.
 #
@@ -78,6 +79,20 @@ for rule in \
         fi
     done
 done
+
+# The rtk hook (nix:T151) rewrites git and cargo commands to `rtk <cmd>`.
+# It allows a rewrite itself only when its own matcher accepts the bare
+# command, and that matcher reads a trailing `*` as a word-bounded prefix,
+# so `git push origin claude/*` never matches; Claude Code then judges the
+# rewritten command, which needs its own allow rule (agent-home:V48, B52).
+while IFS= read -r rule; do
+    [ -n "$rule" ] || continue
+    twin="Bash(rtk ${rule#Bash(}"
+    if ! jq -e --arg rule "$twin" '.allow | index($rule)' "$list" >/dev/null; then
+        fail "$list allows \"$rule\" but not \"$twin\" -- the rtk hook rewrites it, and an unattended task would wait on a prompt"
+        status=1
+    fi
+done < <(jq -r '.allow[] | select(test("^Bash\\((git|cargo) "))' "$list")
 
 if [ -f "$settings" ] && jq -e 'has("permissions")' "$settings" >/dev/null 2>&1; then
     fail "$settings carries permissions -- local sessions read it; the cloud rules live in $list only"
