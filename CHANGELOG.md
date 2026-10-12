@@ -24,8 +24,8 @@ does are summarised briefly; the git history has the detail.
   of `refs/heads/main` that git resolves to main.
 - The cloud permission list lets a push write one ref only: a second refspec
   (`git push origin claude/x release`) and a destination after a `claude/`
-  branch (`claude/x:production`) are denied, since they wrote branches other
-  than `claude/*`.
+  branch (`claude/x:production`) are denied, since they wrote a second ref.
+  `HEAD:<branch>` still writes any one branch but `main`.
 - The cloud permission list denies any `git push` option after the remote
   (`-nf`, `-vf`, `-d`, ...), and `-f` (with `-uf`, `-fu`) or `--force` as the
   first option too (a branch such as `claude/review-f` still pushes), for the
