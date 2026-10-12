@@ -97,23 +97,22 @@ done
 # commands rtk really rewrites is checked against the pinned rtk by
 # `checks.rtk-twins`; this fast step knows git and cargo.
 #
-# twin RULE: RULE's rtk form, or the bare form of an rtk RULE.
-twin() {
-    case "$1" in
-    'Bash(rtk '*) echo "Bash(${1#Bash(rtk }" ;;
-    *) echo "Bash(rtk ${1#Bash(}" ;;
-    esac
-}
-for key in allow deny; do
-    while IFS= read -r rule; do
-        [ -n "$rule" ] || continue
-        want="$(twin "$rule")"
-        if ! jq -e --arg key "$key" --arg rule "$want" '.[$key] | index($rule)' "$list" >/dev/null; then
-            fail "$list $key has \"$rule\" but not \"$want\" -- the rtk hook rewrites one into the other, so they must come in pairs"
-            status=1
-        fi
-    done < <(jq -r --arg key "$key" '.[$key][] | select(test("^Bash\\((rtk )?(git|cargo) "))' "$list")
-done
+# One jq call lists every rule whose twin is missing from its own list.
+missing_twins="$(jq -r '
+    . as $list
+    | ["allow", "deny"][] as $key
+    | $list[$key][]
+    | select(test("^Bash\\((rtk )?(git|cargo) "))
+    | . as $rule
+    | (if startswith("Bash(rtk ") then "Bash(" + .[9:] else "Bash(rtk " + .[5:] end) as $twin
+    | select($list[$key] | index($twin) | not)
+    | [$key, $rule, $twin] | @tsv
+' "$list")"
+while IFS=$'\t' read -r key rule want; do
+    [ -n "$rule" ] || continue
+    fail "$list $key has \"$rule\" but not \"$want\" -- the rtk hook rewrites one into the other, so they must come in pairs"
+    status=1
+done <<<"$missing_twins"
 
 if [ -f "$settings" ] && jq -e 'has("permissions")' "$settings" >/dev/null 2>&1; then
     fail "$settings carries permissions -- local sessions read it; the cloud rules live in $list only"
