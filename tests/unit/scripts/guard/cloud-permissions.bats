@@ -298,6 +298,44 @@ denied_by_repo_list() {
     [[ "$output" == *'Bash(rtk git push * -*)'* ]]
 }
 
+@test "the repo's own list denies a push that writes a second ref (home:V50, home:B59)" {
+    for cmd in 'git push origin claude/x:production' 'git push -u origin claude/x:release' \
+        'git push origin claude/x release' 'git push -u origin claude/x release' \
+        'git push origin HEAD:claude/x release' 'git push origin HEAD:claude/x HEAD:release' \
+        'git push --force-with-lease origin HEAD:claude/x HEAD:release' \
+        'rtk git push origin claude/x:production' 'rtk git push origin HEAD:claude/x release'; do
+        denied_by_repo_list "$cmd" || {
+            echo "not denied: $cmd"
+            return 1
+        }
+    done
+}
+
+@test "the repo's own list still lets a push write its one ref (home:V50)" {
+    for cmd in 'git push origin claude/x' 'git push -u origin claude/x' \
+        'git push origin HEAD:claude/x' 'git push origin HEAD:feature/x' \
+        'git push --force-with-lease origin HEAD:feature/x' 'rtk git push origin HEAD:claude/x'; do
+        ! denied_by_repo_list "$cmd" || {
+            echo "wrongly denied: $cmd"
+            return 1
+        }
+    done
+}
+
+@test "dropping a one-ref deny is refused (home:V50)" {
+    for rule in 'Bash(git push origin * *)' 'Bash(git push * origin * *)' 'Bash(git push * claude/*:*)'; do
+        list '["Bash(bats *)"]'
+        jq --arg rule "$rule" '.deny -= [$rule, "Bash(rtk " + $rule[5:]]' "$PERMISSIONS_FILE" >"$PERMISSIONS_FILE.new"
+        mv "$PERMISSIONS_FILE.new" "$PERMISSIONS_FILE"
+        run bash "$SCRIPT"
+        [ "$status" -eq 1 ] || {
+            echo "passed without: $rule"
+            return 1
+        }
+        [[ "$output" == *"$rule"* ]]
+    done
+}
+
 @test "the repo's own list does not deny a branch that merely ends in -f (B55)" {
     for cmd in 'git push origin claude/review-f' 'rtk git push origin claude/review-f' \
         'git push -u origin claude/x-f'; do
