@@ -25,7 +25,6 @@ sib|dev|`claudinix-dev`: repo-only Rust tool for generated badges \\& doc number
 ## §V INVARIANTS
 
 V35: every setting the agent home writes into `~/.claude` is checked in the GENERATED file's shape (`nix`'s `checks.x86_64-linux.cloud-home` runs the merge script \& reads `.permissions`), ⊥ trusting a module option's name (B11).
-V48: ∀ cloud allow rule for a command the rtk hook rewrites (`git …`, `cargo …`) has an `rtk ` twin (`Bash(rtk git push origin claude/*)`), as `.:V44` does for deny; rtk auto-allows only its own match, & its `*` is word-bounded ∴ `claude/*` ⊥ match & Claude Code judges `rtk <cmd>` (B52).
 
 ## §T TASKS
 
@@ -40,4 +39,4 @@ B46|2026-10-09|`caveman-commit` ("skip the body") in sessions; `commit-msg` refu
 B47|2026-10-09|check matched strings only; moved `src/hooks` passed|`nix:V46`: script must exist
 B48|2026-10-09|`statusLine` ran `bash` from PATH|`nix:V46`: absolute interpreter
 B49|2026-10-09|hook timeout 5 vs upstream 30; slow start drops terse mode|`nix:V46`: timeout ≥ 30
-B52|2026-10-12|rtk 0.51 rewrites `git push origin claude/x` to `rtk git push …` w/o an allow decision; no allow rule matches it → unattended push waits on a prompt (probed `rtk hook claude`)|V48
+B52|2026-10-12|rtk 0.51 rewrites `git push origin claude/x` to `rtk git push …` w/o an allow decision; no allow rule matches it → unattended push waits on a prompt (probed `rtk hook claude`)|`.:V44`
