@@ -256,6 +256,39 @@ denied_by_repo_list() {
     done
 }
 
+@test "the repo's own list denies any option after the remote (home:V49, home:B58)" {
+    for cmd in 'git push origin HEAD:claude/x -nf' 'git push origin HEAD:claude/x -vf' \
+        'git push origin claude/x -d' 'git push origin HEAD:claude/x -fd' \
+        'git push -u origin claude/x -f' 'git push --force-with-lease origin HEAD:claude/x -f' \
+        'git push origin HEAD:claude/x -o ci.skip' 'rtk git push origin HEAD:claude/x -nf' \
+        'rtk git push origin claude/x -d'; do
+        denied_by_repo_list "$cmd" || {
+            echo "not denied: $cmd"
+            return 1
+        }
+    done
+}
+
+@test "the repo's own list still lets options come before the remote (home:V49)" {
+    for cmd in 'git push -u origin claude/x' 'git push --force-with-lease origin HEAD:feature/x' \
+        'git push origin HEAD:claude/fix-thing' 'git push origin claude/x' \
+        'rtk git push -u origin claude/x' 'rtk git push --force-with-lease origin HEAD:feature/x'; do
+        ! denied_by_repo_list "$cmd" || {
+            echo "wrongly denied: $cmd"
+            return 1
+        }
+    done
+}
+
+@test "dropping the deny for options after the remote is refused (home:V49)" {
+    list '["Bash(bats *)"]'
+    jq '.deny -= ["Bash(git push * -*)", "Bash(rtk git push * -*)"]' "$PERMISSIONS_FILE" >"$PERMISSIONS_FILE.new"
+    mv "$PERMISSIONS_FILE.new" "$PERMISSIONS_FILE"
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *'Bash(git push * -*)'* ]]
+}
+
 @test "the repo's own list does not deny a branch that merely ends in -f (B55)" {
     for cmd in 'git push origin claude/review-f' 'rtk git push origin claude/review-f' \
         'git push -u origin claude/x-f'; do
