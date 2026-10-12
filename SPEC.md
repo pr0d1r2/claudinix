@@ -95,6 +95,7 @@ V33: a released SHA contains `cloud-home.storepath` for its own agent home, \& e
 V36: a commit that changes `hk.pkl` stages it w/ every file its fix steps regenerate (README badges, INTEGRATION counts) in the SAME commit; ⊥ commit other work while `hk.pkl` has unstaged edits (hk reads the worktree `hk.pkl` before `stash = "git"`) (B12).
 V38: ∀ host the setup line or `setup.sh` fetches from (`https://<host>`) ∈ `allowlist.txt` (B15).
 V44: cloud permission list: ∀ `git`/`cargo` rule (allow \& deny) has its `rtk ` twin in the same list \& ∀ `rtk ` rule its bare one; the pinned rtk decides which commands it rewrites (`checks.rtk-twins`; the fast guard knows `git`/`cargo` only).
+V48: ⊥ `-` in a §F node name: sherd splits cites on it (B57).
 
 ## §T TASKS
 id|status|task|cites
@@ -158,3 +159,4 @@ B12|2026-10-03|hk loads worktree `hk.pkl` before stashing ∴ unstaged new fix s
 B15|2026-10-04|setup line downloads `setup.sh` from `raw.githubusercontent.com`; host ∉ `allowlist.txt` → fresh env setup: `curl: (22) ... 403`|V38
 B16|2026-10-04|cloud: probe test saw the session's `nix-dev`; setup test expected unset `$USER` (setup: `id -un`)|V21
 B45|2026-10-09|rtk rewrites `git push origin main` to `rtk git push …`; prefix deny rules may miss it (#24 review)|V44
+B57|2026-10-12|`agent-home:C33` resolved as `home:C33` (#30)|V48
