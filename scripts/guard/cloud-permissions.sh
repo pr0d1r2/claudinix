@@ -10,9 +10,10 @@
 #     wildcard (`*`, `Bash(*)`), or allow an environment runner without
 #     its inner command (`Bash(nix develop *)`, `Bash(nix-dev *)`): the
 #     permissions docs note such a runner rule matches anything after it;
-#   - deny keeps every rule against pushing main, and its `rtk` twin
-#     (`rtk git push ...`, what the agent home's hook rewrites it to);
-#   - every git or cargo allow has its `rtk` twin, for the same reason;
+#   - deny keeps every rule against pushing main;
+#   - every git or cargo rule, in allow and in deny, has its `rtk` twin
+#     (what the agent home's hook rewrites it to), and every `rtk` rule
+#     its bare one;
 #   - the committed project settings carry no `permissions`: local
 #     sessions read that file, and they must not get these rules.
 #
@@ -70,29 +71,39 @@ for rule in \
     'Bash(git push *:main)' \
     'Bash(git push *:main *)' \
     'Bash(git push *refs/heads/main*)'; do
-    # The rtk hook (nix:T151) rewrites `git push` to `rtk git push`, which
-    # a prefix rule for the bare command does not match (V44, B45).
-    for denied in "$rule" "${rule/git push/rtk git push}"; do
-        if ! jq -e --arg rule "$denied" '.deny | index($rule)' "$list" >/dev/null; then
-            fail "$list must deny \"$denied\" -- an unattended task never pushes main"
-            status=1
-        fi
-    done
-done
-
-# The rtk hook (nix:T151) rewrites git and cargo commands to `rtk <cmd>`.
-# It allows a rewrite itself only when its own matcher accepts the bare
-# command, and that matcher reads a trailing `*` as a word-bounded prefix,
-# so `git push origin claude/*` never matches; Claude Code then judges the
-# rewritten command, which needs its own allow rule (agent-home:V48, B52).
-while IFS= read -r rule; do
-    [ -n "$rule" ] || continue
-    twin="Bash(rtk ${rule#Bash(}"
-    if ! jq -e --arg rule "$twin" '.allow | index($rule)' "$list" >/dev/null; then
-        fail "$list allows \"$rule\" but not \"$twin\" -- the rtk hook rewrites it, and an unattended task would wait on a prompt"
+    # Its rtk twin is required by the twin check below (V44).
+    if ! jq -e --arg rule "$rule" '.deny | index($rule)' "$list" >/dev/null; then
+        fail "$list must deny \"$rule\" -- an unattended task never pushes main"
         status=1
     fi
-done < <(jq -r '.allow[] | select(test("^Bash\\((git|cargo) "))' "$list")
+done
+
+# The rtk hook (nix:T151) rewrites git and cargo commands to `rtk <cmd>`,
+# so each such rule needs its rtk twin in the same list, and an rtk rule
+# its bare one (V44, B45, B53). A deny without its twin lets the rewritten
+# command through; an allow without it leaves an unattended task waiting
+# on a prompt, since rtk allows a rewrite only on its own match and its
+# matcher never accepts `claude/*` (B52, probed against rtk 0.51). Which
+# commands rtk really rewrites is checked against the pinned rtk by
+# `checks.rtk-twins`; this fast step knows git and cargo.
+#
+# twin RULE: RULE's rtk form, or the bare form of an rtk RULE.
+twin() {
+    case "$1" in
+    'Bash(rtk '*) echo "Bash(${1#Bash(rtk }" ;;
+    *) echo "Bash(rtk ${1#Bash(}" ;;
+    esac
+}
+for key in allow deny; do
+    while IFS= read -r rule; do
+        [ -n "$rule" ] || continue
+        want="$(twin "$rule")"
+        if ! jq -e --arg key "$key" --arg rule "$want" '.[$key] | index($rule)' "$list" >/dev/null; then
+            fail "$list $key has \"$rule\" but not \"$want\" -- the rtk hook rewrites one into the other, so they must come in pairs"
+            status=1
+        fi
+    done < <(jq -r --arg key "$key" '.[$key][] | select(test("^Bash\\((rtk )?(git|cargo) "))' "$list")
+done
 
 if [ -f "$settings" ] && jq -e 'has("permissions")' "$settings" >/dev/null 2>&1; then
     fail "$settings carries permissions -- local sessions read it; the cloud rules live in $list only"
