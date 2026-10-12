@@ -39,6 +39,7 @@ B46|2026-10-09|`caveman-commit` ("skip the body") in sessions; `commit-msg` refu
 B47|2026-10-09|check matched strings only; moved `src/hooks` passed|`nix:V46`: script must exist
 B48|2026-10-09|`statusLine` ran `bash` from PATH|`nix:V46`: absolute interpreter
 B49|2026-10-09|hook timeout 5 vs upstream 30; slow start drops terse mode|`nix:V46`: timeout ≥ 30
-B52|2026-10-12|rtk 0.51 rewrites `git push origin claude/x` to `rtk git push …` w/o an allow decision; no allow rule matches it → unattended push waits on a prompt (probed `rtk hook claude`)|`.:V44`
+B52|2026-10-12|rtk 0.51 rewrites `git push origin claude/x` to `rtk git push …` w/o an allow decision; unattended push waits on a prompt|`.:V44`
 B54|2026-10-12|`-f` ⊥ denied: `push … HEAD:claude/x -f` matched `HEAD:*` allow (#28)|deny `-f` \& rtk twins
 B55|2026-10-12|deny `*-f` refused branch `claude/review-f` (#29)|deny ` -f` as a word
+B56|2026-10-12|`-uf`/`-fu` force-pushed past the deny (#29)|deny both as words; `-nf`… open
