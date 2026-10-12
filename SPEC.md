@@ -7,10 +7,11 @@
 
 dir|owns|⊥owns|tokens
 scripts|repo shell: gate guards, hk runners, CI checks, target-project apps (`nix-dev`, `inputs`, `domains`, `guide`)|`setup.sh` \& `probe.sh` (root), flake wiring (`nix`)|-
-nix|flake outputs: dev shell, checks, agent home `homeConfigurations.cloud`, cachix push|session setup (root `setup.sh`), shell logic (`scripts`)|-
+nix|flake outputs: dev shell, checks, agent home build, cachix push|session setup (root `setup.sh`), shell logic (`scripts`)|-
 docs|plain-English docs: setup, facts, runbook, security, release|the gate's definition (`hk.pkl`), spec rules|-
 experiments|cloud-session experiments \& dated results, fed to `docs/FACTS.md`|setup code (root), tools (`scripts`), the docs prose (`docs`)|-
 dev|`claudinix-dev`: repo-only Rust tool for generated badges \& doc numbers|session code (root `setup.sh`, `scripts`), anything a user installs|-
+agent-home|`~/.claude` content: skills \& toggles, rtk, caveman hooks, cloud permission rules|flake wiring (`nix`), setup (root)|-
 
 ## §N NAV
 
@@ -91,7 +92,6 @@ V30: every input needed to EVALUATE an output a session builds (agent home, dev 
 V31: gate output for a non-TTY caller (agent) on success ≤ a few lines; full log on failure only. rtk (`nix:T151`) condenses Bash output ⇒ `rc=$?` \& the log, ⊥ condensed text, are the result.
 V32: the gate's git hooks fire under the git that actually commits (cloud: image git, likely < 2.54, outside the dev shell): config-based hooks (git ≥ 2.54) + `.git/hooks` shims for older git; bats proves a bad commit is refused by an old git (B9). impl: `scripts/dev/legacy-hook.sh` copied to `$(git rev-parse --git-path hooks)/{pre-commit,commit-msg,pre-push}`; exits 0 under git ≥ 2.54 (that git runs both, else gate twice), else runs `hook.hk-<event>.command`; ⊥ overwrite a foreign hook.
 V33: a released SHA contains `cloud-home.storepath` for its own agent home, \& every eval-time input source has narinfo 200 (`verify-cachix.sh --sources`) before the line is published (B10).
-V35: every setting the agent home writes into `~/.claude` is checked in the GENERATED file's shape (`checks.x86_64-linux.cloud-home` runs the merge script \& reads `.permissions`), ⊥ trusting a module option's name (B11).
 V36: a commit that changes `hk.pkl` stages it w/ every file its fix steps regenerate (README badges, INTEGRATION counts) in the SAME commit; ⊥ commit other work while `hk.pkl` has unstaged edits (hk reads the worktree `hk.pkl` before `stash = "git"`) (B12).
 V38: ∀ host the setup line or `setup.sh` fetches from (`https://<host>`) ∈ `allowlist.txt` (B15).
 V44: ∀ main-push deny has an `rtk ` twin (`Bash(rtk git push * main)`): the rtk hook (`nix:T151`) rewrites Bash to `rtk <cmd>`.
@@ -154,7 +154,6 @@ B7|2026-10-03|`tdd-order` in a shallow clone (every cloud session) counted the g
 B8|2026-10-03|agent home tier 1 needs home-manager, nix-home-manager-claude-code \& set-and-setting sources at EVAL time; `github:` inputs ⊥ cached (cachix-action daemon pushes only built paths) → 403 in cloud; tier 2 `cloud-home.storepath` never written → agent home never activates|V30
 B9|2026-10-03|hk 1.58 installs only config-based hooks under git ≥ 2.54 (dev shell); system git 2.50 committed a bad message unchecked ⇒ in cloud (image git) no hook fires|V32
 B10|2026-10-03|`release.sh` pinned the line to REV, then asked to commit `cloud-home.storepath` after it ⇒ the released SHA lacks the file, tier 2 404s; release ⊥ checked input sources|V33
-B11|2026-10-03|nix-home-manager-claude-code `programs.claude-code.permissions.{allow,deny}` writes flat `"permissions.allow"` keys Claude Code ignores; workaround: freeform `programs.claude-code.settings.permissions` (pr0d1r2/nix-home-manager-claude-code#35)|V35
 B12|2026-10-03|hk loads worktree `hk.pkl` before stashing ∴ unstaged new fix steps rewrote README \& INTEGRATION in unrelated commits; 2 messages claimed numbers their diffs lacked (reworded pre-push)|V36
 B15|2026-10-04|setup line downloads `setup.sh` from `raw.githubusercontent.com`; host ∉ `allowlist.txt` → fresh env setup: `curl: (22) ... 403`|V38
 B16|2026-10-04|cloud: probe test saw the session's `nix-dev`; setup test expected unset `$USER` (setup: `id -un`)|V21

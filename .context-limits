@@ -54,6 +54,13 @@
 # B44, B46-B49) filled the file to 1200 with every done task archived;
 # per-skill toggles (T154) need about 100 more. Owner chose a raise over
 # splitting an agent-home node. Measured 1200 before the row.
+#
+# Set 2026-10-12 for the new agent-home node: every node sat within 50
+# tokens of its ceiling, so the federation table's owns texts were
+# shortened (about 47 tokens freed per node) and the agent-home rows that
+# no code cites (root V35, B11; nix C33, B46-B49) moved down. Measured:
+# file 596, chain 6478; the rtk allow twins (V48, B52) add about 130.
+# ~15% over the sum. No other ceiling changes.
 
 SPEC.md          8700
 scripts/SPEC.md  7000
@@ -61,9 +68,11 @@ nix/SPEC.md      1400
 docs/SPEC.md     1800
 experiments/SPEC.md 1200
 dev/SPEC.md      1250
+agent-home/SPEC.md 850
 
 scripts 11050
 nix      8950
 docs     9900
 experiments  8650
 dev          8000
+agent-home   7450
