@@ -20,6 +20,9 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- The cloud permission list denies any `git push` option after the remote
+  (`-nf`, `-vf`, `-d`, ...), not only `-f`, `-uf` and `-fu`. Allowed pushes put
+  their options first (`-u`, `--force-with-lease`).
 - The cloud permission list denies `git push ... -f` (and its `rtk` form) like
   `--force`, as its own word only (a branch such as `claude/review-f` still
   pushes), bundled as `-uf` or `-fu` too; `-f` after the refspec used to match the `HEAD:*` allow.
