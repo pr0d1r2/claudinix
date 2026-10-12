@@ -234,18 +234,35 @@ deny|Bash(cargo publish *)|Bash(rtk cargo publish *)
 TABLE
 }
 
+# The deny rules are judged with bash globs, an approximation of Claude
+# Code's matcher; the rules themselves are plain strings with one `*`
+# wildcard, which both read alike.
+denied_by_repo_list() {
+    local cmd="$1" rule glob
+    while IFS= read -r rule; do
+        glob="${rule#Bash(}"
+        glob="${glob%)}"
+        # shellcheck disable=SC2053 # the rule is a glob on purpose
+        [[ "$cmd" == $glob ]] && return 0
+    done < <(jq -r '.deny[]' "$REPO_ROOT/nix/cloud-permissions.json")
+    return 1
+}
+
 @test "the repo's own list denies -f before and after the refspec (nix:B54)" {
     for cmd in 'git push origin HEAD:claude/x -f' 'git push -f origin HEAD:claude/x' \
         'rtk git push origin HEAD:claude/x -f' 'rtk git push -f origin HEAD:claude/x'; do
-        denied=0
-        while IFS= read -r rule; do
-            glob="${rule#Bash(}"
-            glob="${glob%)}"
-            # shellcheck disable=SC2053 # the rule is a glob on purpose
-            [[ "$cmd" == $glob ]] && denied=1
-        done < <(jq -r '.deny[]' "$REPO_ROOT/nix/cloud-permissions.json")
-        [ "$denied" -eq 1 ] || {
+        denied_by_repo_list "$cmd" || {
             echo "not denied: $cmd"
+            return 1
+        }
+    done
+}
+
+@test "the repo's own list does not deny a branch that merely ends in -f (B55)" {
+    for cmd in 'git push origin claude/review-f' 'rtk git push origin claude/review-f' \
+        'git push -u origin claude/x-f'; do
+        ! denied_by_repo_list "$cmd" || {
+            echo "wrongly denied: $cmd"
             return 1
         }
     done
