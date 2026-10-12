@@ -28,8 +28,8 @@ V35: every setting the agent home writes into `~/.claude` is checked in the GENE
 V45: home ⊥ ships a skill that competes with a gate rule (`caveman-commit` vs `commit-msg`).
 V46: caveman hook \& `statusLine` commands: absolute interpreter, script in store, timeout ≥ 30.
 V47: `~/.claude/skills` = exactly the enabled toggles of `nix/agent-home.toml` (cavekit as `ck-<n>`); ∀ skill: dir name = its `name:`; `/<v>` → `/ck-<v>` ⇔ `v` shipped (B50), ∀ `/ck-<v>` resolves; FORMAT.md too (B51).
-V49: cloud list: an allowed push takes its options before the remote only ∴ deny ∀ option after it (`Bash(git push * -*)` + rtk twin): no glob names every short-flag cluster (B58); older after-remote denies = deliberate 2nd layer.
-V50: allowed push writes 1 ref: 1 refspec; `claude/` source ⊥ `:dst` (B59).
+V49: allowed push takes options before the remote only ∴ deny ∀ option after it (`Bash(git push * -*)` + rtk twin; no glob names every short-flag cluster, B58); older denies = 2nd layer.
+V50: allowed push writes 1 ref: 1 refspec, `claude/` src ⊥ `:dst` (B59); `heads/main` denied (B60).
 
 ## §T TASKS
 
@@ -52,3 +52,4 @@ B55|2026-10-12|deny `*-f` refused branch `claude/review-f` (#29)|deny ` -f` as a
 B56|2026-10-12|`-uf`/`-fu` force-pushed past the deny (#29)|deny both as words; `-nf`… B58
 B58|2026-10-12|`-nf`, `-vf`, `-d` after the refspec matched `HEAD:*` \& `claude/*` allows|V49
 B59|2026-10-12|`claude/x:prod`, `claude/x rel` passed `claude/*`, `HEAD:*` allows (#32)|V50
+B60|2026-10-12|`HEAD:heads/main` passed `HEAD:*`|V50
