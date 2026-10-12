@@ -21,7 +21,8 @@ does are summarised briefly; the git history has the detail.
 ## Unreleased
 
 - The cloud permission list denies `git push ... -f` (and its `rtk` form) like
-  `--force`; `-f` after the refspec used to match the `HEAD:*` allow.
+  `--force`, as its own word only (a branch such as `claude/review-f` still
+  pushes); `-f` after the refspec used to match the `HEAD:*` allow.
 - The cloud permission list also allows the `rtk` form of each `git` and `cargo`
   rule (`rtk git push origin claude/*`, ...). The agent home's rtk hook rewrites
   those commands, and an unattended push used to wait on a permission prompt.
