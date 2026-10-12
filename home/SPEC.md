@@ -48,5 +48,5 @@ B51|2026-10-10|FORMAT.md named `/spec`, `/build`: absent in home|V47: same rewri
 B52|2026-10-12|rtk 0.51 rewrites `git push origin claude/x` to `rtk git push …` w/o an allow decision; unattended push waits on a prompt|`.:V44`
 B54|2026-10-12|`-f` ⊥ denied: `push … HEAD:claude/x -f` matched `HEAD:*` allow (#28)|deny `-f` \& rtk twins
 B55|2026-10-12|deny `*-f` refused branch `claude/review-f` (#29)|deny ` -f` as a word
-B56|2026-10-12|`-uf`/`-fu` force-pushed past the deny (#29)|deny both as words; `-nf`… open
-B58|2026-10-12|`-nf`, `-vf`, `-d` after the refspec matched `HEAD:*` \& `claude/*` allows (B56 open)|V49
+B56|2026-10-12|`-uf`/`-fu` force-pushed past the deny (#29)|deny both as words; `-nf`… B58
+B58|2026-10-12|`-nf`, `-vf`, `-d` after the refspec matched `HEAD:*` \& `claude/*` allows|V49
