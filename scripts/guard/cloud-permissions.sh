@@ -89,6 +89,8 @@ required_denies=(
     'Bash(git push origin * *)'
     'Bash(git push * origin * *)'
     'Bash(git push * claude/*:*)'
+    # git resolves a partial ref to refs/heads/main (home:V50, home:B60).
+    'Bash(git push *:heads/main*)'
 )
 for rule in "${required_denies[@]}"; do
     if ! jq -e --arg rule "$rule" '.deny | index($rule)' "$list" >/dev/null; then

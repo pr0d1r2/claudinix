@@ -311,6 +311,16 @@ denied_by_repo_list() {
     done
 }
 
+@test "the repo's own list denies a partial ref that names main (home:B60)" {
+    for cmd in 'git push origin HEAD:heads/main' 'git push --force-with-lease origin HEAD:heads/main' \
+        'rtk git push origin HEAD:heads/main'; do
+        denied_by_repo_list "$cmd" || {
+            echo "not denied: $cmd"
+            return 1
+        }
+    done
+}
+
 @test "the repo's own list still lets a push write its one ref (home:V50)" {
     for cmd in 'git push origin claude/x' 'git push -u origin claude/x' \
         'git push origin HEAD:claude/x' 'git push origin HEAD:feature/x' \
