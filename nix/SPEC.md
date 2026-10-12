@@ -26,9 +26,6 @@ sib|home|`~/.claude` content: skills \\& toggles, rtk, caveman hooks, cloud perm
 V14: activation runs in `setup.sh` before Claude launches, as Claude's uid \& `$HOME` ∴ skills present at launch.
 V15: activation failover (tier logged): (1) `nix build "git+https://github.com/pr0d1r2/claudinix?rev=<sha>&shallow=1#homeConfigurations.cloud.activationPackage"` (⊥ `github:`, C6); (2) `nix-store -r $(cat cloud-home.storepath)` from cachix. both fail → Nix usable, setup exit 0, loud warning + marker.
 V16: agent home = agent-level tools \& skills only; ⊥ language toolchains (target devShell owns, C3).
-V45: home ⊥ ships a skill that competes with a gate rule (`caveman-commit` vs `commit-msg`).
-V46: caveman hook \& `statusLine` commands: absolute interpreter, script in store, timeout ≥ 30.
-V47: `~/.claude/skills` = exactly the enabled toggles of `nix/agent-home.toml` (cavekit as `ck-<n>`); ∀ skill: dir name = its `name:`; `/<v>` → `/ck-<v>` ⇔ `v` shipped (B50), ∀ `/ck-<v>` resolves; FORMAT.md too (B51).
 
 ## §T TASKS
 
@@ -43,13 +40,11 @@ T144|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T145`,B23
 T147|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,T144,B23
 T151|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:C14`,`.:C6`
 T153|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:V30`
-T154|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V45,V46,V47,`home:C33`
+T154|x|ARCHIVED to SPEC-ARCHIVE.md|C12,`home:V45`,`home:V46`,`home:V47`,`home:C33`
 
 ## §B BUGS
 
 id|date|cause|fix
 B23|2026-10-04|`HEAD:*` allow (T133) matched `HEAD:+main` \& tag pushes; no deny did|list denies `+` refspecs \& tag pushes
 B44|2026-10-09|nix-rtk locks `rtk-src` as `github:`; T151 made it the 2nd `github:` input, 403 unless cached (`.:V30`)|own `rtk-src` (`git+https`), nix-rtk follows; `rtk-pin` checks rev
-B50|2026-10-10|hardcoded verb list: toggle off/new skill → dangling `/ck-x`, unpatched `/x`; 2 passes missed `/a,/b,/c`|V47: nix passes verbs; refs checked
-B51|2026-10-10|FORMAT.md named `/spec`, `/build`: absent in home|V47: same rewrite, checked
 B53|2026-10-12|guard: twins 1 way, deny side only main-push, rewritten set `(git\|cargo)` hand-kept, rtk 0.51 behaviour unchecked by CI; rtk's matcher ⊥ accepts `claude/*` ∴ Claude Code judges the twin (#28 review)|`.:V44`
