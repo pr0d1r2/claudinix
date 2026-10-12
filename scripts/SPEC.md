@@ -8,11 +8,11 @@ repo shell tools under `scripts/`: gate guards \& runners, dev shell hook, CI ch
 
 rel|path|lens
 up|.|-
-self|scripts|repo shell tools: gate guards, hk runners, dev shell hook, CI checks, target-project apps (`nix-dev`, `inputs`, `domains`, `guide`, probe launcher)
-sib|nix|flake outputs: dev shell, checks, agent home `homeConfigurations.cloud` \\& its activation package, cachix push of it
-sib|docs|human docs in plain English: setup walkthrough, facts, runbook, security, consumer \\& release docs
-sib|experiments|cloud-session experiments: prompts, dated results, setup timing, snapshot reuse, skill survival, self-build runs; results feed `docs/FACTS.md`
-sib|dev|`claudinix-dev`: repo-only Rust tool, generated README badges \\& doc numbers + their drift checks, `publish = false`
+self|scripts|repo shell: gate guards, hk runners, CI checks, target-project apps (`nix-dev`, `inputs`, `domains`, `guide`)
+sib|nix|flake outputs: dev shell, checks, agent home `homeConfigurations.cloud`, cachix push
+sib|docs|plain-English docs: setup, facts, runbook, security, release
+sib|experiments|cloud-session experiments \\& dated results, fed to `docs/FACTS.md`
+sib|dev|`claudinix-dev`: repo-only Rust tool for generated badges \\& doc numbers
 
 ## §C CONSTRAINTS
 

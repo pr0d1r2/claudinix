@@ -6,11 +6,11 @@
 ## §F FEDERATION
 
 dir|owns|⊥owns|tokens
-scripts|repo shell tools: gate guards, hk runners, dev shell hook, CI checks, target-project apps (`nix-dev`, `inputs`, `domains`, `guide`, probe launcher)|`setup.sh` \& `probe.sh` (root), flake wiring (`nix`)|-
-nix|flake outputs: dev shell, checks, agent home `homeConfigurations.cloud` \& its activation package, cachix push of it|session setup (root `setup.sh`), shell logic (`scripts`)|-
-docs|human docs in plain English: setup walkthrough, facts, runbook, security, consumer \& release docs|the gate's definition (`hk.pkl`), spec rules|-
-experiments|cloud-session experiments: prompts, dated results, setup timing, snapshot reuse, skill survival, self-build runs; results feed `docs/FACTS.md`|setup code (root), tools (`scripts`), the docs prose (`docs`)|-
-dev|`claudinix-dev`: repo-only Rust tool, generated README badges \& doc numbers + their drift checks, `publish = false`|session code (root `setup.sh`, `scripts`), anything a user installs|-
+scripts|repo shell: gate guards, hk runners, CI checks, target-project apps (`nix-dev`, `inputs`, `domains`, `guide`)|`setup.sh` \& `probe.sh` (root), flake wiring (`nix`)|-
+nix|flake outputs: dev shell, checks, agent home `homeConfigurations.cloud`, cachix push|session setup (root `setup.sh`), shell logic (`scripts`)|-
+docs|plain-English docs: setup, facts, runbook, security, release|the gate's definition (`hk.pkl`), spec rules|-
+experiments|cloud-session experiments \& dated results, fed to `docs/FACTS.md`|setup code (root), tools (`scripts`), the docs prose (`docs`)|-
+dev|`claudinix-dev`: repo-only Rust tool for generated badges \& doc numbers|session code (root `setup.sh`, `scripts`), anything a user installs|-
 
 ## §N NAV
 
