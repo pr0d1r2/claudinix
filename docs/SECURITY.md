@@ -74,7 +74,9 @@ access. That makes the following the classes worth reporting:
    fetches and reads, and pushing `claude/*` branches run without a prompt.
    Pushing `main`, force pushes (`--force`, `-f`, `+` refspecs), tag pushes,
    `--delete` and `--mirror` are denied, and so is any push option after
-   the remote: allowed pushes put theirs first. The rtk hook rewrites `git` and
+   the remote: allowed pushes put theirs first. A push writes one ref: a
+   second refspec and a destination after a `claude/` branch
+   (`claude/x:production`) are denied. The rtk hook rewrites `git` and
    `cargo` commands to `rtk <cmd>`, and the rules match a command's start, so
    every `git` and `cargo` rule, allow or deny, has an `rtk` twin
    (`rtk git push origin claude/*`), and the deny rules still win. The
