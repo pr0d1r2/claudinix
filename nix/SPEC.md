@@ -8,16 +8,16 @@ flake outputs under `nix/`: pinned dev shell, flake checks, agent home `homeConf
 
 rel|path|lens
 up|.|-
-self|nix|flake outputs: dev shell, checks, agent home `homeConfigurations.cloud`, cachix push
+self|nix|flake outputs: dev shell, checks, agent home build, cachix push
 sib|scripts|repo shell: gate guards, hk runners, CI checks, target-project apps (`nix-dev`, `inputs`, `domains`, `guide`)
 sib|docs|plain-English docs: setup, facts, runbook, security, release
 sib|experiments|cloud-session experiments \\& dated results, fed to `docs/FACTS.md`
 sib|dev|`claudinix-dev`: repo-only Rust tool for generated badges \\& doc numbers
+sib|agent-home|`~/.claude` content: skills \\& toggles, rtk, caveman hooks, cloud permission rules
 
 ## §C CONSTRAINTS
 
 - C12: agent home = owner home-config pattern: `nix-home-manager-claude-code` module + set-and-setting `lib.mkSet` (`mkTrip` upstream = T15); standalone home-manager. plugins ⊥ installed in cloud ∴ their skills \& hooks come from `flake = false` sources: cavekit, caveman (tags), the module \& set-and-setting (dev-only inputs, module#34, set-and-setting#559); flake inputs: `home-manager`, `nix-rtk`. ∀ fetched `git+https://github.com/<o>/<r>?ref=<branch \| refs/tags/T>&shallow=1` (T78, `.:V30`); `programs.man` \& `systemd.user` off (−150 MiB, `.:V5`).
-- C33: caveman terse mode = chat only (commits, PRs, docs keep AGENTS.md style); costs accepted: node per prompt, `nodejs-slim` (V16 exception).
 
 ## §I INTERFACES
 
@@ -50,9 +50,5 @@ T154|x|ARCHIVED to SPEC-ARCHIVE.md|C12,C33,V45,V46,V47
 id|date|cause|fix
 B23|2026-10-04|`HEAD:*` allow (T133) matched `HEAD:+main` \& tag pushes; no deny did|list denies `+` refspecs \& tag pushes
 B44|2026-10-09|nix-rtk locks `rtk-src` as `github:`; T151 made it the 2nd `github:` input, 403 unless cached (`.:V30`)|own `rtk-src` (`git+https`), nix-rtk follows; `rtk-pin` checks rev
-B46|2026-10-09|`caveman-commit` ("skip the body") in sessions; `commit-msg` refuses that|V45; skill dropped
-B47|2026-10-09|check matched strings only; moved `src/hooks` passed|V46: script must exist
-B48|2026-10-09|`statusLine` ran `bash` from PATH|V46: absolute interpreter
-B49|2026-10-09|hook timeout 5 vs upstream 30; slow start drops terse mode|V46: timeout ≥ 30
 B50|2026-10-10|hardcoded verb list: toggle off/new skill → dangling `/ck-x`, unpatched `/x`; 2 passes missed `/a,/b,/c`|V47: nix passes verbs; refs checked
 B51|2026-10-10|FORMAT.md named `/spec`, `/build`: absent in home|V47: same rewrite, checked
