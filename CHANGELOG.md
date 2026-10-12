@@ -21,11 +21,11 @@ does are summarised briefly; the git history has the detail.
 ## Unreleased
 
 - The cloud permission list denies any `git push` option after the remote
-  (`-nf`, `-vf`, `-d`, ...), not only `-f`, `-uf` and `-fu`. Allowed pushes put
-  their options first (`-u`, `--force-with-lease`).
-- The cloud permission list denies `git push ... -f` (and its `rtk` form) like
-  `--force`, as its own word only (a branch such as `claude/review-f` still
-  pushes), bundled as `-uf` or `-fu` too; `-f` after the refspec used to match the `HEAD:*` allow.
+  (`-nf`, `-vf`, `-d`, ...), and `-f` (with `-uf`, `-fu`) or `--force` as the
+  first option too (a branch such as `claude/review-f` still pushes), for the
+  `rtk` form as well. Allowed pushes put their options first (`-u`,
+  `--force-with-lease`); an option after the refspec used to match the `HEAD:*`
+  allow.
 - The cloud permission list also allows the `rtk` form of each `git` and `cargo`
   rule (`rtk git push origin claude/*`, ...). The agent home's rtk hook rewrites
   those commands, and an unattended push used to wait on a permission prompt.
