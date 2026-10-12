@@ -1,4 +1,4 @@
-# The skills the agent home ships (SPEC nix:T154, nix:V47): the toggles
+# The skills the agent home ships (SPEC nix:T154, home:V47): the toggles
 # in agent-home.toml, switched on. `cloud-home.nix` links them,
 # `checks.nix` hands the same names to the check.
 let
@@ -10,7 +10,7 @@ let
 in
 assert
   !(has "caveman-commit")
-  || throw "nix/agent-home.toml: caveman-commit must stay false -- it drops the commit body the commit-msg gate requires (nix:V45)";
+  || throw "nix/agent-home.toml: caveman-commit must stay false -- it drops the commit body the commit-msg gate requires (home:V45)";
 {
   # The source directory names, per plugin.
   inherit cavekit caveman;

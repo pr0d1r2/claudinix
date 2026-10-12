@@ -45,7 +45,7 @@ in
   # The cavekit and caveman skills, FORMAT.md, the set rules and rtk are in
   # the activation package (nix:T16, nix:V14), its settings merge writes
   # exactly the cloud permissions (T101), and the caveman hooks and
-  # statusLine run existing scripts by absolute paths (nix:V46).
+  # statusLine run existing scripts by absolute paths (home:V46).
   cloud-home =
     pkgs.runCommand "cloud-home-check" { nativeBuildInputs = [ pkgs.jq ]; }
       "bash ${../scripts/nix/cloud-home-check.sh} ${cloudHome.activationPackage} ${./cloud-permissions.json} $out ${toString skills.linked}";

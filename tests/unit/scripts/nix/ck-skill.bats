@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 bats_require_minimum_version 1.5.0
-# Unit tests for scripts/nix/ck-skill.sh (SPEC nix:T154, nix:V47): a
+# Unit tests for scripts/nix/ck-skill.sh (SPEC nix:T154, home:V47): a
 # cavekit skill is copied under the name `ck-<name>`, its frontmatter
 # `name:` follows, and its references to cavekit's verbs (`/ck:<verb>`
 # from the plugin, bare `/<verb>`) become `/ck-<verb>`, so caveman's own
@@ -68,14 +68,14 @@ EOF
     [ ! -e "$OUT" ]
 }
 
-@test "only the verbs passed are rewritten (nix:B50)" {
+@test "only the verbs passed are rewritten (home:B50)" {
     run bash "$SCRIPT" "$SRC" spec "$OUT" spec build
     [ "$status" -eq 0 ]
     grep -qF 'Loaded by /ck-build and /ck:check.' "$OUT/SKILL.md"
     grep -qxF 'See /backprop and /caveman.' "$OUT/refs/notes.md"
 }
 
-@test "references in a row are all rewritten (nix:B50)" {
+@test "references in a row are all rewritten (home:B50)" {
     echo "Run /spec,/build,/check,/grill." >"$SRC/refs/notes.md"
     run bash "$SCRIPT" "$SRC" spec "$OUT" "${VERBS[@]}"
     [ "$status" -eq 0 ]

@@ -23,7 +23,7 @@ setup() {
     RTKBIN="$BATS_TEST_TMPDIR/store/abc-rtk/bin/rtk"
     HOOKS="{\"SessionStart\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-activate.js\",\"timeout\":30}]}],\"SubagentStart\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-activate.js --subagent\",\"timeout\":30}]}],\"UserPromptSubmit\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-mode-tracker.js\",\"timeout\":30}]}],\"SessionEnd\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"$NODE $SRC/caveman-stats.js --record\",\"timeout\":30}]}],\"PreToolUse\":[{\"matcher\":\"Bash\",\"hooks\":[{\"type\":\"command\",\"command\":\"$RTKBIN hook claude\"}]}]}"
     STATUSLINE="{\"type\":\"command\",\"command\":\"$BASH_BIN $SRC/caveman-statusline.sh\"}"
-    # Every toggle of nix/agent-home.toml on but caveman-commit (nix:T154, V45).
+    # Every toggle of nix/agent-home.toml on but caveman-commit (nix:T154, home:V45).
     SKILLS="ck-spec ck-build ck-check ck-backprop ck-caveman ck-deepen ck-grill ck-research ck-review caveman caveman-review caveman-help caveman-compress investigate-first surgical-patch safe-refactor lean-build migration verify-and-stop ultracave megacave cavecrew caveman-explore caveman-stats"
 }
 
@@ -71,7 +71,7 @@ full_home() {
     [ -e "$OUT" ]
 }
 
-@test "a /ck-<verb> reference to a skill not shipped: fails, names it (nix:V47, nix:B50)" {
+@test "a /ck-<verb> reference to a skill not shipped: fails, names it (home:V47, home:B50)" {
     full_home
     rm -r "$CLAUDE/skills/ck-research"
     echo "Run /ck-research first, then /ck-build." >>"$CLAUDE/skills/ck-spec/SKILL.md"
@@ -83,14 +83,14 @@ full_home() {
     [ ! -e "$OUT" ]
 }
 
-@test "a /ck-<verb> reference to a shipped skill: passes (nix:V47)" {
+@test "a /ck-<verb> reference to a shipped skill: passes (home:V47)" {
     full_home
     echo "Run /ck-build, see skills/ck-spec/SKILL.md." >>"$CLAUDE/skills/ck-spec/SKILL.md"
     run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
     [ "$status" -eq 0 ]
 }
 
-@test "FORMAT.md naming a shipped cavekit skill by its bare verb: fails (nix:B51)" {
+@test "FORMAT.md naming a shipped cavekit skill by its bare verb: fails (home:B51)" {
     full_home
     echo "Run /spec new, then /ck-build." >"$CLAUDE/FORMAT.md"
     run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
@@ -100,7 +100,7 @@ full_home() {
     [ ! -e "$OUT" ]
 }
 
-@test "FORMAT.md naming a verb that is not shipped: passes (nix:B51)" {
+@test "FORMAT.md naming a verb that is not shipped: passes (home:B51)" {
     full_home
     echo "Run /ck-build, not /zzz." >"$CLAUDE/FORMAT.md"
     run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
@@ -258,7 +258,7 @@ full_home() {
     [[ "$output" == *"skills/caveman-review/SKILL.md"* ]]
 }
 
-@test "caveman-commit in the home: fails, it competes with commit-msg (nix:V45)" {
+@test "caveman-commit in the home: fails, it competes with commit-msg (home:V45)" {
     full_home
     mkdir -p "$CLAUDE/skills/caveman-commit"
     echo "# caveman-commit" >"$CLAUDE/skills/caveman-commit/SKILL.md"
@@ -308,7 +308,7 @@ without_hook() {
     [[ "$output" == *"node"* ]]
 }
 
-@test "hook script missing from the store: fails and names it (nix:V46)" {
+@test "hook script missing from the store: fails and names it (home:V46)" {
     full_home
     rm "$SRC/caveman-activate.js"
     run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
@@ -317,7 +317,7 @@ without_hook() {
     [ ! -e "$OUT" ]
 }
 
-@test "statusLine script missing from the store: fails and names it (nix:V46)" {
+@test "statusLine script missing from the store: fails and names it (home:V46)" {
     full_home
     rm "$SRC/caveman-statusline.sh"
     run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
@@ -325,7 +325,7 @@ without_hook() {
     [[ "$output" == *"caveman-statusline.sh"* ]]
 }
 
-@test "caveman hook with a 5 s timeout: fails, upstream gives 30 s (nix:V46)" {
+@test "caveman hook with a 5 s timeout: fails, upstream gives 30 s (home:V46)" {
     full_home
     merge_writes "{\"permissions\": $(cat "$PERMS"), \"hooks\": ${HOOKS//\"timeout\":30/\"timeout\":5}, \"statusLine\": $STATUSLINE}"
     run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
@@ -334,7 +334,7 @@ without_hook() {
     [ ! -e "$OUT" ]
 }
 
-@test "statusLine run by a bare bash: fails (nix:V46)" {
+@test "statusLine run by a bare bash: fails (home:V46)" {
     full_home
     merge_writes "{\"permissions\": $(cat "$PERMS"), \"hooks\": $HOOKS, \"statusLine\": ${STATUSLINE//$BASH_BIN/bash}}"
     run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
@@ -359,7 +359,7 @@ without_hook() {
     [ ! -e "$OUT" ]
 }
 
-@test "a skill that is not toggled on: fails and names it (nix:V47)" {
+@test "a skill that is not toggled on: fails and names it (home:V47)" {
     full_home
     mkdir -p "$CLAUDE/skills/stray"
     printf -- "---\nname: stray\n---\n" >"$CLAUDE/skills/stray/SKILL.md"
@@ -369,7 +369,7 @@ without_hook() {
     [ ! -e "$OUT" ]
 }
 
-@test "a skill whose name: is not its directory: fails and names both (nix:V47)" {
+@test "a skill whose name: is not its directory: fails and names both (home:V47)" {
     full_home
     printf -- "---\nname: spec\n---\n" >"$CLAUDE/skills/ck-spec/SKILL.md"
     run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" $SKILLS
@@ -434,7 +434,7 @@ without_hook() {
     [ "$status" -eq 0 ]
 }
 
-@test "caveman-stats off but its SessionEnd hook in settings: fails (nix:V47)" {
+@test "caveman-stats off but its SessionEnd hook in settings: fails (home:V47)" {
     full_home
     rm -r "$CLAUDE/skills/caveman-stats"
     run bash "$SCRIPT" "$PKG" "$PERMS" "$OUT" ${SKILLS/ caveman-stats/}

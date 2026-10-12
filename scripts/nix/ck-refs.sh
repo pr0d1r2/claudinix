@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Copies the markdown file IN to OUT, rewriting each reference to a cavekit verb
 # (`/ck:<verb>` from the plugin, or a bare `/<verb>`) to `/ck-<verb>`
-# (SPEC nix:V47, nix:B51). Only the VERB... given are rewritten: the
+# (SPEC home:V47, home:B51). Only the VERB... given are rewritten: the
 # cavekit skills the home ships (nix/cloud-skills.nix). Paths such as
 # `skills/spec/SKILL.md` and longer words such as `/specs` are left as
 # they are.

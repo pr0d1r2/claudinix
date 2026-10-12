@@ -2,13 +2,13 @@
 # `checks.x86_64-linux.cloud-home`: the agent home's activation package
 # carries what a cloud session needs at launch (SPEC nix:T16, nix:V14,
 # C12): exactly the cavekit and caveman skills toggled on (the SKILL...
-# arguments, nix:V47), each named as its directory, with cavecrew's agents
+# arguments, home:V47), each named as its directory, with cavecrew's agents
 # and the caveman-stats SessionEnd hook when those are on (nix:T154), the
 # FORMAT.md they read, and the set rules; and the settings.json its
 # activation writes carries exactly the cloud permissions in PERMISSIONS
 # (T101). It also carries the rtk pieces (nix:T151): the rtk binary,
 # RTK.md and the @RTK.md line in the home files, and the rtk Bash hook in
-# settings.json; and caveman's hooks and statusLine (nix:T153, nix:V46):
+# settings.json; and caveman's hooks and statusLine (nix:T153, home:V46):
 # absolute commands, existing scripts, timeouts of 30 s. settings.json is
 # not a home file: the claude-code module merges settings into
 # ~/.claude/settings.json from a `run-merge-settings.sh` the `activate`
@@ -51,14 +51,14 @@ for skill in "${skills[@]}"; do
         continue
     fi
     # A skill is invoked by its frontmatter name; cavekit's are renamed
-    # to ck-<name>, so the name must follow the directory (nix:V47).
+    # to ck-<name>, so the name must follow the directory (home:V47).
     declared="$(awk '/^---$/ { n++; next } n == 1 && /^name: / { print; exit }' "$claude/skills/$skill/SKILL.md")"
     if [ "$declared" != "name: $skill" ]; then
         echo "cloud-home-check: ~/.claude/skills/$skill/SKILL.md says '$declared', not 'name: $skill'" >&2
         status=1
     fi
 done
-# Exactly the toggled skills, nothing else (nix:V47).
+# Exactly the toggled skills, nothing else (home:V47).
 for dir in "$claude"/skills/*; do
     [ -e "$dir" ] || continue
     if ! shipped "$(basename "$dir")"; then
@@ -66,8 +66,8 @@ for dir in "$claude"/skills/*; do
         status=1
     fi
 done
-# Every `/ck-<verb>` a shipped skill names is a shipped skill (nix:V47,
-# nix:B50): a toggled-off cavekit skill must not stay referenced.
+# Every `/ck-<verb>` a shipped skill names is a shipped skill (home:V47,
+# home:B50): a toggled-off cavekit skill must not stay referenced.
 while read -r file ref; do
     if ! shipped "${ref#/}"; then
         echo "cloud-home-check: ${file#"$claude"/} names $ref, which is not a shipped skill" >&2
@@ -94,7 +94,7 @@ elif [ -e "${agents[0]}" ]; then
     status=1
 fi
 # caveman-commit tells a session to skip the commit body that the repo's
-# `commit-msg` gate requires (nix:V45).
+# `commit-msg` gate requires (home:V45).
 if [ -e "$claude/skills/caveman-commit" ]; then
     echo "cloud-home-check: ~/.claude/skills/caveman-commit competes with the commit-msg gate" >&2
     status=1
@@ -103,7 +103,7 @@ if [ ! -s "$claude/FORMAT.md" ]; then
     echo "cloud-home-check: missing ~/.claude/FORMAT.md" >&2
     status=1
 else
-    # It names the commands the home has, not cavekit's plugin ones (nix:B51).
+    # It names the commands the home has, not cavekit's plugin ones (home:B51).
     for skill in "${skills[@]}"; do
         verb="${skill#ck-}"
         if [ "$verb" != "$skill" ] &&
@@ -180,7 +180,7 @@ else
     done
     # Every absolute path in a hook or statusLine command must exist: a
     # tag bump that moves a script would otherwise fail every session
-    # start (nix:V46).
+    # start (home:V46).
     while read -r command_line; do
         for word in $command_line; do
             if [[ "$word" == /* ]] && [ ! -e "$word" ]; then
@@ -190,7 +190,7 @@ else
         done
     done < <(jq -r '[.hooks[]?[]?.hooks[]?.command, .statusLine.command?] | .[] | strings' "$scratch/.claude/settings.json" 2>/dev/null)
     # caveman's plugin.json gives each hook 30 s; a cold node start must
-    # not be killed (nix:V46).
+    # not be killed (home:V46).
     if ! jq -e '[.hooks[]?[]?.hooks[]? | select((.command // "") | test("/bin/node ")) | (.timeout // 30) >= 30] | all' "$scratch/.claude/settings.json" >/dev/null 2>&1; then
         echo "cloud-home-check: a node hook in settings.json has a timeout under 30 s" >&2
         status=1
