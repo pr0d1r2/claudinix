@@ -3,7 +3,9 @@
 # cloud permission rules it rewrites, and each rewritten rule has its
 # `rtk ` twin in the same list (SPEC .:V44, B53). The fast
 # `cloud-permissions` guard knows git and cargo only; this check catches
-# a tool a newer rtk starts rewriting (nix:T151).
+# a tool a newer rtk starts rewriting (nix:T151). It checks the bare-to-rtk
+# direction only; the reverse (every `rtk ` rule has its bare one) is the
+# guard's job alone.
 #
 # Each `Bash(CMD)` rule that is not itself an rtk rule is turned into a
 # sample command (every `*` becomes `x`) and fed to `rtk hook claude`
@@ -55,7 +57,7 @@ for key in allow deny; do
         [[ "$got" == "rtk "* ]] || continue
         twin="Bash(rtk $cmd)"
         if ! jq -e --arg key "$key" --arg rule "$twin" '.[$key] | index($rule)' "$list" >/dev/null; then
-            echo "rtk-twins: rtk rewrites $key rule \"$rule\", but $list has no \"$twin\"" >&2
+            echo "rtk-twins: rtk rewrites $key rule \"$rule\", but $list has no \"$twin\" -- also extend the (git|cargo) set in scripts/guard/cloud-permissions.sh if rtk rewrites a new tool" >&2
             status=1
         fi
     done < <(jq -r --arg key "$key" '.[$key][] | select(startswith("Bash(") and (startswith("Bash(rtk ") | not))' "$list")
