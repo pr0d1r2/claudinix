@@ -32,7 +32,7 @@ V47: `~/.claude/skills` = exactly the enabled toggles of `nix/agent-home.toml` (
 ## §T TASKS
 
 id|status|task|cites
-T155|x|move the `nix` skill, hook & toggle invariants (V45-V47) & their bugs (B50, B51) here; archived tasks T151, T153, T154 stay in `nix`, history|B46,B47,B48,B49
+T155|x|move the `nix` skill, hook & toggle invariants (V45-V47) & their bugs (B50, B51) here; archived tasks T151, T153, T154 stay in `nix`, history|V45,V46,V47,B50,B51
 
 ## §B BUGS
 
