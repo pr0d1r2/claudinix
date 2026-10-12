@@ -28,7 +28,7 @@ V35: every setting the agent home writes into `~/.claude` is checked in the GENE
 V45: home ⊥ ships a skill that competes with a gate rule (`caveman-commit` vs `commit-msg`).
 V46: caveman hook \& `statusLine` commands: absolute interpreter, script in store, timeout ≥ 30.
 V47: `~/.claude/skills` = exactly the enabled toggles of `nix/agent-home.toml` (cavekit as `ck-<n>`); ∀ skill: dir name = its `name:`; `/<v>` → `/ck-<v>` ⇔ `v` shipped (B50), ∀ `/ck-<v>` resolves; FORMAT.md too (B51).
-V49: cloud list: an allowed push takes its options before the remote only (`-u`, `--force-with-lease`) ∴ deny ∀ option after it (`Bash(git push * -*)` + rtk twin): no glob names every short-flag cluster (B58).
+V49: cloud list: an allowed push takes its options before the remote only ∴ deny ∀ option after it (`Bash(git push * -*)` + rtk twin): no glob names every short-flag cluster (B58); older after-remote denies = deliberate 2nd layer.
 
 ## §T TASKS
 
