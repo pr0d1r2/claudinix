@@ -52,3 +52,4 @@ B23|2026-10-04|`HEAD:*` allow (T133) matched `HEAD:+main` \& tag pushes; no deny
 B44|2026-10-09|nix-rtk locks `rtk-src` as `github:`; T151 made it the 2nd `github:` input, 403 unless cached (`.:V30`)|own `rtk-src` (`git+https`), nix-rtk follows; `rtk-pin` checks rev
 B50|2026-10-10|hardcoded verb list: toggle off/new skill → dangling `/ck-x`, unpatched `/x`; 2 passes missed `/a,/b,/c`|V47: nix passes verbs; refs checked
 B51|2026-10-10|FORMAT.md named `/spec`, `/build`: absent in home|V47: same rewrite, checked
+B53|2026-10-12|guard: twins 1 way, deny side only main-push, rewritten set `(git\|cargo)` hand-kept, rtk 0.51 behaviour unchecked by CI; rtk's matcher ⊥ accepts `claude/*` ∴ Claude Code judges the twin (#28 review)|`.:V44`
