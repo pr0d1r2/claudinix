@@ -148,7 +148,8 @@ A few notes on why the steps look the way they do:
   fail with 401.
 - **The spec steps** (`mth`, `itok`, `sherd`) keep the spec well formed and
   under the token ceilings in `.context-limits`. The spec is federated: the
-  root `SPEC.md` names its child nodes (`scripts`, `nix`, `docs`) in a
+  root `SPEC.md` names its child nodes (`scripts`, `nix`, `docs`,
+  `experiments`, `dev`, `agent-home`) in a
   `§F` table, and each node has its own `SPEC.md`. `mth` runs once per
   changed node; `sherd check` follows citations across nodes, and
   `sherd sync --check` keeps each node's `§N` in step with its parent's
