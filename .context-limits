@@ -65,7 +65,6 @@
 #
 # 2026-10-12: the agent-home node is renamed home (sherd reads a hyphen
 # in a cite as a node boundary); same ceilings.
-
 #
 # Raised 2026-10-12 for home: T155 moves the skill, hook and toggle
 # invariants and their bugs (V45-V47, B50, B51) down from nix. Measured
