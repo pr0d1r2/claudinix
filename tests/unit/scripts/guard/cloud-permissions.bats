@@ -182,32 +182,73 @@ list() {
     [[ "$output" == *'Bash(rtk git push *:main)'* ]]
 }
 
-@test "a git allow without its rtk twin: refused and named (agent-home:V48)" {
+@test "a git allow without its rtk twin: refused and named (.:V44)" {
     list '["Bash(git push origin claude/*)"]'
     run bash "$SCRIPT"
     [ "$status" -eq 1 ]
     [[ "$output" == *'Bash(rtk git push origin claude/*)'* ]]
 }
 
-@test "a cargo allow without its rtk twin: refused and named (agent-home:V48)" {
+@test "a cargo allow without its rtk twin: refused and named (.:V44)" {
     list '["Bash(cargo test *)"]'
     run bash "$SCRIPT"
     [ "$status" -eq 1 ]
     [[ "$output" == *'Bash(rtk cargo test *)'* ]]
 }
 
-@test "git and cargo allows with their rtk twins pass (agent-home:V48)" {
+@test "git and cargo allows with their rtk twins pass (.:V44)" {
     list '["Bash(git push origin claude/*)", "Bash(rtk git push origin claude/*)", "Bash(cargo test *)", "Bash(rtk cargo test *)"]'
     run bash "$SCRIPT"
     [ "$status" -eq 0 ]
     [ -z "$output" ]
 }
 
-@test "a command rtk leaves alone needs no twin (agent-home:V48)" {
+@test "a command rtk leaves alone needs no twin (.:V44)" {
     list '["Bash(nix-dev -c cargo test *)", "Bash(hk check *)", "Bash(claudinix-dev *)"]'
     run bash "$SCRIPT"
     [ "$status" -eq 0 ]
     [ -z "$output" ]
+}
+
+@test "a twin missing either way, in allow or deny: refused and named (.:V44, B53)" {
+    # KEY|RULE ADDED ALONE|RULE THE GUARD MUST NAME
+    while IFS='|' read -r key rule missing; do
+        list '["Bash(bats *)"]'
+        jq --arg key "$key" --arg rule "$rule" '.[$key] += [$rule]' "$PERMISSIONS_FILE" >"$PERMISSIONS_FILE.new"
+        mv "$PERMISSIONS_FILE.new" "$PERMISSIONS_FILE"
+        run bash "$SCRIPT"
+        [ "$status" -eq 1 ] || {
+            echo "passed without its twin: $key $rule"
+            return 1
+        }
+        [[ "$output" == *"$missing"* ]] || {
+            echo "did not name $missing: $output"
+            return 1
+        }
+    done <<'TABLE'
+allow|Bash(rtk git diff *)|Bash(git diff *)
+allow|Bash(git push -u origin claude/*)|Bash(rtk git push -u origin claude/*)
+deny|Bash(git push *--mirror*)|Bash(rtk git push *--mirror*)
+deny|Bash(rtk git push *--mirror*)|Bash(git push *--mirror*)
+deny|Bash(cargo publish *)|Bash(rtk cargo publish *)
+TABLE
+}
+
+@test "the repo's own list denies -f before and after the refspec (nix:B54)" {
+    for cmd in 'git push origin HEAD:claude/x -f' 'git push -f origin HEAD:claude/x' \
+        'rtk git push origin HEAD:claude/x -f' 'rtk git push -f origin HEAD:claude/x'; do
+        denied=0
+        while IFS= read -r rule; do
+            glob="${rule#Bash(}"
+            glob="${glob%)}"
+            # shellcheck disable=SC2053 # the rule is a glob on purpose
+            [[ "$cmd" == $glob ]] && denied=1
+        done < <(jq -r '.deny[]' "$REPO_ROOT/nix/cloud-permissions.json")
+        [ "$denied" -eq 1 ] || {
+            echo "not denied: $cmd"
+            return 1
+        }
+    done
 }
 
 @test "not an {allow, deny} object of strings: refused" {
