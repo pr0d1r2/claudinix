@@ -13,7 +13,7 @@ sib|nix|flake outputs: dev shell, checks, agent home build, cachix push
 sib|docs|plain-English docs: setup, facts, runbook, security, release
 sib|experiments|cloud-session experiments \\& dated results, fed to `docs/FACTS.md`
 sib|dev|`claudinix-dev`: repo-only Rust tool for generated badges \\& doc numbers
-sib|agent-home|`~/.claude` content: skills \\& toggles, rtk, caveman hooks, cloud permission rules
+sib|home|`~/.claude` content: skills \\& toggles, rtk, caveman hooks, cloud permission rules
 
 ## §C CONSTRAINTS
 

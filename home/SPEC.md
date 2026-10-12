@@ -8,7 +8,7 @@ what the agent home puts in `~/.claude` \& how it behaves in a session: skills \
 
 rel|path|lens
 up|.|-
-self|agent-home|`~/.claude` content: skills \\& toggles, rtk, caveman hooks, cloud permission rules
+self|home|`~/.claude` content: skills \\& toggles, rtk, caveman hooks, cloud permission rules
 sib|scripts|repo shell: gate guards, hk runners, CI checks, target-project apps (`nix-dev`, `inputs`, `domains`, `guide`)
 sib|nix|flake outputs: dev shell, checks, agent home build, cachix push
 sib|docs|plain-English docs: setup, facts, runbook, security, release

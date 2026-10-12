@@ -63,17 +63,21 @@
 # 130. Ceilings are about 15% over measured plus that 130 (file 726 -> 850,
 # chain 6608 -> 7450). No other ceiling changes.
 
+#
+# 2026-10-12: the agent-home node is renamed home (sherd reads a hyphen
+# in a cite as a node boundary); same ceilings.
+
 SPEC.md          8700
 scripts/SPEC.md  7000
 nix/SPEC.md      1400
 docs/SPEC.md     1800
 experiments/SPEC.md 1200
 dev/SPEC.md      1250
-agent-home/SPEC.md 850
+home/SPEC.md       850
 
 scripts 11050
 nix      8950
 docs     9900
 experiments  8650
 dev          8000
-agent-home   7450
+home         7450
