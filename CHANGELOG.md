@@ -20,6 +20,8 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- The cloud permission list denies a push to `heads/main`, the partial spelling
+  of `refs/heads/main` that git resolves to main.
 - The cloud permission list lets a push write one ref only: a second refspec
   (`git push origin claude/x release`) and a destination after a `claude/`
   branch (`claude/x:production`) are denied, since they wrote branches other
