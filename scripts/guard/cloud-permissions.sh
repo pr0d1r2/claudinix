@@ -10,7 +10,7 @@
 #     wildcard (`*`, `Bash(*)`), or allow an environment runner without
 #     its inner command (`Bash(nix develop *)`, `Bash(nix-dev *)`): the
 #     permissions docs note such a runner rule matches anything after it;
-#   - deny keeps every rule against pushing main;
+#   - deny keeps every rule against pushing main and forcing a push;
 #   - every git or cargo rule, in allow and in deny, has its `rtk` twin
 #     (what the agent home's hook rewrites it to), and every `rtk` rule
 #     its bare one;
@@ -65,15 +65,25 @@ while IFS= read -r rule; do
     status=1
 done <<<"$blanket"
 
-for rule in \
-    'Bash(git push * main)' \
-    'Bash(git push * main *)' \
-    'Bash(git push *:main)' \
-    'Bash(git push *:main *)' \
-    'Bash(git push *refs/heads/main*)'; do
-    # Its rtk twin is required by the twin check below (V44).
+# Denies the list must keep (its rtk twins are required by the twin check
+# below). One array: a rule that must stay denied is added here.
+required_denies=(
+    'Bash(git push * main)'
+    'Bash(git push * main *)'
+    'Bash(git push *:main)'
+    'Bash(git push *:main *)'
+    'Bash(git push *refs/heads/main*)'
+    'Bash(git push *--force)'
+    'Bash(git push *--force *)'
+    'Bash(git push *--delete*)'
+    'Bash(git push *--mirror*)'
+    'Bash(git push * -f)'
+    'Bash(git push -f *)'
+    'Bash(git push * -f *)'
+)
+for rule in "${required_denies[@]}"; do
     if ! jq -e --arg rule "$rule" '.deny | index($rule)' "$list" >/dev/null; then
-        fail "$list must deny \"$rule\" -- an unattended task never pushes main"
+        fail "$list must deny \"$rule\" -- an unattended task never pushes main or forces a push"
         status=1
     fi
 done
