@@ -56,6 +56,7 @@ perms() {
     STUB_REWRITES="^(git|cargo|gh) " run bash "$SCRIPT" "$RTK" "$PERMS" "$OUT"
     [ "$status" -eq 1 ]
     [[ "$output" == *'Bash(rtk gh pr view *)'* ]]
+    [[ "$output" == *'scripts/guard/cloud-permissions.sh'* ]]
 }
 
 @test "a rule rtk leaves alone needs no twin" {
