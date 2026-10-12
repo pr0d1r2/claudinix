@@ -79,7 +79,8 @@ let
     };
   };
   # cavekit's skills are renamed `ck-<name>` and their verb references
-  # patched, for the cavekit skills switched on (nix:T154, home:V47, home:B50); caveman's are linked as they are.
+  # patched, for the cavekit skills switched on (nix:T154, home:V47,
+  # home:B50); caveman's are linked as they are.
   # ck-skill.sh calls ck-refs.sh next to it, so they travel as a directory.
   cavekitScripts = ../scripts/nix;
   ckSkill =
