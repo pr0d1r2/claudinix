@@ -84,6 +84,11 @@ required_denies=(
     # option after it is denied: no glob names every short-flag cluster
     # (home:V49, home:B58).
     'Bash(git push * -*)'
+    # An allowed push writes one ref: one refspec after the remote, and a
+    # claude/ source names no destination of its own (home:V50, home:B59).
+    'Bash(git push origin * *)'
+    'Bash(git push * origin * *)'
+    'Bash(git push * claude/*:*)'
 )
 for rule in "${required_denies[@]}"; do
     if ! jq -e --arg rule "$rule" '.deny | index($rule)' "$list" >/dev/null; then
