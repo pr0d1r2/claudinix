@@ -33,7 +33,7 @@ V49: cloud list: an allowed push takes its options before the remote only ∴ de
 ## §T TASKS
 
 id|status|task|cites
-T155|x|move the `nix` skill, hook & toggle invariants (V45-V47) & their bugs (B50, B51) here; archived tasks T151, T153, T154 stay in `nix` as history (moving them rewrites 58 cites), not an unfinished move|V45,V46,V47,B50,B51
+T155|x|ARCHIVED to SPEC-ARCHIVE.md|V45,V46,V47,B50,B51
 
 ## §B BUGS
 
