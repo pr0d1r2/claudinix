@@ -51,7 +51,7 @@
 # to their own node.
 #
 # Raised 2026-10-10 for nix: the agent home rows (C12, C33, V45, V46,
-# B44, B46-B49) filled the file to 1200 with every done task archived;
+# B44, B46-B49; C33, B46-B49 since moved to agent-home, see 2026-10-12 below) filled the file to 1200 with every done task archived;
 # per-skill toggles (T154) need about 100 more. Owner chose a raise over
 # splitting an agent-home node. Measured 1200 before the row.
 #
@@ -59,8 +59,9 @@
 # tokens of its ceiling, so the federation table's owns texts were
 # shortened (about 47 tokens freed per node) and the agent-home rows that
 # no code cites (root V35, B11; nix C33, B46-B49) moved down. Measured:
-# file 596, chain 6478; the rtk allow twins (V48, B52) add about 130.
-# ~15% over the sum. No other ceiling changes.
+# file 596, chain 6478; the rtk allow-twin rows, not yet written, add about
+# 130. Ceilings are about 15% over measured plus that 130 (file 726 -> 850,
+# chain 6608 -> 7450). No other ceiling changes.
 
 SPEC.md          8700
 scripts/SPEC.md  7000
