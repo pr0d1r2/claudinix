@@ -24,7 +24,7 @@ sib|dev|`claudinix-dev`: repo-only Rust tool for generated badges \\& doc number
 
 ## §V INVARIANTS
 
-V35: every setting the agent home writes into `~/.claude` is checked in the GENERATED file's shape (`checks.x86_64-linux.cloud-home` runs the merge script \& reads `.permissions`), ⊥ trusting a module option's name (B11).
+V35: every setting the agent home writes into `~/.claude` is checked in the GENERATED file's shape (`nix`'s `checks.x86_64-linux.cloud-home` runs the merge script \& reads `.permissions`), ⊥ trusting a module option's name (B11).
 
 ## §T TASKS
 
