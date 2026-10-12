@@ -289,6 +289,15 @@ denied_by_repo_list() {
     [[ "$output" == *'Bash(git push * -*)'* ]]
 }
 
+@test "dropping only the rtk twin of the option deny is refused (home:V49)" {
+    list '["Bash(bats *)"]'
+    jq '.deny -= ["Bash(rtk git push * -*)"]' "$PERMISSIONS_FILE" >"$PERMISSIONS_FILE.new"
+    mv "$PERMISSIONS_FILE.new" "$PERMISSIONS_FILE"
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *'Bash(rtk git push * -*)'* ]]
+}
+
 @test "the repo's own list does not deny a branch that merely ends in -f (B55)" {
     for cmd in 'git push origin claude/review-f' 'rtk git push origin claude/review-f' \
         'git push -u origin claude/x-f'; do
