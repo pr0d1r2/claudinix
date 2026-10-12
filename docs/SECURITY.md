@@ -76,7 +76,8 @@ access. That makes the following the classes worth reporting:
    `--delete` and `--mirror` are denied, and so is any push option after
    the remote: allowed pushes put theirs first. A push writes one ref: a
    second refspec and a destination after a `claude/` branch
-   (`claude/x:production`) are denied. The rtk hook rewrites `git` and
+   (`claude/x:production`) are denied. `HEAD:<branch>` may still write any one
+   branch but `main`. The rtk hook rewrites `git` and
    `cargo` commands to `rtk <cmd>`, and the rules match a command's start, so
    every `git` and `cargo` rule, allow or deny, has an `rtk` twin
    (`rtk git push origin claude/*`), and the deny rules still win. The
