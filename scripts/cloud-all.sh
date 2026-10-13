@@ -190,7 +190,7 @@ fail() {
 gh_err="$(mktemp)"
 trap 'rm -f "$gh_err"' EXIT
 
-# The failed gh calls in a row that stop a wait (B32). The header above and
+# The failed gh calls in a row that stop a wait (cloud:B32). The header above and
 # docs/CLI.md say 3 too.
 max_gh_failures=3
 
@@ -291,8 +291,8 @@ find_pr() {
 
 # ci_state: the head commit's checks: 0 green, 1 red, 2 pending. A cancelled
 # check is pending, not red: a runner outage cancels jobs that never ran
-# a step (B38) and a newer push cancels the run it supersedes, so the
-# notice names both causes and none as the one (B37), once per wait.
+# a step (cloud:B38) and a newer push cancels the run it supersedes, so the
+# notice names both causes and none as the one (cloud:B37), once per wait.
 cancel_said=
 red_said=
 ci_fixing=0
@@ -342,7 +342,7 @@ comments() {
 }
 
 # comment_count: how many comments the pull request has now; an unreadable
-# list stops the flow, as 0 would make an old comment look new (B33).
+# list stops the flow, as 0 would make an old comment look new (cloud:B33).
 comment_count() {
     local lines
     lines="$(comments)" || fail "cannot read the comments of #$pr -- check gh auth status"

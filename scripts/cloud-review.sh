@@ -85,7 +85,7 @@ fi
 pr= # set by cloud_parse_pr
 cloud_parse_pr "$arg" || usage
 
-# </dev/null: gh must not share the terminal the y/N answer comes from (B19).
+# </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
 if ! info="$(gh pr view "$pr" --json number,state,headRefName,baseRefName,url \
     --jq '[.number, .state, .headRefName, .baseRefName, .url] | @tsv' </dev/null)"; then
     echo "review: gh could not read pull request #$pr -- check the number and that gh is signed in" >&2
@@ -98,7 +98,7 @@ if [ "$state" != OPEN ]; then
     exit 1
 fi
 # The author picks these names and the prompt pastes them into shell
-# commands, so only plain ref characters pass (B20).
+# commands, so only plain ref characters pass (cloud:B20).
 for ref in "$head" "$base"; do
     if [[ ! "$ref" =~ ^[A-Za-z0-9._/-]+$ ]]; then
         echo "review: #$pr has the branch name '$ref', which has characters beyond A-Z a-z 0-9 . _ / - -- refusing to put it in a prompt" >&2
@@ -148,7 +148,7 @@ fi
 
 # Each launch returns once its session exists, so the sessions are running
 # side by side, though they start one after another. A failed launch is
-# recorded and the rest still start (B22): the sessions already started
+# recorded and the rest still start (cloud:B22): the sessions already started
 # are billed.
 started=()
 failed=()

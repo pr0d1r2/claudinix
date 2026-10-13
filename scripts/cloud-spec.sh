@@ -8,7 +8,7 @@
 # (scripts:V26). With no NODE, the nodes are the ones over their
 # `.context-limits` row: the owner of a file row `itok check` reports
 # (the longest §F dir the file is under, else the root) or a chain row
-# `sherd budget` reports (B41). No `.context-limits` is refused (B42).
+# `sherd budget` reports (cloud:B41). No `.context-limits` is refused (cloud:B42).
 # When none is over, there is nothing to do: exit 0, no session. A
 # measuring tool that is missing or prints no report, or a chain node §F
 # lacks, is a failure, never "none over" (.:V18). Measuring needs itok,
@@ -84,7 +84,7 @@ while IFS= read -r n; do
 done < <(cloud_nodes "$top/SPEC.md")
 
 # owner_of PATH: the node that owns PATH, a file relative to the top: the
-# longest §F dir it is under, else the root (B41).
+# longest §F dir it is under, else the root (cloud:B41).
 owner_of() {
     local n best=
     for n in "${all_nodes[@]}"; do

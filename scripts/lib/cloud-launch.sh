@@ -151,7 +151,7 @@ cloud_require_remote() {
 
 # cloud_require_url_repo LABEL REMOTE ARG: a pull request URL (set $url_repo
 # by cloud_parse_pr) must name the repository REMOTE points at, case folded
-# (B21, B25); a bare number passes.
+# (cloud:B21, cloud:B25); a bare number passes.
 cloud_require_url_repo() {
     local remote_repo
     [ -n "$url_repo" ] || return 0
@@ -167,11 +167,11 @@ cloud_require_url_repo() {
 # cloud_parse_pr) must be one a session may push to: open, of this
 # repository (not a fork), based on main, with a head that is not main and
 # a plain ref. Sets $head, $base and $url. The one source of these
-# refusals, so a fix like B20 lands once.
+# refusals, so a fix like cloud:B20 lands once.
 cloud_require_open_pr() {
     local info state cross
     cloud_require_url_repo "$1" "$2" "$3" || return 1
-    # </dev/null: gh must not share the terminal the y/N answer comes from (B19).
+    # </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
     if ! info="$(gh pr view "$pr" --json number,state,headRefName,baseRefName,url,isCrossRepository \
         --jq '[.number, .state, .headRefName, .baseRefName, .url, .isCrossRepository] | @tsv' </dev/null)"; then
         echo "$1: gh could not read pull request #$pr -- check the number and that gh is signed in" >&2
@@ -195,7 +195,7 @@ cloud_require_open_pr() {
         echo "$1: #$pr's branch is main; a cloud session never pushes main" >&2
         return 1
     fi
-    # No leading `-`: the prompts paste the head bare into git commands (B39).
+    # No leading `-`: the prompts paste the head bare into git commands (cloud:B39).
     if [[ ! "$head" =~ ^[A-Za-z0-9._][A-Za-z0-9._/-]*$ ]]; then
         echo "$1: #$pr's branch $head is not a plain branch name (letters, digits, ._/-, not starting with -) -- it would reach the session's commands" >&2
         return 1
@@ -229,7 +229,7 @@ cloud_resolve_model() {
 }
 
 # cloud_flush_input: drop what the terminal left in the input buffer, such
-# as a reply to a query gh sent it, so only the typed answer is read (B19).
+# as a reply to a query gh sent it, so only the typed answer is read (cloud:B19).
 # Whole seconds: macOS /bin/bash 3.2 has no fractional -t.
 cloud_flush_input() {
     if [ -t 0 ]; then
