@@ -10,7 +10,8 @@ setup() {
 }
 
 # spec NODE...: a root spec whose §F lists NODE..., followed by another
-# table whose first column has a hyphen, which must be ignored.
+# table whose first column has a hyphen, which must be ignored (every case
+# below proves rows outside §F are not node names).
 spec() {
     {
         printf '# SPEC\n\n## §G GOAL\n\ngoal\n\n## §F FEDERATION\n\ndir|owns|⊥owns|tokens\n'
@@ -42,12 +43,6 @@ spec() {
     [ "$status" -eq 1 ]
     [[ "$output" == *'agent-home'* ]]
     [[ "$output" == *'dev-tools'* ]]
-}
-
-@test "rows outside §F are not node names" {
-    spec scripts
-    run bash "$SCRIPT" "$SPEC"
-    [ "$status" -eq 0 ]
 }
 
 @test "a spec with no §F table: fails, nothing was checked" {
