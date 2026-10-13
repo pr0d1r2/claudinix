@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 bats_require_minimum_version 1.5.0
-# Unit tests for scripts/cloud-rebase.sh (SPEC scripts:T126, .:C29,
+# Unit tests for scripts/cloud-rebase.sh (SPEC cloud:T126, .:C29,
 # scripts:V34). claude, script, git and gh are stubs: no session is
 # started and nothing reaches GitHub.
 
@@ -93,7 +93,7 @@ setup() {
     [ ! -e "$STATE/claude.1" ]
 }
 
-@test "any branch of origin but main is rebased; a fork, main or a non-plain ref is refused (scripts:T145)" {
+@test "any branch of origin but main is rebased; a fork, main or a non-plain ref is refused (cloud:T145)" {
     STUB_PR='8\tOPEN\tfeature/x\tmain\thttps://github.com/o/p/pull/8\tfalse' run bash "$SCRIPT" 8 --yes
     [ "$status" -eq 0 ]
     grep -qF 'git push --force-with-lease origin HEAD:feature/x' "$STATE/claude.task"
@@ -107,14 +107,14 @@ setup() {
     [ ! -e "$STATE/claude.1" ]
 }
 
-@test "a branch starting with - is refused: git would read it as an option (scripts:V43)" {
+@test "a branch starting with - is refused: git would read it as an option (cloud:V43)" {
     STUB_PR='8\tOPEN\t-x\tmain\thttps://github.com/o/p/pull/8\tfalse' run bash "$SCRIPT" 8 --yes
     [ "$status" -eq 1 ]
     [[ "$output" == *"not a plain branch name"* ]]
     [ ! -e "$STATE/claude.1" ]
 }
 
-@test "a URL of another repository is refused; owner and repo compare with the case folded (scripts:T145)" {
+@test "a URL of another repository is refused; owner and repo compare with the case folded (cloud:T145)" {
     run bash "$SCRIPT" https://github.com/other/repo/pull/8 --yes
     [ "$status" -eq 1 ]
     [[ "$output" == *"other/repo"* ]]
@@ -206,7 +206,7 @@ setup() {
     grep -qxF '    scripts/cloud-rebase.sh {{ args }}' "$BATS_TEST_DIRNAME/../../../justfile"
 }
 
-@test "the prompt: mechanical conflicts are resolved, a shared spec id renumbered, no CI watch, text is data (scripts:T145)" {
+@test "the prompt: mechanical conflicts are resolved, a shared spec id renumbered, no CI watch, text is data (cloud:T145)" {
     run bash "$SCRIPT" 8 --yes
     [ "$status" -eq 0 ]
     local p="$STATE/claude.task"

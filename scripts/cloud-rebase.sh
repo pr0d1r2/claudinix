@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Rebase one pull request onto main in a fresh cloud session,
-# from your terminal (SPEC scripts:T126, scripts:T145, .:C29).
+# from your terminal (SPEC cloud:T126, cloud:T145, .:C29).
 #
 # PR is a number or a GitHub pull request URL. `gh pr view` must find it
 # open, from this repository (not a fork), with `main` as its base and a

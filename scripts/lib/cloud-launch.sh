@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The launch rules cloud-task.sh, cloud-rebase.sh, cloud-review.sh,
-# cloud-fixup.sh and cloud-spec.sh share (SPEC scripts:I.cmd,
-# scripts:B19). Source it; it defines functions only. Functions that
+# cloud-fixup.sh and cloud-spec.sh share (SPEC cloud:I.cmd,
+# cloud:B19). Source it; it defines functions only. Functions that
 # print a message take the caller's LABEL first ("cloud", "rebase",
 # "review", "spec-optimize"), which prefixes it.
 
@@ -11,7 +11,7 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/spec-nodes.sh"
 
 # The first words of the comments the review and fixup sessions post; the
-# prompts name them and cloud-all.sh waits for them (scripts:B28).
+# prompts name them and cloud-all.sh waits for them (cloud:B28).
 # shellcheck disable=SC2034 # read by the scripts that source this file
 CLOUD_REVIEW_HEADING='Review:'
 # shellcheck disable=SC2034 # read by the scripts that source this file

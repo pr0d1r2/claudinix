@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Bring spec nodes back under their token ceilings in a fresh cloud
-# session, from your terminal: `just spec-optimize` (SPEC scripts:T148,
-# scripts:I.cmd, .:C20, .:C29).
+# session, from your terminal: `just spec-optimize` (SPEC cloud:T148,
+# cloud:I.cmd, .:C20, .:C29).
 #
 # NODE is a dir of the root SPEC.md §F table, or the root itself (`.`,
 # also spelled `root`); an unknown one is refused, listing the nodes
