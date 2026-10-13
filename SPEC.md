@@ -160,4 +160,4 @@ B15|2026-10-04|setup line downloads `setup.sh` from `raw.githubusercontent.com`;
 B16|2026-10-04|cloud: probe test saw the session's `nix-dev`; setup test expected unset `$USER` (setup: `id -un`)|V21
 B45|2026-10-09|rtk rewrites `git push origin main` to `rtk git push …`; prefix deny rules may miss it (#24 review)|V44
 B57|2026-10-12|`agent-home:C33` resolved as `home:C33` (#30)|V48
-B61|2026-10-13|`node-names` passed a §F table with a `dir\|` header \& no rows: nothing checked, exit 0 (#34 review)|V48
+B61|2026-10-13|`node-names` trusted the §F shape: a header-only table passed unchecked, any `\|` line after the header was a row (#34 review)|V48
