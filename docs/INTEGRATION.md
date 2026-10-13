@@ -11,9 +11,9 @@ right and this file has a bug.
 
 | caller | set | when |
 |---|---|---|
-| `pre-commit` hook | `fast`, 37 steps | every commit, on the staged files |
-| `pre-push` hook | `all`, 41 steps | every push |
-| `hk check --all` in CI | `all`, 41 steps | every push to `main` and every pull request |
+| `pre-commit` hook | `fast`, 38 steps | every commit, on the staged files |
+| `pre-push` hook | `all`, 42 steps | every push |
+| `hk check --all` in CI | `all`, 42 steps | every push to `main` and every pull request |
 
 A fourth hook, `commit-msg`, runs two steps on the commit message.
 
@@ -104,6 +104,7 @@ the `integration-steps` step fails when it no longer matches.
 | `nav` | fast | `**/SPEC.md` | `sherd sync --check` | `sherd sync` |
 | `spec-structure` | fast | `**/SPEC.md` | `sherd check` | - |
 | `budget` | fast | `**/SPEC.md` `.context-limits` | `sherd budget` | - |
+| `node-names` | fast | `SPEC.md` `scripts/guard/node-names.sh` | `scripts/guard/node-names.sh` | - |
 | `typos` | fast | `**/*` | `typos --force-exclude <files>` | `typos --force-exclude --write-changes <files>` |
 | `no-private-key` | fast | `**/*` | `hk util detect-private-key <files>` | - |
 | `ripsecrets` | fast | `**/*` | `ripsecrets <files>` | - |
