@@ -185,12 +185,26 @@ line_for() {
 
 # scripts:T81 (review R3-21): tell why gh could not answer.
 
-@test "gh not signed in: says so and how to sign in, not a 404" {
+# commit_with_sha_containing HEX: an empty commit whose full SHA holds HEX
+# (the message names the SHA, so a random one holding 404 is a real case).
+commit_with_sha_containing() {
+    local n=0
+    until [[ "$(git rev-parse HEAD)" == *"$1"* ]]; do
+        n=$((n + 1))
+        GIT_COMMITTER_DATE="@$((1700000000 + n)) +0000" git -c user.name=t -c user.email=t@example.com \
+            commit -q --amend --allow-empty --no-edit --date="@$((1700000000 + n)) +0000"
+    done
+}
+
+@test "gh not signed in: says so and how to sign in, not a 404 (scripts:B62)" {
+    commit_with_sha_containing 404
+    local sha404
+    sha404="$(git rev-parse HEAD)"
     GH_AUTH_RC=1 run bash "$SCRIPT"
     [ "$status" -eq 1 ]
     [[ "$output" == *"not signed in"* ]]
     [[ "$output" == *"gh auth login"* ]]
-    [[ "$output" != *"404"* ]]
+    [[ "${output//"$sha404"/}" != *"404"* ]]
     [[ "$output" != *"curl"* ]]
 }
 
