@@ -18,10 +18,11 @@ if [ ! -f "$spec" ]; then
     exit 1
 fi
 
-# The §F table's node names: rows after its `dir|` header, up to the next
-# section.
+# The §F table's node names: rows after its `dir|` header, up to the first
+# blank line.
 names="$(awk '
     /^## / { in_f = ($2 == "§F"); header = 0; next }
+    in_f && header && /^$/ { header = 0; next }
     in_f && /^dir\|/ { header = 1; seen = 1; next }
     in_f && header && /\|/ { split($0, cell, "|"); print cell[1]; rows++ }
     END { if (!rows) exit 3 }
