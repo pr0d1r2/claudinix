@@ -57,6 +57,13 @@ spec() {
     [[ "$output" == *'§F'* ]]
 }
 
+@test "a §F table with a header and no rows: fails, nothing was checked (B61)" {
+    spec
+    run bash "$SCRIPT" "$SPEC"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *'§F'* ]]
+}
+
 @test "missing spec: fails, nothing was checked" {
     run bash "$SCRIPT" "$BATS_TEST_TMPDIR/nope.md"
     [ "$status" -eq 1 ]
