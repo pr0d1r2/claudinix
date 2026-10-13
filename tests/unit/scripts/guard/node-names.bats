@@ -64,6 +64,13 @@ spec() {
     [[ "$output" == *'§F'* ]]
 }
 
+@test "a pipe line after a blank line in §F is prose, not a node row (B61)" {
+    printf '## §F FEDERATION\n\ndir|owns\nscripts|owns\n\nnote: see a-b|c\n' >"$SPEC"
+    run bash "$SCRIPT" "$SPEC"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
+
 @test "missing spec: fails, nothing was checked" {
     run bash "$SCRIPT" "$BATS_TEST_TMPDIR/nope.md"
     [ "$status" -eq 1 ]
