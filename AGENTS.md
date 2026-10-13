@@ -52,6 +52,11 @@ root `SPEC.md`. What the agent home puts in `~/.claude` and how it behaves
 (skills, rtk, caveman, the cloud permission rules) lives in
 `home/SPEC.md`; its Nix wiring stays in `nix/SPEC.md`.
 
+The `cloud` node is the one exception to owner-by-directory: it owns
+`scripts/cloud-*.sh`, `scripts/cloud-*-prompt.txt`, `scripts/review/` and
+`scripts/lib/cloud-launch.sh`, so their rows go in `cloud/SPEC.md`, not
+`scripts/SPEC.md`.
+
 - Ids are unique across all nodes. The next id is the highest over every
   `SPEC*.md`, plus 1 (same for `V`, `B`, `C`).
 - Cite a parent as `` `.:C15` `` and a sibling as `` `docs:T13` ``.
