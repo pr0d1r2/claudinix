@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 bats_require_minimum_version 1.5.0
 # Unit tests for scripts/cloud-spec.sh, `just spec-optimize` (SPEC
-# scripts:T148, scripts:I.cmd, .:C20, .:C29, .:V18, scripts:V26). claude,
+# cloud:T148, cloud:I.cmd, .:C20, .:C29, .:V18, scripts:V26). claude,
 # script, git, itok and sherd are stubs: no session is started, nothing
 # reaches a remote and nothing is measured for real.
 
@@ -231,7 +231,7 @@ setup() {
     cmp "$STATE/claude.task" "$BATS_TEST_TMPDIR/launched"
 }
 
-# --- the prompt (scripts:I.cmd spec-optimize) ---
+# --- the prompt (cloud:I.cmd spec-optimize) ---
 
 # shellcheck disable=SC2016 # literal backticks in the prompt
 @test "the prompt: the nodes, their specs, the branch off main, AGENTS.md, no placeholder left" {

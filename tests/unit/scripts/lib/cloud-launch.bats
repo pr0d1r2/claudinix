@@ -2,7 +2,7 @@
 bats_require_minimum_version 1.5.0
 # Unit tests for scripts/lib/cloud-launch.sh, the launch rules that
 # cloud-task.sh, cloud-rebase.sh and cloud-review.sh share (SPEC
-# scripts:I.cmd, scripts:B19). claude and script are stubs; git is real,
+# cloud:I.cmd, cloud:B19). claude and script are stubs; git is real,
 # in a throwaway repository.
 
 setup() {
@@ -222,7 +222,7 @@ beta" ]
     done
 }
 
-@test "cloud_spec_branch_name is claude/spec-optimize, then each node after a -, the root as root (scripts:T148)" {
+@test "cloud_spec_branch_name is claude/spec-optimize, then each node after a -, the root as root (cloud:T148)" {
     # shellcheck source=/dev/null
     source "$LIB"
     [ "$(cloud_spec_branch_name)" = claude/spec-optimize ]

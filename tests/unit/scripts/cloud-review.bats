@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 bats_require_minimum_version 1.5.0
 # Unit tests for scripts/cloud-review.sh and its roles in scripts/review/
-# (SPEC scripts:T129, .:C29, scripts:V34, scripts:B19). claude, script,
+# (SPEC cloud:T129, .:C29, scripts:V34, cloud:B19). claude, script,
 # git and gh are stubs: no session is started and nothing reaches GitHub.
 
 setup() {

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Run a pull request's whole cloud flow from your terminal, waiting for
-# each step (SPEC scripts:T135, scripts:T139, .:C29): for a task, build it
+# each step (SPEC cloud:T135, cloud:T139, .:C29): for a task, build it
 # first (cloud-task.sh) and wait for its pull request; then wait for green
 # CI, review it by every role (cloud-review.sh all), wait for every role's
 # comment, fix the findings up (cloud-fixup.sh), wait for its reply and
@@ -35,7 +35,7 @@
 #   request given by number fails on its first red run;
 # - the reviews: one comment headed "Review: <role>" for every role;
 # - the fixup: a comment after its launch headed "Fixup:";
-# - conflicts (scripts:T146): once the pull request is known and again
+# - conflicts (cloud:T146): once the pull request is known and again
 #   after the fixup, a pull request that conflicts with main (it gets no
 #   CI) is rebased by cloud-rebase.sh; the flow goes on once a new head
 #   is pushed, and stops naming the conflict when none comes.
@@ -44,7 +44,7 @@
 # exits 1.
 # A wait also ends the flow after 3 failed gh calls in a row (a success
 # resets the count): it shows gh's last stderr instead of dots to the limit
-# (SPEC scripts:T138).
+# (SPEC cloud:T138).
 #
 # Usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run]
 # Env:   CLOUD_ALL_POLL     seconds between polls (default 10)
@@ -324,7 +324,7 @@ ci_state() {
 
 # wait_ci [FIXING]: wait for green CI on #$pr. After a session (FIXING=1) a
 # red check waits like a pending one, up to the longer limit: the session
-# owns the fix (scripts:T140, T143), and the notices below say once per wait.
+# owns the fix (cloud:T140, T143), and the notices below say once per wait.
 wait_ci() {
     local max="$polls_ci"
     ci_fixing="${1:-0}"
@@ -400,7 +400,7 @@ head_moved() {
 }
 
 # resolve_conflicts: a pull request that conflicts with main gets no CI, so
-# send the rebase agent (cloud-rebase.sh, scripts:T145) and wait for the
+# send the rebase agent (cloud-rebase.sh, cloud:T145) and wait for the
 # head it pushes; no new head means a conflict the owner must settle.
 resolve_conflicts() {
     local rc=0 old

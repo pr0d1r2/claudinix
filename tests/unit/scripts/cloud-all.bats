@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 bats_require_minimum_version 1.5.0
-# Unit tests for scripts/cloud-all.sh (SPEC scripts:T135, .:C29). The
+# Unit tests for scripts/cloud-all.sh (SPEC cloud:T135, .:C29). The
 # child launchers (cloud-task.sh, cloud-review.sh, cloud-fixup.sh), gh,
 # sleep and open are stubs: no session starts, nothing reaches GitHub and
 # nothing waits.
@@ -205,7 +205,7 @@ fixup 14 --yes --model sonnet" ]
     [ -s "$STATE/open.log" ]
 }
 
-@test "red after the build waits: the session fixes it, and the flow goes on once CI is green (scripts:T143)" {
+@test "red after the build waits: the session fixes it, and the flow goes on once CI is green (cloud:T143)" {
     ci FAILURE FAILURE SUCCESS
     run bash "$SCRIPT" docs:T47 --yes
     [ "$status" -eq 0 ]
@@ -214,7 +214,7 @@ fixup 14 --yes --model sonnet" ]
     grep -q '^review all 14' "$STATE/children.log"
 }
 
-@test "red after the fixup waits as well, and the flow ends green (scripts:T143)" {
+@test "red after the fixup waits as well, and the flow ends green (cloud:T143)" {
     ci SUCCESS FAILURE SUCCESS
     run bash "$SCRIPT" docs:T47 --yes
     [ "$status" -eq 0 ]
@@ -223,7 +223,7 @@ fixup 14 --yes --model sonnet" ]
     [ -s "$STATE/open.log" ]
 }
 
-@test "red that never clears runs the wait out: exit 1 \"gave up\", not an instant failure (scripts:T143)" {
+@test "red that never clears runs the wait out: exit 1 \"gave up\", not an instant failure (cloud:T143)" {
     ci FAILURE
     run bash "$SCRIPT" docs:T47 --yes
     [ "$status" -eq 1 ]
@@ -232,7 +232,7 @@ fixup 14 --yes --model sonnet" ]
     run ! grep -q '^review' "$STATE/children.log"
 }
 
-@test "a cancelled check (runner outage) is not red: it waits, says so once, and goes on when CI passes (scripts:T141)" {
+@test "a cancelled check (runner outage) is not red: it waits, says so once, and goes on when CI passes (cloud:T141)" {
     ci CANCELLED CANCELLED SUCCESS
     run bash "$SCRIPT" docs:T47 --yes
     [ "$status" -eq 0 ]
@@ -243,7 +243,7 @@ fixup 14 --yes --model sonnet" ]
     grep -q "^review all 14" "$STATE/children.log"
 }
 
-@test "a cancelled check is not blamed on a runner outage alone: a superseded run ends cancelled too (scripts:B37)" {
+@test "a cancelled check is not blamed on a runner outage alone: a superseded run ends cancelled too (cloud:B37)" {
     ci CANCELLED SUCCESS
     run bash "$SCRIPT" docs:T47 --yes
     [ "$status" -eq 0 ]
@@ -251,14 +251,14 @@ fixup 14 --yes --model sonnet" ]
     [[ "$output" != *"likely a runner outage"* ]]
 }
 
-@test "the cancelled notice is said once per CI wait: a second outage after the fixup is said again (scripts:B37)" {
+@test "the cancelled notice is said once per CI wait: a second outage after the fixup is said again (cloud:B37)" {
     ci CANCELLED SUCCESS CANCELLED SUCCESS
     run bash "$SCRIPT" docs:T47 --yes
     [ "$status" -eq 0 ]
     [ "$(grep -c "githubstatus.com" <<<"$output")" -eq 2 ]
 }
 
-@test "a check that stays cancelled times out naming githubstatus.com, not a CI failure (scripts:T141)" {
+@test "a check that stays cancelled times out naming githubstatus.com, not a CI failure (cloud:T141)" {
     ci CANCELLED
     run bash "$SCRIPT" docs:T47 --yes
     [ "$status" -eq 1 ]
@@ -371,7 +371,7 @@ fixup 14 --yes --model sonnet" ]
     [ ! -e "$STATE/children.log" ]
 }
 
-# --- an existing pull request (scripts:T139) ---
+# --- an existing pull request (cloud:T139) ---
 
 @test "a PR number: no build; checks as fixup, then CI, reviews, fixup, CI, opens it" {
     run bash "$SCRIPT" 16 --yes
@@ -490,7 +490,7 @@ fixup 16 --yes --model sonnet" ]
     [ "$(cat "$STATE/open.log")" = "-a Safari https://github.com/o/p/pull/14" ]
 }
 
-# --- conflicts (scripts:T146) ---
+# --- conflicts (cloud:T146) ---
 
 @test "a PR that conflicts with main is rebased by a cloud agent, then the flow goes on" {
     echo "CONFLICTING aaa" >"$STATE/merge"
@@ -510,7 +510,7 @@ fixup 14 --yes --model sonnet" ]
     [ "$status" -eq 1 ]
     [[ "$output" == *"conflict"* ]]
     [[ "$output" == *"#14"* ]]
-    # its own 60-minute budget, not the fixup's 180 (scripts:T146)
+    # its own 60-minute budget, not the fixup's 180 (cloud:T146)
     [[ "$output" == *"after 6 polls of 600s"* ]]
     [ -s "$STATE/open.log" ]
     run ! grep -q '^review' "$STATE/children.log"

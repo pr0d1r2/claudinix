@@ -21,10 +21,10 @@
 # before anything starts.
 #
 # The prompt is cloud-task-prompt.txt with @CI_WATCH@ (the shared
-# cloud-ci-watch-prompt.txt, scripts:T142), @TASK@, @NODE@, @BRANCH@ and
+# cloud-ci-watch-prompt.txt, cloud:T142), @TASK@, @NODE@, @BRANCH@ and
 # @TASK_TEXT@ (the spec row as written) filled in. The session pushes
 # `claude/<node>-<task>` (`root` for the root node), to which the harness
-# may add a suffix, and opens a pull request into main (scripts:T124);
+# may add a suffix, and opens a pull request into main (cloud:T124);
 # it never merges. claude runs as `claude --cloud PROMPT --model M`: the
 # prompt right after --cloud, since --model first fails with "--cloud
 # requires a description" (probe 7). It needs a TTY there, so it runs

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Review one pull request as one role in a fresh, read-only cloud
-# session, from your terminal (SPEC scripts:T129, .:C29).
+# session, from your terminal (SPEC cloud:T129, .:C29).
 #
 # ROLE names a file scripts/review/ROLE.md: the directory is the list of
 # roles, so a new role is a new file and no code changes. PR is a number

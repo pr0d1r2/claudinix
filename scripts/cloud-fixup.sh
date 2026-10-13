@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Fix up one pull request's review findings in a fresh cloud session,
-# from your terminal (SPEC scripts:T132, .:C29).
+# from your terminal (SPEC cloud:T132, .:C29).
 #
 # PR is a number or a GitHub pull request URL of this repository (a URL
 # of another repository is refused, so the wrong pull request is never
@@ -19,7 +19,7 @@
 # (scripts/config.sh, scripts:V34), else sonnet.
 #
 # The prompt is cloud-fixup-prompt.txt with @CI_WATCH@ (the shared
-# cloud-ci-watch-prompt.txt, scripts:T142), @PR@, @URL@, @BRANCH@ and
+# cloud-ci-watch-prompt.txt, cloud:T142), @PR@, @URL@, @BRANCH@ and
 # @BASE@ filled in. The session works through the findings one at a
 # time, each fixed in its own commits or declined with a reason, runs the
 # gate, pushes to the same branch without force, gives a thumbs-up to
