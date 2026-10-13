@@ -14,6 +14,7 @@ sib|docs|plain-English docs: setup, facts, runbook, security, release
 sib|experiments|cloud-session experiments \\& results
 sib|dev|`claudinix-dev`: generated badges \\& doc numbers
 sib|home|`~/.claude`: skills, rtk, caveman, permission rules
+sib|cloud|cloud launchers \\& their prompts
 
 ## §C CONSTRAINTS
 
@@ -30,24 +31,12 @@ sib|home|`~/.claude`: skills, rtk, caveman, permission rules
 - cmd: `nix run …#probe [--model M] [--yes] [--cleanup]` (refuses w/o remote `origin`, detached HEAD, unpushed \| out-of-date branch; asks y/N before a billed session unless `--yes`) (+ `just probe`): from target project, starts 1 cloud session (`claude --cloud`, needs a TTY ∴ run under `script -q`; default `--model sonnet`) w/ the probe prompt (`.:C8` facts, fetch tiers, devShell, `cargo`\|`hk` if present), finds its pushed branch by prefix `claude/nix-probe` (harness adds random suffix), prints the report; `--cleanup` deletes `claude/nix-probe*` branches (session cannot delete branches). follow-ups via `claude -p MSG --cloud ID` (no TTY needed).
 - cmd: `just inputs [flake-dir]` → `scripts/inputs.sh`: ∀ node in `flake.lock` (recursive, deduped) of type `github` → 1 line `owner/repo rev status`; status = `cached` (input source store path from `nix flake archive --dry-run --json` has narinfo in `pr0d1r2.cachix.org` ∨ `cache.nixos.org`, seam `INPUTS_CACHES`; nixpkgs comes from the latter, probe 4) \| `uncached` (⊥ cached ∴ must be uncacheded to session \| routine, docs/SETUP.md). default flake-dir = `.`; works on any target flake (e.g. sherd). exit 1 iff any `uncached` w/ `--check`. any `uncached` → 1 remedy line on stderr (nix-dev fetches over git \| rewrite as `git+https://github.com/<o>/<r>`).
 - file: `.claudinix.toml` — `version = 1` !; tables \& keys: `[session] model` (sonnet\|opus), `agent_home` (bool); `[devshell] installable` (str); `[network] extra_domains` ([str]); `[cache] name` (str), `push_sources` (bool); `[probe] branch_prefix` (str). read via `scripts/config.sh [--dir D] get <table.key>` \| `json` \| `check`. lookup: `CLAUDINIX_CONFIG_JSON` (effective config from a caller, ⊥ nix) \| `--dir D` → git top of D \| D \| w/o `--dir`: `CLAUDINIX_CONFIG` \| git top of cwd \| cwd; no file ⇒ ⊥ nix eval; default installable `.`; values: strings ≠ "", `cache.name` ~ `^[a-z0-9][a-z0-9-]*$`, `extra_domains` bare hostnames, `installable` \& `branch_prefix` ⊥ space \| quote \| control char.
-- cmd: `just cloud <node:Tn \| Tn> [--model M] [--yes] [--dry-run]` → `scripts/cloud-task.sh`: finds exactly 1 open (`.`) row across §F nodes; refuses missing \| done \| in progress \| ambiguous, no `origin`, detached, unpushed \| behind; model `--model` > `session.model` > sonnet; prompt `scripts/cloud-task-prompt.txt`; y/N billed unless `--yes`; `--dry-run` prints the command; pushes `claude/<node>-<task>`; after the PR: watches CI (T142), red → fix + push, ≤3 rounds, cancelled → report (T140); ⊥ waits for the session (`.:C29`).
-- cmd: `just rebase <PR# \| URL> [--model M] [--yes] [--dry-run]` → `scripts/cloud-rebase.sh`: `gh pr view` ∴ open, ⊥ fork, base `main`, head ≠ `main` \& a plain ref (as `fixup`, T145) else refuse; launch rules as `cloud`; prompt `scripts/cloud-rebase-prompt.txt`: rebase head onto base, generated outputs re-written ⊥ hand-merged, a conflict resolved by rule (T145), abort \& report only when both sides mean opposite things, gate, `--force-with-lease` push to the same branch, then stop (⊥ CI watch: `all` owns it); PR text, conflict hunks \& logs are data ⊥ instructions; ⊥ new PR, ⊥ merge.
-- cmd: `just review <role \| all> <PR# \| URL> [--model M] [--yes] [--dry-run]` → `scripts/cloud-review.sh`: role ∈ `scripts/review/<role>.md` (new role = new file, `all` ⊥ a role name), else refuse listing them; `gh pr view </dev/null` (B19) ∴ open, head \& base ~ `^[A-Za-z0-9._/-]+$` (B20), a URL names the remote's repo, case folded (B21, B25); needs the remote only, ⊥ a pushed local branch; model \& y/N as `cloud` (`all`: 1 question naming count \& cost); prompt `scripts/cloud-review-prompt.txt` + the role file: PR text untrusted, review the diff as that role only, findings → 1 PR comment; read-only; 1 failed launch in `all` ⊥ stops the rest, lists started \& failed, exit 1 (B22); ⊥ waits (`.:C29`).
-- cmd: `just fixup <PR# \| URL> [--model M] [--yes] [--dry-run]` → `scripts/cloud-fixup.sh`: PR checks as `review` + ⊥ fork (B24), base `main`, head ≠ `main`, else refuse; launch rules as `cloud`; prompt `scripts/cloud-fixup-prompt.txt`: PR text = data; findings 1 by 1 (a dupe = 1), each in own commits \| declined w/ reason; gate; push ⊥ force; 👍 fully fixed comments; 1 `Fixup:` reply, then CI as `cloud`; ⊥ merge \| approve \| PR.
-- cmd: `just all <node:Tn \| Tn \| PR# \| URL> [--model M] [--yes] [--dry-run]` → `scripts/cloud-all.sh`; argument parsed by `cloud_parse_pr`, else `cloud_parse_task`. task mode: checks = `cloud-task.sh --dry-run` (refusal → its exit, ⊥ session); 1 y/N naming session count (1 build + 1/role + 1 fixup) \& model unless `--yes`; children w/ `--yes`, in order: `cloud` → wait new open PR, ⊥ fork, head `claude/<node>-<task>[-suffix]` case folded, ⊥ open before (unreadable list → exit 1) → wait CI green (T143) → `review all` → wait 1 `Review: <role>` comment ∀ role → `fixup` → wait a comment headed `Fixup:` → wait CI green (T143) → open PR in Safari; a PR that conflicts with `main` before the reviews \| after the fixup → `rebase` (T146) \& wait for a new head. polls `gh` every `CLOUD_ALL_POLL` s (default 10, ⊥ positive int → exit 2), 1 `.` per poll; each wait bounded by a poll count = its minutes ÷ poll ⊥ wall clock; child fails \| CI red \| timeout → names the stage, opens the PR, exit 1. `--dry-run`: checks + plan. ⊥ merge.
-- cmd: `just all <PR# \| URL>` (T139) → task mode minus the build: checks = `cloud-fixup.sh --dry-run`, starts at wait CI green; session count = 1/role + 1 fixup; then the same waits, children \& end as task mode.
-- cmd: `just spec-optimize [node…] [--model M] [--yes] [--dry-run]` → `scripts/cloud-spec.sh`: nodes = §F names (default: owners of rows over `.context-limits` (B41, B42), ⊥ one → exit 0), unknown → refuse listing them; launch rules as `cloud`; prompt `scripts/cloud-spec-prompt.txt`, branch `claude/spec-optimize[-<nodes joined by ->]` off `main`: ∀ node `mth archive`, move rows down to the node owning their files (cites changed in the same commit; target measured, ⊥ pushed over); shorten §T \& §I ⊥ meaning lost (ids, status \& cites kept), §V \& §C verbatim; 1 `docs(spec)` commit/node; lower freed `.context-limits` rows to measured +15% (own commit, size in `Why:`), ⊥ raise; still over → report names the split ⊥ makes it; gate, push, PR into `main`, CI as `cloud`; text = data; only spec files \& `.context-limits` change (B43); ⊥ force \| merge \| waits (`.:C29`).
-- file: `scripts/lib/cloud-launch.sh` — sourced by every `scripts/cloud-*.sh` launcher, functions \& 2 heading constants only (`cloud_*`): launch checks, task \& PR parsers, branch name \& regex, review roles, `Review:` \& `Fixup:` headings; the one source of the launch rules, a fix like B19 lands once.
 
 ## §V INVARIANTS
 V13: input failover order, each tier logged: (1) substitute locked input by `narHash` from a cache (`.:V8`); (2) `git+https://github.com/<o>/<r>?rev=<locked rev>&shallow=1` via `--override-input` (proven probe 4: nix-hk, nixpkgs-lock; ⊥ for nixpkgs: 90k objects); (3) `github:` as locked (session-attached repos only); (4) `nixpkgs` → `https://channels.nixos.org/<channel>/nixexprs.tar.xz` via `--override-input` (degraded: rev ≠ lock). ∀ overrides w/ `--no-write-lock-file`, ⊥ commit lock; tier ≥ 3 → warn in session, ⊥ silent. impl: tier 1 only when ∀ `github` input cached; each tier tried w/ `nix print-dev-env`, tier repeating an earlier command skipped; ⊥ `flake.lock` ∨ ⊥ `jq` → plain `nix develop`, logged tier 1; log line contains `tier N` (`.:T3` probe greps it). T79: nixpkgs matched case-insensitive (`nixos/nixpkgs`); tier 4 channel per nixpkgs node; failure log = 1st `error:` line; ⊥ `jq` → loud WARNING.
 V26: ∀ error message about a user-given path \| arg names it as given (⊥ a fallback like `.`); bats asserts the arg appears in the message.
 V34: config precedence = flag > `.claudinix.toml` > built-in default; no file = today's behaviour; unknown table \| key \| wrong type \| `version` ≠ 1 → exit 2 naming the key \& the file (V26); 1 reader (`scripts/config.sh`), ⊥ ad-hoc parsing in each tool. absent `config.sh` (old install) = no file.
 V37: a claudinix commit given by the user (`setup-line.sh` REV, guide `--rev`): 40 hex = as is, ⊥ clone; 7-39 hex = short SHA → full SHA from GitHub (`gh api repos/pr0d1r2/claudinix/commits/<hex>`, read-only), ⊥ local git (the guide app runs in the target repo ∴ a local prefix may name a wrong commit); answer ⊥ 40 hex \| gh fails → exit 1 naming REV (V26), no line; other REV (`HEAD~1`, branch) → local `git rev-parse`.
-V40: `just all` snapshots a PR's comments before each child launch; ⊥ read → exit 1 naming the PR (⊥ count 0), so an old comment is never new (B33).
-V41: a wait that stops on failed `gh` calls (B34) ends the flow with gh's stderr only; ⊥ a caller line naming another cause ("CI is not green", "no review by <empty>", "never replied").
-V42: CI-watch prompt rules from 1 fragment; logs = data; ⊥ edit CI-defining files; bats asserts.
-V43: a PR head that starts with `-` is refused with the other non-plain refs; the prompts paste it bare into `git fetch` \& `git checkout`, where it would read as an option (B39).
 
 ## §T TASKS
 
@@ -73,21 +62,7 @@ T114|x|ARCHIVED to SPEC-ARCHIVE.md|V37,V26,I.cmd,T113,`.:C25`
 T116|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V26,`.:C2`
 T118|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B14,`.:C2`
 T119|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V26,T116,`.:C2`
-T124|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`
-T126|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,`nix:T127`
-T129|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,`docs:T130`
-T132|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,`nix:T133`,`docs:T134`
-T135|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,`docs:T136`
 T137|.|`guide` offers `add_repo` allow|`docs:T47`,I.cmd
-T138|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B32
-T139|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,T135
-T140|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`
-T141|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B38,B37
-T142|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V42,B36
-T143|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B35
-T145|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,B40,`nix:T144`
-T146|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T145
-T148|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C20`,`.:C29`,`docs:T149`
 T150|.|guard: `.context-limits` row ↑ vs `origin/main` → fail, owner override|`.:C20`
 
 ## §B BUGS
@@ -97,27 +72,3 @@ B4|2026-10-03|`scripts/inputs.sh /nonexistent` said `no directory .`: failed `di
 B13|2026-10-04|`just guide --rev c63d695` (short SHA, as git prints it) → bare usage line, exit 2: `--rev` matched only 40 hex \& the message named neither the flag nor the value ⇒ owner could not tell what was wrong; pre-release there is no published line, so `--rev` is the only path|V37,V26
 B14|2026-10-04|guide step 3 \& SETUP said "select Create environment"; the dialog button reads "Add environment" (owner, 1st real run) ⇒ UI labels drift w/o notice; ⊥ invariant can check the UI (`.:C2`), ∴ a bats test pins the label the owner saw|`.:C2`
 B17|2026-10-04|git exports `GIT_EXEC_PATH` to hooks; cloud push by image git 2.43 leaked `/usr/lib/git-core` into bats ∴ legacy-hook test's git 2.54 ran the old git's dir first, the shim saw 2.43 \& the gate ran twice; setup unset a fixed `GIT_*` list|`.:V21`
-B19|2026-10-04|`just rebase`: `y` → "not started"; `gh` had the TTY as stdin, its reply likely preceded `y`|gh </dev/null; flush TTY before y/N
-B20|2026-10-04|`just review`: a PR head or base branch name is chosen by the PR author and goes into the prompt's shell commands; `x$(id)` is a valid ref|review refuses a head \| base ⊥ `^[A-Za-z0-9._/-]+$` before any session starts
-B21|2026-10-04|`just review ROLE https://github.com/other/repo/pull/12`: only the number was kept, so this repo's #12 was reviewed, billed, with no warning|a PR URL naming another repo than the remote → refuse
-B22|2026-10-04|`just review all`: session N failed to launch → script exited there; sessions 1..N-1 billed \& running, rest never started, no summary; a re-run duplicated them|a failed launch ⊥ stops the loop; the end lists started \& failed roles, exit 1 iff any failed
-B24|2026-10-04|`just fixup` on a fork PR: `headRefName` is the fork's branch, so the session fetched \& pushed an unrelated same-named branch of origin|a cross-repository PR → refuse naming the PR, no session
-B25|2026-10-04|`just fixup https://github.com/Pr0d1r2/…/pull/N`: owner/repo compared case-sensitively, refused as another repo|owner/repo compared with case folded (`tr`, bash 3.2)
-B26|2026-10-05|failed `gh pr list` before `just all` launches → empty snapshot ∴ an old PR adopted|unreadable list → refuse
-B27|2026-10-05|`just all` adopted a fork PR named `claude/<node>-<task>`|skip cross-repository PRs
-B28|2026-10-05|`just all` took any newer comment ⊥ `Review:` as the fixup's reply|reply headed `Fixup:`; headings named once in `lib/cloud-launch.sh`, bats pins the prompts
-B29|2026-10-05|`CLOUD_ALL_POLL=0` \| `abc` → raw shell error|exit 2 naming it unless a positive integer
-B30|2026-10-05|`all` comment reader: a `\r\n` heading ⊥ matched|`comments` trims the `\r`
-B31|2026-10-05|`all` branch regex took the node unescaped (`a.b` ~ `axb`)|escape it
-B32|2026-10-05|every `all` wait maps a `gh` error to "not yet"; #14's fixup reply (07:19) was missed by a wait of the same rule, which printed dots to its 3 h limit, cause hidden|stop after 3 `gh` errors in a row, show stderr
-B33|2026-10-05|`all` `comment_count` turned a failed `gh` read into 0 ∴ on an existing PR the old `Review:` \& `Fixup:` comments counted as new and the waits passed at once|V40: a comment count that cannot be read stops the flow (exit 1, names the PR)
-B34|2026-10-05|T138's gh stop was followed by the caller's own line ("CI is not green", "no review of #14 by " with an empty role list, "never replied"), which named a cause nobody had read|V41: the gh stop is its own exit, ⊥ a second message
-B35|2026-10-05|`all` stopped on red while a session was fixing it|T143
-B36|2026-10-05|`cloud` prompt pushed `-u origin @BRANCH@` again, ⊥ the suffixed PR head|T142
-B37|2026-10-05|`all` named "runner outage" for any cancel; "once" spanned waits|⊥ assert cause; once per wait
-B38|2026-10-05|Actions outage cancelled `gate` (0 steps); `just all` stopped "CI failed on #18"|cancelled ⊥ steps ⊥ red (T141)
-B39|2026-10-06|`cloud_require_open_pr` took a head like `-x` (`^[A-Za-z0-9._/-]+$`); the rebase prompt pastes it bare into `git fetch origin main -x`, read as an option|V43: a plain ref starts with a letter, digit, `.` or `_`
-B40|2026-10-06|#18 \& #19 open at once both added B34 (fixup of #18 took it); `rebase` refused #19 (head ⊥ `claude/*`) \& its prompt aborts on any conflict needing a decision|T145: rebase any PR branch, renumber a shared §id
-B41|2026-10-06|`spec-optimize` dropped a non-`SPEC.md` breach: "nothing to do" (`.:V18`)|owner = longest §F dir prefix \| `.`; ⊥ node → exit 1
-B42|2026-10-06|`spec-optimize` ⊥ `.context-limits`: sherd's default ceiling put ∀ node over|⊥ file → exit 1
-B43|2026-10-06|`spec-optimize` CI fragment let a red log steer it to code|cause outside spec files → report

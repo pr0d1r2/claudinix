@@ -71,17 +71,27 @@
 # with them in: file 1061 (nix falls from 1263 to 1066). ~15% margin.
 # Owner approved.
 
+#
+# Set 2026-10-13 for the new cloud node: the cloud launchers' rows
+# (8 interface rows, V40-V43, 14 tasks, B19-B43 but B23) move down
+# from scripts, after the owns texts were shortened again. Measured:
+# cloud file 3570, chain 8147; scripts falls from 6941 to 3642, chain
+# 9017. Both set ~15% over the measured size, so scripts' ceiling
+# drops.
+
 SPEC.md          8700
-scripts/SPEC.md  7000
+scripts/SPEC.md  4200
 nix/SPEC.md      1400
 docs/SPEC.md     1800
 experiments/SPEC.md 1200
 dev/SPEC.md      1250
 home/SPEC.md       1220
+cloud/SPEC.md      4100
 
-scripts 11050
+scripts 10400
 nix      8950
 docs     9900
 experiments  8650
 dev          8000
 home         7450
+cloud        9400
