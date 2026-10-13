@@ -32,8 +32,8 @@ spec() {
     spec scripts agent-home nix
     run bash "$SCRIPT" "$SPEC"
     [ "$status" -eq 1 ]
-    [[ "$output" == *'agent-home'* ]]
-    [[ "$output" != *'scripts'* ]]
+    [ "${#lines[@]}" -eq 1 ]
+    [[ "${lines[0]}" == "node-names: §F node \"agent-home\" in $SPEC has a hyphen"* ]]
 }
 
 @test "every hyphenated node is reported, not only the first" {
