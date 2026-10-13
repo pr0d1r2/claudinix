@@ -46,7 +46,7 @@
 # Owner chose a raise over a new cloud node.
 #
 # Raised 2026-10-06 for scripts and nix: conflict handling for cloud PRs
-# (scripts:T145, T146, B40; nix:T144) takes scripts to about 6400 and
+# (now cloud:T145, cloud:T146, cloud:B40; nix:T144) takes scripts to about 6400 and
 # nix to 1041. Owner chose raises again; the cloud launchers should move
 # to their own node.
 #
