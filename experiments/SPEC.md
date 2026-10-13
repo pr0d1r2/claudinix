@@ -8,12 +8,12 @@ cloud-session experiments under `experiments/`: 1 prompt file + 1 dated result p
 
 rel|path|lens
 up|.|-
-self|experiments|cloud-session experiments \\& dated results, fed to `docs/FACTS.md`
-sib|scripts|repo shell: gate guards, hk runners, CI checks, target-project apps (`nix-dev`, `inputs`, `domains`, `guide`)
+self|experiments|cloud-session experiments \\& results
+sib|scripts|repo shell: gate guards, hk runners, CI checks, target-project apps
 sib|nix|flake outputs: dev shell, checks, agent home build, cachix push
 sib|docs|plain-English docs: setup, facts, runbook, security, release
-sib|dev|`claudinix-dev`: repo-only Rust tool for generated badges \\& doc numbers
-sib|home|`~/.claude` content: skills \\& toggles, rtk, caveman hooks, cloud permission rules
+sib|dev|`claudinix-dev`: generated badges \\& doc numbers
+sib|home|`~/.claude`: skills, rtk, caveman, permission rules
 
 ## §C CONSTRAINTS
 

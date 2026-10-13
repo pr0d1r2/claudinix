@@ -6,12 +6,12 @@
 ## §F FEDERATION
 
 dir|owns|⊥owns|tokens
-scripts|repo shell: gate guards, hk runners, CI checks, target-project apps (`nix-dev`, `inputs`, `domains`, `guide`)|`setup.sh` \& `probe.sh` (root), flake wiring (`nix`)|-
+scripts|repo shell: gate guards, hk runners, CI checks, target-project apps|`setup.sh`, `probe.sh` (root), flake (`nix`), cloud launchers (`cloud`)|-
 nix|flake outputs: dev shell, checks, agent home build, cachix push|session setup (root `setup.sh`), shell logic (`scripts`)|-
 docs|plain-English docs: setup, facts, runbook, security, release|the gate's definition (`hk.pkl`), spec rules|-
-experiments|cloud-session experiments \& dated results, fed to `docs/FACTS.md`|setup code (root), tools (`scripts`), the docs prose (`docs`)|-
-dev|`claudinix-dev`: repo-only Rust tool for generated badges \& doc numbers|session code (root `setup.sh`, `scripts`), anything a user installs|-
-home|`~/.claude` content: skills \& toggles, rtk, caveman hooks, cloud permission rules|flake wiring (`nix`), setup (root)|-
+experiments|cloud-session experiments \& results|setup code (root), tools (`scripts`), the docs prose (`docs`)|-
+dev|`claudinix-dev`: generated badges \& doc numbers|session code (root `setup.sh`, `scripts`), anything a user installs|-
+home|`~/.claude`: skills, rtk, caveman, permission rules|flake wiring (`nix`), setup (root)|-
 
 ## §N NAV
 
