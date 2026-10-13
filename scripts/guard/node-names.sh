@@ -18,18 +18,14 @@ if [ ! -f "$spec" ]; then
     exit 1
 fi
 
-# The §F table's node names: rows after its `dir|` header, up to the first
-# blank line.
-names="$(awk '
-    /^## / { in_f = ($2 == "§F"); header = 0; next }
-    in_f && header && /^$/ { header = 0; next }
-    in_f && /^dir\|/ { header = 1; seen = 1; next }
-    in_f && header && /\|/ { split($0, cell, "|"); print cell[1]; rows++ }
-    END { if (!rows) exit 3 }
-' "$spec")" || {
+# shellcheck source=/dev/null # lib/spec-nodes.sh, beside this script's dir
+source "$(dirname "${BASH_SOURCE[0]}")/../lib/spec-nodes.sh"
+
+names="$(spec_f_nodes "$spec")"
+if [ -z "$names" ]; then
     echo "node-names: $spec has no §F table rows -- nothing was checked" >&2
     exit 1
-}
+fi
 
 status=0
 while IFS= read -r name; do
