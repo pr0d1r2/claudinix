@@ -130,8 +130,7 @@ local fast = new Mapping<String, Step> {
     depends = List("federation")
     check = "scripts/hk/run-tool.sh sherd budget"
   }
-  // sherd reads a cite's node name only after its last hyphen, so a
-  // hyphenated §F node cannot be cited (V48, B57).
+  // No hyphen in a §F node name (V48, B57).
   ["node-names"] {
     glob = List("SPEC.md", "scripts/guard/node-names.sh")
     check = "scripts/guard/node-names.sh"

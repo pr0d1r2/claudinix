@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
-# No federation node name has a hyphen (SPEC V48, B57).
-#
-# sherd 0.5.3 reads a cite's node name only after its last hyphen, so
-# `agent-home:C33` was looked up as `home:C33`: a hyphenated node cannot
-# be cited from another node, and a cite to a node that does not exist
-# can pass (pr0d1r2/sherd#128). The names are the first column of the
-# root spec's §F table. Only that table is read: a node's own SPEC.md has
-# none, and the hk step's glob names the root spec alone. A spec without a
-# §F table is a failure: nothing was checked.
+# No federation node name has a hyphen. The rule and its cause live in
+# SPEC V48 and B57 (pr0d1r2/sherd#128); this guard goes when V48 says so.
+# The names are the first column of the root spec's §F table. Only that
+# table is read: a node's own SPEC.md has none, and the hk step's glob
+# names the root spec alone. A spec without a §F table is a failure:
+# nothing was checked.
 #
 # Usage: node-names.sh [SPEC]   (default SPEC.md)
 
