@@ -14,6 +14,7 @@ sib|docs|plain-English docs: setup, facts, runbook, security, release
 sib|experiments|cloud-session experiments \\& results
 sib|dev|`claudinix-dev`: generated badges \\& doc numbers
 sib|home|`~/.claude`: skills, rtk, caveman, permission rules
+sib|cloud|cloud launchers \\& their prompts
 
 ## §C CONSTRAINTS
 
@@ -34,9 +35,9 @@ T15|.|set-and-setting issue: `mkTrip` upstream; cavekit category|C12,C9
 T16|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,I.file
 T18|x|ARCHIVED to SPEC-ARCHIVE.md|V15,`.:V6`,C5
 T78|x|ARCHIVED to SPEC-ARCHIVE.md|`.:V30`,`.:V5`,V16,C12
-T127|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T126`
-T133|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T132`
-T144|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`scripts:T145`,B23
+T127|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`cloud:T126`
+T133|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`cloud:T132`
+T144|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`cloud:T145`,B23
 T147|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,T144,B23
 T151|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:C14`,`.:C6`
 T153|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:V30`

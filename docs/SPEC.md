@@ -14,6 +14,7 @@ sib|nix|flake outputs: dev shell, checks, agent home build, cachix push
 sib|experiments|cloud-session experiments \\& results
 sib|dev|`claudinix-dev`: generated badges \\& doc numbers
 sib|home|`~/.claude`: skills, rtk, caveman, permission rules
+sib|cloud|cloud launchers \\& their prompts
 
 ## §C CONSTRAINTS
 
@@ -61,12 +62,12 @@ T115|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:T114`,`scripts:V37`,`.:C29`,`.:C25`,
 T117|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:T116`,`scripts:B14`,C22
 T120|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:T119`,C22
 T122|x|`raw.githubusercontent.com` in every doc that lists the allowed domains (SETUP step 3 + troubleshooting for `curl: (22) ... 403`, FORKING, RUNBOOK, CLI `domains` output, SESSION); FACTS: open question "raw reachable during setup?" answered: 403 until allowed (2026-10-04)|`.:T121`,`.:B15`,`.:C6`,C22
-T125|x|AGENTS, CONTRIBUTING, CLI `cloud`, RUNBOOK: a cloud agent opens a PR \& never merges; owner reviews it (CI runs on the PR)|`scripts:T124`,`.:C29`,C22
-T128|x|CLI `rebase` section, RUNBOOK review step: a conflicting `claude/*` PR → `just rebase <PR>`|`scripts:T126`,C22
-T130|x|CLI `review` section (roles = files in `scripts/review/`, how to add one), RUNBOOK review step|`scripts:T129`,C22
-T134|x|CLI `fixup` section, RUNBOOK: after `just review`, `just fixup <PR>`|`scripts:T132`,C22
-T136|x|CLI `all` section (stages, waits, `CLOUD_ALL_POLL`, Safari), RUNBOOK: `just all <task>` = cloud + review + fixup in 1|`scripts:T135`,C22
-T149|.|CLI `spec-optimize` section, RUNBOOK: a node near its ceiling → `just spec-optimize [node]`, then `just all <PR#>`|`scripts:T148`,C22
+T125|x|AGENTS, CONTRIBUTING, CLI `cloud`, RUNBOOK: a cloud agent opens a PR \& never merges; owner reviews it (CI runs on the PR)|`cloud:T124`,`.:C29`,C22
+T128|x|CLI `rebase` section, RUNBOOK review step: a conflicting `claude/*` PR → `just rebase <PR>`|`cloud:T126`,C22
+T130|x|CLI `review` section (roles = files in `scripts/review/`, how to add one), RUNBOOK review step|`cloud:T129`,C22
+T134|x|CLI `fixup` section, RUNBOOK: after `just review`, `just fixup <PR>`|`cloud:T132`,C22
+T136|x|CLI `all` section (stages, waits, `CLOUD_ALL_POLL`, Safari), RUNBOOK: `just all <task>` = cloud + review + fixup in 1|`cloud:T135`,C22
+T149|.|CLI `spec-optimize` section, RUNBOOK: a node near its ceiling → `just spec-optimize [node]`, then `just all <PR#>`|`cloud:T148`,C22
 
 ## §B BUGS
 
