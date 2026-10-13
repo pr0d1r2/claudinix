@@ -23,10 +23,10 @@ fi
 names="$(awk '
     /^## / { in_f = ($2 == "§F"); header = 0; next }
     in_f && /^dir\|/ { header = 1; seen = 1; next }
-    in_f && header && /\|/ { split($0, cell, "|"); print cell[1] }
-    END { if (!seen) exit 3 }
+    in_f && header && /\|/ { split($0, cell, "|"); print cell[1]; rows++ }
+    END { if (!rows) exit 3 }
 ' "$spec")" || {
-    echo "node-names: $spec has no §F table -- nothing was checked" >&2
+    echo "node-names: $spec has no §F table rows -- nothing was checked" >&2
     exit 1
 }
 
