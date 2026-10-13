@@ -7,6 +7,9 @@
 
 set -euo pipefail
 
+# shellcheck source=/dev/null # spec-nodes.sh, beside this file
+source "$(dirname "${BASH_SOURCE[0]}")/spec-nodes.sh"
+
 # The first words of the comments the review and fixup sessions post; the
 # prompts name them and cloud-all.sh waits for them (scripts:B28).
 # shellcheck disable=SC2034 # read by the scripts that source this file
@@ -95,7 +98,7 @@ cloud_spec_branch_name() {
 # every dir of the §F table of SPEC, the root SPEC.md.
 cloud_nodes() {
     echo .
-    awk '/^## / { f = ($2 == "§F") } f && /\|/ && !/^dir\|/ { split($0, a, "|"); print a[1] }' "$1"
+    spec_f_nodes "$1"
 }
 
 # cloud_spec_of NODE: the node's SPEC.md, relative to the top.
