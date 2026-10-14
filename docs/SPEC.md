@@ -19,6 +19,7 @@ sib|cloud|cloud launchers \& their prompts
 ## §C CONSTRAINTS
 
 - C22: human docs = plain English (⊥ caveman), modeled on owner's public repos (sherd, itok, microlith, rekall, xenolith, pklith, nix-hk) \& nixos-poe2. waves: W1 w/ guardrails (T1): AGENTS, INTEGRATION, LLM-DISCLAIMER, linter-coverage; W2 w/ seed import + probe (T2, T3): FACTS, RUNBOOK, SECURITY, CHANGELOG; W3 before 1st push (`docs:T9`): README, LICENSE, CONTRIBUTING, CODE_OF_CONDUCT, THIRD-PARTY-NOTICES, CONSUMER, EXAMPLE, MODEL; W4 later: CLI, SESSION, FORKING. 1 doc = 1 task = 1 commit (C21). doc vs gate disagree ⇒ gate (`hk.pkl`) wins, doc fixed.
+- C26: README top line = alpha status until E2 (`experiments:T57`) \& E1 (`experiments:T56`) pass: what is proven vs not, dated; removed by the commit that records them passing.
 
 ## §I INTERFACES
 
@@ -50,7 +51,7 @@ T46|x|ARCHIVED to SPEC-ARCHIVE.md|C22,C11
 T47|x|cloud permission prompts (seen 2026-10-03: "Allow Claude to use add repo (claude-code-remote)?" blocked the sherd #96 session until answered): find exact tool ids (`add_repo` under server `claude-code-remote`, likely `mcp__claude-code-remote__add_repo` ?) from a session transcript; document 3 ways in `docs/SETUP.md` + `docs/CONSUMER.md`: (a) target repo committed `.claude/settings.json` `permissions.allow` (read in 1-repo sessions; user `~/.claude` ⊥ reaches cloud), (b) permission mode chosen at session start (mode dropdown \| CLI flag ?), (c) answer in UI ("Always allow" scope ?). docs state what is unmeasured (`experiments:T62`); the `apps.guide` offer to write (a) is `scripts:T137`|C2,C9,I.cmd,`scripts:T137`,T8
 T70|x|ARCHIVED to SPEC-ARCHIVE.md|`.:T24`,`.:T30`,C22
 T72|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C10`,`.:T71`,C22
-T83|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:C24`,`.:C25`,`.:C26`
+T83|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:C24`,`.:C25`,C26
 T84|x|ARCHIVED to SPEC-ARCHIVE.md|C22
 T85|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:C17`,`.:C21`
 T89|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C6`,`.:V18`,C22
