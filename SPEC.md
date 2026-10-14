@@ -36,7 +36,6 @@ self|.|-
 - C13: `~/.claude/skills` exists at launch w/ harness `session-start-hook` + account-synced skills (`synced/<id>/…`); ⊥ `~/.claude/settings.json`; dirs re-stamped at session start ∴ survival of skills pre-placed by `setup.sh` ? (`experiments:T14`).
 - C14: gate = hk via `github:pr0d1r2/nix-hk` (hk binary only; checks live in our `hk.pkl`). inputs `nixpkgs-lock` + `nix-hk` w/ `follows` (⊥ fork nixpkgs rev ∴ cachix hits). `hk.pkl` shape per itok \| xenolith: vendored `pkl/Config.pkl`, `fail_fast`, `CLX_NO_PROGRESS=1` in `env {}` (success = silence, V31), `local fast` (pre-commit, `fix=true`, `stash="git"`) ⊂ `local all` (pre-push, `check`), `commit-msg`. `hk install` from shellHook (`builtins.readFile`, ⊥ inline). CI = `nix develop --command hk check --all --check --no-fail-fast` + `nix flake check`.
 - C15: language purity via xenolith (`github:pr0d1r2/xenolith`, `xnl`, `.override { languages = [ "nix" "shell" ]; }`): 1 language per file; ⊥ shell embedded in nix strings \| hk steps \| justfile \| heredoc beyond 1 simple command → own `scripts/**/*.sh`. hk step = 1 plain command (⊥ `&&` `||` `|`). `xenolith.toml` allow entries carry reason; stale entry = violation.
-- C16: coverage: (a) unicoverage = bats 1-to-1 mirror: ∀ `*.sh` ↔ `tests/unit/<same path>.bats`, orphans fail both ways (owner infra repo scripts invariant 4, xenolith scripts/guard invariant 21); (b) line coverage 100% target via `kcov` + bats on Linux CI ?, ratchet floor ⊥ drops (macOS ≠ Linux numbers ∴ one-sided compare, itok B20/B27).
 - C17: TDD RED → GREEN → REFACTOR: RED commit `test:` (failing bats) then GREEN commit `feat:`\|`fix:` both committed; REFACTOR `refactor:` separate commit after, tests unchanged \& green. Conventional Commits + `Why:` body. guard `tdd-order` (test file exists in parent of impl commit, rename-aware `-M`) + `commit-msg`; reuse xenolith \| owner infra repo `scripts/guard/{tdd-order,bats-mirror,commit-msg}.sh` (flake export if ∃, else vendor w/ provenance header). mirror, tdd-order, bats run pre-push \| `all`, ⊥ pre-commit (else RED commit impossible, xenolith `scripts/guard` B1).
 - C18: ∀ checks parallel: hk `jobs`; bats `--jobs` via `pkgs.parallel` + `BATS_NUMBER_OF_PARALLEL_JOBS` (I/O-bound, owner infra repo); `depends`\|`exclusive` only for real locks. tests parallel-safe by construction (V21).
 - C19: repo = control plane: CI builds `activationPackage` \& every input closure → `pr0d1r2.cachix.org`, verifies push (narinfo 200, as nix-hk does); UI setup script = 1 deterministic line pinned to repo GIT SHA (V20). bump = new SHA in UI, ⊥ other UI edit.
@@ -44,8 +43,7 @@ self|.|-
 - C21: atomic commits, 1 topic each (humans read changesets): Conventional Commits, body `Why:` + spec cites; ⊥ mix topics (e.g. docs for 2 findings = 2 commits); spec change ⊥ same commit as code; RED, GREEN, REFACTOR separate (C17). unpushed mixed commit → split before push.
 - C11: owner-specific values (cachix host + key, repo slug) in 1 config block at top of `setup.sh` (`# BEGIN fork config (SPEC C11)`: `cache_host`, `cache_key`, `repo`; bats: ⊥ `pr0d1r2` outside it); fork = edit block + the files outside `setup.sh` that `docs/FORKING.md` lists (allowlist, flake `nixConfig`, CI, probe \& verify defaults, `setup-line.sh`).
 - C24: agent home = OPT-IN (decided 2026-10-03): setup default = Nix + `nix-dev` only; `setup.sh [SHA] --agent-home` (\| `CLAUDINIX_AGENT_HOME=1`) adds `nix:` agent home; README states what it installs (owner set rules, cavekit skills, claude-code config) \& that it changes Claude's behaviour.
-- C25: paste line distribution (decided 2026-10-03): each release publishes the exact 1-line setup script (pinned SHA w/ green CI, cachix filled) in a generated README block + GitHub release notes; users copy it, run ⊥. `scripts/setup-line.sh` = maintainer tool. before the 1st release the README block holds the exact placeholder sentence the gate accepts (`scripts/guard/readme-setup-line.sh`); `just release REV` fills it. release: `release.sh record [REV]` → commit `cloud-home.storepath` → `release.sh publish REV2` (V33).
-- C26: README top line = alpha status until E2 (`experiments:T57`) \& E1 (`experiments:T56`) pass: what is proven vs not, dated; removed by the commit that records them passing.
+- C25: paste line distribution (decided 2026-10-03): each release publishes the exact 1-line setup script (pinned SHA w/ green CI, cachix filled) in a generated README block + GitHub release notes; users copy it, run ⊥. `scripts/setup-line.sh` = maintainer tool. before the 1st release the README block holds the exact placeholder sentence the gate accepts (`scripts/guard/readme-setup-line.sh`); `just release REV` fills it. release: `release.sh record [REV]` → commit `cloud-home.storepath` → `release.sh publish REV2` (`scripts:V33`).
 - C27: this repo's own `.claude/settings.json` SessionStart hook (decided 2026-10-03): cloud sessions working ON claudinix run `git fetch --unshallow` (if shallow) + `nix develop -c true` (hooks) before 1st commit; via bats-covered script, ⊥ inline. runs only when `CLAUDE_CODE_REMOTE=true`; hook `timeout` 600 s; always exit 0 (warnings only). command `bash "$CLAUDE_PROJECT_DIR/scripts/dev/session-start.sh"`; hooks \& session start enter the shell via `nix-dev` when installed.
 - C28: per-repo config `.claudinix.toml` (decided 2026-10-03), optional, at the target repo root; read by the target-project tools (`domains`, `inputs`, `guide`, `probe`, `nix-dev`) \& the central cache job; ⊥ by `setup.sh` (environment-level, shared by repos). parsed by Nix itself (`builtins.fromTOML` via `nix eval`) ∴ ⊥ extra parser in the VM. schema \& precedence: `scripts:V34`, `scripts:I.file`; dogfood: this repo carries its own.
 - C29: self-build (decided 2026-10-03): claudinix ! be buildable by its own cloud agents — a cloud session on this repo clones it, gets Nix + agent home (`home:V47`) from its own setup line, enters its own dev shell w/o GitHub 403s, passes its own gate (SessionStart hook, old-git shims) \& pushes a `claude/*` branch; agent opens a PR, only the owner merges. 1 task = 1 build session (`just all` adds review \& fixup).
@@ -88,11 +86,9 @@ V24: long gate commands in the Bash tool: default 120 s does NOT kill (probe 6):
 V25: `accept-flake-config = true` trusts cloned repo `nixConfig` ∴ env used only w/ owner-trusted repos; extra substituters outside allowlist unreachable anyway; documented in SECURITY (`docs:T36`).
 V27: `hk.pkl` evaluates under the official `pkl` (⊥ only hk's lenient parser): gate step `pkl eval hk.pkl` (B5).
 V28: every tracked `*.sh` w/ a shebang is executable (mode 100755); gate step checks (B6).
-V29: a guard that reads history detects a shallow clone \& says so w/ the fix (`git fetch --unshallow`), ⊥ blame commits it cannot see; w/o upstream it checks `merge-base HEAD origin/HEAD..HEAD` (B7).
 V30: every input needed to EVALUATE an output a session builds (agent home, dev shell) is fetchable in the cloud: `git+https` \| narinfo in an allowed cache; CI verifies narinfo for pushed sources, ⊥ only built outputs (B8). cache.nixos.org counts for sources it already serves (nixpkgs).
 V31: gate output for a non-TTY caller (agent) on success ≤ a few lines; full log on failure only. rtk (`nix:T151`) condenses Bash output ⇒ `rc=$?` \& the log, ⊥ condensed text, are the result.
-V32: the gate's git hooks fire under the git that actually commits (cloud: image git, likely < 2.54, outside the dev shell): config-based hooks (git ≥ 2.54) + `.git/hooks` shims for older git; bats proves a bad commit is refused by an old git (B9). impl: `scripts/dev/legacy-hook.sh` copied to `$(git rev-parse --git-path hooks)/{pre-commit,commit-msg,pre-push}`; exits 0 under git ≥ 2.54 (that git runs both, else gate twice), else runs `hook.hk-<event>.command`; ⊥ overwrite a foreign hook.
-V33: a released SHA contains `cloud-home.storepath` for its own agent home, \& every eval-time input source has narinfo 200 (`verify-cachix.sh --sources`) before the line is published (B10).
+V32: the gate's git hooks fire under the git that actually commits (cloud: image git, likely < 2.54, outside the dev shell): config-based hooks (git ≥ 2.54) + `.git/hooks` shims for older git; bats proves a bad commit is refused by an old git (`scripts:B9`). impl: `scripts/dev/legacy-hook.sh` copied to `$(git rev-parse --git-path hooks)/{pre-commit,commit-msg,pre-push}`; exits 0 under git ≥ 2.54 (that git runs both, else gate twice), else runs `hook.hk-<event>.command`; ⊥ overwrite a foreign hook.
 V36: a commit that changes `hk.pkl` stages it w/ every file its fix steps regenerate (README badges, INTEGRATION counts) in the SAME commit; ⊥ commit other work while `hk.pkl` has unstaged edits (hk reads the worktree `hk.pkl` before `stash = "git"`) (B12).
 V38: ∀ host the setup line or `setup.sh` fetches from (`https://<host>`) ∈ `allowlist.txt` (B15).
 V44: cloud permission list: ∀ `git`/`cargo` rule (allow \& deny) has its `rtk ` twin in the same list \& ∀ `rtk ` rule its bare one; the pinned rtk decides which commands it rewrites (`checks.rtk-twins`; the fast guard knows `git`/`cargo` only).
@@ -108,18 +104,17 @@ T5|x|ARCHIVED to SPEC-ARCHIVE.md|V9,V4 — not needed: session uid = root (probe
 T10|x|ARCHIVED to SPEC-ARCHIVE.md|V11,C4
 T11|x|ARCHIVED to SPEC-ARCHIVE.md|C10,V12
 T17|x|ARCHIVED to SPEC-ARCHIVE.md|`nix:V14`,`nix:V15`,V7,I.file
-T19|x|ARCHIVED to SPEC-ARCHIVE.md|C16,C17,V17,V19
+T19|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:C16`,C17,V17,V19
 T20|x|ARCHIVED to SPEC-ARCHIVE.md|C15,V18
 T21|x|ARCHIVED to SPEC-ARCHIVE.md|C20,V18
 T22|x|ARCHIVED to SPEC-ARCHIVE.md|C20,C15,V19 — decided 2026-10-03: ⊥ adopt; pklith v0.1.0 (`4aa83e0`) still emits inline `command -v … \|\| {…}` per step ⇒ C15 breach; keep hand `hk.pkl`; upstream issue (emit `scripts/hk/*.sh` calls) pending owner OK to file
-T23|x|ARCHIVED to SPEC-ARCHIVE.md|C19,V22,C16
+T23|x|ARCHIVED to SPEC-ARCHIVE.md|C19,V22,`scripts:C16`
 T24|x|ARCHIVED to SPEC-ARCHIVE.md|V20,C19,V10
 T29|x|ARCHIVED to SPEC-ARCHIVE.md|C6,V10 — answered: `github.com` allowed ⇒ 3rd-party git reads pass; `add_repo` read = no-op
 T30|x|ARCHIVED to SPEC-ARCHIVE.md|C6,I.cmd,`scripts:T27`
 T48|x|ARCHIVED to SPEC-ARCHIVE.md|V24,I.file
 T50|x|ARCHIVED to SPEC-ARCHIVE.md|C6,V10,I.ext.env
-T51|.|unattended runs: permission mode for routines \& long jobs; what a job does while a prompt waits (timeout, report, ⊥ hang); extends `docs:T47`|`docs:T47`,C9
-T54|.|cache population owner: ∀ target repo CI pushes locked inputs + devShell closure to `pr0d1r2.cachix.org` on default branch (per `docs:T6` snippet); start w/ sherd via its spec; verify narinfo 200 (V22 pattern)|V8,`docs:T6`,C16
+T54|.|cache population owner: ∀ target repo CI pushes locked inputs + devShell closure to `pr0d1r2.cachix.org` on default branch (per `docs:T6` snippet); start w/ sherd via its spec; verify narinfo 200 (V22 pattern)|V8,`docs:T6`,`scripts:C16`
 T58|x|ARCHIVED to SPEC-ARCHIVE.md|I.file,`docs:T42` — answered 2026-10-03 (probe 6): env var ⊥ effective; launcher model wins. follow-up E3b: does `claude --cloud --model sonnet` set it? (T67)
 T59|x|ARCHIVED to SPEC-ARCHIVE.md|V24,T48 — answered 2026-10-03 (probe 6): cold `hk check --all` 3m43s, backgrounded at 120 s, ⊥ killed
 T60|x|ARCHIVED to SPEC-ARCHIVE.md|`experiments:T52`,`experiments:T55` — resources answered 2026-10-03 (probe 6); snapshot reuse still open (`experiments:T55`)
@@ -131,10 +126,10 @@ T71|x|ARCHIVED to SPEC-ARCHIVE.md|C10,C11,V3,I.file,I.cmd
 T73|x|ARCHIVED to SPEC-ARCHIVE.md|C24,V1,V4,V5,`nix:V15`
 T74|x|ARCHIVED to SPEC-ARCHIVE.md|V30,V22,C19
 T75|x|ARCHIVED to SPEC-ARCHIVE.md|C25,`nix:V15`,V20
-T76|x|ARCHIVED to SPEC-ARCHIVE.md|C27,V17,V29
+T76|x|ARCHIVED to SPEC-ARCHIVE.md|C27,V17,`scripts:V29`
 T77|x|ARCHIVED to SPEC-ARCHIVE.md|V27,V28,V19,V31,C14
 T86|x|ARCHIVED to SPEC-ARCHIVE.md|V32,V17,C27,V28
-T87|x|ARCHIVED to SPEC-ARCHIVE.md|V33,C25,`nix:V15`
+T87|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:V33`,C25,`nix:V15`
 T88|x|ARCHIVED to SPEC-ARCHIVE.md|V5,V1,`scripts:V13`
 T92|x|ARCHIVED to SPEC-ARCHIVE.md|C28,`scripts:V34`
 T93|.|central cache job (after 1st push): `cache-targets.txt` (flake refs of owner repos) + nightly \| dispatch workflow job → `push-sources.sh <cache> <ref>` ∀ target whose `.claudinix.toml` says `push_sources = true`, then `verify-cachix.sh --sources <ref>`; sources only, ⊥ build outputs of other repos (trust); reads cache name from `cache.name` (⊥ CLI arg only)|C28,`.:V30`,C19,V6
@@ -152,13 +147,9 @@ B2|2026-10-03|seed `setup.sh` appended `nix.conf` block only when marker absent 
 B3|2026-10-03|spec `nix:V15`/V20 fetched own repo via `github:` → would 403 in cloud (caught before build)|`nix:V15`, V20 use `git+https`
 B5|2026-10-03|`hk.pkl` put `///` doc comments inside `hooks {}`: official `pkl eval` rejects it; passed only via hk's lenient default parser|V27
 B6|2026-10-03|`scripts/setup-line.sh` committed mode 100644; docs say run it directly → `permission denied`; tests call it via `bash` ∴ never caught|V28
-B7|2026-10-03|`tdd-order` in a shallow clone (every cloud session) counted the graft commit as adding all 27 scripts \& refused the push w/o saying the clone is shallow|V29
 B8|2026-10-03|agent home tier 1 needs home-manager, nix-home-manager-claude-code \& set-and-setting sources at EVAL time; `github:` inputs ⊥ cached (cachix-action daemon pushes only built paths) → 403 in cloud; tier 2 `cloud-home.storepath` never written → agent home never activates|V30
-B9|2026-10-03|hk 1.58 installs only config-based hooks under git ≥ 2.54 (dev shell); system git 2.50 committed a bad message unchecked ⇒ in cloud (image git) no hook fires|V32
-B10|2026-10-03|`release.sh` pinned the line to REV, then asked to commit `cloud-home.storepath` after it ⇒ the released SHA lacks the file, tier 2 404s; release ⊥ checked input sources|V33
 B12|2026-10-03|hk loads worktree `hk.pkl` before stashing ∴ unstaged new fix steps rewrote README \& INTEGRATION in unrelated commits; 2 messages claimed numbers their diffs lacked (reworded pre-push)|V36
 B15|2026-10-04|setup line downloads `setup.sh` from `raw.githubusercontent.com`; host ∉ `allowlist.txt` → fresh env setup: `curl: (22) ... 403`|V38
 B16|2026-10-04|cloud: probe test saw the session's `nix-dev`; setup test expected unset `$USER` (setup: `id -un`)|V21
 B45|2026-10-09|rtk rewrites `git push origin main` to `rtk git push …`; prefix deny rules may miss it (#24 review)|V44
 B57|2026-10-12|`agent-home:C33` resolved as `home:C33` (#30)|V48
-B61|2026-10-13|`node-names` trusted the §F shape: header-only passed unchecked, any `\|` line after the header was a row (#34 review)|V48

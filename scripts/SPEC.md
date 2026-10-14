@@ -18,6 +18,8 @@ sib|cloud|cloud launchers \& their prompts
 
 ## §C CONSTRAINTS
 
+- C16: coverage: (a) unicoverage = bats 1-to-1 mirror: ∀ `*.sh` ↔ `tests/unit/<same path>.bats`, orphans fail both ways (owner infra repo scripts invariant 4, xenolith scripts/guard invariant 21); (b) line coverage 100% target via `kcov` + bats on Linux CI ?, ratchet floor ⊥ drops (macOS ≠ Linux numbers ∴ one-sided compare, itok B20/B27).
+
 ## §I INTERFACES
 
 - cmd: `just bump-nix <ver>` → `scripts/bump-nix.sh`: ver ! MAJOR.MINOR.PATCH (else exit 2); fetches `install.sha256` from releases.nixos.org (1 × 64-hex ! ); rewrites `version=` \& default sha256 in `setup.sh` together (`.:V11`) or writes ⊥; runs ⊥ else. seams `BUMP_SETUP`, `NIX_RELEASES_URL`.
@@ -34,6 +36,8 @@ sib|cloud|cloud launchers \& their prompts
 ## §V INVARIANTS
 V13: input failover order, each tier logged: (1) substitute locked input by `narHash` from a cache (`.:V8`); (2) `git+https://github.com/<o>/<r>?rev=<locked rev>&shallow=1` via `--override-input` (proven probe 4: nix-hk, nixpkgs-lock; ⊥ for nixpkgs: 90k objects); (3) `github:` as locked (session-attached repos only); (4) `nixpkgs` → `https://channels.nixos.org/<channel>/nixexprs.tar.xz` via `--override-input` (degraded: rev ≠ lock). ∀ overrides w/ `--no-write-lock-file`, ⊥ commit lock; tier ≥ 3 → warn in session, ⊥ silent. impl: tier 1 only when ∀ `github` input cached; each tier tried w/ `nix print-dev-env`, tier repeating an earlier command skipped; ⊥ `flake.lock` ∨ ⊥ `jq` → plain `nix develop`, logged tier 1; log line contains `tier N` (`.:T3` probe greps it). T79: nixpkgs matched case-insensitive (`nixos/nixpkgs`); tier 4 channel per nixpkgs node; failure log = 1st `error:` line; ⊥ `jq` → loud WARNING.
 V26: ∀ error message about a user-given path \| arg names it as given (⊥ a fallback like `.`); bats asserts the arg appears in the message.
+V29: a guard that reads history detects a shallow clone \& says so w/ the fix (`git fetch --unshallow`), ⊥ blame commits it cannot see; w/o upstream it checks `merge-base HEAD origin/HEAD..HEAD` (B7).
+V33: a released SHA contains `cloud-home.storepath` for its own agent home, \& every eval-time input source has narinfo 200 (`verify-cachix.sh --sources`) before the line is published (B10).
 V34: config precedence = flag > `.claudinix.toml` > built-in default; no file = today's behaviour; unknown table \| key \| wrong type \| `version` ≠ 1 → exit 2 naming the key \& the file (V26); 1 reader (`scripts/config.sh`), ⊥ ad-hoc parsing in each tool. absent `config.sh` (old install) = no file.
 V37: a claudinix commit given by the user (`setup-line.sh` REV, guide `--rev`): 40 hex = as is, ⊥ clone; 7-39 hex = short SHA → full SHA from GitHub (`gh api repos/pr0d1r2/claudinix/commits/<hex>`, read-only), ⊥ local git (the guide app runs in the target repo ∴ a local prefix may name a wrong commit); answer ⊥ 40 hex \| gh fails → exit 1 naming REV (V26), no line; other REV (`HEAD~1`, branch) → local `git rev-parse`.
 
@@ -49,7 +53,7 @@ T49|x|ARCHIVED to SPEC-ARCHIVE.md|V13,T12,T25
 T79|x|ARCHIVED to SPEC-ARCHIVE.md|V13,V26
 T80|x|ARCHIVED to SPEC-ARCHIVE.md|V13,V26,`.:V18`
 T81|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C24`,`.:C25`,V26
-T82|x|ARCHIVED to SPEC-ARCHIVE.md|`.:V29`,`.:V18`,`.:V17`
+T82|x|ARCHIVED to SPEC-ARCHIVE.md|V29,`.:V18`,`.:V17`
 T90|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C28`,V34,V26
 T91|x|ARCHIVED to SPEC-ARCHIVE.md|V34,`.:C28`,V13
 T95|x|ARCHIVED to SPEC-ARCHIVE.md|V34,V26
@@ -68,7 +72,11 @@ T150|.|guard: `.context-limits` row ↑ vs `origin/main` → fail, owner overrid
 
 id|date|cause|fix
 B4|2026-10-03|`scripts/inputs.sh /nonexistent` said `no directory .`: failed `dir="$(cd … && pwd)"` emptied `dir`, `${dir:-.}` showed `.` ⇒ user cannot tell which path was wrong (found by docs round 2 running the CLI)|V26
+B7|2026-10-03|`tdd-order` in a shallow clone (every cloud session) counted the graft commit as adding all 27 scripts \& refused the push w/o saying the clone is shallow|V29
+B9|2026-10-03|hk 1.58 installs only config-based hooks under git ≥ 2.54 (dev shell); system git 2.50 committed a bad message unchecked ⇒ in cloud (image git) no hook fires|`.:V32`
+B10|2026-10-03|`release.sh` pinned the line to REV, then asked to commit `cloud-home.storepath` after it ⇒ the released SHA lacks the file, tier 2 404s; release ⊥ checked input sources|V33
 B13|2026-10-04|`just guide --rev c63d695` (short SHA, as git prints it) → bare usage line, exit 2: `--rev` matched only 40 hex \& the message named neither the flag nor the value ⇒ owner could not tell what was wrong; pre-release there is no published line, so `--rev` is the only path|V37,V26
 B14|2026-10-04|guide step 3 \& SETUP said "select Create environment"; the dialog button reads "Add environment" (owner, 1st real run) ⇒ UI labels drift w/o notice; ⊥ invariant can check the UI (`.:C2`), ∴ a bats test pins the label the owner saw|`.:C2`
 B17|2026-10-04|git exports `GIT_EXEC_PATH` to hooks; cloud push by image git 2.43 leaked `/usr/lib/git-core` into bats ∴ legacy-hook test's git 2.54 ran the old git's dir first, the shim saw 2.43 \& the gate ran twice; setup unset a fixed `GIT_*` list|`.:V21`
+B61|2026-10-13|`node-names` trusted the §F shape: header-only passed unchecked, any `\|` line after the header was a row (#34 review)|`.:V48`
 B62|2026-10-13|setup-line test "gh not signed in" asserted `404` absent from output that names the random commit SHA ∴ ~1% of SHAs contain `404` ⇒ CI failed on a PR that changed no code (#35 run 99); test fixture forces a SHA with `404`, the assertion ignores the SHA|`scripts:V26`
