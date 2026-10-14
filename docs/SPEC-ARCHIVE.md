@@ -20,7 +20,7 @@ T34|x|W2 MUST `docs/FACTS.md`: dated cloud VM facts per probe (user, image Nix, 
 T35|x|W2 MUST `docs/RUNBOOK.md`: each procedure marked automated\|human: bump Nix pin, rotate SHA in UI, refill cachix, red probe, emergency stop of cloud spend, probe branch cleanup; model nix-hk `RUNBOOK.md`|C22,`.:V20`,`.:V11`,C19
 T36|x|W2 MUST `docs/SECURITY.md`: private reporting path + threat model (root setup script, cache trust, `accept-flake-config` (`.:V25`: any cloned repo's `nixConfig` applies), GitHub proxy, ⊥ secrets in env vars); model sherd|C22,`.:V6`,C5
 T37|x|W2 MUST `CHANGELOG.md`: per release \& per UI-pinned SHA what changed, so users know before bumping the setup line|C22,`.:V20`
-T38|x|W1 SHOULD `docs/linter-coverage.md`: file type → linter table (`.sh`, `.nix`, `.bats`, `.pkl`, `.yml`, `.md`, `.toml`); model nixos-poe2|C22,C15,C16
+T38|x|W1 SHOULD `docs/linter-coverage.md`: file type → linter table (`.sh`, `.nix`, `.bats`, `.pkl`, `.yml`, `.md`, `.toml`); model nixos-poe2|C22,`.:C15`,`scripts:C16`
 T39|x|W3 SHOULD `docs/CONTRIBUTING.md`: run `hk check`, TDD order, commit format; model owner repos|C22,C17,C21
 T40|x|W3 SHOULD `docs/CODE_OF_CONDUCT.md`: same text as owner repos|C22
 T41|x|W3 SHOULD `docs/THIRD-PARTY-NOTICES.md`: Nix installer, nix-hk, xenolith, set-and-setting, cavekit (MIT)|C22,`nix:C12`
