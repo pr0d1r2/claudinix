@@ -73,7 +73,7 @@ licences are in the sections above and below it.
 | `nixpkgs-lock` | `git+https://github.com/pr0d1r2/nixpkgs-lock` | `main` | `9285cde52c7e8baff0b60685ae755b911db9ebaa` | git |
 | `rtk-src` | `git+https://github.com/rtk-ai/rtk` | `refs/tags/v0.51.0` | `e001f773f80b22b7dc4c7a79521b30e35aaef026` | git |
 | `set-and-setting` | `git+https://github.com/pr0d1r2/set-and-setting` | `main` | `c54b884879d64492523421472069bf7709c912d3` | git |
-| `sherd` | `git+https://github.com/pr0d1r2/sherd` | `refs/tags/v0.5.3` | `014357299f560b9a467341cd9db023e477347520` | git |
+| `sherd` | `git+https://github.com/pr0d1r2/sherd` | `refs/tags/v0.5.4` | `479b14c0d042c9b7700bf684c21e0113d0cf706a` | git |
 | `xenolith` | `git+https://github.com/pr0d1r2/xenolith` | `main` | `917b3ee017d8e405314a246a09f78b7bbbf63dba` | git |
 <!-- END inputs -->
 
