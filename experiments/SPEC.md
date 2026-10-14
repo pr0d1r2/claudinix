@@ -8,13 +8,13 @@ cloud-session experiments under `experiments/`: 1 prompt file + 1 dated result p
 
 rel|path|lens
 up|.|-
-self|experiments|cloud-session experiments \\& results
+self|experiments|cloud-session experiments \& results
 sib|scripts|repo shell: gate guards, hk runners, CI checks, target-project apps
 sib|nix|flake outputs: dev shell, checks, agent home build, cachix push
 sib|docs|plain-English docs: setup, facts, runbook, security, release
-sib|dev|`claudinix-dev`: generated badges \\& doc numbers
+sib|dev|`claudinix-dev`: generated badges \& doc numbers
 sib|home|`~/.claude`: skills, rtk, caveman, permission rules
-sib|cloud|cloud launchers \\& their prompts
+sib|cloud|cloud launchers \& their prompts
 
 ## §C CONSTRAINTS
 
@@ -22,9 +22,7 @@ sib|cloud|cloud launchers \\& their prompts
 
 ## §I INTERFACES
 
-
 ## §V INVARIANTS
-
 
 ## §T TASKS
 

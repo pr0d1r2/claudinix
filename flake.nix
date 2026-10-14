@@ -69,7 +69,7 @@
     };
 
     sherd = {
-      url = "git+https://github.com/pr0d1r2/sherd?ref=refs/tags/v0.5.3&shallow=1";
+      url = "git+https://github.com/pr0d1r2/sherd?ref=refs/tags/v0.5.4&shallow=1";
       inputs = {
         nixpkgs-lock.follows = "nixpkgs-lock";
         nix-hk.follows = "nix-hk";

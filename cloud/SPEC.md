@@ -8,16 +8,15 @@ the cloud launchers run from a terminal (`just cloud`, `rebase`, `review`, `fixu
 
 rel|path|lens
 up|.|-
-self|cloud|cloud launchers \\& their prompts
+self|cloud|cloud launchers \& their prompts
 sib|scripts|repo shell: gate guards, hk runners, CI checks, target-project apps
 sib|nix|flake outputs: dev shell, checks, agent home build, cachix push
 sib|docs|plain-English docs: setup, facts, runbook, security, release
-sib|experiments|cloud-session experiments \\& results
-sib|dev|`claudinix-dev`: generated badges \\& doc numbers
+sib|experiments|cloud-session experiments \& results
+sib|dev|`claudinix-dev`: generated badges \& doc numbers
 sib|home|`~/.claude`: skills, rtk, caveman, permission rules
 
 ## §C CONSTRAINTS
-
 
 ## §I INTERFACES
 

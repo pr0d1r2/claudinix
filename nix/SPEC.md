@@ -11,17 +11,16 @@ up|.|-
 self|nix|flake outputs: dev shell, checks, agent home build, cachix push
 sib|scripts|repo shell: gate guards, hk runners, CI checks, target-project apps
 sib|docs|plain-English docs: setup, facts, runbook, security, release
-sib|experiments|cloud-session experiments \\& results
-sib|dev|`claudinix-dev`: generated badges \\& doc numbers
+sib|experiments|cloud-session experiments \& results
+sib|dev|`claudinix-dev`: generated badges \& doc numbers
 sib|home|`~/.claude`: skills, rtk, caveman, permission rules
-sib|cloud|cloud launchers \\& their prompts
+sib|cloud|cloud launchers \& their prompts
 
 ## §C CONSTRAINTS
 
 - C12: agent home = owner home-config pattern: `nix-home-manager-claude-code` module + set-and-setting `lib.mkSet` (`mkTrip` upstream = T15); standalone home-manager. plugins ⊥ installed in cloud ∴ their skills \& hooks come from `flake = false` sources: cavekit, caveman (tags), the module \& set-and-setting (dev-only inputs, module#34, set-and-setting#559); flake inputs: `home-manager`, `nix-rtk`. ∀ fetched `git+https://github.com/<o>/<r>?ref=<branch \| refs/tags/T>&shallow=1` (T78, `.:V30`); `programs.man` \& `systemd.user` off (−150 MiB, `.:V5`).
 
 ## §I INTERFACES
-
 
 ## §V INVARIANTS
 V14: activation runs in `setup.sh` before Claude launches, as Claude's uid \& `$HOME` ∴ skills present at launch.
