@@ -79,6 +79,11 @@
 # 9017. Both set ~15% over the measured size, so scripts' ceiling
 # drops.
 
+#
+# Raised 2026-10-15 for cloud: just merge and its hardening (V51, B64-B76)
+# filled the file to 4099 of 4100 with every done task archived, and
+# just drain needs about 150 more. Owner chose a raise over a merge node.
+
 SPEC.md          8700
 scripts/SPEC.md  4200
 nix/SPEC.md      1400
@@ -86,7 +91,7 @@ docs/SPEC.md     1800
 experiments/SPEC.md 1200
 dev/SPEC.md      1250
 home/SPEC.md       1220
-cloud/SPEC.md      4100
+cloud/SPEC.md      4500
 
 scripts 10400
 nix      8950
