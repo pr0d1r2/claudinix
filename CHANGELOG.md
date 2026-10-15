@@ -20,6 +20,11 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- `just drain [node:Tn…] [--max N]` works through spec tasks one at a time with
+  `just all --merge` from a clean `main`, and stops at the first failure or
+  the first pull request the strict merge rule leaves to you. Without tasks it
+  takes the open ones outside `experiments` that are not open questions;
+  `--max` defaults to your merge rate over the last 7 days.
 - `just merge` reads a review's `Findings:` line above the footer the Claude harness
   adds to every comment, so a real review with no findings no longer stops it.
 - `just merge <PR>` rebase-merges a reviewed pull request from your terminal, but
