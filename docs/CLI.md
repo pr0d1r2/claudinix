@@ -607,19 +607,37 @@ exits 2 and lists the roles:
 review: no role <role> -- roles: <list>, or all (each role is a file in scripts/review/)
 ```
 
-**The pull request.** `gh pr view` must find it open; any head branch will
-do, since the session pushes nothing. Otherwise it exits 1:
+**The pull request.** A URL must name the repository of the remote, since
+`gh` looks only in this checkout's. That is checked first, before `gh` is
+asked anything. Then `gh pr view` must find the pull request open; any head
+branch will do, since the session pushes nothing. Otherwise it exits 1:
 
 ```text
+review: <URL> is a pull request of <o/r>, but remote origin is <o/r> -- run it from a checkout of <o/r>
 review: gh could not read pull request #<n> -- check the number and that gh is signed in
 review: #<n> is <STATE>, not OPEN -- nothing to review
 review: #<n> has the branch name '<name>', which has characters beyond A-Z a-z 0-9 . _ / - -- refusing to put it in a prompt
-review: <URL> is a pull request of <o/r>, but remote origin is <o/r> -- run it from a checkout of <o/r>
 ```
 
 The branch names go into shell commands in the prompt, so a head or base
-with anything beyond letters, digits and `._/-` is refused. A URL must
-name the repository of the remote: `gh` looks only in this checkout's.
+with anything beyond letters, digits and `._/-` is refused.
+
+**A pull request of another repository.** Run the script by its path from
+a checkout of that repository; `just review` runs in the claudinix
+checkout, so it reviews only claudinix:
+
+```sh
+cd ~/projects/other-repo
+~/projects/claudinix/scripts/cloud-review.sh all 36 --dry-run
+```
+
+The roles and the prompt come from the script's own directory. The session
+works on the repository of the checkout you run it from, so that
+repository needs its own claude.ai cloud environment (pinned in its
+`.claude/settings.local.json`), the Claude GitHub app must have access to
+it, and `gh` must be able to read its pull requests. The session reads
+`AGENTS.md` and `SPEC.md` only if the repository has them, else its README,
+CONTRIBUTING and CLAUDE.md.
 
 Unlike `cloud`, it needs only the remote (`origin`, or `CLOUD_TASK_REMOTE`):
 the session fetches the pull request's branch from GitHub, so the branch
@@ -647,8 +665,11 @@ starts nothing. `--dry-run` prints one command per session.
 
 **What each session is told.** The prompt is
 [`cloud-review-prompt.txt`](../scripts/cloud-review-prompt.txt) with the
-pull request and the role's file filled in. The session reads `AGENTS.md`,
-the specs and the diff, and reviews as that role only. It reports findings
+pull request and the role's file filled in. The session reads `AGENTS.md`
+and the specs if the repository has them (else its README, CONTRIBUTING and
+CLAUDE.md), then the diff, and reviews as that role only. It proves a
+finding in the flake dev shell, or with the repository's own tooling when
+there is none. It reports findings
 it can point at (file and line, what goes wrong, a fix), most severe first,
 and posts them as one comment headed `Review: <role>`. If it cannot post,
 the findings go in its report. It commits, pushes and edits nothing, and it
