@@ -12,9 +12,9 @@
 # --max caps how many tasks run. Its default is the owner's recent pace:
 # the pull requests merged in the last CLOUD_DRAIN_PACE_DAYS (7) days that
 # had a `Fixup:` reply by the owner or a member (cloud:B78), per day,
-# rounded up, at least 1 (at most CLOUD_DRAIN_PACE_LIMIT pull requests are
-# counted). When gh cannot count them, it exits 1
-# and asks for --max.
+# rounded up, at least 1. gh lists only the pull requests with such a
+# comment, at most CLOUD_DRAIN_PACE_LIMIT of them. When gh cannot count
+# them, it exits 1 and asks for --max.
 #
 # One y/N answer names the tasks and the billed sessions (each task is
 # one build, one review per role and one fixup); --yes skips only that
@@ -107,7 +107,7 @@ fi
 if [ -z "$max" ]; then
     since="$(date -u -d "$CLOUD_DRAIN_PACE_DAYS days ago" +%F 2>/dev/null || date -u -v-"$CLOUD_DRAIN_PACE_DAYS"d +%F)"
     # </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
-    if ! merged="$(gh pr list --state merged --search "merged:>=$since" --limit "$CLOUD_DRAIN_PACE_LIMIT" --json number,comments </dev/null)"; then
+    if ! merged="$(gh pr list --state merged --search "merged:>=$since \"$CLOUD_FIXUP_HEADING\" in:comments" --limit "$CLOUD_DRAIN_PACE_LIMIT" --json number,comments </dev/null)"; then
         echo "drain: gh could not count the pull requests merged since $since -- pass --max N" >&2
         exit 1
     fi
