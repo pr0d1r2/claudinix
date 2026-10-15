@@ -35,7 +35,7 @@ approve, you do not.
 5. Post the findings as one comment on the pull request, headed
    "Review: @ROLE@". End the comment with one last line `Findings: N`,
    where N is the number of findings you reported (`Findings: 0` when
-   there are none); `just merge` reads it. If you cannot post it, put the
+   there are none). If you cannot post it, put the
    findings in your report instead.
 6. This session is read-only: do not commit, do not push, do not edit
    files in the repository, and do not approve, request changes on or

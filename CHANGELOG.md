@@ -33,7 +33,7 @@ does are summarised briefly; the git history has the detail.
   opening the pull request.
 - Cloud sessions are denied `gh pr merge` (and `rtk gh pr merge`); only the
   owner merges, also as `gh -R … pr merge`, `gh api …/merge` or the GitHub MCP merge tools.
-- Review comments from `just review` end with a `Findings: N` line.
+- Review comments from `just review` end with a `Findings: N` line; the review prompt no longer names `just merge`.
 - The `just review` role files no longer assume this repository's spec or gate:
   each such rule applies only if the reviewed repository has one.
 - `just review` with the URL of another repository's pull request now says to
