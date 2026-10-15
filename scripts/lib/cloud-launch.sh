@@ -17,6 +17,16 @@ CLOUD_REVIEW_HEADING='Review:'
 # shellcheck disable=SC2034 # read by the scripts that source this file
 CLOUD_FIXUP_HEADING='Fixup:'
 
+# The paths `just merge` never merges a change to (cloud:V51): the files that
+# decide what is allowed to merge. A name ending in `/` is a directory.
+# shellcheck disable=SC2034 # read by cloud-merge.sh
+CLOUD_MERGE_KEPT=(
+    hk.pkl flake.lock nix/cloud-permissions.json .github/ .claude/ justfile
+    scripts/guard/ scripts/hk/ scripts/review/
+    scripts/cloud-merge.sh scripts/cloud-review.sh scripts/cloud-review-prompt.txt
+    scripts/lib/cloud-launch.sh
+)
+
 # cloud_fill KEY VALUE: replace every KEY in $prompt with VALUE, as written.
 # Not ${prompt//KEY/VALUE}: bash 5.2 turns an `&` in VALUE into the match
 # (patsub_replacement), and quoting VALUE there keeps the quotes in bash
