@@ -41,6 +41,8 @@ setup() {
     chmod +x "$STUBS"/*
     export PATH="$STUBS:$PATH"
 
+    # Every role is a file in review/ (cloud:I.cmd), non-security ones here.
+    ROLES="$(for f in "$BATS_TEST_DIRNAME"/../../../scripts/review/*.md; do basename "$f" .md; done | grep -vx security | tr '\n' ' ')"
     GREEN='[{"status":"COMPLETED","conclusion":"SUCCESS"},{"status":"COMPLETED","conclusion":"SKIPPED"}]'
     pr_json "$GREEN" 'Findings: 0' end
     diff_of scripts/x.sh '-a' '+b'
@@ -50,8 +52,8 @@ setup() {
 # abc123, checks ROLLUP, a review comment per role (security's ending in
 # SECURITY_TAIL) and a Fixup: reply at the `end`, the `start` or `none`.
 pr_json() {
-    jq -n --argjson rollup "$1" --arg sec "$2" --arg fix "$3" '
-        ["architecture", "correctness", "extensibility", "maintainability", "performance"] as $r
+    jq -n --arg roles "$ROLES" --argjson rollup "$1" --arg sec "$2" --arg fix "$3" '
+        ($roles | split(" ") | map(select(. != ""))) as $r
         | ([$r[] | {authorAssociation: "OWNER", body: ("## Review: " + . + "\n\nNo findings.\n\nFindings: 0")}]
             + [{authorAssociation: "OWNER", body: ("## Review: security\n\nRead the diff.\n\n" + $sec)}]) as $reviews
         | {headRefOid: "abc123", statusCheckRollup: $rollup,
