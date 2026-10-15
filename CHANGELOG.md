@@ -21,14 +21,11 @@ does are summarised briefly; the git history has the detail.
 ## Unreleased
 
 - `just merge <PR>` rebase-merges a reviewed pull request from your terminal, but
-  only when CI is green on its head, every review role and the fixup replied (only
-  comments by the owner or a member count, and the fixup reply names the head's sha),
-  security reported no findings, and the diff leaves `hk.pkl`, `.github/`, `flake.nix`,
-  `flake.lock`, the cloud permission list, the guards, review roles and merge
-  script themselves (renamed or not), §C and §V rows and ceilings alone;
-  otherwise it names every reason and stops. `--dry-run` only judges. A neutral
-  check counts as green there, as in the wait of `just all`, and `Review: security-deep`
-  is not `Review: security`; only the last line `Findings: N` of the security review counts.
+  only when CI is green on its head, every review role and the fixup replied
+  (only comments by the owner or a member count, and the fixup reply names the
+  head's sha), security reported no findings, and the diff leaves the gate's
+  own files, §C and §V rows and ceilings alone; otherwise it names every
+  reason and stops. `--dry-run` only judges.
 - `just all <task> --merge` ends a green flow with `just merge` instead of
   opening the pull request.
 - Cloud sessions are denied `gh pr merge` (and `rtk gh pr merge`); only the
