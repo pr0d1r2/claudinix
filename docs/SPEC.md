@@ -48,7 +48,7 @@ T43|x|ARCHIVED to SPEC-ARCHIVE.md|C22,C8
 T44|x|ARCHIVED to SPEC-ARCHIVE.md|C22,I.cmd
 T45|x|ARCHIVED to SPEC-ARCHIVE.md|C22,C1,C8
 T46|x|ARCHIVED to SPEC-ARCHIVE.md|C22,C11
-T47|x|cloud permission prompts (seen 2026-10-03: "Allow Claude to use add repo (claude-code-remote)?" blocked the sherd #96 session until answered): find exact tool ids (`add_repo` under server `claude-code-remote`, likely `mcp__claude-code-remote__add_repo` ?) from a session transcript; document 3 ways in `docs/SETUP.md` + `docs/CONSUMER.md`: (a) target repo committed `.claude/settings.json` `permissions.allow` (read in 1-repo sessions; user `~/.claude` ⊥ reaches cloud), (b) permission mode chosen at session start (mode dropdown \| CLI flag ?), (c) answer in UI ("Always allow" scope ?). docs state what is unmeasured (`experiments:T62`); the `apps.guide` offer to write (a) is `scripts:T137`|C2,C9,I.cmd,`scripts:T137`,T8
+T47|x|ARCHIVED to SPEC-ARCHIVE.md|C2,C9,I.cmd,`scripts:T137`,T8
 T70|x|ARCHIVED to SPEC-ARCHIVE.md|`.:T24`,`.:T30`,C22
 T72|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C10`,`.:T71`,C22
 T83|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:C24`,`.:C25`,C26
@@ -60,12 +60,12 @@ T103|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,C22
 T115|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:T114`,`scripts:V37`,`.:C29`,`.:C25`,C22
 T117|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:T116`,`scripts:B14`,C22
 T120|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:T119`,C22
-T122|x|`raw.githubusercontent.com` in every doc that lists the allowed domains (SETUP step 3 + troubleshooting for `curl: (22) ... 403`, FORKING, RUNBOOK, CLI `domains` output, SESSION); FACTS: open question "raw reachable during setup?" answered: 403 until allowed (2026-10-04)|`.:T121`,`.:B15`,`.:C6`,C22
-T125|x|AGENTS, CONTRIBUTING, CLI `cloud`, RUNBOOK: a cloud agent opens a PR \& never merges; owner reviews it (CI runs on the PR)|`cloud:T124`,`.:C29`,C22
-T128|x|CLI `rebase` section, RUNBOOK review step: a conflicting `claude/*` PR → `just rebase <PR>`|`cloud:T126`,C22
-T130|x|CLI `review` section (roles = files in `scripts/review/`, how to add one), RUNBOOK review step|`cloud:T129`,C22
-T134|x|CLI `fixup` section, RUNBOOK: after `just review`, `just fixup <PR>`|`cloud:T132`,C22
-T136|x|CLI `all` section (stages, waits, `CLOUD_ALL_POLL`, Safari), RUNBOOK: `just all <task>` = cloud + review + fixup in 1|`cloud:T135`,C22
+T122|x|ARCHIVED to SPEC-ARCHIVE.md|`.:T121`,`.:B15`,`.:C6`,C22
+T125|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:T124`,`.:C29`,C22
+T128|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:T126`,C22
+T130|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:T129`,C22
+T134|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:T132`,C22
+T136|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:T135`,C22
 T149|.|CLI `spec-optimize` section, RUNBOOK: a node near its ceiling → `just spec-optimize [node]`, then `just all <PR#>`|`cloud:T148`,C22
 
 ## §B BUGS
