@@ -118,7 +118,7 @@ all docs:T6 --yes --merge --model sonnet" ]
     run bash "$SCRIPT" --yes
     [ "$status" -eq 0 ]
     [ "$(ran | wc -l | tr -d ' ')" -eq 2 ]
-    grep -q '^pr list --state merged' "$STATE/gh.log"
+    grep -qF '"Fixup:" in:comments' "$STATE/gh.log"
     : >"$STATE/all.log"
     merged 8
     run bash "$SCRIPT" --yes
