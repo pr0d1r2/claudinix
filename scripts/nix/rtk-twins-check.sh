@@ -57,7 +57,7 @@ for key in allow deny; do
         [[ "$got" == "rtk "* ]] || continue
         twin="Bash(rtk $cmd)"
         if ! jq -e --arg key "$key" --arg rule "$twin" '.[$key] | index($rule)' "$list" >/dev/null; then
-            echo "rtk-twins: rtk rewrites $key rule \"$rule\", but $list has no \"$twin\" -- also extend the (git|cargo) set in scripts/guard/cloud-permissions.sh if rtk rewrites a new tool" >&2
+            echo "rtk-twins: rtk rewrites $key rule \"$rule\", but $list has no \"$twin\" -- also extend the guard's command set (git|cargo|gh) in scripts/guard/cloud-permissions.sh if rtk rewrites a new tool" >&2
             status=1
         fi
     done < <(jq -r --arg key "$key" '.[$key][] | select(startswith("Bash(") and (startswith("Bash(rtk ") | not))' "$list")
