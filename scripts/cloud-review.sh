@@ -4,8 +4,10 @@
 #
 # ROLE names a file scripts/review/ROLE.md: the directory is the list of
 # roles, so a new role is a new file and no code changes. PR is a number
-# or a GitHub pull request URL; `gh pr view` must find it open. Any head
-# branch will do, since the session pushes nothing.
+# or a GitHub pull request URL; a URL must name the remote's repository,
+# checked before any `gh` call (cloud:B63), and `gh pr view` must find it
+# open (cloud_read_pr). Any head branch will do, since the session pushes
+# nothing.
 #
 # The launch rules are cloud-task.sh's, less the local branch: the remote
 # must exist, and a y/N answer must confirm that a billed cloud session
