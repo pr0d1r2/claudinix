@@ -99,7 +99,7 @@ reasons="$(jq -r --arg ci_ok "$CLOUD_CI_OK" --argjson roles "$roles" '
        then "push: a commit came after the Fixup: reply" else empty end),
     ([$reviews[] | select(.value | reviewed("security"))] | last) as $sec
     | (if $sec == null then empty
-       else ([$sec.value.body | split("\n")[] | capture("^Findings: *(?<n>[0-9]+) *$")] | last) as $f
+       else ([$sec.value.body | split("\n") | map(select(test("[^ \\t\\r]"))) | (last // "") | capture("^Findings: *(?<n>[0-9]+)[ \\r]*$")] | last) as $f
        | if $f == null then "security: its review has no Findings: line"
          elif ($f.n | tonumber) > 0 then "security: \($f.n) finding(s) reported"
          else empty end end)
