@@ -402,3 +402,25 @@ denied_by_repo_list() {
     [ "$status" -eq 1 ]
     [[ "$output" == *"jq"* ]]
 }
+
+@test "the repo's own list denies gh pr merge, bare and as rtk rewrites it (.:C29)" {
+    for cmd in 'gh pr merge 8 --rebase' 'rtk gh pr merge 8 --rebase'; do
+        denied_by_repo_list "$cmd" || {
+            echo "not denied: $cmd"
+            return 1
+        }
+    done
+}
+
+@test "dropping the gh pr merge deny is refused; a gh rule needs its rtk twin (.:C29, .:V44)" {
+    list '["Bash(bats *)"]'
+    jq '.deny -= ["Bash(gh pr merge *)", "Bash(rtk gh pr merge *)"]' "$PERMISSIONS_FILE" >"$PERMISSIONS_FILE.new"
+    mv "$PERMISSIONS_FILE.new" "$PERMISSIONS_FILE"
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *'Bash(gh pr merge *)'* ]]
+    list '["Bash(gh pr view *)"]'
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *'Bash(rtk gh pr view *)'* ]]
+}
