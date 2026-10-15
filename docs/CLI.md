@@ -615,12 +615,12 @@ branch will do, since the session pushes nothing. Otherwise it exits 1:
 ```text
 review: <URL> is a pull request of <o/r>, but remote origin is <o/r> -- run it from a checkout of <o/r>
 review: gh could not read pull request #<n> -- check the number and that gh is signed in
-review: #<n> is <STATE>, not OPEN -- nothing to review
-review: #<n> has the branch name '<name>', which has characters beyond A-Z a-z 0-9 . _ / - -- refusing to put it in a prompt
+review: #<n> is <STATE>, not OPEN -- nothing to do
+review: #<n>'s branch <name> is not a plain branch name (letters, digits, ._/-, not starting with -) -- it would reach the session's commands
 ```
 
 The branch names go into shell commands in the prompt, so a head or base
-with anything beyond letters, digits and `._/-` is refused.
+with anything beyond letters, digits and `._/-`, or one that starts with `-`, is refused.
 
 **A pull request of another repository.** Run the script by its path from
 a checkout of that repository; `just review` runs in the claudinix
@@ -637,7 +637,12 @@ repository needs its own claude.ai cloud environment (pinned in its
 `.claude/settings.local.json`), the Claude GitHub app must have access to
 it, and `gh` must be able to read its pull requests. The session reads
 `AGENTS.md` and `SPEC.md` only if the repository has them, else its README,
-CONTRIBUTING and CLAUDE.md.
+CONTRIBUTING and CLAUDE.md. The role files say "if the repository has" for
+every spec or gate rule, so they apply there too.
+
+Only `review` runs from another repository's checkout. `fixup`, `rebase`
+and `all` need `AGENTS.md`, `SPEC.md` and the gate of the repository they
+run in, so `just all <URL>` of another repository fails at the fixup.
 
 Unlike `cloud`, it needs only the remote (`origin`, or `CLOUD_TASK_REMOTE`):
 the session fetches the pull request's branch from GitHub, so the branch
@@ -669,9 +674,9 @@ pull request and the role's file filled in. The session reads `AGENTS.md`
 and the specs if the repository has them (else its README, CONTRIBUTING and
 CLAUDE.md), then the diff, and reviews as that role only. It proves a
 finding in the flake dev shell, or with the repository's own tooling when
-there is none. It reports findings
-it can point at (file and line, what goes wrong, a fix), most severe first,
-and posts them as one comment headed `Review: <role>`. If it cannot post,
+there is none, run only as it is on the base branch, never a script or
+target the pull request adds or changes. It reports findings it can point
+at (file and line, what goes wrong, a fix), most severe first, and posts them as one comment headed `Review: <role>`. If it cannot post,
 the findings go in its report. It commits, pushes and edits nothing, and it
 does not approve, request changes on or merge the pull request.
 
