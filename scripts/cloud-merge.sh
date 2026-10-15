@@ -11,11 +11,12 @@
 # - CI: every check on the head is green, CLOUD_CI_OK (none pending, none
 #   red, at least one);
 # - every review role (a file in review/) posted `Review: <role>`, and a
-#   `Fixup:` reply came after the last of them, naming the head (`Head: <sha>`);
+#   `Fixup:` reply came after the last of them and names the head
+#   (`Head: <sha>`);
 # - security's review ends with `Findings: 0` (a missing line stops too);
 # - the diff touches none of CLOUD_MERGE_KEPT (lib/cloud-launch.sh: the
-#   gate, the guards, the review roles and this script), changes no §C or §V row of a SPEC.md, and
-#   raises or adds no .context-limits row.
+#   gate, the guards, the review roles and this script), changes no §C
+#   or §V row of a SPEC.md, and raises or adds no .context-limits row.
 #
 # A y/N answer confirms the merge; --yes skips only that question.
 # --dry-run judges and prints the gh command instead. The merge is
