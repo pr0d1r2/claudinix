@@ -64,9 +64,9 @@ minutes_reviews=90
 minutes_fixup=180
 minutes_rebase=60
 
-# The check conclusions: red fails a CI wait (or, after a session, is waited
-# out), CLOUD_CI_OK passes it; every other one, a cancelled check among them, is
-# pending.
+# The check conclusions: red fails a CI wait (or, after a session, is
+# waited out), CLOUD_CI_OK passes it; every other one, a cancelled check
+# among them, is pending.
 ci_red='^(FAILURE|TIMED_OUT|ERROR|ACTION_REQUIRED|STARTUP_FAILURE)$'
 
 usage() {
