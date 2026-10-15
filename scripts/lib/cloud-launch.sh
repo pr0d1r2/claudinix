@@ -37,6 +37,14 @@ CLOUD_MERGE_KEPT=(
 # shellcheck disable=SC2034 # read by cloud-drain.sh
 CLOUD_DRAIN_SKIP=(experiments)
 
+# The window, in days, over which `just drain` counts merged pull requests
+# that had a fixup to set its default --max, and the most it asks gh for; a
+# window with more merges than the limit is undercounted.
+# shellcheck disable=SC2034 # read by cloud-drain.sh
+CLOUD_DRAIN_PACE_DAYS=7
+# shellcheck disable=SC2034 # read by cloud-drain.sh
+CLOUD_DRAIN_PACE_LIMIT=200
+
 # The check conclusions that count as green; `just all` waits for them and
 # `just merge` judges by them (cloud:B68). Any other one is red or pending.
 # shellcheck disable=SC2034 # read by the scripts that source this file

@@ -6,14 +6,14 @@
 # The tasks are the ones given (`node:Tn`, `root:Tn` for the root), else
 # the open §T rows (status `.`) of every node but CLOUD_DRAIN_SKIP
 # (`experiments`), without the open questions (a task starting with `?`),
-# in node order. It runs
-# from a clean `main` only, so every task starts from the merged state of
-# the one before.
+# in node order. It runs from a clean `main` only, so every task starts from
+# the merged state of the one before.
 #
 # --max caps how many tasks run. Its default is the owner's recent pace:
-# the pull requests merged in the last 7 days that had a `Fixup:` reply by
-# the owner or a member (cloud:B78),
-# per day, rounded up, at least 1. When gh cannot count them, it exits 1
+# the pull requests merged in the last CLOUD_DRAIN_PACE_DAYS (7) days that
+# had a `Fixup:` reply by the owner or a member (cloud:B78), per day,
+# rounded up, at least 1 (at most CLOUD_DRAIN_PACE_LIMIT pull requests are
+# counted). When gh cannot count them, it exits 1
 # and asks for --max.
 #
 # One y/N answer names the tasks and the billed sessions (each task is
@@ -105,14 +105,14 @@ if [ "$total" -eq 0 ]; then
 fi
 
 if [ -z "$max" ]; then
-    since="$(date -u -d '7 days ago' +%F 2>/dev/null || date -u -v-7d +%F)"
+    since="$(date -u -d "$CLOUD_DRAIN_PACE_DAYS days ago" +%F 2>/dev/null || date -u -v-"$CLOUD_DRAIN_PACE_DAYS"d +%F)"
     # </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
-    if ! merged="$(gh pr list --state merged --search "merged:>=$since" --limit 200 --json number,comments </dev/null)"; then
+    if ! merged="$(gh pr list --state merged --search "merged:>=$since" --limit "$CLOUD_DRAIN_PACE_LIMIT" --json number,comments </dev/null)"; then
         echo "drain: gh could not count the pull requests merged since $since -- pass --max N" >&2
         exit 1
     fi
     fixed="$(jq --arg h "^#* *$CLOUD_FIXUP_HEADING" '[.[] | select(any(.comments[]?; (.authorAssociation == "OWNER" or .authorAssociation == "MEMBER") and (.body | test($h))))] | length' <<<"$merged")"
-    max=$(((fixed + 6) / 7))
+    max=$(((fixed + CLOUD_DRAIN_PACE_DAYS - 1) / CLOUD_DRAIN_PACE_DAYS))
     [ "$max" -ge 1 ] || max=1
 fi
 
