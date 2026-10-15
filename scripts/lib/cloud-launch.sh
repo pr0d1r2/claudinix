@@ -16,6 +16,10 @@ source "$(dirname "${BASH_SOURCE[0]}")/spec-nodes.sh"
 CLOUD_REVIEW_HEADING='Review:'
 # shellcheck disable=SC2034 # read by the scripts that source this file
 CLOUD_FIXUP_HEADING='Fixup:'
+# The first word of the last line of a review comment, then the count; the
+# prompt names it and `just merge` reads it (cloud:V51).
+# shellcheck disable=SC2034 # read by the scripts that source this file
+CLOUD_FINDINGS_HEADING='Findings:'
 
 # The paths `just merge` never merges a change to (cloud:V51): the files that
 # decide what is allowed to merge. A name ending in `/` is a directory.

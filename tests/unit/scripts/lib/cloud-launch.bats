@@ -123,6 +123,7 @@ repo_with_upstream() {
     source "$LIB"
     grep -qF "\"$CLOUD_REVIEW_HEADING @ROLE@\"" "$REPO/scripts/cloud-review-prompt.txt"
     grep -qF "\"$CLOUD_FIXUP_HEADING\"" "$REPO/scripts/cloud-fixup-prompt.txt"
+    grep -qF "\`$CLOUD_FINDINGS_HEADING N\`" "$REPO/scripts/cloud-review-prompt.txt"
 }
 
 @test "cloud_roles lists the role files of a directory, by name, and skips what is not a file" {
