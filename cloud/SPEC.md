@@ -53,7 +53,7 @@ T143|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B35
 T145|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,B40,`nix:T144`
 T146|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T145
 T148|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C20`,`.:C29`,`docs:T149`
-T156|.|`review` of any repo from its checkout (`<claudinix>/scripts/cloud-review.sh`): URL repo \& remote checked before `gh pr view` (B63); prompt reads AGENTS.md \& SPEC.md only if present, proves findings via the repo's own tooling when ⊥ flake dev shell; bats pins both|I.cmd,B21,B63,`docs:T157`
+T156|x|`review` of any repo from its checkout (`<claudinix>/scripts/cloud-review.sh`): URL repo \& remote checked before `gh pr view` (B63); prompt reads AGENTS.md \& SPEC.md only if present, proves findings via the repo's own tooling when ⊥ flake dev shell; bats pins both|I.cmd,B21,B63,`docs:T157`
 
 ## §B BUGS
 
