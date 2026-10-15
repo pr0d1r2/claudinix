@@ -52,11 +52,11 @@ setup() {
 pr_json() {
     jq -n --argjson rollup "$1" --arg sec "$2" --arg fix "$3" '
         ["architecture", "correctness", "extensibility", "maintainability", "performance"] as $r
-        | ([$r[] | {body: ("## Review: " + . + "\n\nNo findings.\n\nFindings: 0")}]
-            + [{body: ("## Review: security\n\nRead the diff.\n\n" + $sec)}]) as $reviews
+        | ([$r[] | {authorAssociation: "OWNER", body: ("## Review: " + . + "\n\nNo findings.\n\nFindings: 0")}]
+            + [{authorAssociation: "OWNER", body: ("## Review: security\n\nRead the diff.\n\n" + $sec)}]) as $reviews
         | {headRefOid: "abc123", statusCheckRollup: $rollup,
-           comments: (if $fix == "end" then $reviews + [{body: "Fixup:\n\nNothing to fix."}]
-                      elif $fix == "start" then [{body: "Fixup:\n\nearly"}] + $reviews
+           comments: (if $fix == "end" then $reviews + [{authorAssociation: "OWNER", body: "Fixup:\n\nNothing to fix."}]
+                      elif $fix == "start" then [{authorAssociation: "OWNER", body: "Fixup:\n\nearly"}] + $reviews
                       else $reviews end)}' >"$STATE/pr.json"
 }
 
@@ -163,6 +163,26 @@ not_pulled() {
         [[ "$output" == *"Fixup:"* ]]
     done
     not_merged
+}
+
+@test "reviews and a Fixup: from a stranger do not count (cloud:B64)" {
+    for assoc in NONE CONTRIBUTOR FIRST_TIME_CONTRIBUTOR; do
+        jq --arg a "$assoc" '.comments |= map(.authorAssociation = $a)' "$STATE/pr.json" >"$STATE/p" && mv "$STATE/p" "$STATE/pr.json"
+        run bash "$SCRIPT" 8 --yes
+        [ "$status" -eq 1 ] || {
+            echo "merged on comments from $assoc"
+            return 1
+        }
+        [[ "$output" == *"Review: security"* ]]
+    done
+    not_merged
+}
+
+@test "a MEMBER's reviews count (cloud:B64)" {
+    jq '.comments |= map(.authorAssociation = "MEMBER")' "$STATE/pr.json" >"$STATE/p" && mv "$STATE/p" "$STATE/pr.json"
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 0 ]
+    merged
 }
 
 @test "security reported findings, or no Findings: line: stops, naming security" {
