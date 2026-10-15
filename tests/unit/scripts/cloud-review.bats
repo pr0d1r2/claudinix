@@ -261,6 +261,16 @@ setup() {
     grep -qF "the repository's own tooling" "$p"
 }
 
+@test "no role file assumes the claudinix spec or gate: each such rule is conditional (T159)" {
+    # Every line naming a spec, a node or a gate says "if the repository has" or "where it has".
+    local offenders
+    offenders="$(cat "$REPO"/scripts/review/*.md | grep -iE '§|spec|gate' | grep -viE 'if the repository has|where it has|, if it has|, if it has one' || true)"
+    [ -z "$offenders" ] || {
+        echo "$offenders" >&2
+        return 1
+    }
+}
+
 @test "the prompt runs repository tooling only as it is on the base, never the PR's own (T158)" {
     run bash "$SCRIPT" correctness 12 --yes
     [ "$status" -eq 0 ]

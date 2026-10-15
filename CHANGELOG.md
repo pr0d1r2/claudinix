@@ -20,6 +20,8 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- The `just review` role files no longer assume this repository's spec or gate:
+  each such rule applies only if the reviewed repository has one.
 - `just review` with the URL of another repository's pull request now says to
   run it from a checkout of that repository. It used to read this
   repository's pull request of the same number and report its state, such as
