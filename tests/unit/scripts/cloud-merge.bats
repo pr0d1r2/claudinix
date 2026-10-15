@@ -155,6 +155,20 @@ not_pulled() {
     merged
 }
 
+@test "Review: security-deep or a regex-like role is not Review: security (cloud:B69)" {
+    jq '.comments |= map(if (.body | startswith("## Review: security")) then .body |= sub("security"; "security-deep") else . end)' "$STATE/pr.json" >"$STATE/p" && mv "$STATE/p" "$STATE/pr.json"
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *'no "Review: security" comment'* ]]
+    not_merged
+    mkdir -p "$BATS_TEST_TMPDIR/scripts/review"
+    touch "$BATS_TEST_TMPDIR/scripts/review/sec.rity.md"
+    pr_json "$GREEN" 'Findings: 0' end
+    CLAUDINIX_SCRIPTS="$BATS_TEST_TMPDIR/scripts" run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *'no "Review: sec.rity" comment'* ]]
+}
+
 @test "a role without its review: stops, naming the role" {
     jq '.comments |= map(select(.body | startswith("## Review: performance") | not))' "$STATE/pr.json" >"$STATE/p" && mv "$STATE/p" "$STATE/pr.json"
     run bash "$SCRIPT" 8 --yes
