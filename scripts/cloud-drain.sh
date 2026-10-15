@@ -133,9 +133,9 @@ fi
 done_count=0
 for task in "${run[@]}"; do
     if ! "$scripts_dir/cloud-all.sh" "$task" --yes --merge --model "$model"; then
-        echo "drain: stopped at $task; $done_count of $total done" >&2
+        echo "drain: stopped at $task; $done_count of ${#run[@]} done" >&2
         exit 1
     fi
     done_count=$((done_count + 1))
 done
-echo "drain: done, $done_count of $total"
+echo "drain: done, $done_count of ${#run[@]}"
