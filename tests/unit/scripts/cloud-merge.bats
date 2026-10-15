@@ -283,6 +283,18 @@ not_pulled() {
     not_merged
 }
 
+@test "every CLOUD_MERGE_KEPT entry exists in the tree, so a moved gate file is noticed (cloud:B74)" {
+    local root="$BATS_TEST_DIRNAME/../../.." kept
+    # shellcheck source=/dev/null # the library under test
+    source "$root/scripts/lib/cloud-launch.sh"
+    for kept in "${CLOUD_MERGE_KEPT[@]}"; do
+        [ -e "$root/$kept" ] || {
+            echo "missing: $kept"
+            return 1
+        }
+    done
+}
+
 @test "a rename into, out of or a mode change of a kept file: stops, naming it (cloud:B66)" {
     printf 'diff --git a/x.yml b/.github/workflows/x.yml\nsimilarity index 100%%\nrename from x.yml\nrename to .github/workflows/x.yml\n' >"$STATE/pr.diff"
     run bash "$SCRIPT" 8 --yes
