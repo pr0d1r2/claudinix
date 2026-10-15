@@ -25,6 +25,8 @@ does are summarised briefly; the git history has the detail.
   the first pull request the strict merge rule leaves to you. Without tasks it
   takes the open ones outside `experiments` that are not open questions;
   `--max` defaults to your merge rate over the last 7 days.
+- `just merge` stops at a pull request that changes `scripts/cloud-drain.sh`, so a
+  merged change cannot rewrite the drain unreviewed.
 - `just merge` reads a review's `Findings:` line above the footer the Claude harness
   adds to every comment, so a real review with no findings no longer stops it.
 - `just merge <PR>` rebase-merges a reviewed pull request from your terminal, but
