@@ -98,3 +98,4 @@ B70|2026-10-15|`just merge` took `Findings: 0` from any line of a security revie
 B71|2026-10-15|deny `gh pr merge *` missed `gh -R x pr merge`, `gh api …/merge`, MCP merge (C29)|guard requires those denies
 B72|2026-10-15|review prompt named `just merge`, which sessions never use|prompt states `Findings: N` only
 B73|2026-10-15|`merge` judged the `Fixup:` by `committedDate`: forgeable, \& a CI-fix push after it always stopped|V51: the last `Fixup:` names `headRefOid` (`Head: <sha>`)
+B74|2026-10-15|`CLOUD_MERGE_KEPT` missed `flake.nix`, `nix/dev-shell.nix`, `scripts/dev/`, `scripts/cloud-all.sh`, `scripts/lib/spec-nodes.sh` \& the guard tests ∴ a PR could change the gate's tools unflagged|V51: kept also these; a new `scripts/lib/` file is kept by its dir
