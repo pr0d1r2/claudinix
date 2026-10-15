@@ -13,8 +13,8 @@
 # - every review role (a file in review/) posted `Review: <role>`, and a
 #   `Fixup:` reply came after the last of them;
 # - security's review ends with `Findings: 0` (a missing line stops too);
-# - the diff touches none of hk.pkl, .github/, flake.lock and
-#   nix/cloud-permissions.json, changes no §C or §V row of a SPEC.md, and
+# - the diff touches none of CLOUD_MERGE_KEPT (lib/cloud-launch.sh: the
+#   gate, the guards, the review roles and this script), changes no §C or §V row of a SPEC.md, and
 #   raises or adds no .context-limits row.
 #
 # A y/N answer confirms the merge; --yes skips only that question.
@@ -105,10 +105,14 @@ reasons="$(jq -r --argjson roles "$roles" '
 ' <<<"$info")"
 
 # The reasons from the diff, one per line.
-diff_reasons="$(awk '
-    function kept(path) {
-        return path == "hk.pkl" || path == "flake.lock" || path == "nix/cloud-permissions.json" || path ~ /^\.github\//
+diff_reasons="$(awk -v kept_paths="${CLOUD_MERGE_KEPT[*]}" '
+    function kept(path,    i) {
+        for (i = 1; i <= n_kept; i++) {
+            if (path == kept_list[i] || (kept_list[i] ~ /\/$/ && index(path, kept_list[i]) == 1)) return 1
+        }
+        return 0
     }
+    BEGIN { n_kept = split(kept_paths, kept_list, " ") }
     function flag(path) {
         if (kept(path) && !(path in flagged)) { flagged[path] = 1; print "diff: changes " path }
     }
