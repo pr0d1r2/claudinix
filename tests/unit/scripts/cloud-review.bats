@@ -251,6 +251,16 @@ setup() {
     run ! grep -qF '@' "$p"
 }
 
+@test "the prompt works in any repository: spec files and the dev shell only if present (T156)" {
+    run bash "$SCRIPT" correctness 12 --yes
+    [ "$status" -eq 0 ]
+    local p="$STATE/claude.task"
+    grep -qF 'If the repository has an AGENTS.md or a SPEC.md' "$p"
+    grep -qF 'README' "$p"
+    grep -qF 'If the repository has a flake.nix' "$p"
+    grep -qF "the repository's own tooling" "$p"
+}
+
 # --- just ---
 
 @test "just review runs the script, one plain command" {
