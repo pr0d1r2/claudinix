@@ -424,3 +424,25 @@ denied_by_repo_list() {
     [ "$status" -eq 1 ]
     [[ "$output" == *'Bash(rtk gh pr view *)'* ]]
 }
+
+@test "the repo's own list denies every other way to merge: gh -R, gh api, rtk twins (.:C29, cloud:B71)" {
+    for cmd in 'gh -R o/r pr merge 8' 'gh --repo o/r pr merge 8 --rebase' 'rtk gh -R o/r pr merge 8' \
+        'gh api -X PUT repos/o/r/pulls/8/merge' 'rtk gh api repos/o/r/pulls/8/merge -X PUT'; do
+        denied_by_repo_list "$cmd" || {
+            echo "not denied: $cmd"
+            return 1
+        }
+    done
+    for tool in mcp__github__merge_pull_request mcp__github__enable_pr_auto_merge; do
+        jq -e --arg t "$tool" '.deny | index($t)' "$REPO_ROOT/nix/cloud-permissions.json" >/dev/null
+    done
+}
+
+@test "dropping an MCP merge deny is refused (.:C29, cloud:B71)" {
+    list '["Bash(bats *)"]'
+    jq '.deny -= ["mcp__github__merge_pull_request"]' "$PERMISSIONS_FILE" >"$PERMISSIONS_FILE.new"
+    mv "$PERMISSIONS_FILE.new" "$PERMISSIONS_FILE"
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *'mcp__github__merge_pull_request'* ]]
+}
