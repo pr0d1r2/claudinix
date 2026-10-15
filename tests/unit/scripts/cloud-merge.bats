@@ -148,6 +148,13 @@ not_pulled() {
     not_merged
 }
 
+@test "a neutral check is green, as in the wait of just all (cloud:B68)" {
+    pr_json '[{"status":"COMPLETED","conclusion":"SUCCESS"},{"status":"COMPLETED","conclusion":"NEUTRAL"}]' 'Findings: 0' end
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 0 ]
+    merged
+}
+
 @test "a role without its review: stops, naming the role" {
     jq '.comments |= map(select(.body | startswith("## Review: performance") | not))' "$STATE/pr.json" >"$STATE/p" && mv "$STATE/p" "$STATE/pr.json"
     run bash "$SCRIPT" 8 --yes
