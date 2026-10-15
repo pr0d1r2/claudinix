@@ -25,19 +25,25 @@ setup() {
         'pull\ --ff-only*) ;;' \
         '*) exit 9 ;;' \
         'esac' >"$STUBS/git"
-    # gh: the open-PR read answers TSV; the verdict read answers
-    # $STATE/pr.json; `pr diff` answers $STATE/pr.diff; `pr merge` logs and
-    # exits $GH_MERGE_RC.
-    # shellcheck disable=SC2016 # expands inside the stub, not here
-    printf '%s\n' '#!/usr/bin/env bash' \
-        'echo "$*" >>"$STATE/gh.log"' \
-        'case "$*" in' \
-        '*isCrossRepository*) printf "%b\n" "${STUB_PR:-8\tOPEN\tclaude/scripts-T9\tmain\thttps://github.com/o/p/pull/8\tfalse}" ;;' \
-        '*statusCheckRollup*) cat "$STATE/pr.json" ;;' \
-        'pr\ diff*) cat "$STATE/pr.diff" ;;' \
-        'pr\ merge*) exit "${GH_MERGE_RC:-0}" ;;' \
-        '*) exit 9 ;;' \
-        'esac' >"$STUBS/gh"
+    # gh: a `pr view` that asks for the checks answers the PR's fields merged
+    # into $STATE/pr.json; one that does not answers the open-PR TSV.
+    # `pr diff` answers $STATE/pr.diff; `pr merge` logs and exits
+    # $GH_MERGE_RC.
+    cat >"$STUBS/gh" <<'STUB'
+#!/usr/bin/env bash
+echo "$*" >>"$STATE/gh.log"
+fields="${STUB_PR:-8\tOPEN\tclaude/scripts-T9\tmain\thttps://github.com/o/p/pull/8\tfalse}"
+case "$*" in
+*statusCheckRollup*)
+    printf '%b\n' "$fields" | jq -R 'split("\t") | {number: (.[0] | tonumber), state: .[1], headRefName: .[2], baseRefName: .[3], url: .[4], isCrossRepository: (.[5] == "true")}' |
+        jq -c --slurpfile checks "$STATE/pr.json" '. + $checks[0]'
+    ;;
+*isCrossRepository*) printf '%b\n' "$fields" ;;
+pr\ diff*) cat "$STATE/pr.diff" ;;
+pr\ merge*) exit "${GH_MERGE_RC:-0}" ;;
+*) exit 9 ;;
+esac
+STUB
     chmod +x "$STUBS"/*
     export PATH="$STUBS:$PATH"
 
@@ -94,6 +100,12 @@ not_pulled() {
     merged
     grep -q '^pull --ff-only' "$STATE/git.log"
     [[ "$output" == *"merge: merged #8"* ]]
+}
+
+@test "the pull request is read once: one gh pr view for the open check and the verdict" {
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 0 ]
+    [ "$(grep -c '^pr view' "$STATE/gh.log")" = 1 ]
 }
 
 @test "after the merge, a branch other than main or a dirty tree is not pulled" {
@@ -334,7 +346,7 @@ not_pulled() {
         [ "$status" -eq 1 ]
     done
     not_merged
-    if grep -q statusCheckRollup "$STATE/gh.log"; then return 1; fi
+    if grep -q '^pr diff' "$STATE/gh.log"; then return 1; fi
 }
 
 @test "a URL of another repository is refused; no argument or an unknown flag is usage" {
