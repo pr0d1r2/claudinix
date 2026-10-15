@@ -4,8 +4,8 @@
 # first (cloud-task.sh) and wait for its pull request; then wait for green
 # CI, review it by every role (cloud-review.sh all), wait for every role's
 # comment, fix the findings up (cloud-fixup.sh), wait for its reply and
-# green CI again, then open the pull request in Safari. It never merges;
-# the owner does.
+# green CI again, then open the pull request in Safari. It merges only
+# with --merge, which the owner passes (.:C29).
 #
 # The argument is a task (`Tn` or `node:Tn`, as for cloud-task.sh) or an
 # existing pull request (PR# or its URL, made by hand or by an earlier
@@ -17,7 +17,9 @@
 # One y/N answer, naming how many billed sessions start (1 build for a
 # task, 1 per role, 1 fixup) and the model, covers them all; --yes skips
 # it, and each child then runs with --yes. --dry-run runs the checks and
-# prints the plan instead.
+# prints the plan instead. --merge ends a green flow with
+# cloud-merge.sh --yes (the strict rule, cloud:V51) instead of opening the
+# pull request; a stop for the owner exits 1 and opens it.
 #
 # The sessions run in the cloud; this script only waits, polling GitHub
 # with gh every CLOUD_ALL_POLL seconds (default 10) and printing one dot
@@ -46,7 +48,7 @@
 # resets the count): it shows gh's last stderr instead of dots to the limit
 # (SPEC cloud:T138).
 #
-# Usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run]
+# Usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run] [--merge]
 # Env:   CLOUD_ALL_POLL     seconds between polls (default 10)
 #        CLAUDINIX_SCRIPTS  dir holding the child launchers, review/ and
 #                           config.sh (default: here)
@@ -69,7 +71,7 @@ ci_red='^(FAILURE|TIMED_OUT|ERROR|ACTION_REQUIRED|STARTUP_FAILURE)$'
 ci_ok='^(SUCCESS|SKIPPED|NEUTRAL)$'
 
 usage() {
-    echo "usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run]" >&2
+    echo "usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run] [--merge]" >&2
     exit 2
 }
 
@@ -77,6 +79,7 @@ arg=
 model=
 yes=0
 dry=0
+merge=0
 while [ "$#" -gt 0 ]; do
     case "$1" in
     --model)
@@ -86,6 +89,7 @@ while [ "$#" -gt 0 ]; do
         ;;
     --yes) yes=1 ;;
     --dry-run) dry=1 ;;
+    --merge) merge=1 ;;
     -*) usage ;;
     *)
         [ -z "$arg" ] || usage
@@ -155,6 +159,7 @@ else
 fi
 
 plan="all: $name runs $sessions billed Claude Code cloud sessions (model $model), one after another: $steps${#roles[@]} reviews (${roles[*]}), 1 fixup; it waits for each and for green CI, up to hours"
+[ "$merge" = 0 ] || plan="$plan; then just merge rebase-merges it if the strict rule holds"
 if [ "$dry" = 1 ]; then
     echo "$plan"
     exit 0
@@ -448,5 +453,10 @@ resolve_conflicts
 echo "all: the fixup replied on #$pr; waiting for CI"
 wait_ci 1 || wait_failed $? "CI is not green on #$pr after the fixup"
 
+if [ "$merge" = 1 ]; then
+    echo "all: CI is green on #$pr after ${built}the reviews and the fixup; merging"
+    "$scripts_dir/cloud-merge.sh" "$pr" --yes || fail "#$pr stops for the owner (see above)"
+    exit 0
+fi
 echo "all: CI is green on #$pr after ${built}the reviews and the fixup; opening $url"
 open_pr
