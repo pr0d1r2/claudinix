@@ -217,6 +217,21 @@ not_pulled() {
     not_merged
 }
 
+@test "a change to the gate's own files: stops, naming the file (cloud:B67)" {
+    for file in scripts/guard/cloud-permissions.sh scripts/hk/run-tool.sh scripts/review/security.md \
+        scripts/cloud-merge.sh scripts/lib/cloud-launch.sh scripts/cloud-review-prompt.txt \
+        scripts/cloud-review.sh .claude/settings.json justfile; do
+        diff_of "$file" '-a' '+b'
+        run bash "$SCRIPT" 8 --yes
+        [ "$status" -eq 1 ] || {
+            echo "merged a change to $file"
+            return 1
+        }
+        [[ "$output" == *"$file"* ]]
+    done
+    not_merged
+}
+
 @test "a rename into, out of or a mode change of a kept file: stops, naming it (cloud:B66)" {
     printf 'diff --git a/x.yml b/.github/workflows/x.yml\nsimilarity index 100%%\nrename from x.yml\nrename to .github/workflows/x.yml\n' >"$STATE/pr.diff"
     run bash "$SCRIPT" 8 --yes
