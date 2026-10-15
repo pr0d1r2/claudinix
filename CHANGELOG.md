@@ -33,6 +33,8 @@ does are summarised briefly; the git history has the detail.
   default `--max` is not too low.
 - `just drain` reports progress against the tasks it planned, so a finished
   `--max 1` run no longer reads as `1 of 14`.
+- `just drain` refuses when there are no review roles, before it quotes a session
+  count, as `just all` does.
 - `just merge` reads a review's `Findings:` line above the footer the Claude harness
   adds to every comment, so a real review with no findings no longer stops it.
 - `just merge <PR>` rebase-merges a reviewed pull request from your terminal, but

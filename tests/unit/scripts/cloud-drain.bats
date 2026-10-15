@@ -195,6 +195,14 @@ all scripts:T4 --yes --merge --model sonnet" ]
     [ -z "$(ran)" ]
 }
 
+@test "no review roles: refused before any session, as cloud-all.sh refuses" {
+    rm "$CLAUDINIX_SCRIPTS"/review/*.md
+    run bash "$SCRIPT" docs:T6 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"no review roles"* ]]
+    [ -z "$(ran)" ]
+}
+
 # --- asking ---
 
 @test "--dry-run prints the plan (tasks and sessions) and runs nothing" {

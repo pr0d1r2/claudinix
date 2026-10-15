@@ -81,6 +81,10 @@ roles=0
 while IFS= read -r _; do
     roles=$((roles + 1))
 done < <(cloud_roles "$scripts_dir/review")
+if [ "$roles" -eq 0 ]; then
+    echo "drain: no review roles in $scripts_dir/review -- add one (ROLE.md) first" >&2
+    exit 1
+fi
 per_task="$(cloud_session_count "$roles")"
 
 # open_tasks NODE: the open, non-question task ids of NODE's spec.
