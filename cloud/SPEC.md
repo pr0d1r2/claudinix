@@ -88,3 +88,4 @@ B41|2026-10-06|`spec-optimize` dropped a non-`SPEC.md` breach: "nothing to do" (
 B42|2026-10-06|`spec-optimize` ⊥ `.context-limits`: sherd's default ceiling put ∀ node over|⊥ file → exit 1
 B43|2026-10-06|`spec-optimize` CI fragment let a red log steer it to code|cause outside spec files → report
 B63|2026-10-15|`just review all https://github.com/pr0d1r2/<other>/pull/36`: `gh pr view 36` ran before the B21 repo check ∴ it read this repo's merged #36 \& said "#36 is MERGED"; real cause hidden|repo check before any `gh` call (T156)
+B64|2026-10-15|`just merge`: review \& `Fixup:` comments counted from any author; a forged `Review: security … Findings: 0` passed V51 (PR #40 review)|V51: only comments whose `authorAssociation` is OWNER \| MEMBER count
