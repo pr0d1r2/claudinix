@@ -19,6 +19,7 @@ has a bug.
 | [`fixup`](#fixup) | fixes a pull request's review findings one by one, in separate commits, in a billed cloud session | your machine, in the project's git checkout |
 | [`all`](#all) | runs `cloud`, `review all` and `fixup` for one task, waits for CI after each, and opens the pull request (or merges it with `--merge`) | your machine, in the project's git checkout |
 | [`merge`](#merge) | rebase-merges a reviewed pull request, only when the strict rule holds; otherwise names every reason | your machine, in the project's git checkout |
+| [`drain`](#drain) | works through spec tasks one at a time with `all --merge`, stopping at the first failure | your machine, in the project's git checkout |
 | [`config.sh`](#configsh) | reads and checks a project's optional [`.claudinix.toml`](CONFIG.md) | your machine or a session, in the project |
 | [`nix-dev`](#nix-dev) | `nix develop` that survives the GitHub proxy | inside a cloud session |
 | [`setup.sh`](#setupsh) | the environment's setup script | a cloud session's VM, through the setup line |
@@ -944,6 +945,57 @@ the verdict makes `gh` refuse it. Afterwards, if this checkout is on
 | 0 | merged, or `--dry-run` found that the rule holds |
 | 1 | a refusal, a stop for the owner, the answer was not yes, or `gh` did not merge |
 | 2 | a usage error |
+
+## drain
+
+Works through spec tasks one at a time: each is built, reviewed, fixed up
+and merged with [`all`](#all) `--merge`, so only pull requests the strict
+rule of [`merge`](#merge) allows are merged without you. **It starts many
+billed sessions**, so it asks once, first.
+
+```text
+usage: cloud-drain.sh [node:Tn...] [--max N] [--model M] [--yes] [--dry-run]
+```
+
+Run it as `scripts/cloud-drain.sh ...` or `just drain ...`, for example
+`just drain docs:T149 scripts:T150`, or `just drain` alone.
+
+**Which tasks.** The tasks you give, in that order (`root:Tn` for a root
+task). Without any, the open rows (status `.`) of every node except
+`experiments`, skipping open questions (a task that starts with `?`), in
+node order. Experiments need a person watching a real session, and open
+questions need a decision, so neither is drained.
+
+**How many.** `--max N` caps the run. Its default follows your recent
+pace: the pull requests merged in the last 7 days that had a `Fixup:`
+reply, per day, rounded up, at least 1. When `gh` cannot count them, it
+exits 1 and asks for `--max`.
+
+**From where.** Only from `main` with a clean work tree: each task starts
+from the merged state of the one before, and [`merge`](#merge) pulls each
+merge in.
+
+**Asking.** One question names the tasks and the sessions (one build, one
+review per role and one fixup per task):
+
+```text
+drain: root:T1 scripts:T4 (2 of 3 tasks): 2 × just all --merge, 16 billed Claude Code cloud sessions (model sonnet), one after another; it stops at the first failure. Start? [y/N]
+```
+
+`--yes` skips only that question; `--dry-run` prints it and starts
+nothing.
+
+**Stopping.** The first task whose `all --merge` does not succeed stops
+the drain: a failed step, CI that stays red, or a pull request `merge`
+leaves to you. It names the task and how many finished:
+`drain: stopped at scripts:T4; 1 of 3 done`. Fix or merge that one, then
+run the drain again.
+
+| exit | meaning |
+|---|---|
+| 0 | every task in the run merged, nothing to do, or `--dry-run` printed the plan |
+| 1 | a refusal, the answer was not yes, `gh` could not count the merges, or a task stopped |
+| 2 | a usage error or a bad task argument |
 
 ## config.sh
 
