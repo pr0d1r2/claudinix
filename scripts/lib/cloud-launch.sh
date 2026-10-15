@@ -25,10 +25,11 @@ CLOUD_FINDINGS_HEADING='Findings:'
 # decide what is allowed to merge. A name ending in `/` is a directory.
 # shellcheck disable=SC2034 # read by cloud-merge.sh
 CLOUD_MERGE_KEPT=(
-    hk.pkl flake.lock nix/cloud-permissions.json .github/ .claude/ justfile
-    scripts/guard/ scripts/hk/ scripts/review/
-    scripts/cloud-merge.sh scripts/cloud-review.sh scripts/cloud-review-prompt.txt
-    scripts/lib/cloud-launch.sh
+    hk.pkl flake.nix flake.lock nix/cloud-permissions.json nix/dev-shell.nix
+    nix/checks.nix nix/apps.nix .github/ .claude/ justfile
+    scripts/guard/ scripts/hk/ scripts/dev/ scripts/review/ scripts/lib/
+    scripts/cloud-all.sh scripts/cloud-merge.sh scripts/cloud-review.sh
+    scripts/cloud-review-prompt.txt tests/unit/scripts/guard/
 )
 
 # The check conclusions that count as green; `just all` waits for them and
