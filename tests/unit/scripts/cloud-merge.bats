@@ -63,8 +63,7 @@ pr_json() {
         | ([$r[] | {authorAssociation: "OWNER", body: ("## Review: " + . + "\n\nNo findings.\n\nFindings: 0")}]
             + [{authorAssociation: "OWNER", body: ("## Review: security\n\nRead the diff.\n\n" + $sec)}]) as $reviews
         | {headRefOid: "abc123", statusCheckRollup: $rollup,
-           commits: [{committedDate: "2026-10-15T10:00:00Z"}],
-           comments: (if $fix == "end" then $reviews + [{authorAssociation: "OWNER", body: "Fixup:\n\nNothing to fix."}]
+           comments: (if $fix == "end" then $reviews + [{authorAssociation: "OWNER", body: "Fixup:\n\nNothing to fix.\n\nHead: abc123"}]
                       elif $fix == "start" then [{authorAssociation: "OWNER", body: "Fixup:\n\nearly"}] + $reviews
                       else $reviews end | map(.createdAt = "2026-10-15T12:00:00Z"))}' >"$STATE/pr.json"
 }
@@ -229,12 +228,19 @@ not_pulled() {
     merged
 }
 
-@test "a commit pushed after the Fixup: reply: stops, naming the push (cloud:B65)" {
-    jq '.commits += [{committedDate: "2026-10-15T13:00:00Z"}]' "$STATE/pr.json" >"$STATE/p" && mv "$STATE/p" "$STATE/pr.json"
+@test "a Fixup: reply that names another head than the PR's: stops, naming the head (cloud:B73)" {
+    jq '.headRefOid = "def456"' "$STATE/pr.json" >"$STATE/p" && mv "$STATE/p" "$STATE/pr.json"
     run bash "$SCRIPT" 8 --yes
     [ "$status" -eq 1 ]
-    [[ "$output" == *"after the Fixup:"* ]]
+    [[ "$output" == *"does not name the head"* ]]
     not_merged
+}
+
+@test "a Fixup: reply edited to the new head after a CI-fix push merges (cloud:B73)" {
+    jq '.headRefOid = "def456" | .comments[-1].body += "\nHead: def456"' "$STATE/pr.json" >"$STATE/p" && mv "$STATE/p" "$STATE/pr.json"
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 0 ]
+    grep -q '^pr merge 8 --rebase --match-head-commit def456' "$STATE/gh.log"
 }
 
 @test "security reported findings, or no Findings: line: stops, naming security" {
