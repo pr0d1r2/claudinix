@@ -210,7 +210,9 @@ repository.
 9. **Review and merge.** The agent pushes `claude/<node>-<task>` (plus a
    suffix) and opens a pull request into `main`, which it never merges.
    `main` takes changes only through a pull request with green CI, so
-   wait for CI on that pull request, review it, and merge.
+   wait for CI on that pull request, review it, and merge. `just merge <PR>`
+   merges it for you when the strict rule holds, and names what to look
+   at when it does not.
 
 ### Add another project
 

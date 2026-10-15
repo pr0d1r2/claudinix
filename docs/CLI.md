@@ -17,7 +17,8 @@ has a bug.
 | [`rebase`](#rebase) | rebases one pull request onto `main` in a billed cloud session | your machine, in the project's git checkout |
 | [`review`](#review) | reviews one pull request as one role, or as every role at once, in billed read-only cloud sessions | your machine, in the project's git checkout |
 | [`fixup`](#fixup) | fixes a pull request's review findings one by one, in separate commits, in a billed cloud session | your machine, in the project's git checkout |
-| [`all`](#all) | runs `cloud`, `review all` and `fixup` for one task, waits for CI after each, and opens the pull request | your machine, in the project's git checkout |
+| [`all`](#all) | runs `cloud`, `review all` and `fixup` for one task, waits for CI after each, and opens the pull request (or merges it with `--merge`) | your machine, in the project's git checkout |
+| [`merge`](#merge) | rebase-merges a reviewed pull request, only when the strict rule holds; otherwise names every reason | your machine, in the project's git checkout |
 | [`config.sh`](#configsh) | reads and checks a project's optional [`.claudinix.toml`](CONFIG.md) | your machine or a session, in the project |
 | [`nix-dev`](#nix-dev) | `nix develop` that survives the GitHub proxy | inside a cloud session |
 | [`setup.sh`](#setupsh) | the environment's setup script | a cloud session's VM, through the setup line |
@@ -791,7 +792,7 @@ step. For a spec task, [`cloud`](#cloud) builds it first; for an existing
 pull request there is no build. Then [`review all`](#review) reviews the pull
 request by every role, and [`fixup`](#fixup) works through the findings.
 At the end it opens the green pull request in Safari for you to review and
-merge. **It starts several billed sessions**, so it asks once, first.
+merge. With `--merge` it ends with [`merge`](#merge) instead. **It starts several billed sessions**, so it asks once, first.
 
 ```text
 usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run] [--merge]
@@ -855,7 +856,9 @@ stops: "the rebase of #<n> pushed no new head: a conflict needs the
 owner".
 
 Then it opens the pull request: `open -a Safari` on macOS, `xdg-open`
-elsewhere. It never merges.
+elsewhere. Without `--merge` it never merges. With `--merge` it runs
+[`merge`](#merge) `--yes` instead: a pull request the strict rule allows is
+merged, and a stop for the owner opens the pull request and exits 1.
 
 **When a step fails.** A launcher that fails, red CI or a wait that runs out
 stops the flow. It names the step, opens the pull request if there is one,
@@ -886,6 +889,54 @@ remaining steps one by one (`just review all <PR>`, `just fixup <PR>`).
 | 0 | CI is green after the fixup, or `--dry-run` printed the plan |
 | 1 | a refusal, the answer was not yes, or a step failed |
 | 2 | a usage error, a bad task argument, or a bad `.claudinix.toml` |
+
+## merge
+
+Merges one reviewed pull request from your terminal, but only when nothing
+in it needs a second look. Only the owner runs it; cloud sessions are
+denied `gh pr merge`.
+
+```text
+usage: cloud-merge.sh <PR# | URL> [--yes] [--dry-run]
+```
+
+Run it as `scripts/cloud-merge.sh ...` or `just merge ...`, for example
+`just merge 39`. The pull request must be open, of this repository, based
+on `main`, not from a fork, with plain branch names (the checks of
+[`fixup`](#fixup)).
+
+**The strict rule** (`cloud/SPEC.md` V51). It merges only when all of
+these hold:
+
+- every CI check on the head commit is success or skipped (none pending,
+  none red, at least one);
+- every review role posted its `Review: <role>` comment, and a `Fixup:`
+  reply came after the last of them;
+- the security review ends with `Findings: 0` (a missing line counts as a
+  stop);
+- the diff leaves `hk.pkl`, `.github/`, `flake.lock` and
+  `nix/cloud-permissions.json` alone, changes no §C or §V row of a
+  `SPEC.md`, and raises or adds no `.context-limits` row.
+
+Otherwise it stops for you, names every reason, and exits 1:
+
+```text
+merge: #39 stops for the owner:
+  - security: 2 finding(s) reported
+  - diff: changes hk.pkl
+```
+
+A `y/N` question confirms the merge; `--yes` skips only that question.
+`--dry-run` judges and prints the `gh` command instead. The merge is
+`gh pr merge <PR> --rebase --match-head-commit <head>`, so a push after
+the verdict makes `gh` refuse it. Afterwards, if this checkout is on
+`main` with a clean tree, it runs `git pull --ff-only`.
+
+| exit | meaning |
+|---|---|
+| 0 | merged, or `--dry-run` found that the rule holds |
+| 1 | a refusal, a stop for the owner, the answer was not yes, or `gh` did not merge |
+| 2 | a usage error |
 
 ## config.sh
 

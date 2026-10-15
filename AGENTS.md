@@ -130,13 +130,16 @@ Measured in real sessions: root, `HOME=/root`, `CLAUDE_CODE_REMOTE=true`.
 - Launch cloud tasks with `just cloud <node:Tn>` (`--dry-run` first), never
   a hand-written `claude --cloud`. A cloud agent pushes
   `claude/<node>-<task>` and opens a pull request into `main`; it never
-  merges. The owner reviews the pull request and its CI, then merges.
+  merges. The owner reviews the pull request and its CI and merges it, by
+  hand or with `just merge <PR>` (or `just all <task> --merge`) from the
+  owner's terminal; `just merge` refuses what the strict rule in
+  `cloud/SPEC.md` V51 does not allow.
 
 ## Cloud permissions
 
 Cloud sessions get one narrow rule list, `nix/cloud-permissions.json`: allow
 for the gate's own commands and for pushing `claude/*`, deny for pushing
-`main`. It is never committed into `.claude/settings.json`, which holds only
+`main` and for `gh pr merge`. It is never committed into `.claude/settings.json`, which holds only
 the SessionStart hook. The agent home writes it into `~/.claude/settings.json`;
 with `CLAUDINIX_SESSION_PERMISSIONS=1` in the cloud environment,
 `scripts/dev/session-start.sh` also merges it into the gitignored
