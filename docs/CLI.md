@@ -908,15 +908,22 @@ on `main`, not from a fork, with plain branch names (the checks of
 **The strict rule** (`cloud/SPEC.md` V51). It merges only when all of
 these hold:
 
-- every CI check on the head commit is success or skipped (none pending,
-  none red, at least one);
+- every CI check on the head commit is success, skipped or neutral, as in
+  the wait of [`all`](#all) (none pending, none red, at least one);
 - every review role posted its `Review: <role>` comment, and a `Fixup:`
-  reply came after the last of them;
-- the security review ends with `Findings: 0` (a missing line counts as a
-  stop);
-- the diff leaves `hk.pkl`, `.github/`, `flake.lock` and
-  `nix/cloud-permissions.json` alone, changes no §C or §V row of a
-  `SPEC.md`, and raises or adds no `.context-limits` row.
+  reply came after the last of them and after the head's last commit. Only
+  comments by the owner or a member of the organization count, so a
+  stranger's comment cannot pass the rule. A longer role name, such as
+  `Review: security-deep`, is not `Review: security`;
+- the last line of the security review is `Findings: 0` (a missing line
+  counts as a stop);
+- the diff leaves alone `hk.pkl`, `flake.lock`, `nix/cloud-permissions.json`,
+  `.github/`, `.claude/`, the `justfile`, `scripts/guard/`, `scripts/hk/`,
+  `scripts/review/`, `scripts/cloud-merge.sh`, `scripts/cloud-review.sh`,
+  `scripts/cloud-review-prompt.txt` and `scripts/lib/cloud-launch.sh` (the
+  `CLOUD_MERGE_KEPT` list), a rename or mode change of them included,
+  changes no §C or §V row of a `SPEC.md`, and raises or adds no
+  `.context-limits` row.
 
 Otherwise it stops for you, names every reason, and exits 1:
 
