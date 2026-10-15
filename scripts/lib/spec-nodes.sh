@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# The one reader of the root spec's §F table (SPEC .:V48, B61). Source it;
-# it defines functions only. cloud-launch.sh and guard/node-names.sh call it,
-# so the table format is parsed in one place.
+# The one reader of the root spec's §F table (SPEC .:V48, B61) and of a
+# spec's §T rows. Source it; it defines functions only. cloud-launch.sh,
+# cloud-drain.sh and guard/node-names.sh call it, so each table format is
+# parsed in one place.
 
 set -euo pipefail
 
@@ -14,5 +15,15 @@ spec_f_nodes() {
         in_f && /^dir\|/ { header = 1; next }
         in_f && header && /^$/ { header = 0; next }
         in_f && header && /\|/ { split($0, cell, "|"); print cell[1] }
+    ' "$1"
+}
+
+# spec_open_tasks SPEC: the id of every open task of SPEC, one per line: the
+# §T rows whose status is `.`, without the open questions (a task text
+# starting with `?`).
+spec_open_tasks() {
+    awk -F'|' '
+        /^## / { in_t = ($0 ~ /^## §T /); next }
+        in_t && $1 ~ /^T[0-9]+$/ && $2 == "." && $3 !~ /^\?/ { print $1 }
     ' "$1"
 }
