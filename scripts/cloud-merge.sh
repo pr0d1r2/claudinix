@@ -8,7 +8,7 @@
 # (lib/cloud-launch.sh's cloud_require_open_pr). Then the verdict. It
 # merges only when every rule holds, and otherwise stops for the owner,
 # naming every reason:
-# - CI: every check on the head is success or skipped (none pending, none
+# - CI: every check on the head is green, CLOUD_CI_OK (none pending, none
 #   red, at least one);
 # - every review role (a file in review/) posted `Review: <role>`, and a
 #   `Fixup:` reply came after the last of them;
@@ -76,15 +76,15 @@ fi
 sha="$(jq -r '.headRefOid' <<<"$info")"
 
 # The reasons from the checks and comments, one per line.
-reasons="$(jq -r --argjson roles "$roles" '
+reasons="$(jq -r --arg ci_ok "$CLOUD_CI_OK" --argjson roles "$roles" '
     def first_line: split("\n")[0];
     def reviewed($r): (.body | first_line) | test("^#* *Review: " + $r + "\\b");
     # Anyone may comment, so only the owner and members can review (cloud:B64).
     ([(.comments // [])[] | select(.authorAssociation == "OWNER" or .authorAssociation == "MEMBER")]) as $comments
     | (.statusCheckRollup // []) as $checks
     | (if ($checks | length) == 0 then "CI: no check ran on the head"
-       elif ($checks | all((.conclusion // "") == "SUCCESS" or (.conclusion // "") == "SKIPPED" or (.state // "") == "SUCCESS")) | not
-       then "CI: not every check on the head is green (success or skipped)"
+       elif ($checks | all((.conclusion // .state // "") | test($ci_ok))) | not
+       then "CI: not every check on the head is green (success, skipped or neutral)"
        else empty end),
     ([$comments | to_entries[] | select(.value.body | first_line | test("^#* *Review: "))] ) as $reviews
     | ($roles[] as $r | if ([$reviews[] | select(.value | reviewed($r))] | length) == 0

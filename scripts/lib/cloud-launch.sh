@@ -27,6 +27,11 @@ CLOUD_MERGE_KEPT=(
     scripts/lib/cloud-launch.sh
 )
 
+# The check conclusions that count as green; `just all` waits for them and
+# `just merge` judges by them (cloud:B68). Any other one is red or pending.
+# shellcheck disable=SC2034 # read by the scripts that source this file
+CLOUD_CI_OK='^(SUCCESS|SKIPPED|NEUTRAL)$'
+
 # cloud_fill KEY VALUE: replace every KEY in $prompt with VALUE, as written.
 # Not ${prompt//KEY/VALUE}: bash 5.2 turns an `&` in VALUE into the match
 # (patsub_replacement), and quoting VALUE there keeps the quotes in bash
