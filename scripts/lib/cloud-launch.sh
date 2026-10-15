@@ -64,6 +64,16 @@ cloud_roles() {
     done
 }
 
+# cloud_session_count ROLES [pr]: the billed sessions one `all` run starts
+# for ROLES review roles: 1 build (none for a pull request, the word `pr`),
+# 1 per role and 1 fixup. The one source cloud-all.sh and cloud-drain.sh
+# quote in their plans.
+cloud_session_count() {
+    local build=1
+    [ "${2:-}" != pr ] || build=0
+    echo $(($1 + build + 1))
+}
+
 # cloud_parse_task ARG: split a task argument, Tn or node:Tn, into $want_node
 # (empty for a bare Tn) and $id. Returns 1 for anything else.
 cloud_parse_task() {

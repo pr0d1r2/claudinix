@@ -147,11 +147,11 @@ if [ "${#roles[@]}" -eq 0 ]; then
     exit 1
 fi
 if [ -n "$given_pr" ]; then
-    sessions=$((${#roles[@]} + 1))
+    sessions="$(cloud_session_count "${#roles[@]}" pr)"
     steps=
     name="#$pr"
 else
-    sessions=$((${#roles[@]} + 2))
+    sessions="$(cloud_session_count "${#roles[@]}")"
     steps="1 build, "
     name="$arg"
     want_head="$(cloud_branch_regex "$want_node" "$id")"

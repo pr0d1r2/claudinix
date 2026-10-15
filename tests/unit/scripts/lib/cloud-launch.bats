@@ -288,3 +288,11 @@ docs" ]
         if [[ "$state" =~ $CLOUD_CI_OK ]]; then return 1; fi
     done
 }
+
+@test "cloud_session_count: 1 build + 1 per role + 1 fixup for a task, no build for a pull request" {
+    # shellcheck source=/dev/null
+    source "$LIB"
+    [ "$(cloud_session_count 4)" -eq 6 ]
+    [ "$(cloud_session_count 4 pr)" -eq 5 ]
+    [ "$(cloud_session_count 1)" -eq 3 ]
+}
