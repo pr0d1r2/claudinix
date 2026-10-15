@@ -361,3 +361,11 @@ roles() {
     grep -qx "cloud: failed to start: performance" <<<"$output"
     grep -E '^cloud: started [0-9]+ review sessions' <<<"$output" | grep -qv performance
 }
+
+@test "the prompt: the comment ends with a Findings: N line that just merge reads (cloud:V51)" {
+    run bash "$SCRIPT" security 12 --yes
+    [ "$status" -eq 0 ]
+    local p="$STATE/claude.task"
+    grep -qF 'Findings: N' "$p"
+    grep -qF 'Findings: 0' "$p"
+}
