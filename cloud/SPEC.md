@@ -53,9 +53,9 @@ T143|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B35
 T145|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,B40,`nix:T144`
 T146|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T145
 T148|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C20`,`.:C29`,`docs:T149`
-T156|x|`review` of any repo from its checkout (`<claudinix>/scripts/cloud-review.sh`): URL repo \& remote checked before `gh pr view` (B63); prompt reads AGENTS.md \& SPEC.md only if present, proves findings via the repo's own tooling when ⊥ flake dev shell; bats pins both|I.cmd,B21,B63,`docs:T157`
-T158|x|`review` prompt: repo tooling (justfile, Makefile, package scripts) run only as it is on `origin/<base>`, ⊥ a script or target the PR adds \| changes, else a self-contained test in a scratch dir; a PR author ⊥ runs code in the session; bats pins it|I.cmd,T156
-T159|x|`review` role files (`scripts/review/*.md`) ⊥ assume claudinix: each spec \| gate \| node rule reads "if the repository has …", as the prompt does; only `review` runs from a foreign checkout (`fixup`, `rebase`, `all` need AGENTS.md, SPEC.md \& the gate) said in CLI.md|I.cmd,T156,`docs:T157`
+T156|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B21,B63,`docs:T157`
+T158|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T156
+T159|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T156,`docs:T157`
 
 ## §B BUGS
 
