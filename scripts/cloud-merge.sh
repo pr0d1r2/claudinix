@@ -78,7 +78,8 @@ sha="$(jq -r '.headRefOid' <<<"$info")"
 # The reasons from the checks and comments, one per line.
 reasons="$(jq -r --arg ci_ok "$CLOUD_CI_OK" --argjson roles "$roles" '
     def first_line: split("\n")[0];
-    def reviewed($r): (.body | first_line) | test("^#* *Review: " + $r + "\\b");
+    def review_role: (.body | first_line) | capture("^#* *Review: (?<role>[^ \\r]+)") | .role;
+    def reviewed($r): (.body | first_line | test("^#* *Review: ")) and review_role == $r;
     # Anyone may comment, so only the owner and members can review (cloud:B64).
     ([(.comments // [])[] | select(.authorAssociation == "OWNER" or .authorAssociation == "MEMBER")]) as $comments
     | (.statusCheckRollup // []) as $checks
