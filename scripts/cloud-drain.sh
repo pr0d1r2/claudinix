@@ -87,14 +87,6 @@ if [ "$roles" -eq 0 ]; then
 fi
 per_task="$(cloud_session_count "$roles")"
 
-# open_tasks NODE: the open, non-question task ids of NODE's spec.
-open_tasks() {
-    awk -F'|' '
-        /^## / { in_t = ($2 == "§T" || $0 ~ /^## §T /); next }
-        in_t && $1 ~ /^T[0-9]+$/ && $2 == "." && $3 !~ /^\?/ { print $1 }
-    ' "$top/$(cloud_spec_of "$1")"
-}
-
 if [ "${#tasks[@]}" -eq 0 ]; then
     while IFS= read -r node; do
         [ "$node" != experiments ] || continue
@@ -102,7 +94,7 @@ if [ "${#tasks[@]}" -eq 0 ]; then
         [ "$node" != . ] || label=root
         while IFS= read -r t; do
             tasks+=("$label:$t")
-        done < <(open_tasks "$node")
+        done < <(spec_open_tasks "$top/$(cloud_spec_of "$node")")
     done < <(cloud_nodes "$top/SPEC.md")
 fi
 total="${#tasks[@]}"
