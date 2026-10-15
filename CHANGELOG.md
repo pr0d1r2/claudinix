@@ -27,7 +27,8 @@ does are summarised briefly; the git history has the detail.
 - `just review` works for a pull request of any repository when run from that
   repository's checkout. The session reads `AGENTS.md` and `SPEC.md` only if
   they exist, else the README, CONTRIBUTING and CLAUDE.md. Without a flake dev
-  shell it proves findings with the repository's own tooling.
+  shell it proves findings with the repository's own tooling, run only as it
+  is on the base branch, never a script or target the pull request changes.
 - The cloud permission list denies a push to `heads/main`, the partial spelling
   of `refs/heads/main` that git resolves to main.
 - The cloud permission list lets a push write one ref only: a second refspec
