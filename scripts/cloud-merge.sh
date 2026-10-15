@@ -105,38 +105,7 @@ reasons="$(jq -r --argjson roles "$roles" '
 ' <<<"$info")"
 
 # The reasons from the diff, one per line.
-diff_reasons="$(awk -v kept_paths="${CLOUD_MERGE_KEPT[*]}" '
-    function kept(path,    i) {
-        for (i = 1; i <= n_kept; i++) {
-            if (path == kept_list[i] || (kept_list[i] ~ /\/$/ && index(path, kept_list[i]) == 1)) return 1
-        }
-        return 0
-    }
-    BEGIN { n_kept = split(kept_paths, kept_list, " ") }
-    function flag(path) {
-        if (kept(path) && !(path in flagged)) { flagged[path] = 1; print "diff: changes " path }
-    }
-    # The header names every changed file, a pure rename or mode change
-    # included, which has no content line (cloud:B66).
-    /^diff --git / { file = $0; sub(/^diff --git .* b\//, "", file); flag(file); next }
-    /^rename from / { from = $0; sub(/^rename from /, "", from); flag(from); next }
-    /^(\+\+\+|---) / { next }
-    /^[-+]/ {
-        if (file ~ /(^|\/)SPEC\.md$/ && $0 ~ /^[-+](- C[0-9]+:|V[0-9]+:)/) {
-            if (!(file in rule)) { rule[file] = 1; print "diff: changes a §C or §V row of " file }
-        }
-        if (file == ".context-limits" && $0 !~ /^[-+]#/ && NF == 2 && $2 ~ /^[0-9]+$/) {
-            key = substr($1, 2)
-            if ($0 ~ /^-/) old[key] = $2; else new[key] = $2
-        }
-    }
-    END {
-        for (key in new) {
-            if (!(key in old)) print "diff: adds the .context-limits row " key " " new[key]
-            else if (new[key] + 0 > old[key] + 0) print "diff: raises the .context-limits row " key " from " old[key] " to " new[key]
-        }
-    }
-' <<<"$patch")"
+diff_reasons="$(cloud_diff_reasons <<<"$patch")"
 
 all_reasons="$(printf '%s\n%s\n' "$reasons" "$diff_reasons" | sed '/^$/d')"
 if [ -n "$all_reasons" ]; then
