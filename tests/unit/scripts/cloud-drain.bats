@@ -162,6 +162,14 @@ all docs:T6 --yes --merge --model sonnet" ]
     [ "$status" -eq 0 ]
 }
 
+@test "progress counts the planned tasks, not all candidates (cloud:B80)" {
+    run bash "$SCRIPT" --yes --max 1
+    [[ "$output" == *"drain: done, 1 of 1"* ]]
+    echo 1 >"$STATE/rc.root_T1"
+    run bash "$SCRIPT" --yes --max 2
+    [[ "$output" == *"0 of 2 done"* ]]
+}
+
 # --- stops ---
 
 @test "the first failure stops the drain, naming the task and how far it got" {
