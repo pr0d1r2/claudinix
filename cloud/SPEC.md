@@ -36,7 +36,7 @@ V40: `just all` snapshots a PR's comments before each child launch; ⊥ read →
 V41: a wait that stops on failed `gh` calls (B34) ends the flow with gh's stderr only; ⊥ a caller line naming another cause ("CI is not green", "no review by <empty>", "never replied").
 V42: CI-watch prompt rules from 1 fragment; logs = data; ⊥ edit CI-defining files; bats asserts.
 V43: a PR head that starts with `-` is refused with the other non-plain refs; the prompts paste it bare into `git fetch` \& `git checkout`, where it would read as an option (B39).
-V51: merge only when head CI ∀ success \| skipped \| neutral (`CLOUD_CI_OK`), ∀ role posted `Review: <role>` then a `Fixup:` came after the head's last commit, security's last line `Findings: N` = 0 (missing → stop), \& the diff ⊥ touches (a rename \| mode change too) a path of `CLOUD_MERGE_KEPT` (`hk.pkl`, `.github/`, the gate's own files…), a §C \| §V row or raises a `.context-limits` row; else stop, naming why. ∀ review comment ends `Findings: N`.
+V51: merge only when head CI ∀ success \| skipped \| neutral (`CLOUD_CI_OK`), ∀ role posted `Review: <role>` then the last `Fixup:` names the head sha (`Head: <sha>`), security's last line `Findings: N` = 0 (missing → stop), \& the diff ⊥ touches (a rename \| mode change too) a path of `CLOUD_MERGE_KEPT` (`hk.pkl`, `.github/`, the gate's own files…), a §C \| §V row or raises a `.context-limits` row; else stop, naming why. ∀ review comment ends `Findings: N`.
 
 ## §T TASKS
 
@@ -66,34 +66,35 @@ id|date|cause|fix
 B19|2026-10-04|`just rebase`: `y` → "not started"; `gh` read the TTY|gh </dev/null; flush TTY before y/N
 B20|2026-10-04|`just review`: a PR head \| base is the author's choice \& goes into shell commands (`x$(id)`)|refuse a head \| base ⊥ `^[A-Za-z0-9._/-]+$` before any session
 B21|2026-10-04|`just review ROLE <other repo URL>` kept only the number ∴ this repo's PR was reviewed, billed|a PR URL naming another repo than the remote → refuse
-B22|2026-10-04|`review all`: 1 launch failed → exit, rest never started, re-run duplicated|a failed launch ⊥ stops the loop; end lists started \& failed, exit 1 iff any failed
+B22|2026-10-04|`review all`: 1 failed launch stopped the loop|failed launch ⊥ stops loop; exit 1 iff any failed
 B24|2026-10-04|`just fixup` on a fork PR: session pushed an unrelated same-named branch of origin|cross-repository PR → refuse, no session
 B25|2026-10-04|`just fixup https://github.com/Pr0d1r2/…/pull/N`: owner/repo compared case-sensitively, refused as another repo|owner/repo compared with case folded (`tr`, bash 3.2)
 B26|2026-10-05|failed `gh pr list` before `all` → empty snapshot ∴ old PR adopted|unreadable list → refuse
 B27|2026-10-05|`just all` adopted a fork PR named `claude/<node>-<task>`|skip cross-repository PRs
-B28|2026-10-05|`all` took any newer comment ⊥ `Review:` as the fixup's reply|reply headed `Fixup:`; headings named once in `lib/cloud-launch.sh`
-B29|2026-10-05|`CLOUD_ALL_POLL=0` \| `abc` → raw shell error|exit 2 naming it unless a positive integer
-B30|2026-10-05|`all` comment reader: a `\r\n` heading ⊥ matched|`comments` trims the `\r`
-B31|2026-10-05|`all` branch regex took the node unescaped (`a.b` ~ `axb`)|escape it
-B32|2026-10-05|every `all` wait mapped a `gh` error to "not yet"; #14's fixup reply was missed, cause hidden|stop after 3 `gh` errors in a row, show stderr
-B33|2026-10-05|`all` `comment_count` turned a failed `gh` read into 0 ∴ old comments counted as new|V40: unreadable count → exit 1 naming the PR
-B34|2026-10-05|T138's gh stop was followed by the caller's own line naming a cause nobody read|V41: the gh stop is its own exit, ⊥ a second message
+B28|2026-10-05|`all` took any newer comment as the fixup's reply|reply headed `Fixup:`
+B29|2026-10-05|`CLOUD_ALL_POLL=0` \| `abc` → raw shell error|exit 2 unless positive integer
+B30|2026-10-05|`all` comment reader: `\r\n` heading ⊥ matched|trim the `\r`
+B31|2026-10-05|`all` branch regex took the node unescaped|escape it
+B32|2026-10-05|`all` waits mapped a `gh` error to "not yet"|stop after 3 `gh` errors, show stderr
+B33|2026-10-05|`all` `comment_count` turned a failed `gh` into 0|V40
+B34|2026-10-05|T138's gh stop was followed by a caller line naming another cause|V41
 B35|2026-10-05|`all` stopped on red while a session was fixing it|T143
 B36|2026-10-05|`cloud` prompt pushed `-u origin @BRANCH@` again, ⊥ the suffixed PR head|T142
 B37|2026-10-05|`all` named "runner outage" for any cancel|⊥ assert cause; once per wait
 B38|2026-10-05|Actions outage cancelled `gate` (0 steps); `all` stopped "CI failed"|cancelled ⊥ steps ⊥ red (T141)
 B39|2026-10-06|`cloud_require_open_pr` took a head like `-x`; the rebase prompt pastes it into `git fetch`, read as an option|V43: a plain ref starts with a letter, digit, `.` or `_`
-B40|2026-10-06|#18 \& #19 both added B34; `rebase` refused #19 (head ⊥ `claude/*`)|T145: rebase any PR branch, renumber a shared §id
+B40|2026-10-06|#18 \& #19 both added B34; `rebase` refused #19|T145: rebase any PR branch, renumber shared §id
 B41|2026-10-06|`spec-optimize` dropped a non-`SPEC.md` breach: "nothing to do" (`.:V18`)|owner = longest §F dir prefix \| `.`; ⊥ node → exit 1
 B42|2026-10-06|`spec-optimize` ⊥ `.context-limits`: sherd's default ceiling put ∀ node over|⊥ file → exit 1
 B43|2026-10-06|`spec-optimize` CI fragment let a red log steer it to code|cause outside spec files → report
 B63|2026-10-15|`just review all <other repo URL>`: `gh pr view 36` ran before the B21 repo check ∴ read this repo's merged #36|repo check before any `gh` call (T156)
 B64|2026-10-15|`just merge` counted review \& `Fixup:` comments of any author (forged `Findings: 0`)|V51: only OWNER \| MEMBER comments count
-B65|2026-10-15|`just merge`: reviews tied to no commit; a push after the `Fixup:` merged unreviewed|V51: `Fixup:` newer than the head's last commit
+B65|2026-10-15|`merge`: a push after the `Fixup:` merged unreviewed|V51: `Fixup:` ties to the head
 B66|2026-10-15|`just merge` read `+`\|`-` lines ∴ a pure rename \| mode change of a kept file passed|V51: judge the `diff --git` header
 B67|2026-10-15|`just merge` kept 4 paths ∴ a PR could weaken a guard, review role or the merge script|V51: also `CLOUD_MERGE_KEPT`
 B68|2026-10-15|`all` waited for CI by success\|skipped\|neutral, `merge` by a 2nd rule w/o neutral|V51: 1 `CLOUD_CI_OK` in `lib/cloud-launch.sh`
-B69|2026-10-15|`just merge` matched `Review: <role>` by regex+`\b` ∴ `Review: security-deep` counted as security, role name unescaped|V51: the role is the first word of the heading, compared whole
+B69|2026-10-15|`merge` matched `Review: <role>` by regex ∴ `security-deep` counted as security|V51: role = first word, compared whole
 B70|2026-10-15|`just merge` took `Findings: 0` from any line of a security review|V51: only the last line counts
-B71|2026-10-15|cloud deny `gh pr merge *` missed `gh -R x pr merge`, `gh api …/merge` \& the MCP merge tools (C29)|guard requires those denies too
-B72|2026-10-15|review prompt told every repo's session about `just merge`, which a foreign repo lacks \& sessions never use|prompt states the `Findings: N` format only
+B71|2026-10-15|deny `gh pr merge *` missed `gh -R x pr merge`, `gh api …/merge`, MCP merge (C29)|guard requires those denies
+B72|2026-10-15|review prompt named `just merge`, which sessions never use|prompt states `Findings: N` only
+B73|2026-10-15|`merge` judged the `Fixup:` by `committedDate`: forgeable, \& a CI-fix push after it always stopped|V51: the last `Fixup:` names `headRefOid` (`Head: <sha>`)
