@@ -794,7 +794,7 @@ At the end it opens the green pull request in Safari for you to review and
 merge. **It starts several billed sessions**, so it asks once, first.
 
 ```text
-usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run]
+usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run] [--merge]
 ```
 
 Run it as `scripts/cloud-all.sh ...` or `just all ...`, for example

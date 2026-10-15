@@ -25,6 +25,8 @@ does are summarised briefly; the git history has the detail.
   security reported no findings, and the diff leaves `hk.pkl`, `.github/`,
   `flake.lock`, the cloud permission list, §C and §V rows and ceilings alone;
   otherwise it names every reason and stops. `--dry-run` only judges.
+- `just all <task> --merge` ends a green flow with `just merge` instead of
+  opening the pull request.
 - Review comments from `just review` end with a `Findings: N` line.
 - The `just review` role files no longer assume this repository's spec or gate:
   each such rule applies only if the reviewed repository has one.
