@@ -20,6 +20,10 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- `just review` with the URL of another repository's pull request now says to
+  run it from a checkout of that repository. It used to read this
+  repository's pull request of the same number and report its state, such as
+  "#36 is MERGED".
 - The cloud permission list denies a push to `heads/main`, the partial spelling
   of `refs/heads/main` that git resolves to main.
 - The cloud permission list lets a push write one ref only: a second refspec

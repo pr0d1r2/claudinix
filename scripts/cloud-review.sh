@@ -84,6 +84,9 @@ fi
 
 pr= # set by cloud_parse_pr
 cloud_parse_pr "$arg" || usage
+# Before gh: a URL of another repo would read this repo's PR of that number (cloud:B63).
+cloud_require_remote review "$remote" || exit 1
+cloud_require_url_repo review "$remote" "$arg" || exit 1
 
 # </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
 if ! info="$(gh pr view "$pr" --json number,state,headRefName,baseRefName,url \
@@ -105,9 +108,6 @@ for ref in "$head" "$base"; do
         exit 1
     fi
 done
-
-cloud_require_remote review "$remote" || exit 1
-cloud_require_url_repo review "$remote" "$arg" || exit 1
 
 cloud_resolve_model "$scripts_dir" || exit "$?"
 
