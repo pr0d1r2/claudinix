@@ -280,3 +280,10 @@ docs" ]
     [ "$status" -eq 0 ]
     [ -z "$output" ]
 }
+
+@test "CLOUD_CI_OK: success, skipped and neutral are green; red, cancelled and pending are not (cloud:B68)" {
+    for state in SUCCESS SKIPPED NEUTRAL; do [[ "$state" =~ $CLOUD_CI_OK ]]; done
+    for state in FAILURE CANCELLED PENDING ""; do
+        if [[ "$state" =~ $CLOUD_CI_OK ]]; then return 1; fi
+    done
+}
