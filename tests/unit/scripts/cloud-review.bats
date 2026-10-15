@@ -143,6 +143,16 @@ setup() {
     [ "$status" -eq 0 ]
 }
 
+@test "another repository's URL is refused before gh is asked, so its state never shows (B63)" {
+    export STUB_PR='12\tMERGED\tfeature/x\tmain\thttps://github.com/o/p/pull/12'
+    run bash "$SCRIPT" all https://github.com/other/repo/pull/12 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"run it from a checkout of other/repo"* ]]
+    [[ "$output" != *MERGED* ]]
+    [ ! -e "$STATE/gh.log" ]
+    [ ! -e "$STATE/claude.1" ]
+}
+
 @test "usage: missing role or PR, a bad PR, extra args, unknown flag" {
     for args in "" "security" "security abc" "security 12 13" "security 12 --bogus" "security 12 --model"; do
         # shellcheck disable=SC2086 # split on purpose: each word one arg
