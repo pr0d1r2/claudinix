@@ -186,18 +186,26 @@ cloud_require_url_repo() {
 # must be open, of the repository REMOTE points at, with a head and a base
 # that are plain refs. The URL repo is checked before any `gh` call, so
 # another repo's number is never read as this repo's (cloud:B63). Sets $head,
-# $base, $url and $cross (true for a fork). The one source of these
-# refusals, so a fix like cloud:B20 lands once; cloud_require_open_pr adds
+# $base, $url and $cross (true for a fork), and $pr_json when the caller set
+# $cloud_pr_extra. The one source of these refusals, so a fix like cloud:B20 lands once; cloud_require_open_pr adds
 # the push-only ones.
 cloud_read_pr() {
     local info state ref
     cloud_require_url_repo "$1" "$2" "$3" || return 1
     # </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
-    if ! info="$(gh pr view "$pr" --json number,state,headRefName,baseRefName,url,isCrossRepository \
-        --jq '[.number, .state, .headRefName, .baseRefName, .url, .isCrossRepository] | @tsv' </dev/null)"; then
+    # With $cloud_pr_extra (more --json fields), the same read answers the
+    # caller too, and its raw JSON is left in $pr_json.
+    local tsv='[.number, .state, .headRefName, .baseRefName, .url, .isCrossRepository] | @tsv'
+    local fields=number,state,headRefName,baseRefName,url,isCrossRepository
+    if [ -n "${cloud_pr_extra:-}" ]; then
+        pr_json="$(gh pr view "$pr" --json "$fields,$cloud_pr_extra" </dev/null)" &&
+            info="$(jq -r "$tsv" <<<"$pr_json")"
+    else
+        info="$(gh pr view "$pr" --json "$fields" --jq "$tsv" </dev/null)"
+    fi || {
         echo "$1: gh could not read pull request #$pr -- check the number and that gh is signed in" >&2
         return 1
-    fi
+    }
     # shellcheck disable=SC2034 # head, base, url and cross are read by the caller
     IFS="$(printf '\t')" read -r _ state head base url cross <<<"$info"
     if [ "$state" != OPEN ]; then
