@@ -65,10 +65,9 @@ minutes_fixup=180
 minutes_rebase=60
 
 # The check conclusions: red fails a CI wait (or, after a session, is waited
-# out), ok passes it; every other one, a cancelled check among them, is
+# out), CLOUD_CI_OK passes it; every other one, a cancelled check among them, is
 # pending.
 ci_red='^(FAILURE|TIMED_OUT|ERROR|ACTION_REQUIRED|STARTUP_FAILURE)$'
-ci_ok='^(SUCCESS|SKIPPED|NEUTRAL)$'
 
 usage() {
     echo "usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run] [--merge]" >&2
@@ -322,7 +321,7 @@ ci_state() {
         printf '\nall: a check on #%s was cancelled (a runner outage, see https://www.githubstatus.com, or a run a newer push superseded); re-run it (gh run rerun) -- still waiting\n' "$pr" >&2
         cancel_said=1
     fi
-    if grep -qvE "$ci_ok" <<<"$states"; then
+    if grep -qvE "$CLOUD_CI_OK" <<<"$states"; then
         return 2
     fi
 }
