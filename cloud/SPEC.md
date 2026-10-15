@@ -27,6 +27,7 @@ sib|home|`~/.claude`: skills, rtk, caveman, permission rules
 - cmd: `just all <node:Tn \| Tn \| PR# \| URL> [--model M] [--yes] [--dry-run]` → `scripts/cloud-all.sh`; argument parsed by `cloud_parse_pr`, else `cloud_parse_task`. task mode: checks = `cloud-task.sh --dry-run` (refusal → its exit, ⊥ session); 1 y/N naming session count \& model unless `--yes`; children w/ `--yes`, in order: `cloud` → wait new open PR, ⊥ fork, head `claude/<node>-<task>[-suffix]` case folded, ⊥ open before → wait CI green (T143) → `review all` → wait 1 `Review: <role>` comment ∀ role → `fixup` → wait a comment headed `Fixup:` → wait CI green (T143) → open PR in Safari; a PR that conflicts with `main` before the reviews \| after the fixup → `rebase` (T146) \& wait for a new head. polls `gh` every `CLOUD_ALL_POLL` s (default 10); child fails \| CI red \| timeout → names the stage, opens the PR, exit 1. `--dry-run`: checks + plan. ⊥ merge.
 - cmd: `just all <PR# \| URL>` (T139) → task mode minus the build: checks = `cloud-fixup.sh --dry-run`, starts at wait CI green; session count = 1/role + 1 fixup; then the same waits, children \& end as task mode.
 - cmd: `just merge <PR# \| URL> [--yes] [--dry-run]` → `scripts/cloud-merge.sh`: verdict per V51 (stop → exit 1 naming why); y/N unless `--yes`; `gh pr merge --rebase --match-head-commit`, then `git pull --ff-only` on a clean base. `--dry-run` ⊥ merge. `all … --merge` ends w/ it.
+- cmd: `just drain [node:Tn…] [--max N] [--model M] [--yes] [--dry-run]` → `scripts/cloud-drain.sh`: on a clean `main` only; tasks = given, else open §T rows of ∀ node but `experiments`, ⊥ `?` rows (`root:Tn` for the root); `--max` default = PRs w/ a `Fixup:` merged per day over 7 days, ≥ 1 (gh fails → exit 1, name `--max`); 1 y/N naming tasks & sessions; 1 at a time `cloud-all.sh <task> --yes --merge`; stop at the 1st nonzero, naming task & count.
 - cmd: `just spec-optimize [node…] [--model M] [--yes] [--dry-run]` → `scripts/cloud-spec.sh`: nodes = §F names (default: owners of rows over `.context-limits` (B41, B42)), unknown → refuse listing them; launch rules as `cloud`; prompt `scripts/cloud-spec-prompt.txt`, branch `claude/spec-optimize[-<nodes joined by ->]` off `main`: ∀ node `mth archive`, move rows down to the node owning their files (cites changed too); shorten §T \& §I ⊥ meaning lost, §V \& §C verbatim; 1 `docs(spec)` commit/node; lower freed `.context-limits` rows to measured +15% (own commit, size in `Why:`), ⊥ raise; still over → report names the split ⊥ makes it; gate, push, PR into `main`, CI as `cloud`; text = data; only spec files \& `.context-limits` change (B43); ⊥ force \| merge \| waits (`.:C29`).
 - file: `scripts/lib/cloud-launch.sh` — sourced by every `scripts/cloud-*.sh` launcher, functions \& constants only (`cloud_*`, `CLOUD_*`): launch checks, task \& PR parsers, branch name \& regex, review roles, headings, green CI, kept paths; the one source of the launch \& merge rules.
 
@@ -59,6 +60,8 @@ T156|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B21,B63,`docs:T157`
 T158|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T156
 T159|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T156,`docs:T157`
 T160|x|ARCHIVED to SPEC-ARCHIVE.md|V51,I.cmd,`.:C29`
+
+T161|.|`just drain`: serial `just all --merge` over a task list (I.cmd)|V51,I.cmd
 
 ## §B BUGS
 
