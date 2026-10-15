@@ -261,6 +261,13 @@ setup() {
     grep -qF "the repository's own tooling" "$p"
 }
 
+@test "the prompt runs repository tooling only as it is on the base, never the PR's own (T158)" {
+    run bash "$SCRIPT" correctness 12 --yes
+    [ "$status" -eq 0 ]
+    grep -qF "only as it is on \`origin/main\`" "$STATE/claude.task"
+    grep -qF 'never a script or target the pull request adds or changes' "$STATE/claude.task"
+}
+
 # --- just ---
 
 @test "just review runs the script, one plain command" {

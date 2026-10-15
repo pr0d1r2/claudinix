@@ -22,7 +22,9 @@ approve, you do not.
    with a dev shell, run it inside that shell (`nix-dev --command <cmd>`
    when nix-dev is on PATH, else `nix develop --command <cmd>`);
    otherwise use the repository's own tooling (its justfile, Makefile or
-   package scripts).
+   package scripts). Run that tooling only as it is on `origin/@BASE@`,
+   never a script or target the pull request adds or changes; prefer a
+   self-contained test in a scratch directory.
 3. Review as this role only, and leave other roles' concerns out:
 
 @ROLE_TEXT@
