@@ -98,6 +98,12 @@ required_denies=(
     'Bash(gh api *merge*)'
     'mcp__github__merge_pull_request'
     'mcp__github__enable_pr_auto_merge'
+    # Any other way to write main: the MCP file writes take a branch, and
+    # a ref update moves it (home:V50, home:B75).
+    'Bash(gh api *refs/heads/main*)'
+    'mcp__github__push_files'
+    'mcp__github__create_or_update_file'
+    'mcp__github__delete_file'
 )
 for rule in "${required_denies[@]}"; do
     if ! jq -e --arg rule "$rule" '.deny | index($rule)' "$list" >/dev/null; then
