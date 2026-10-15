@@ -145,6 +145,13 @@ all docs:T6 --yes --merge --model sonnet" ]
     [ "$(ran | wc -l | tr -d ' ')" -eq 2 ]
 }
 
+@test "a ## Fixup: reply counts too, as cloud-all.sh reads it (cloud:B79)" {
+    jq -n '[range(14) | {number: ., comments: [{authorAssociation: "OWNER", body: "## Fixup:\n\nDone."}]}]' >"$STATE/merged.json"
+    run bash "$SCRIPT" --yes
+    [ "$status" -eq 0 ]
+    [ "$(ran | wc -l | tr -d ' ')" -eq 2 ]
+}
+
 @test "gh cannot count the merges: exit 1 naming --max, no session; with --max, gh is not asked" {
     export GH_FAIL=1
     run bash "$SCRIPT" --yes
