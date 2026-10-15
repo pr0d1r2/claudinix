@@ -266,10 +266,12 @@ not_pulled() {
     not_merged
 }
 
-@test "a change to the gate's own files: stops, naming the file (cloud:B67)" {
+@test "a change to the gate's own files: stops, naming the file (cloud:B67, cloud:B74)" {
     for file in scripts/guard/cloud-permissions.sh scripts/hk/run-tool.sh scripts/review/security.md \
         scripts/cloud-merge.sh scripts/lib/cloud-launch.sh scripts/cloud-review-prompt.txt \
-        scripts/cloud-review.sh .claude/settings.json justfile; do
+        scripts/cloud-review.sh .claude/settings.json justfile \
+        flake.nix nix/dev-shell.nix nix/checks.nix nix/apps.nix scripts/dev/session-start.sh \
+        scripts/cloud-all.sh scripts/lib/spec-nodes.sh tests/unit/scripts/guard/tdd-order.bats; do
         diff_of "$file" '-a' '+b'
         run bash "$SCRIPT" 8 --yes
         [ "$status" -eq 1 ] || {
