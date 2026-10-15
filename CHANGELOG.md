@@ -24,7 +24,7 @@ does are summarised briefly; the git history has the detail.
   only when CI is green on its head, every review role and the fixup replied (only
   comments by the owner or a member count, and the fixup reply is newer than the head),
   security reported no findings, and the diff leaves `hk.pkl`, `.github/`,
-  `flake.lock`, the cloud permission list, §C and §V rows and ceilings alone;
+  `flake.lock`, the cloud permission list (renamed or not), §C and §V rows and ceilings alone;
   otherwise it names every reason and stops. `--dry-run` only judges.
 - `just all <task> --merge` ends a green flow with `just merge` instead of
   opening the pull request.
