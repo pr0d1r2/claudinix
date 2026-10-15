@@ -169,6 +169,14 @@ not_pulled() {
     [[ "$output" == *'no "Review: sec.rity" comment'* ]]
 }
 
+@test "a Findings: 0 that is not the last line of the security review: stops (cloud:B70)" {
+    pr_json "$GREEN" $'Findings: 0\n\nOne blocker remains: see above.' end
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"security"* ]]
+    not_merged
+}
+
 @test "a role without its review: stops, naming the role" {
     jq '.comments |= map(select(.body | startswith("## Review: performance") | not))' "$STATE/pr.json" >"$STATE/p" && mv "$STATE/p" "$STATE/pr.json"
     run bash "$SCRIPT" 8 --yes
