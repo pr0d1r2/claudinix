@@ -92,6 +92,8 @@ required_denies=(
     'Bash(git push * claude/*:*)'
     # git resolves a partial ref to refs/heads/main (home:V50, home:B60).
     'Bash(git push *:heads/main*)'
+    # Only the owner merges, from the owner's terminal (.:C29, cloud:V51).
+    'Bash(gh pr merge *)'
 )
 for rule in "${required_denies[@]}"; do
     if ! jq -e --arg rule "$rule" '.deny | index($rule)' "$list" >/dev/null; then
@@ -100,21 +102,21 @@ for rule in "${required_denies[@]}"; do
     fi
 done
 
-# The rtk hook (nix:T151) rewrites git and cargo commands to `rtk <cmd>`,
+# The rtk hook (nix:T151) rewrites git, cargo and gh commands to `rtk <cmd>`,
 # so each such rule needs its rtk twin in the same list, and an rtk rule
 # its bare one (V44, B45, B53). A deny without its twin lets the rewritten
 # command through; an allow without it leaves an unattended task waiting
 # on a prompt, since rtk allows a rewrite only on its own match and its
 # matcher never accepts `claude/*` (B52, probed against rtk 0.51). Which
 # commands rtk really rewrites is checked against the pinned rtk by
-# `checks.rtk-twins`; this fast step knows git and cargo.
+# `checks.rtk-twins`; this fast step knows git, cargo and gh.
 #
 # One jq call lists every rule whose twin is missing from its own list.
 missing_twins="$(jq -r '
     . as $list
     | ["allow", "deny"][] as $key
     | $list[$key][]
-    | select(test("^Bash\\((rtk )?(git|cargo) "))
+    | select(test("^Bash\\((rtk )?(git|cargo|gh) "))
     | . as $rule
     | (if startswith("Bash(rtk ") then "Bash(" + .[9:] else "Bash(rtk " + .[5:] end) as $twin
     | select($list[$key] | index($twin) | not)

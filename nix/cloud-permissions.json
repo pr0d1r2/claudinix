@@ -108,6 +108,8 @@
     "Bash(rtk git push * -*)",
     "Bash(rtk git push origin * *)",
     "Bash(rtk git push * origin * *)",
-    "Bash(rtk git push * claude/*:*)"
+    "Bash(rtk git push * claude/*:*)",
+    "Bash(gh pr merge *)",
+    "Bash(rtk gh pr merge *)"
   ]
 }
