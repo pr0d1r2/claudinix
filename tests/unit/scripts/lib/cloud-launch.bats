@@ -267,3 +267,16 @@ docs" ]
     [ "$(cloud_node_label .)" = root ]
     [ "$(cloud_node_label scripts)" = scripts ]
 }
+
+@test "cloud_diff_reasons: names a kept file, a §C or §V row and a raised ceiling; a quiet diff prints nothing (cloud:V51)" {
+    run cloud_diff_reasons <<<$'diff --git a/hk.pkl b/hk.pkl\n--- a/hk.pkl\n+++ b/hk.pkl\n@@ -1 +1 @@\n-a\n+b'
+    [ "$status" -eq 0 ]
+    [ "$output" = "diff: changes hk.pkl" ]
+    run cloud_diff_reasons <<<$'diff --git a/SPEC.md b/SPEC.md\n+V9: new'
+    [ "$output" = "diff: changes a §C or §V row of SPEC.md" ]
+    run cloud_diff_reasons <<<$'diff --git a/.context-limits b/.context-limits\n-a.md 10\n+a.md 20'
+    [ "$output" = "diff: raises the .context-limits row a.md from 10 to 20" ]
+    run cloud_diff_reasons <<<$'diff --git a/README.md b/README.md\n-a\n+b'
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
