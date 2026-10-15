@@ -45,6 +45,10 @@ fixup *args:
 all *args:
     scripts/cloud-all.sh {{ args }}
 
+# Rebase-merge a reviewed pull request, only when the strict rule holds (green CI, every review, a fixup, no security findings, no protected file); `--dry-run` judges only.
+merge *args:
+    scripts/cloud-merge.sh {{ args }}
+
 # Bring spec nodes (default: those over `.context-limits`) under their ceilings in a billed cloud session.
 spec-optimize *args:
     scripts/cloud-spec.sh {{ args }}
