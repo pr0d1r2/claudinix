@@ -4,8 +4,9 @@
 # cloud:V51, .:C29). Only the owner runs this.
 #
 # The tasks are the ones given (`node:Tn`, `root:Tn` for the root), else
-# the open §T rows (status `.`) of every node but `experiments`, without
-# the open questions (a task starting with `?`), in node order. It runs
+# the open §T rows (status `.`) of every node but CLOUD_DRAIN_SKIP
+# (`experiments`), without the open questions (a task starting with `?`),
+# in node order. It runs
 # from a clean `main` only, so every task starts from the merged state of
 # the one before.
 #
@@ -89,7 +90,7 @@ per_task="$(cloud_session_count "$roles")"
 
 if [ "${#tasks[@]}" -eq 0 ]; then
     while IFS= read -r node; do
-        [ "$node" != experiments ] || continue
+        [[ " ${CLOUD_DRAIN_SKIP[*]} " != *" $node "* ]] || continue
         label="$node"
         [ "$node" != . ] || label=root
         while IFS= read -r t; do
@@ -99,7 +100,7 @@ if [ "${#tasks[@]}" -eq 0 ]; then
 fi
 total="${#tasks[@]}"
 if [ "$total" -eq 0 ]; then
-    echo "drain: nothing to do -- no open task outside experiments that is not an open question"
+    echo "drain: nothing to do -- no open task outside ${CLOUD_DRAIN_SKIP[*]} that is not an open question"
     exit 0
 fi
 

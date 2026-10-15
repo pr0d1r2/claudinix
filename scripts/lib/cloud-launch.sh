@@ -32,6 +32,11 @@ CLOUD_MERGE_KEPT=(
     scripts/cloud-review-prompt.txt tests/unit/scripts/guard/
 )
 
+# The nodes `just drain` never takes tasks from without being named: scratch
+# and research work that is not built by a session (cloud:T161).
+# shellcheck disable=SC2034 # read by cloud-drain.sh
+CLOUD_DRAIN_SKIP=(experiments)
+
 # The check conclusions that count as green; `just all` waits for them and
 # `just merge` judges by them (cloud:B68). Any other one is red or pending.
 # shellcheck disable=SC2034 # read by the scripts that source this file
