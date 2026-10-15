@@ -81,7 +81,7 @@ roles=0
 while IFS= read -r _; do
     roles=$((roles + 1))
 done < <(cloud_roles "$scripts_dir/review")
-per_task=$((roles + 2))
+per_task="$(cloud_session_count "$roles")"
 
 # open_tasks NODE: the open, non-question task ids of NODE's spec.
 open_tasks() {
