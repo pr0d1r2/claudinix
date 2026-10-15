@@ -446,3 +446,30 @@ denied_by_repo_list() {
     [ "$status" -eq 1 ]
     [[ "$output" == *'mcp__github__merge_pull_request'* ]]
 }
+
+@test "the repo's own list denies the MCP file writes and a ref update of main (.:C29, home:B75)" {
+    for cmd in 'gh api -X PATCH repos/o/r/git/refs/heads/main' 'rtk gh api repos/o/r/git/refs/heads/main -X PATCH'; do
+        denied_by_repo_list "$cmd" || {
+            echo "not denied: $cmd"
+            return 1
+        }
+    done
+    for tool in mcp__github__push_files mcp__github__create_or_update_file mcp__github__delete_file; do
+        jq -e --arg t "$tool" '.deny | index($t)' "$REPO_ROOT/nix/cloud-permissions.json" >/dev/null || {
+            echo "not denied: $tool"
+            return 1
+        }
+    done
+}
+
+@test "dropping an MCP file-write deny or the ref-update deny is refused (.:C29, home:B75)" {
+    local rule
+    for rule in mcp__github__push_files 'Bash(gh api *refs/heads/main*)'; do
+        list '["Bash(bats *)"]'
+        jq --arg r "$rule" '.deny -= [$r]' "$PERMISSIONS_FILE" >"$PERMISSIONS_FILE.new"
+        mv "$PERMISSIONS_FILE.new" "$PERMISSIONS_FILE"
+        run bash "$SCRIPT"
+        [ "$status" -eq 1 ]
+        [[ "$output" == *"$rule"* ]]
+    done
+}
