@@ -106,12 +106,18 @@ reasons="$(jq -r --argjson roles "$roles" '
 
 # The reasons from the diff, one per line.
 diff_reasons="$(awk '
-    /^diff --git / { file = $NF; sub(/^b\//, "", file); next }
+    function kept(path) {
+        return path == "hk.pkl" || path == "flake.lock" || path == "nix/cloud-permissions.json" || path ~ /^\.github\//
+    }
+    function flag(path) {
+        if (kept(path) && !(path in flagged)) { flagged[path] = 1; print "diff: changes " path }
+    }
+    # The header names every changed file, a pure rename or mode change
+    # included, which has no content line (cloud:B66).
+    /^diff --git / { file = $0; sub(/^diff --git .* b\//, "", file); flag(file); next }
+    /^rename from / { from = $0; sub(/^rename from /, "", from); flag(from); next }
     /^(\+\+\+|---) / { next }
     /^[-+]/ {
-        if (file == "hk.pkl" || file == "flake.lock" || file == "nix/cloud-permissions.json" || file ~ /^\.github\//) {
-            if (!(file in kept)) { kept[file] = 1; print "diff: changes " file }
-        }
         if (file ~ /(^|\/)SPEC\.md$/ && $0 ~ /^[-+](- C[0-9]+:|V[0-9]+:)/) {
             if (!(file in rule)) { rule[file] = 1; print "diff: changes a §C or §V row of " file }
         }
