@@ -50,6 +50,11 @@ setup() {
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "rebase $*" >>"$STATE/children.log"' \
         '[ -n "${REBASE_SILENT:-}" ] || echo "MERGEABLE bbb" >"$STATE/merge"' >"$CLAUDINIX_SCRIPTS/cloud-rebase.sh"
+    # cloud-merge.sh: records its args; exits $MERGE_RC (a stop for the owner is 1).
+    # shellcheck disable=SC2016 # expands inside the stub, not here
+    printf '%s\n' '#!/usr/bin/env bash' \
+        'echo "merge $*" >>"$STATE/children.log"' \
+        'exit "${MERGE_RC:-0}"' >"$CLAUDINIX_SCRIPTS/cloud-merge.sh"
     printf '%s\n' '#!/usr/bin/env bash' 'echo sonnet' >"$CLAUDINIX_SCRIPTS/config.sh"
     chmod +x "$CLAUDINIX_SCRIPTS"/*.sh
 
@@ -111,6 +116,30 @@ fixup 14 --yes --model sonnet" ]
     [ "$(cat "$STATE/open.log")" = "-a Safari https://github.com/o/p/pull/14" ]
     [[ "$output" == *"#14"* ]]
     [[ "$output" == *"green"* ]]
+}
+
+@test "--merge: after the last green CI, just merge --yes takes the PR instead of Safari (cloud:T160)" {
+    run bash "$SCRIPT" docs:T47 --yes --merge
+    [ "$status" -eq 0 ]
+    [ "$(tail -n 1 "$STATE/children.log")" = "merge 14 --yes" ]
+    [ ! -e "$STATE/open.log" ]
+    [[ "$output" == *"merging"* ]]
+}
+
+@test "--merge: a stop for the owner exits 1 and opens the PR (cloud:V51)" {
+    MERGE_RC=1 run bash "$SCRIPT" docs:T47 --yes --merge
+    [ "$status" -eq 1 ]
+    [ "$(cat "$STATE/open.log")" = "-a Safari https://github.com/o/p/pull/14" ]
+}
+
+@test "--merge: the plan says the flow ends in a merge; a red flow never merges" {
+    run bash "$SCRIPT" docs:T47 --dry-run --merge
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"just merge"* ]]
+    ci FAILURE
+    run bash "$SCRIPT" docs:T47 --yes --merge
+    [ "$status" -eq 1 ]
+    run ! grep -q '^merge ' "$STATE/children.log"
 }
 
 @test "--model is passed to every child" {

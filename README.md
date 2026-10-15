@@ -11,7 +11,7 @@
 
 [![gate hk](https://img.shields.io/badge/gate-hk-6E4AFF)](hk.pkl)
 [![gate steps 38 commit / 42 push](https://img.shields.io/badge/gate_steps-38_commit_%2F_42_push-6E4AFF)](hk.pkl)
-[![bats tests 890](https://img.shields.io/badge/bats_tests-890-brightgreen)](tests/unit)
+[![bats tests 893](https://img.shields.io/badge/bats_tests-893-brightgreen)](tests/unit)
 [![federated nodes 8](https://img.shields.io/badge/federated_nodes-8-6E4AFF)](SPEC.md)
 
 [![built with Claude Code](https://img.shields.io/badge/built_with-Claude_Code-D97757)](https://claude.com/claude-code)
