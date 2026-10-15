@@ -252,6 +252,14 @@ pr() {
 }
 
 # shellcheck disable=SC2016 # literal backticks in the prompt
+@test "the prompt: the Fixup: reply ends with the pushed head, updated after a CI-fix push (cloud:B73)" {
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 0 ]
+    grep -qF 'a last line `Head: <full sha>`' "$STATE/claude.task"
+    grep -qF 'set its `Head:` line to the new head sha' "$STATE/claude.task"
+}
+
+# shellcheck disable=SC2016 # literal backticks in the prompt
 @test "the prompt: a CI fix never edits the files that define CI (cloud:V42)" {
     run bash "$SCRIPT" 8 --yes
     [ "$status" -eq 0 ]

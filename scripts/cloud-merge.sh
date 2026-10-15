@@ -11,7 +11,7 @@
 # - CI: every check on the head is green, CLOUD_CI_OK (none pending, none
 #   red, at least one);
 # - every review role (a file in review/) posted `Review: <role>`, and a
-#   `Fixup:` reply came after the last of them;
+#   `Fixup:` reply came after the last of them, naming the head (`Head: <sha>`);
 # - security's review ends with `Findings: 0` (a missing line stops too);
 # - the diff touches none of CLOUD_MERGE_KEPT (lib/cloud-launch.sh: the
 #   gate, the guards, the review roles and this script), changes no §C or §V row of a SPEC.md, and
@@ -64,7 +64,7 @@ cloud_require_remote merge "$remote" || exit 1
 # One read answers the open check and the verdict, so the head cannot move between them.
 pr_json=
 # shellcheck disable=SC2034 # read by cloud_read_pr
-cloud_pr_extra=headRefOid,statusCheckRollup,comments,commits
+cloud_pr_extra=headRefOid,statusCheckRollup,comments
 cloud_require_open_pr merge "$remote" "$arg" || exit 1
 
 roles="$(cloud_roles "$scripts_dir/review" | jq -R . | jq -sc .)"
@@ -94,9 +94,9 @@ reasons="$(jq -r --arg ci_ok "$CLOUD_CI_OK" --arg review_heading "$CLOUD_REVIEW_
      | if ([$comments | to_entries[] | select(.value.body | startswith($fixup_heading)) | select(.key > ($last // -1))] | length) == 0
        then "fixup: no Fixup: reply after the reviews" else empty end),
     ([$comments[] | select(.body | startswith($fixup_heading))] | last) as $fixup
-    | ((.commits // []) | last | .committedDate // "9999") as $pushed
-    | (if $fixup != null and ($fixup.createdAt // "") <= $pushed
-       then "push: a commit came after the Fixup: reply" else empty end),
+    | (.headRefOid // "") as $head_sha
+    | (if $fixup != null and (($fixup.body | contains("Head: " + $head_sha)) | not)
+       then "push: the Fixup: reply does not name the head \($head_sha)" else empty end),
     ([$reviews[] | select(.value | reviewed("security"))] | last) as $sec
     | (if $sec == null then empty
        else ([$sec.value.body | split("\n") | map(select(test("[^ \\t\\r]"))) | (last // "") | capture("^" + $findings_heading + " *(?<n>[0-9]+)[ \\r]*$")] | last) as $f
