@@ -217,6 +217,22 @@ not_pulled() {
     not_merged
 }
 
+@test "a rename into, out of or a mode change of a kept file: stops, naming it (cloud:B66)" {
+    printf 'diff --git a/x.yml b/.github/workflows/x.yml\nsimilarity index 100%%\nrename from x.yml\nrename to .github/workflows/x.yml\n' >"$STATE/pr.diff"
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *".github/workflows/x.yml"* ]]
+    printf 'diff --git a/hk.pkl b/old.pkl\nsimilarity index 100%%\nrename from hk.pkl\nrename to old.pkl\n' >"$STATE/pr.diff"
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"hk.pkl"* ]]
+    printf 'diff --git a/flake.lock b/flake.lock\nold mode 100644\nnew mode 100755\n' >"$STATE/pr.diff"
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"flake.lock"* ]]
+    not_merged
+}
+
 @test "the diff changes a §C or §V row of a spec: stops; a §T row or an archive does not" {
     diff_of cloud/SPEC.md '-- C7: old' '+- C7: new'
     run bash "$SCRIPT" 8 --yes
