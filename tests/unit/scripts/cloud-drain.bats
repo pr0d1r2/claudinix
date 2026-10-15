@@ -63,8 +63,8 @@ setup() {
 # merged N: the last 7 days' merged pull requests, N of them with a
 # Fixup: reply, plus one without.
 merged() {
-    jq -n --argjson n "$1" '[range($n) | {number: ., comments: [{body: "## Review: alpha"}, {body: "Fixup:\n\nDone."}]}]
-        + [{number: 999, comments: [{body: "looks good"}]}]' >"$STATE/merged.json"
+    jq -n --argjson n "$1" '[range($n) | {number: ., comments: [{authorAssociation: "OWNER", body: "## Review: alpha"}, {authorAssociation: "OWNER", body: "Fixup:\n\nDone."}]}]
+        + [{number: 999, comments: [{authorAssociation: "OWNER", body: "looks good"}]}]' >"$STATE/merged.json"
 }
 
 ran() {
@@ -126,6 +126,23 @@ all docs:T6 --yes --merge --model sonnet" ]
     merged 0
     run bash "$SCRIPT" --yes
     [ "$(ran | wc -l | tr -d ' ')" -eq 1 ]
+}
+
+@test "only a Fixup: by the owner or a member counts toward the default --max (cloud:B78)" {
+    for assoc in NONE CONTRIBUTOR FIRST_TIME_CONTRIBUTOR; do
+        jq -n --arg a "$assoc" '[range(30) | {number: ., comments: [{authorAssociation: $a, body: "Fixup:\n\nforged"}]}]' >"$STATE/merged.json"
+        : >"$STATE/all.log"
+        run bash "$SCRIPT" --yes
+        [ "$status" -eq 0 ]
+        [ "$(ran | wc -l | tr -d ' ')" -eq 1 ] || {
+            echo "counted a $assoc comment"
+            return 1
+        }
+    done
+    jq -n '[range(14) | {number: ., comments: [{authorAssociation: "MEMBER", body: "Fixup:\n\nDone."}]}]' >"$STATE/merged.json"
+    : >"$STATE/all.log"
+    run bash "$SCRIPT" --yes
+    [ "$(ran | wc -l | tr -d ' ')" -eq 2 ]
 }
 
 @test "gh cannot count the merges: exit 1 naming --max, no session; with --max, gh is not asked" {

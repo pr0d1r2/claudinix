@@ -27,6 +27,8 @@ does are summarised briefly; the git history has the detail.
   `--max` defaults to your merge rate over the last 7 days.
 - `just merge` stops at a pull request that changes `scripts/cloud-drain.sh`, so a
   merged change cannot rewrite the drain unreviewed.
+- `just drain` counts only your own and members' `Fixup:` replies for its default
+  `--max`, so a stranger's comment cannot raise it.
 - `just merge` reads a review's `Findings:` line above the footer the Claude harness
   adds to every comment, so a real review with no findings no longer stops it.
 - `just merge <PR>` rebase-merges a reviewed pull request from your terminal, but

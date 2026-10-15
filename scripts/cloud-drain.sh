@@ -10,7 +10,8 @@
 # the one before.
 #
 # --max caps how many tasks run. Its default is the owner's recent pace:
-# the pull requests merged in the last 7 days that had a `Fixup:` reply,
+# the pull requests merged in the last 7 days that had a `Fixup:` reply by
+# the owner or a member (cloud:B78),
 # per day, rounded up, at least 1. When gh cannot count them, it exits 1
 # and asks for --max.
 #
@@ -113,7 +114,7 @@ if [ -z "$max" ]; then
         echo "drain: gh could not count the pull requests merged since $since -- pass --max N" >&2
         exit 1
     fi
-    fixed="$(jq '[.[] | select(any(.comments[]?; .body | startswith("Fixup:")))] | length' <<<"$merged")"
+    fixed="$(jq '[.[] | select(any(.comments[]?; (.authorAssociation == "OWNER" or .authorAssociation == "MEMBER") and (.body | startswith("Fixup:"))))] | length' <<<"$merged")"
     max=$(((fixed + 6) / 7))
     [ "$max" -ge 1 ] || max=1
 fi
