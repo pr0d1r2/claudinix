@@ -109,7 +109,8 @@ all docs:T6 --yes --merge --model sonnet" ]
     run bash "$SCRIPT" --yes --max 1
     [ "$status" -eq 0 ]
     [ "$(ran)" = "all root:T1 --yes --merge --model sonnet" ]
-    [[ "$output" == *"1 of 3"* ]]
+    run bash "$SCRIPT" --max 1 --dry-run
+    [[ "$output" == *"(1 of 3 tasks)"* ]]
 }
 
 @test "the default --max is the 7-day rate of merged PRs with a Fixup:, rounded up, at least 1" {
