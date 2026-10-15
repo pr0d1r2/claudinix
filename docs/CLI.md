@@ -968,10 +968,12 @@ questions need a decision, so neither is drained.
 
 **How many.** `--max N` caps the run. Its default follows your recent
 pace: the pull requests merged in the last 7 days that had a `Fixup:`
-reply, per day, rounded up, at least 1. When `gh` cannot count them, it
-exits 1 and asks for `--max`.
+reply by you or a member (a stranger's comment does not count), per day,
+rounded up, at least 1. It caps tasks you name too. When `gh` cannot count
+them, it exits 1 and asks for `--max`.
 
-**From where.** Only from `main` with a clean work tree: each task starts
+**From where.** Only from `main` with a clean work tree, and with at least
+one review role: each task starts
 from the merged state of the one before, and [`merge`](#merge) pulls each
 merge in.
 
@@ -988,7 +990,8 @@ nothing.
 **Stopping.** The first task whose `all --merge` does not succeed stops
 the drain: a failed step, CI that stays red, or a pull request `merge`
 leaves to you. It names the task and how many finished:
-`drain: stopped at scripts:T4; 1 of 3 done`. Fix or merge that one, then
+`drain: stopped at scripts:T4; 1 of 2 done` (of the tasks in the run, not
+all open ones). Fix or merge that one, then
 run the drain again.
 
 | exit | meaning |
