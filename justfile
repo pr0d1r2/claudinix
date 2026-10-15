@@ -49,6 +49,10 @@ all *args:
 merge *args:
     scripts/cloud-merge.sh {{ args }}
 
+# Work through tasks one at a time with `just all --merge`, stopping at the first failure; `--dry-run` prints the plan.
+drain *args:
+    scripts/cloud-drain.sh {{ args }}
+
 # Bring spec nodes (default: those over `.context-limits`) under their ceilings in a billed cloud session.
 spec-optimize *args:
     scripts/cloud-spec.sh {{ args }}
