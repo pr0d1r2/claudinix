@@ -58,7 +58,7 @@ T148|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C20`,`.:C29`,`docs:T149`
 T156|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B21,B63,`docs:T157`
 T158|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T156
 T159|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T156,`docs:T157`
-T160|.|`just merge`, `all --merge`, review `Findings: N`, C29 \& AGENTS, cloud deny `gh pr merge`|V51,I.cmd,`.:C29`
+T160|x|`just merge`, `all --merge`, review `Findings: N`, C29 \& AGENTS, cloud deny `gh pr merge`|V51,I.cmd,`.:C29`
 
 ## §B BUGS
 
