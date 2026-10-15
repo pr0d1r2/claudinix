@@ -76,8 +76,9 @@ sha="$(jq -r '.headRefOid' <<<"$pr_json")"
 reasons="$(jq -r --arg ci_ok "$CLOUD_CI_OK" --arg review_heading "$CLOUD_REVIEW_HEADING" \
     --arg fixup_heading "$CLOUD_FIXUP_HEADING" --arg findings_heading "$CLOUD_FINDINGS_HEADING" --argjson roles "$roles" '
     def first_line: split("\n")[0];
-    def review_role: (.body | first_line) | capture("^#* *" + $review_heading + " (?<role>[^ \\r]+)") | .role;
-    def reviewed($r): (.body | first_line | test("^#* *" + $review_heading + " ")) and review_role == $r;
+    # A review comment: its first line is `Review: <role>`, under any #s; null otherwise.
+    def review_role: (.body | first_line) | capture("^#* *" + $review_heading + " (?<role>[^ \\r]+)")? | .role;
+    def reviewed($r): review_role == $r;
     # Anyone may comment, so only the owner and members can review (cloud:B64).
     ([(.comments // [])[] | select(.authorAssociation == "OWNER" or .authorAssociation == "MEMBER")]) as $comments
     | (.statusCheckRollup // []) as $checks
@@ -85,7 +86,7 @@ reasons="$(jq -r --arg ci_ok "$CLOUD_CI_OK" --arg review_heading "$CLOUD_REVIEW_
        elif ($checks | all((.conclusion // .state // "") | test($ci_ok))) | not
        then "CI: not every check on the head is green (success, skipped or neutral)"
        else empty end),
-    ([$comments | to_entries[] | select(.value.body | first_line | test("^#* *" + $review_heading + " "))] ) as $reviews
+    ([$comments | to_entries[] | select(.value | review_role != null)] ) as $reviews
     | ($roles[] as $r | if ([$reviews[] | select(.value | reviewed($r))] | length) == 0
         then "review: no \"Review: \($r)\" comment" else empty end),
     (([$reviews[].key] | max) as $last
