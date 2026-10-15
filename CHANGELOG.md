@@ -20,6 +20,8 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- `just merge` reads a review's `Findings:` line above the footer the Claude harness
+  adds to every comment, so a real review with no findings no longer stops it.
 - `just merge <PR>` rebase-merges a reviewed pull request from your terminal, but
   only when CI is green on its head, every review role and the fixup replied
   (only comments by the owner or a member count, and the fixup reply names the
