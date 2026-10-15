@@ -27,7 +27,8 @@ does are summarised briefly; the git history has the detail.
   `flake.lock`, the cloud permission list, the guards, review roles and merge
   script themselves (renamed or not), §C and §V rows and ceilings alone;
   otherwise it names every reason and stops. `--dry-run` only judges. A neutral
-  check counts as green there, as in the wait of `just all`.
+  check counts as green there, as in the wait of `just all`, and `Review: security-deep`
+  is not `Review: security`.
 - `just all <task> --merge` ends a green flow with `just merge` instead of
   opening the pull request.
 - Cloud sessions are denied `gh pr merge` (and `rtk gh pr merge`); only the
