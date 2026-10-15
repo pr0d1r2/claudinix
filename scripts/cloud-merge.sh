@@ -76,10 +76,11 @@ fi
 sha="$(jq -r '.headRefOid' <<<"$info")"
 
 # The reasons from the checks and comments, one per line.
-reasons="$(jq -r --arg ci_ok "$CLOUD_CI_OK" --argjson roles "$roles" '
+reasons="$(jq -r --arg ci_ok "$CLOUD_CI_OK" --arg review_heading "$CLOUD_REVIEW_HEADING" \
+    --arg fixup_heading "$CLOUD_FIXUP_HEADING" --arg findings_heading "$CLOUD_FINDINGS_HEADING" --argjson roles "$roles" '
     def first_line: split("\n")[0];
-    def review_role: (.body | first_line) | capture("^#* *Review: (?<role>[^ \\r]+)") | .role;
-    def reviewed($r): (.body | first_line | test("^#* *Review: ")) and review_role == $r;
+    def review_role: (.body | first_line) | capture("^#* *" + $review_heading + " (?<role>[^ \\r]+)") | .role;
+    def reviewed($r): (.body | first_line | test("^#* *" + $review_heading + " ")) and review_role == $r;
     # Anyone may comment, so only the owner and members can review (cloud:B64).
     ([(.comments // [])[] | select(.authorAssociation == "OWNER" or .authorAssociation == "MEMBER")]) as $comments
     | (.statusCheckRollup // []) as $checks
@@ -87,19 +88,19 @@ reasons="$(jq -r --arg ci_ok "$CLOUD_CI_OK" --argjson roles "$roles" '
        elif ($checks | all((.conclusion // .state // "") | test($ci_ok))) | not
        then "CI: not every check on the head is green (success, skipped or neutral)"
        else empty end),
-    ([$comments | to_entries[] | select(.value.body | first_line | test("^#* *Review: "))] ) as $reviews
+    ([$comments | to_entries[] | select(.value.body | first_line | test("^#* *" + $review_heading + " "))] ) as $reviews
     | ($roles[] as $r | if ([$reviews[] | select(.value | reviewed($r))] | length) == 0
         then "review: no \"Review: \($r)\" comment" else empty end),
     (([$reviews[].key] | max) as $last
-     | if ([$comments | to_entries[] | select(.value.body | startswith("Fixup:")) | select(.key > ($last // -1))] | length) == 0
+     | if ([$comments | to_entries[] | select(.value.body | startswith($fixup_heading)) | select(.key > ($last // -1))] | length) == 0
        then "fixup: no Fixup: reply after the reviews" else empty end),
-    ([$comments[] | select(.body | startswith("Fixup:"))] | last) as $fixup
+    ([$comments[] | select(.body | startswith($fixup_heading))] | last) as $fixup
     | ((.commits // []) | last | .committedDate // "9999") as $pushed
     | (if $fixup != null and ($fixup.createdAt // "") <= $pushed
        then "push: a commit came after the Fixup: reply" else empty end),
     ([$reviews[] | select(.value | reviewed("security"))] | last) as $sec
     | (if $sec == null then empty
-       else ([$sec.value.body | split("\n") | map(select(test("[^ \\t\\r]"))) | (last // "") | capture("^Findings: *(?<n>[0-9]+)[ \\r]*$")] | last) as $f
+       else ([$sec.value.body | split("\n") | map(select(test("[^ \\t\\r]"))) | (last // "") | capture("^" + $findings_heading + " *(?<n>[0-9]+)[ \\r]*$")] | last) as $f
        | if $f == null then "security: its review has no Findings: line"
          elif ($f.n | tonumber) > 0 then "security: \($f.n) finding(s) reported"
          else empty end end)
