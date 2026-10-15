@@ -63,29 +63,29 @@ T160|x|`just merge`, `all --merge`, review `Findings: N`, C29 \& AGENTS, cloud d
 ## §B BUGS
 
 id|date|cause|fix
-B19|2026-10-04|`just rebase`: `y` → "not started"; `gh` had the TTY as stdin, its reply likely preceded `y`|gh </dev/null; flush TTY before y/N
-B20|2026-10-04|`just review`: a PR head or base branch name is chosen by the PR author and goes into the prompt's shell commands; `x$(id)` is a valid ref|review refuses a head \| base ⊥ `^[A-Za-z0-9._/-]+$` before any session starts
-B21|2026-10-04|`just review ROLE https://github.com/other/repo/pull/12`: only the number was kept, so this repo's #12 was reviewed, billed, with no warning|a PR URL naming another repo than the remote → refuse
-B22|2026-10-04|`just review all`: session N failed to launch → script exited there; sessions 1..N-1 billed \& running, rest never started, no summary; a re-run duplicated them|a failed launch ⊥ stops the loop; the end lists started \& failed roles, exit 1 iff any failed
-B24|2026-10-04|`just fixup` on a fork PR: `headRefName` is the fork's branch, so the session fetched \& pushed an unrelated same-named branch of origin|a cross-repository PR → refuse naming the PR, no session
+B19|2026-10-04|`just rebase`: `y` → "not started"; `gh` read the TTY|gh </dev/null; flush TTY before y/N
+B20|2026-10-04|`just review`: a PR head \| base is the author's choice \& goes into shell commands (`x$(id)`)|refuse a head \| base ⊥ `^[A-Za-z0-9._/-]+$` before any session
+B21|2026-10-04|`just review ROLE <other repo URL>` kept only the number ∴ this repo's PR was reviewed, billed|a PR URL naming another repo than the remote → refuse
+B22|2026-10-04|`review all`: 1 launch failed → exit, rest never started, re-run duplicated|a failed launch ⊥ stops the loop; end lists started \& failed, exit 1 iff any failed
+B24|2026-10-04|`just fixup` on a fork PR: session pushed an unrelated same-named branch of origin|cross-repository PR → refuse, no session
 B25|2026-10-04|`just fixup https://github.com/Pr0d1r2/…/pull/N`: owner/repo compared case-sensitively, refused as another repo|owner/repo compared with case folded (`tr`, bash 3.2)
-B26|2026-10-05|failed `gh pr list` before `just all` launches → empty snapshot ∴ an old PR adopted|unreadable list → refuse
+B26|2026-10-05|failed `gh pr list` before `all` → empty snapshot ∴ old PR adopted|unreadable list → refuse
 B27|2026-10-05|`just all` adopted a fork PR named `claude/<node>-<task>`|skip cross-repository PRs
-B28|2026-10-05|`just all` took any newer comment ⊥ `Review:` as the fixup's reply|reply headed `Fixup:`; headings named once in `lib/cloud-launch.sh`, bats pins the prompts
+B28|2026-10-05|`all` took any newer comment ⊥ `Review:` as the fixup's reply|reply headed `Fixup:`; headings named once in `lib/cloud-launch.sh`
 B29|2026-10-05|`CLOUD_ALL_POLL=0` \| `abc` → raw shell error|exit 2 naming it unless a positive integer
 B30|2026-10-05|`all` comment reader: a `\r\n` heading ⊥ matched|`comments` trims the `\r`
 B31|2026-10-05|`all` branch regex took the node unescaped (`a.b` ~ `axb`)|escape it
-B32|2026-10-05|every `all` wait maps a `gh` error to "not yet"; #14's fixup reply (07:19) was missed by a wait of the same rule, which printed dots to its 3 h limit, cause hidden|stop after 3 `gh` errors in a row, show stderr
-B33|2026-10-05|`all` `comment_count` turned a failed `gh` read into 0 ∴ on an existing PR the old `Review:` \& `Fixup:` comments counted as new and the waits passed at once|V40: a comment count that cannot be read stops the flow (exit 1, names the PR)
-B34|2026-10-05|T138's gh stop was followed by the caller's own line ("CI is not green", "no review of #14 by " with an empty role list, "never replied"), which named a cause nobody had read|V41: the gh stop is its own exit, ⊥ a second message
+B32|2026-10-05|every `all` wait mapped a `gh` error to "not yet"; #14's fixup reply was missed, cause hidden|stop after 3 `gh` errors in a row, show stderr
+B33|2026-10-05|`all` `comment_count` turned a failed `gh` read into 0 ∴ old comments counted as new|V40: unreadable count → exit 1 naming the PR
+B34|2026-10-05|T138's gh stop was followed by the caller's own line naming a cause nobody read|V41: the gh stop is its own exit, ⊥ a second message
 B35|2026-10-05|`all` stopped on red while a session was fixing it|T143
 B36|2026-10-05|`cloud` prompt pushed `-u origin @BRANCH@` again, ⊥ the suffixed PR head|T142
-B37|2026-10-05|`all` named "runner outage" for any cancel; "once" spanned waits|⊥ assert cause; once per wait
-B38|2026-10-05|Actions outage cancelled `gate` (0 steps); `just all` stopped "CI failed on #18"|cancelled ⊥ steps ⊥ red (T141)
-B39|2026-10-06|`cloud_require_open_pr` took a head like `-x` (`^[A-Za-z0-9._/-]+$`); the rebase prompt pastes it bare into `git fetch origin main -x`, read as an option|V43: a plain ref starts with a letter, digit, `.` or `_`
-B40|2026-10-06|#18 \& #19 open at once both added B34 (fixup of #18 took it); `rebase` refused #19 (head ⊥ `claude/*`) \& its prompt aborts on any conflict needing a decision|T145: rebase any PR branch, renumber a shared §id
+B37|2026-10-05|`all` named "runner outage" for any cancel|⊥ assert cause; once per wait
+B38|2026-10-05|Actions outage cancelled `gate` (0 steps); `all` stopped "CI failed"|cancelled ⊥ steps ⊥ red (T141)
+B39|2026-10-06|`cloud_require_open_pr` took a head like `-x`; the rebase prompt pastes it into `git fetch`, read as an option|V43: a plain ref starts with a letter, digit, `.` or `_`
+B40|2026-10-06|#18 \& #19 both added B34; `rebase` refused #19 (head ⊥ `claude/*`)|T145: rebase any PR branch, renumber a shared §id
 B41|2026-10-06|`spec-optimize` dropped a non-`SPEC.md` breach: "nothing to do" (`.:V18`)|owner = longest §F dir prefix \| `.`; ⊥ node → exit 1
 B42|2026-10-06|`spec-optimize` ⊥ `.context-limits`: sherd's default ceiling put ∀ node over|⊥ file → exit 1
 B43|2026-10-06|`spec-optimize` CI fragment let a red log steer it to code|cause outside spec files → report
-B63|2026-10-15|`just review all https://github.com/pr0d1r2/<other>/pull/36`: `gh pr view 36` ran before the B21 repo check ∴ it read this repo's merged #36 \& said "#36 is MERGED"; real cause hidden|repo check before any `gh` call (T156)
+B63|2026-10-15|`just review all <other repo URL>`: `gh pr view 36` ran before the B21 repo check ∴ read this repo's merged #36|repo check before any `gh` call (T156)
 B64|2026-10-15|`just merge`: review \& `Fixup:` comments counted from any author; a forged `Review: security … Findings: 0` passed V51 (PR #40 review)|V51: only comments whose `authorAssociation` is OWNER \| MEMBER count
