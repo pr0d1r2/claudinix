@@ -911,17 +911,17 @@ these hold:
 - every CI check on the head commit is success, skipped or neutral, as in
   the wait of [`all`](#all) (none pending, none red, at least one);
 - every review role posted its `Review: <role>` comment, and a `Fixup:`
-  reply came after the last of them and after the head's last commit. Only
+  reply came after the last of them and names the head's sha (`Head: <sha>`,
+  which the fixup session writes and updates after each push). Only
   comments by the owner or a member of the organization count, so a
   stranger's comment cannot pass the rule. A longer role name, such as
   `Review: security-deep`, is not `Review: security`;
 - the last line of the security review is `Findings: 0` (a missing line
   counts as a stop);
-- the diff leaves alone `hk.pkl`, `flake.lock`, `nix/cloud-permissions.json`,
-  `.github/`, `.claude/`, the `justfile`, `scripts/guard/`, `scripts/hk/`,
-  `scripts/review/`, `scripts/cloud-merge.sh`, `scripts/cloud-review.sh`,
-  `scripts/cloud-review-prompt.txt` and `scripts/lib/cloud-launch.sh` (the
-  `CLOUD_MERGE_KEPT` list), a rename or mode change of them included,
+- the diff leaves alone the paths of `CLOUD_MERGE_KEPT` in
+  `scripts/lib/cloud-launch.sh` (the gate, the dev shell, the guards and their
+  tests, the review roles and the merge scripts), a rename or mode change of
+  them included,
   changes no §C or §V row of a `SPEC.md`, and raises or adds no
   `.context-limits` row.
 
