@@ -84,30 +84,10 @@ fi
 
 pr= # set by cloud_parse_pr
 cloud_parse_pr "$arg" || usage
-# Before gh: a URL of another repo would read this repo's PR of that number (cloud:B63).
+# Only the read checks: the session pushes nothing, so any base, fork or head will do.
 cloud_require_remote review "$remote" || exit 1
-cloud_require_url_repo review "$remote" "$arg" || exit 1
-
-# </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
-if ! info="$(gh pr view "$pr" --json number,state,headRefName,baseRefName,url \
-    --jq '[.number, .state, .headRefName, .baseRefName, .url] | @tsv' </dev/null)"; then
-    echo "review: gh could not read pull request #$pr -- check the number and that gh is signed in" >&2
-    exit 1
-fi
-IFS="$(printf '\t')" read -r _ state head base url <<<"$info"
-
-if [ "$state" != OPEN ]; then
-    echo "review: #$pr is $state, not OPEN -- nothing to review" >&2
-    exit 1
-fi
-# The author picks these names and the prompt pastes them into shell
-# commands, so only plain ref characters pass (cloud:B20).
-for ref in "$head" "$base"; do
-    if [[ ! "$ref" =~ ^[A-Za-z0-9._/-]+$ ]]; then
-        echo "review: #$pr has the branch name '$ref', which has characters beyond A-Z a-z 0-9 . _ / - -- refusing to put it in a prompt" >&2
-        exit 1
-    fi
-done
+head="" base="" url="" # set by cloud_read_pr
+cloud_read_pr review "$remote" "$arg" || exit 1
 
 cloud_resolve_model "$scripts_dir" || exit "$?"
 
