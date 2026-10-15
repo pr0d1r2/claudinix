@@ -95,7 +95,6 @@ B67|2026-10-15|`just merge` kept 4 paths ∴ a PR could weaken a guard, review r
 B68|2026-10-15|`all` waited for CI by success\|skipped\|neutral, `merge` by a 2nd rule w/o neutral|V51: 1 `CLOUD_CI_OK` in `lib/cloud-launch.sh`
 B69|2026-10-15|`merge` matched `Review: <role>` by regex ∴ `security-deep` counted as security|V51: role = first word, compared whole
 B70|2026-10-15|`just merge` took `Findings: 0` from any line of a security review|V51: only the last line counts
-B71|2026-10-15|deny `gh pr merge *` missed `gh -R x pr merge`, `gh api …/merge`, MCP merge (C29)|guard requires those denies
 B72|2026-10-15|review prompt named `just merge`, which sessions never use|prompt states `Findings: N` only
 B73|2026-10-15|`merge` judged the `Fixup:` by `committedDate`: forgeable, \& a CI-fix push after it always stopped|V51: the last `Fixup:` names `headRefOid` (`Head: <sha>`)
 B74|2026-10-15|`CLOUD_MERGE_KEPT` missed `flake.nix`, `nix/dev-shell.nix`, `scripts/dev/`, `scripts/cloud-all.sh`, `scripts/lib/spec-nodes.sh` \& the guard tests ∴ a PR could change the gate's tools unflagged|V51: kept also these; a new `scripts/lib/` file is kept by its dir
