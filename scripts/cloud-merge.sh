@@ -79,16 +79,18 @@ sha="$(jq -r '.headRefOid' <<<"$info")"
 reasons="$(jq -r --argjson roles "$roles" '
     def first_line: split("\n")[0];
     def reviewed($r): (.body | first_line) | test("^#* *Review: " + $r + "\\b");
-    (.statusCheckRollup // []) as $checks
+    # Anyone may comment, so only the owner and members can review (cloud:B64).
+    ([(.comments // [])[] | select(.authorAssociation == "OWNER" or .authorAssociation == "MEMBER")]) as $comments
+    | (.statusCheckRollup // []) as $checks
     | (if ($checks | length) == 0 then "CI: no check ran on the head"
        elif ($checks | all((.conclusion // "") == "SUCCESS" or (.conclusion // "") == "SKIPPED" or (.state // "") == "SUCCESS")) | not
        then "CI: not every check on the head is green (success or skipped)"
        else empty end),
-    ([.comments | to_entries[] | select(.value.body | first_line | test("^#* *Review: "))] ) as $reviews
+    ([$comments | to_entries[] | select(.value.body | first_line | test("^#* *Review: "))] ) as $reviews
     | ($roles[] as $r | if ([$reviews[] | select(.value | reviewed($r))] | length) == 0
         then "review: no \"Review: \($r)\" comment" else empty end),
     (([$reviews[].key] | max) as $last
-     | if ([.comments | to_entries[] | select(.value.body | startswith("Fixup:")) | select(.key > ($last // -1))] | length) == 0
+     | if ([$comments | to_entries[] | select(.value.body | startswith("Fixup:")) | select(.key > ($last // -1))] | length) == 0
        then "fixup: no Fixup: reply after the reviews" else empty end),
     ([$reviews[] | select(.value | reviewed("security"))] | last) as $sec
     | (if $sec == null then empty
