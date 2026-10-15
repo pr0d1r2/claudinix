@@ -163,13 +163,15 @@ cloud_require_url_repo() {
     fi
 }
 
-# cloud_require_open_pr LABEL REMOTE ARG: the pull request $pr (from
-# cloud_parse_pr) must be one a session may push to: open, of this
-# repository (not a fork), based on main, with a head that is not main and
-# a plain ref. Sets $head, $base and $url. The one source of these
-# refusals, so a fix like cloud:B20 lands once.
-cloud_require_open_pr() {
-    local info state cross
+# cloud_read_pr LABEL REMOTE ARG: the pull request $pr (from cloud_parse_pr)
+# must be open, of the repository REMOTE points at, with a head and a base
+# that are plain refs. The URL repo is checked before any `gh` call, so
+# another repo's number is never read as this repo's (cloud:B63). Sets $head,
+# $base, $url and $cross (true for a fork). The one source of these
+# refusals, so a fix like cloud:B20 lands once; cloud_require_open_pr adds
+# the push-only ones.
+cloud_read_pr() {
+    local info state ref
     cloud_require_url_repo "$1" "$2" "$3" || return 1
     # </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
     if ! info="$(gh pr view "$pr" --json number,state,headRefName,baseRefName,url,isCrossRepository \
@@ -177,12 +179,26 @@ cloud_require_open_pr() {
         echo "$1: gh could not read pull request #$pr -- check the number and that gh is signed in" >&2
         return 1
     fi
-    # shellcheck disable=SC2034 # head, base and url are read by the caller
+    # shellcheck disable=SC2034 # head, base, url and cross are read by the caller
     IFS="$(printf '\t')" read -r _ state head base url cross <<<"$info"
     if [ "$state" != OPEN ]; then
         echo "$1: #$pr is $state, not OPEN -- nothing to do" >&2
         return 1
     fi
+    # No leading `-`: the prompts paste these bare into git commands (cloud:B20, cloud:B39).
+    for ref in "$head" "$base"; do
+        if [[ ! "$ref" =~ ^[A-Za-z0-9._][A-Za-z0-9._/-]*$ ]]; then
+            echo "$1: #$pr's branch $ref is not a plain branch name (letters, digits, ._/-, not starting with -) -- it would reach the session's commands" >&2
+            return 1
+        fi
+    done
+}
+
+# cloud_require_open_pr LABEL REMOTE ARG: cloud_read_pr, and the pull
+# request must be one a session may push to: not a fork, based on main,
+# with a head that is not main.
+cloud_require_open_pr() {
+    cloud_read_pr "$1" "$2" "$3" || return 1
     if [ "$cross" = true ]; then
         echo "$1: #$pr is from a fork; its branch $head is not a branch of $2 -- handle it by hand" >&2
         return 1
@@ -193,11 +209,6 @@ cloud_require_open_pr() {
     fi
     if [ "$head" = main ]; then
         echo "$1: #$pr's branch is main; a cloud session never pushes main" >&2
-        return 1
-    fi
-    # No leading `-`: the prompts paste the head bare into git commands (cloud:B39).
-    if [[ ! "$head" =~ ^[A-Za-z0-9._][A-Za-z0-9._/-]*$ ]]; then
-        echo "$1: #$pr's branch $head is not a plain branch name (letters, digits, ._/-, not starting with -) -- it would reach the session's commands" >&2
         return 1
     fi
 }
