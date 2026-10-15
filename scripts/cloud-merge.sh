@@ -61,19 +61,18 @@ scripts_dir="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 remote="${CLOUD_TASK_REMOTE:-origin}"
 
 cloud_require_remote merge "$remote" || exit 1
+# One read answers the open check and the verdict, so the head cannot move between them.
+pr_json=
+# shellcheck disable=SC2034 # read by cloud_read_pr
+cloud_pr_extra=headRefOid,statusCheckRollup,comments,commits
 cloud_require_open_pr merge "$remote" "$arg" || exit 1
 
 roles="$(cloud_roles "$scripts_dir/review" | jq -R . | jq -sc .)"
-# </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
-if ! info="$(gh pr view "$pr" --json headRefOid,statusCheckRollup,comments,commits </dev/null)"; then
-    echo "merge: gh could not read the checks and comments of #$pr" >&2
-    exit 1
-fi
 if ! patch="$(gh pr diff "$pr" </dev/null)"; then
     echo "merge: gh could not read the diff of #$pr" >&2
     exit 1
 fi
-sha="$(jq -r '.headRefOid' <<<"$info")"
+sha="$(jq -r '.headRefOid' <<<"$pr_json")"
 
 # The reasons from the checks and comments, one per line.
 reasons="$(jq -r --arg ci_ok "$CLOUD_CI_OK" --arg review_heading "$CLOUD_REVIEW_HEADING" \
@@ -104,7 +103,7 @@ reasons="$(jq -r --arg ci_ok "$CLOUD_CI_OK" --arg review_heading "$CLOUD_REVIEW_
        | if $f == null then "security: its review has no Findings: line"
          elif ($f.n | tonumber) > 0 then "security: \($f.n) finding(s) reported"
          else empty end end)
-' <<<"$info")"
+' <<<"$pr_json")"
 
 # The reasons from the diff, one per line.
 diff_reasons="$(cloud_diff_reasons <<<"$patch")"
