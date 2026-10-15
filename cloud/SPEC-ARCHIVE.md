@@ -27,3 +27,4 @@ T156|x|`review` of any repo from its checkout (`<claudinix>/scripts/cloud-review
 T158|x|`review` prompt: repo tooling (justfile, Makefile, package scripts) run only as it is on `origin/<base>`, ⊥ a script or target the PR adds \| changes, else a self-contained test in a scratch dir; a PR author ⊥ runs code in the session; bats pins it|I.cmd,T156
 T159|x|`review` role files (`scripts/review/*.md`) ⊥ assume claudinix: each spec \| gate \| node rule reads "if the repository has …", as the prompt does; only `review` runs from a foreign checkout (`fixup`, `rebase`, `all` need AGENTS.md, SPEC.md \& the gate) said in CLI.md|I.cmd,T156,`docs:T157`
 T160|x|`just merge`, `all --merge`, review `Findings: N`, C29 \& AGENTS, cloud deny `gh pr merge`|V51,I.cmd,`.:C29`
+T161|x|`just drain`: serial `just all --merge` over a task list (I.cmd)|V51,I.cmd

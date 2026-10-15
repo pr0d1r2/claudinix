@@ -61,7 +61,7 @@ T158|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T156
 T159|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T156,`docs:T157`
 T160|x|ARCHIVED to SPEC-ARCHIVE.md|V51,I.cmd,`.:C29`
 
-T161|x|`just drain`: serial `just all --merge` over a task list (I.cmd)|V51,I.cmd
+T161|x|ARCHIVED to SPEC-ARCHIVE.md|V51,I.cmd
 
 ## §B BUGS
 
