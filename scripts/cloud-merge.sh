@@ -57,13 +57,13 @@ head=""
 base="" # head and base: set by cloud_require_open_pr
 cloud_parse_pr "$arg" || usage
 
-lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
+scripts_dir="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 remote="${CLOUD_TASK_REMOTE:-origin}"
 
 cloud_require_remote merge "$remote" || exit 1
 cloud_require_open_pr merge "$remote" "$arg" || exit 1
 
-roles="$(cloud_roles "$lib/review" | jq -R . | jq -sc .)"
+roles="$(cloud_roles "$scripts_dir/review" | jq -R . | jq -sc .)"
 # </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
 if ! info="$(gh pr view "$pr" --json headRefOid,statusCheckRollup,comments,commits </dev/null)"; then
     echo "merge: gh could not read the checks and comments of #$pr" >&2
