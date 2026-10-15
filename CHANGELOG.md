@@ -32,7 +32,7 @@ does are summarised briefly; the git history has the detail.
 - `just all <task> --merge` ends a green flow with `just merge` instead of
   opening the pull request.
 - Cloud sessions are denied `gh pr merge` (and `rtk gh pr merge`); only the
-  owner merges.
+  owner merges, also as `gh -R … pr merge`, `gh api …/merge` or the GitHub MCP merge tools.
 - Review comments from `just review` end with a `Findings: N` line.
 - The `just review` role files no longer assume this repository's spec or gate:
   each such rule applies only if the reviewed repository has one.
