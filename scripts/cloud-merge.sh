@@ -65,7 +65,7 @@ cloud_require_open_pr merge "$remote" "$arg" || exit 1
 
 roles="$(cloud_roles "$lib/review" | jq -R . | jq -sc .)"
 # </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
-if ! info="$(gh pr view "$pr" --json headRefOid,statusCheckRollup,comments </dev/null)"; then
+if ! info="$(gh pr view "$pr" --json headRefOid,statusCheckRollup,comments,commits </dev/null)"; then
     echo "merge: gh could not read the checks and comments of #$pr" >&2
     exit 1
 fi
@@ -92,6 +92,10 @@ reasons="$(jq -r --argjson roles "$roles" '
     (([$reviews[].key] | max) as $last
      | if ([$comments | to_entries[] | select(.value.body | startswith("Fixup:")) | select(.key > ($last // -1))] | length) == 0
        then "fixup: no Fixup: reply after the reviews" else empty end),
+    ([$comments[] | select(.body | startswith("Fixup:"))] | last) as $fixup
+    | ((.commits // []) | last | .committedDate // "9999") as $pushed
+    | (if $fixup != null and ($fixup.createdAt // "") <= $pushed
+       then "push: a commit came after the Fixup: reply" else empty end),
     ([$reviews[] | select(.value | reviewed("security"))] | last) as $sec
     | (if $sec == null then empty
        else ([$sec.value.body | split("\n")[] | capture("^Findings: *(?<n>[0-9]+) *$")] | last) as $f
