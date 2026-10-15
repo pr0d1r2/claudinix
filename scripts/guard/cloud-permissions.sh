@@ -94,6 +94,10 @@ required_denies=(
     'Bash(git push *:heads/main*)'
     # Only the owner merges, from the owner's terminal (.:C29, cloud:V51).
     'Bash(gh pr merge *)'
+    'Bash(gh * pr merge *)'
+    'Bash(gh api *merge*)'
+    'mcp__github__merge_pull_request'
+    'mcp__github__enable_pr_auto_merge'
 )
 for rule in "${required_denies[@]}"; do
     if ! jq -e --arg rule "$rule" '.deny | index($rule)' "$list" >/dev/null; then

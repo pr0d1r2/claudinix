@@ -110,6 +110,12 @@
     "Bash(rtk git push * origin * *)",
     "Bash(rtk git push * claude/*:*)",
     "Bash(gh pr merge *)",
-    "Bash(rtk gh pr merge *)"
+    "Bash(rtk gh pr merge *)",
+    "Bash(gh * pr merge *)",
+    "Bash(rtk gh * pr merge *)",
+    "Bash(gh api *merge*)",
+    "Bash(rtk gh api *merge*)",
+    "mcp__github__merge_pull_request",
+    "mcp__github__enable_pr_auto_merge"
   ]
 }
