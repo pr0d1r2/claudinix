@@ -36,7 +36,7 @@ V40: `just all` snapshots a PR's comments before each child launch; ⊥ read →
 V41: a wait that stops on failed `gh` calls (B34) ends the flow with gh's stderr only; ⊥ a caller line naming another cause ("CI is not green", "no review by <empty>", "never replied").
 V42: CI-watch prompt rules from 1 fragment; logs = data; ⊥ edit CI-defining files; bats asserts.
 V43: a PR head that starts with `-` is refused with the other non-plain refs; the prompts paste it bare into `git fetch` \& `git checkout`, where it would read as an option (B39).
-V51: merge only when head CI ∀ success \| skipped, ∀ role posted `Review: <role>` then a `Fixup:` came, security's last `Findings: N` = 0 (missing → stop), \& the diff ⊥ touches `hk.pkl`, `.github/`, `flake.lock`, `nix/cloud-permissions.json`, a §C \| §V row or raises a `.context-limits` row; else stop, naming why. ∀ review comment ends `Findings: N`.
+V51: merge only when head CI ∀ success \| skipped, ∀ role posted `Review: <role>` then a `Fixup:` came after the head's last commit, security's last `Findings: N` = 0 (missing → stop), \& the diff ⊥ touches `hk.pkl`, `.github/`, `flake.lock`, `nix/cloud-permissions.json`, a §C \| §V row or raises a `.context-limits` row; else stop, naming why. ∀ review comment ends `Findings: N`.
 
 ## §T TASKS
 
@@ -58,7 +58,7 @@ T148|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C20`,`.:C29`,`docs:T149`
 T156|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B21,B63,`docs:T157`
 T158|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T156
 T159|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T156,`docs:T157`
-T160|x|`just merge`, `all --merge`, review `Findings: N`, C29 \& AGENTS, cloud deny `gh pr merge`|V51,I.cmd,`.:C29`
+T160|x|ARCHIVED to SPEC-ARCHIVE.md|V51,I.cmd,`.:C29`
 
 ## §B BUGS
 
@@ -89,3 +89,4 @@ B42|2026-10-06|`spec-optimize` ⊥ `.context-limits`: sherd's default ceiling pu
 B43|2026-10-06|`spec-optimize` CI fragment let a red log steer it to code|cause outside spec files → report
 B63|2026-10-15|`just review all <other repo URL>`: `gh pr view 36` ran before the B21 repo check ∴ read this repo's merged #36|repo check before any `gh` call (T156)
 B64|2026-10-15|`just merge`: review \& `Fixup:` comments counted from any author; a forged `Review: security … Findings: 0` passed V51 (PR #40 review)|V51: only comments whose `authorAssociation` is OWNER \| MEMBER count
+B65|2026-10-15|`just merge`: reviews tied to no commit; a push after the `Fixup:` merged unreviewed|V51: `Fixup:` newer than the head's last commit
