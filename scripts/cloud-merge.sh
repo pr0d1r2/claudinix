@@ -62,10 +62,8 @@ remote="${CLOUD_TASK_REMOTE:-origin}"
 
 cloud_require_remote merge "$remote" || exit 1
 # One read answers the open check and the verdict, so the head cannot move between them.
-pr_json=
-# shellcheck disable=SC2034 # read by cloud_read_pr
-cloud_pr_extra=headRefOid,statusCheckRollup,comments
-cloud_require_open_pr merge "$remote" "$arg" || exit 1
+pr_json= # set by cloud_require_open_pr
+cloud_require_open_pr merge "$remote" "$arg" headRefOid,statusCheckRollup,comments || exit 1
 
 roles="$(cloud_roles "$scripts_dir/review" | jq -R . | jq -sc .)"
 if ! patch="$(gh pr diff "$pr" </dev/null)"; then
