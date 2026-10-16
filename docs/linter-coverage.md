@@ -26,7 +26,7 @@ The steps are defined in [`hk.pkl`](../hk.pkl) and explained in
 | `.jq` | none beyond hygiene | `scripts/inputs.jq`, `scripts/nix-dev.jq`: jq programs read by `inputs.sh` and `nix-dev.sh`, so their bats tests run them on fixture `flake.lock` files; `scripts/config.jq` is the schema and defaults of `.claudinix.toml`, run by `config.sh` and covered by `config.bats` on fixture files |
 | `.tsv` | none beyond hygiene | `scripts/guide-steps.tsv`: a bats test keeps its step titles equal to the `docs/SETUP.md` headings |
 | `.txt` | `setup.sh`'s bats | `allowlist.txt` and `env-names.txt`: tests check the hosts they name and that no value looks like a secret; `scripts/probe-prompt.txt` is a template: the task text `probe-launch.sh` sends, with `@NIX_DEV@`, `@NIX_DEVELOP@` and `@BRANCH_PREFIX@` placeholders it fills in; it gets hygiene only |
-| `.context-limits` | `itok check`, `sherd validate`, `sherd budget`, `context-limits` | token ceilings for `SPEC.md`; `context-limits` fails a row raised or added against `origin/main` without the owner's trailer |
+| `.context-limits` | `itok check`, `sherd validate`, `sherd budget`, `context-limits` | token ceilings for `SPEC.md`; `context-limits` fails a row raised or added, or the file deleted, against `origin/main` |
 | `.json` | `cloud-permissions` (`nix/cloud-permissions.json` only) | the cloud session permission list: no blanket rules, the main-push deny rules present; the step also refuses a `permissions` block in `.claude/settings.json` |
 | `.lock` | none beyond hygiene | `flake.lock`, written by `nix flake lock` |
 | `.gitignore` | none beyond hygiene | git config |

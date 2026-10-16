@@ -163,12 +163,11 @@ A few notes on why the steps look the way they do:
 - **context-limits** (`scripts/guard/context-limits.sh`) holds that rule on
   push and in CI: it compares `.context-limits` with the branch's merge
   base with `origin/main` (`CONTEXT_LIMITS_BASE` picks another base) and
-  fails on every row raised or added, naming it. A raise the owner decides
-  on is its own commit, with the measurement in `Why:` and the trailer
-  `Owner-Override: context-limits`; a commit on the branch that changes
-  `.context-limits` and carries it lets the raise through. The rows are
-  read by the same parser `just merge` stops on, so a reviewed raise still
-  waits for the owner there.
+  fails on every row raised or added, and on the file being deleted,
+  naming it. There is no override: a raise is the owner's call, made on the
+  merge side. The rows are read by `scripts/lib/context-limits.sh`, the
+  parser `just merge` shares, so a reviewed raise still waits for the owner
+  there.
 - **claudinix-config** checks this repository's own
   [`.claudinix.toml`](CONFIG.md) with the reader every tool uses, so a typo
   in it fails the gate and not a later `probe` or `guide` run. It is in the
