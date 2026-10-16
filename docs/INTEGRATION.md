@@ -12,12 +12,12 @@ right and this file has a bug.
 | caller | set | when |
 |---|---|---|
 | `pre-commit` hook | `fast`, 38 steps | every commit, on the staged files |
-| `pre-push` hook | `all`, 42 steps | every push |
-| `hk check --all` in CI | `all`, 42 steps | every push to `main` and every pull request |
+| `pre-push` hook | `all`, 43 steps | every push |
+| `hk check --all` in CI | `all`, 43 steps | every push to `main` and every pull request |
 
 A fourth hook, `commit-msg`, runs two steps on the commit message.
 
-`all` is `fast` plus four steps that judge the branch rather than a single
+`all` is `fast` plus five steps that judge the branch rather than a single
 commit: the bats suite, the dev crate's `cargo test`, `bats-mirror` and
 `tdd-order`. They stay off `pre-commit` on purpose. A RED commit adds a
 failing test before its code exists, so running the suites or the mirror
@@ -131,6 +131,7 @@ the `integration-steps` step fails when it no longer matches.
 | `dev-test` | all | `dev/**` | `cargo test --quiet --manifest-path dev/Cargo.toml` | - |
 | `bats-mirror` | all | `**/*` | `scripts/guard/bats-mirror.sh` | - |
 | `tdd-order` | all | `**/*` | `scripts/guard/tdd-order.sh` | - |
+| `context-limits` | all | `.context-limits` `scripts/guard/context-limits.sh` `scripts/lib/cloud-launch.sh` | `scripts/guard/context-limits.sh` | - |
 | `commit-msg` | commit-msg | the message | `scripts/guard/commit-msg.sh` | - |
 | `changelog` | commit-msg | the message | `claudinix-dev changelog <message-file>` | - |
 <!-- END steps -->
