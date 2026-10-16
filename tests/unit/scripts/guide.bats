@@ -741,11 +741,13 @@ clip_last() {
     [[ "$output" == *"docs/SETUP.md"* ]]
 }
 
-@test "with --agent-home no add_repo offer: the agent home's rule list decides (T137)" {
+@test "with --agent-home no add_repo offer: says the agent home does not allow it, names no repo-internal path (B82)" {
     run bash "$SCRIPT" --from 5 --agent-home <<<$'y\ny\n\ny\n'
     [ "$status" -eq 0 ]
     [[ "$output" != *"[y/N]"* ]]
-    [[ "$output" == *"nix/cloud-permissions.json"* ]]
+    [[ "$output" == *"does not allow add_repo"* ]]
+    [[ "$output" == *"docs/SETUP.md"* ]]
+    [[ "$output" != *"nix/cloud-permissions.json"* ]]
     run ! grep -q -- '--- clip' "$LOG"
 }
 
