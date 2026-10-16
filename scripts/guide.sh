@@ -453,6 +453,35 @@ step_5() {
     echo "  claude --cloud \"Run: nix --version && $dev_shell && echo DEVSHELL-OK. Report the output.\" --model $model"
     echo "In the browser, use the model picker when you start the session instead."
     echo "Which model ran: the Co-Authored-By trailer of the session's commits."
+    add_repo_offer
+}
+
+# add_repo_offer: the allow rule that answers the add_repo prompt ahead
+# of time, the one docs/SETUP.md names (scripts:T137, docs:T47 (a)). On
+# y it is copied as a settings.json block; the guide never writes the
+# file: committing a permission is the owner's call. With the agent home
+# its own rule list (nix/cloud-permissions.json) decides instead.
+add_repo_offer() {
+    local rule=mcp__claude-code-remote__add_repo value="$tmp/allow"
+    echo "Permission prompts: a session stops on \"Allow Claude to use add repo (claude-code-remote)?\" until someone answers."
+    if [ "${#agent_home[@]}" -gt 0 ]; then
+        echo "With the agent home, its rule list (nix/cloud-permissions.json) decides add_repo; see docs/SETUP.md, Permission prompts."
+        return 0
+    fi
+    echo "An unattended run cannot answer it. The rule that allows it, committed in the project's .claude/settings.json:"
+    echo "  $rule"
+    echo "It names the tool, not its arguments: it also allows add_repo with access: \"push\" on any repository your GitHub grant reaches."
+    echo "Whether it silences the prompt is not measured yet; see docs/SETUP.md, Permission prompts."
+    ask "Copy the settings.json allow block to commit it yourself? [y/N]:"
+    case "$answer" in
+    y | Y) ;;
+    *) return 0 ;;
+    esac
+    jq -n --arg rule "$rule" '{permissions: {allow: [$rule]}}' >"$value"
+    if copy "$value"; then
+        echo "(copied to the clipboard)"
+    fi
+    sed 's/^/  /' "$value"
 }
 
 step_update() {
