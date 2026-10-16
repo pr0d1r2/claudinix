@@ -1014,6 +1014,9 @@ usage: cloud-spec.sh [node...] [--model M] [--yes] [--dry-run]
 
 Run it as `scripts/cloud-spec.sh ...` or `just spec-optimize ...`, for
 example `just spec-optimize scripts`, or `just spec-optimize` alone.
+The model order, `--yes`, `--dry-run` and `CLOUD_TASK_REMOTE` work as in
+[`cloud`](#cloud); refusals print one `spec-optimize: ...` line to stderr
+and exit 1, in the form of `cloud`'s.
 
 | argument | meaning |
 |---|---|
