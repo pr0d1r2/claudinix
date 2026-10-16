@@ -66,7 +66,7 @@ T128|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:T126`,C22
 T130|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:T129`,C22
 T134|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:T132`,C22
 T136|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:T135`,C22
-T149|.|CLI `spec-optimize` section, RUNBOOK: a node near its ceiling → `just spec-optimize [node]`, then `just all <PR#>`|`cloud:T148`,C22
+T149|x|CLI `spec-optimize` section, RUNBOOK: a node near its ceiling → `just spec-optimize [node]`, then `just all <PR#>`|`cloud:T148`,C22
 T157|x|CLI `review`: review a PR of another repo from that repo's checkout (`<claudinix>/scripts/cloud-review.sh`); needs its own claude.ai env, GitHub app access, `gh` sign-in|`cloud:T156`,C22
 
 ## §B BUGS
