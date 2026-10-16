@@ -66,7 +66,9 @@ T116|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V26,`.:C2`
 T118|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B14,`.:C2`
 T119|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V26,T116,`.:C2`
 T137|.|`guide` offers `add_repo` allow|`docs:T47`,I.cmd
-T150|x|guard: `.context-limits` row ↑ vs `origin/main` → fail, owner override|`.:C20`
+T150|.|guard: `.context-limits` row ↑ \| added \| file deleted vs `origin/main` → fail, ⊥ override|`.:C20`,B81
+T162|.|`scripts/lib/context-limits.sh` owns the row parser; `cloud_diff_reasons` \& the guard call it|`cloud:V51`,T150
+T163|.|`require_full_history` in `scripts/lib` for `tdd-order` \& `context-limits`|V29,B7
 
 ## §B BUGS
 
@@ -78,3 +80,4 @@ B13|2026-10-04|`just guide --rev c63d695` (short SHA, as git prints it) → bare
 B14|2026-10-04|guide step 3 \& SETUP said "select Create environment"; the dialog button reads "Add environment" (owner, 1st real run) ⇒ UI labels drift w/o notice; ⊥ invariant can check the UI (`.:C2`), ∴ a bats test pins the label the owner saw|`.:C2`
 B17|2026-10-04|git exports `GIT_EXEC_PATH` to hooks; cloud push by image git 2.43 leaked `/usr/lib/git-core` into bats ∴ legacy-hook test's git 2.54 ran the old git's dir first, the shim saw 2.43 \& the gate ran twice; setup unset a fixed `GIT_*` list|`.:V21`
 B62|2026-10-13|setup-line test "gh not signed in" asserted `404` absent from output that names the random commit SHA ∴ ~1% of SHAs contain `404` ⇒ CI failed on a PR that changed no code (#35 run 99); test fixture forces a SHA with `404`, the assertion ignores the SHA|`scripts:V26`
+B81|2026-10-16|`Owner-Override:` trailer (any agent can write it) excused ∀ raise in range, `just merge` has none, file delete passed|`.:C20`
