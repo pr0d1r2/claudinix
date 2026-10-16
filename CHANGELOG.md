@@ -23,8 +23,8 @@ does are summarised briefly; the git history has the detail.
 - The `guide` app's step 5 names the allow rule that answers the `add_repo`
   prompt ahead of time (`mcp__claude-code-remote__add_repo`), says what it
   also allows, and on `y` copies the `.claude/settings.json` block for you
-  to commit; it writes no file. With `--agent-home` it points at the agent
-  home's rule list instead.
+  to commit; it writes no file. With `--agent-home` it says the agent home
+  does not allow `add_repo`, so the prompt stays.
 - `just drain [node:Tn…] [--max N]` works through spec tasks one at a time with
   `just all --merge` from a clean `main`, and stops at the first failure or
   the first pull request the strict merge rule leaves to you. Without tasks it
