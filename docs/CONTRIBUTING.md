@@ -183,7 +183,10 @@ The same applies to the subtler versions: weakening a test, raising a token
 ceiling in `.context-limits`, or silencing a lint to get past it. If a rule
 is wrong, that is a real and welcome finding: change the rule deliberately,
 through the spec, in its own commit, with the reason recorded. The objection
-is to routing around a verdict, not to disagreeing with one.
+is to routing around a verdict, not to disagreeing with one. A raised or
+added ceiling fails the push (`context-limits`) unless the commit that
+raises it carries the owner's `Owner-Override: context-limits` trailer;
+an agent never adds that trailer on its own.
 
 A tool that could not run is a failure, not a pass. Every external tool runs
 through [`scripts/hk/run-tool.sh`](../scripts/hk/run-tool.sh), which says so
