@@ -67,7 +67,7 @@ T118|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B14,`.:C2`
 T119|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V26,T116,`.:C2`
 T137|.|`guide` offers `add_repo` allow|`docs:T47`,I.cmd
 T150|x|guard: `.context-limits` row ↑ \| added \| file deleted vs `origin/main` → fail, ⊥ override|`.:C20`,B81
-T162|.|`scripts/lib/context-limits.sh` owns the row parser; `cloud_diff_reasons` \& the guard call it|`cloud:V51`,T150
+T162|x|`scripts/lib/context-limits.sh` owns the row parser; `cloud_diff_reasons` \& the guard call it|`cloud:V51`,T150
 T163|.|`require_full_history` in `scripts/lib` for `tdd-order` \& `context-limits`|V29,B7
 
 ## §B BUGS
