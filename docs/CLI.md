@@ -20,6 +20,7 @@ has a bug.
 | [`all`](#all) | runs `cloud`, `review all` and `fixup` for one task, waits for CI after each, and opens the pull request (or merges it with `--merge`) | your machine, in the project's git checkout |
 | [`merge`](#merge) | rebase-merges a reviewed pull request, only when the strict rule holds; otherwise names every reason | your machine, in the project's git checkout |
 | [`drain`](#drain) | works through spec tasks one at a time with `all --merge`, stopping at the first failure | your machine, in the project's git checkout |
+| [`spec-optimize`](#spec-optimize) | brings spec nodes back under their `.context-limits` ceilings in a billed cloud session, which opens a pull request | your machine, in the project's git checkout |
 | [`config.sh`](#configsh) | reads and checks a project's optional [`.claudinix.toml`](CONFIG.md) | your machine or a session, in the project |
 | [`nix-dev`](#nix-dev) | `nix develop` that survives the GitHub proxy | inside a cloud session |
 | [`setup.sh`](#setupsh) | the environment's setup script | a cloud session's VM, through the setup line |
@@ -1000,6 +1001,82 @@ run the drain again.
 | 1 | a refusal, the answer was not yes, `gh` could not count the merges, or a task stopped |
 | 2 | a usage error or a bad task argument |
 
+## spec-optimize
+
+Brings spec nodes back under their token ceilings in a fresh cloud session,
+started from your terminal. **It starts a billed session**, so it asks
+first. It does not wait for the session; follow it at
+[claude.ai/code](https://claude.ai/code).
+
+```text
+usage: cloud-spec.sh [node...] [--model M] [--yes] [--dry-run]
+```
+
+Run it as `scripts/cloud-spec.sh ...` or `just spec-optimize ...`, for
+example `just spec-optimize scripts`, or `just spec-optimize` alone.
+
+| argument | meaning |
+|---|---|
+| `node` | a dir of the root `SPEC.md` `§F` table, or the root as `.` or `root`; any number, each used once |
+| `--model M` | the model alias; `--model`, then `session.model` from [`.claudinix.toml`](CONFIG.md), then `sonnet` |
+| `--yes` | skip the billed y/N question; every other check still runs |
+| `--dry-run` | run the same checks, then print the `claude --cloud` command instead of asking or launching |
+
+| variable | meaning |
+|---|---|
+| `CLOUD_TASK_REMOTE` | the remote that must hold the branch; default `origin` |
+| `CLOUD_SPEC_ITOK` | the `itok` command; default `itok` |
+| `CLOUD_SPEC_SHERD` | the `sherd` command; default `sherd` |
+| `CLAUDINIX_SCRIPTS` | directory holding `cloud-spec-prompt.txt` and `config.sh`; default the script's own |
+
+**Which nodes.** The ones you name; an unknown name is refused and the
+nodes are listed. Without any, the nodes over their `.context-limits` row:
+the owner of each file row that `itok check` reports (the longest `§F` dir
+the file is under, else the root) and each chain row that `sherd budget`
+reports. They are taken in `§F` order. Measuring needs `itok`, `sherd` and
+`jq`, so run it from the dev shell or name the nodes. It refuses (exit 1)
+when the project has no `.context-limits`, when a tool is missing or prints
+no report, or when `sherd` names a node that `§F` lacks, since none of
+those means "nothing over". When no node is over, it says so and exits 0
+without starting a session.
+
+**The launch.** The rules of [`cloud`](#cloud): the remote must exist, and
+the current branch must be pushed and equal to its upstream. One y/N
+question names the model, the nodes and the branch you are on.
+
+**What the session does.** It works on a new branch off `main`, named
+`claude/spec-optimize`, then each node after a `-` (the root as `root`;
+the harness may add a suffix), for example
+`claude/spec-optimize-root-docs`. For each node, in order, it:
+
+- runs `mth archive` on the node's `SPEC.md`;
+- moves a row about files another node owns down to the node that owns
+  them, changing every cite in the same commit, and never pushes the
+  target over its own ceiling;
+- shortens `§T` and `§I` wording where no meaning is lost, keeping every
+  id, status and cite, and keeps `§V` and `§C` rows verbatim;
+- makes one `docs(spec)` commit for the node.
+
+Then it lowers each `.context-limits` row it freed to the measured size
+plus 15%, in its own commit with the measurement in its `Why:` line, and
+never raises one. A node still over its ceiling is named in the report and
+the pull request with the split `sherd split` proposes; the session does not
+make the split. It changes only `SPEC.md`, `SPEC-ARCHIVE.md` and
+`.context-limits` files, never code, tests, `hk.pkl` or CI files. It runs
+the gate, pushes, opens a pull request into `main`, and watches CI like
+`cloud`; a red check whose cause lies outside the spec files is reported,
+not fixed. It never merges and never force-pushes.
+
+**Then.** Run [`all`](#all) on the pull request it opened, for example
+`just all 41`, to review and fix it up; then review and merge as for any
+pull request ([`merge`](#merge)).
+
+| exit | meaning |
+|---|---|
+| 0 | the session started, `--dry-run` printed the command, or no node is over its ceiling |
+| 1 | a refusal (unknown node, missing `.context-limits`, tool or report, no remote, branch not pushed or not equal to its upstream, not in a git work tree, no `SPEC.md`) or the answer was not yes |
+| 2 | a usage error |
+
 ## config.sh
 
 The one reader of a project's optional [`.claudinix.toml`](CONFIG.md); every
@@ -1328,6 +1405,7 @@ Arguments pass through, and each recipe is one plain command.
 | `just probe [args]` | `scripts/probe-launch.sh` |
 | `just cloud <task> [args]` | `scripts/cloud-task.sh` |
 | `just all <task \| PR> [args]` | `scripts/cloud-all.sh` |
+| `just spec-optimize [node...] [args]` | `scripts/cloud-spec.sh` |
 | `just bump-nix <version>` | `scripts/bump-nix.sh` |
 | `just release [args]` | `scripts/release.sh` (maintainer) |
 
