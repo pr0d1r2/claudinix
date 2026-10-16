@@ -3,18 +3,14 @@
 #
 # Compares `.context-limits` at HEAD with the same file at the merge base
 # of HEAD and BASE (default `origin/main`, seam CONTEXT_LIMITS_BASE). A
-# row raised or added there fails, each one named, unless a commit in
-# that range which changes `.context-limits` carries the owner's trailer
-#
-#   Owner-Override: context-limits
-#
-# A raise is the owner's call and its own commit with the measurement in
-# `Why:`; the trailer is how that commit says so. The rows are read by
-# cloud_diff_reasons, the parser `just merge` stops on (cloud:V51).
+# row raised or added, or the file deleted, fails, each one named. There
+# is no override: a raise is the owner's call, made on the merge side
+# where `just merge` stops on it too (cloud:V51, scripts:B81). The rows
+# are read by cloud_diff_reasons, the parser `just merge` stops on.
 #
 # Usage: context-limits.sh [BASE]
 # A shallow clone hides the merge base, so it is refused with the fix
-# (V29); a missing BASE checks nothing and fails (V18).
+# (scripts:V29); a missing BASE checks nothing and fails (.:V18).
 
 set -euo pipefail
 
@@ -47,18 +43,14 @@ if ! fork="$(git merge-base HEAD "$base")"; then
 fi
 
 reasons="$(git diff --no-ext-diff "$fork" HEAD -- .context-limits | cloud_diff_reasons)"
-[ -n "$reasons" ] || exit 0
-
-while IFS= read -r commit; do
-    [ -n "$commit" ] || continue
-    if git log -1 --format='%(trailers:key=Owner-Override,valueonly)' "$commit" |
-        grep -qx 'context-limits'; then
-        exit 0
-    fi
-done < <(git rev-list "$fork..HEAD" -- .context-limits)
+if git cat-file -e "$fork:.context-limits" 2>/dev/null && ! git cat-file -e "HEAD:.context-limits" 2>/dev/null; then
+    reasons+=$'\ndiff: deletes .context-limits'
+fi
+[ -n "${reasons//$'\n'/}" ] || exit 0
 
 while IFS= read -r reason; do
+    [ -n "$reason" ] || continue
     echo "context-limits: this branch ${reason#diff: } (vs $base)" >&2
 done <<<"$reasons"
-echo "context-limits: never raise a ceiling to get green -- move rows down to the node that owns them, or archive done tasks. A raise is the owner's call: its own commit, the measurement in \`Why:\`, and the trailer \`Owner-Override: context-limits\`." >&2
+echo "context-limits: never raise a ceiling to get green -- move rows down to the node that owns them, or archive done tasks. A raise is the owner's call, made on the merge side." >&2
 exit 1
