@@ -9,6 +9,8 @@ set -euo pipefail
 
 # shellcheck source=/dev/null # spec-nodes.sh, beside this file
 source "$(dirname "${BASH_SOURCE[0]}")/spec-nodes.sh"
+# shellcheck source=/dev/null # context-limits.sh, beside this file
+source "$(dirname "${BASH_SOURCE[0]}")/context-limits.sh"
 
 # The first words of the comments the review and fixup sessions post; the
 # prompts name them and cloud-all.sh waits for them (cloud:B28).
@@ -330,8 +332,12 @@ cloud_launch() {
 # cloud_diff_reasons: read a patch (`gh pr diff`) on stdin and print, one per
 # line, each reason `just merge` must stop for the owner: a change to a path
 # of CLOUD_MERGE_KEPT, to a §C or §V row of a SPEC.md, or a .context-limits
-# ceiling raised or added (cloud:V51). Prints nothing for a quiet diff.
+# ceiling raised or added, read by context_limits_raises (cloud:V51). Prints
+# nothing for a quiet diff.
 cloud_diff_reasons() {
+    local patch
+    patch="$(cat)"
+    context_limits_raises <<<"$patch"
     awk -v kept_paths="${CLOUD_MERGE_KEPT[*]}" '
         function kept(path,    i) {
             for (i = 1; i <= n_kept; i++) {
@@ -352,16 +358,6 @@ cloud_diff_reasons() {
             if (file ~ /(^|\/)SPEC\.md$/ && $0 ~ /^[-+](- C[0-9]+:|V[0-9]+:)/) {
                 if (!(file in rule)) { rule[file] = 1; print "diff: changes a §C or §V row of " file }
             }
-            if (file == ".context-limits" && $0 !~ /^[-+]#/ && NF == 2 && $2 ~ /^[0-9]+$/) {
-                key = substr($1, 2)
-                if ($0 ~ /^-/) old[key] = $2; else new[key] = $2
-            }
         }
-        END {
-            for (key in new) {
-                if (!(key in old)) print "diff: adds the .context-limits row " key " " new[key]
-                else if (new[key] + 0 > old[key] + 0) print "diff: raises the .context-limits row " key " from " old[key] " to " new[key]
-            }
-        }
-    '
+    ' <<<"$patch"
 }

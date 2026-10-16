@@ -6,7 +6,7 @@
 # row raised or added, or the file deleted, fails, each one named. There
 # is no override: a raise is the owner's call, made on the merge side
 # where `just merge` stops on it too (cloud:V51, scripts:B81). The rows
-# are read by cloud_diff_reasons, the parser `just merge` stops on.
+# are read by context_limits_raises, the parser `just merge` shares.
 #
 # Usage: context-limits.sh [BASE]
 # A shallow clone hides the merge base, so it is refused with the fix
@@ -14,8 +14,8 @@
 
 set -euo pipefail
 
-# shellcheck source=/dev/null # the shared cloud rules, beside this script
-source "$(dirname "${BASH_SOURCE[0]}")/../lib/cloud-launch.sh"
+# shellcheck source=/dev/null # the row parser, in scripts/lib
+source "$(dirname "${BASH_SOURCE[0]}")/../lib/context-limits.sh"
 
 if [ "$#" -gt 1 ]; then
     echo "usage: context-limits.sh [BASE]" >&2
@@ -42,7 +42,7 @@ if ! fork="$(git merge-base HEAD "$base")"; then
     exit 1
 fi
 
-reasons="$(git diff --no-ext-diff "$fork" HEAD -- .context-limits | cloud_diff_reasons)"
+reasons="$(git diff --no-ext-diff "$fork" HEAD -- .context-limits | context_limits_raises)"
 if git cat-file -e "$fork:.context-limits" 2>/dev/null && ! git cat-file -e "HEAD:.context-limits" 2>/dev/null; then
     reasons+=$'\ndiff: deletes .context-limits'
 fi
