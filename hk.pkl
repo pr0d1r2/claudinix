@@ -370,12 +370,11 @@ local all = (fast) {
     glob = List("**/*")
     check = "scripts/guard/tdd-order.sh"
   }
-  // A ceiling raised or added against origin/main fails unless the
-  // owner's `Owner-Override: context-limits` trailer is on the commit
-  // that changes it (scripts:T150, C20). It reads history, so push only; the
-  // parser it shares with `just merge` is in the glob (V19).
+  // A ceiling raised or added, or the file deleted, against origin/main
+  // fails, with no override (scripts:T150, .:C20). It reads history, so push
+  // only; the parser it shares with `just merge` is in the glob (.:V19).
   ["context-limits"] {
-    glob = List(".context-limits", "scripts/guard/context-limits.sh", "scripts/lib/cloud-launch.sh")
+    glob = List(".context-limits", "scripts/guard/context-limits.sh", "scripts/lib/context-limits.sh")
     check = "scripts/guard/context-limits.sh"
   }
 }
