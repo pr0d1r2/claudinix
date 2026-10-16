@@ -1075,7 +1075,7 @@ pull request ([`merge`](#merge)).
 |---|---|
 | 0 | the session started, `--dry-run` printed the command, or no node is over its ceiling |
 | 1 | a refusal (unknown node, missing `.context-limits`, tool or report, no remote, branch not pushed or not equal to its upstream, not in a git work tree, no `SPEC.md`) or the answer was not yes |
-| 2 | a usage error |
+| 2 | a usage error, or a malformed `.claudinix.toml` (when `--model` is not given) |
 
 ## config.sh
 
