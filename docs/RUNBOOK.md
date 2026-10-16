@@ -290,9 +290,7 @@ Anything outside the list can still prompt; see
 **Human.** When a node's `SPEC.md` nears its ceiling in
 [`.context-limits`](../.context-limits), do not raise the ceiling. Run
 `just spec-optimize [node]` (`--dry-run` first; no node means every node over
-its ceiling). It starts one billed cloud session that archives done rows,
-moves rows down to the node that owns their files, shortens `§T` and `§I`
-wording, lowers the freed ceilings and opens a pull request into `main`.
+its ceiling). It starts one billed cloud session that opens a pull request into `main`.
 Then run `just all <PR#>` on that pull request to review and fix it up, and
 merge it. See [`spec-optimize`](CLI.md#spec-optimize).
 

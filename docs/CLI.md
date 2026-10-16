@@ -1047,25 +1047,12 @@ question names the model, the nodes and the branch you are on.
 **What the session does.** It works on a new branch off `main`, named
 `claude/spec-optimize`, then each node after a `-` (the root as `root`;
 the harness may add a suffix), for example
-`claude/spec-optimize-root-docs`. For each node, in order, it:
-
-- runs `mth archive` on the node's `SPEC.md`;
-- moves a row about files another node owns down to the node that owns
-  them, changing every cite in the same commit, and never pushes the
-  target over its own ceiling;
-- shortens `§T` and `§I` wording where no meaning is lost, keeping every
-  id, status and cite, and keeps `§V` and `§C` rows verbatim;
-- makes one `docs(spec)` commit for the node.
-
-Then it lowers each `.context-limits` row it freed to the measured size
-plus 15%, in its own commit with the measurement in its `Why:` line, and
-never raises one. A node still over its ceiling is named in the report and
-the pull request with the split `sherd split` proposes; the session does not
-make the split. It changes only `SPEC.md`, `SPEC-ARCHIVE.md` and
-`.context-limits` files, never code, tests, `hk.pkl` or CI files. It runs
-the gate, pushes, opens a pull request into `main`, and watches CI like
-`cloud`; a red check whose cause lies outside the spec files is reported,
-not fixed. It never merges and never force-pushes.
+`claude/spec-optimize-root-docs`. It makes one `docs(spec)` commit per node
+and only lowers `.context-limits` ceilings, never raises one. The steps are
+in [`cloud-spec-prompt.txt`](../scripts/cloud-spec-prompt.txt). It changes
+only `SPEC.md`, `SPEC-ARCHIVE.md` and `.context-limits` files, runs the
+gate, pushes, opens a pull request into `main`, and watches CI like
+`cloud`. It never merges and never force-pushes.
 
 **Then.** Run [`all`](#all) on the pull request it opened, for example
 `just all 41`, to review and fix it up; then review and merge as for any
