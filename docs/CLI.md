@@ -202,7 +202,8 @@ says what to do and where, opens the URL, copies the value you paste to the
 clipboard, waits for you, and checks locally what it can: the claude.ai
 sign-in (`claude auth status`), `remote.defaultEnvironmentId` in your user
 settings, and the `github:` inputs no cache holds (through
-[`inputs`](#inputs)). It writes nothing and reads no secret.
+[`inputs`](#inputs)). It reads no secret and writes one file at most, the
+project's `.claude/settings.local.json` (step 4, on yes).
 
 ```text
 usage: guide.sh [--force] [--[no-]agent-home] [--rev SHA] [--from STEP] [FLAKE_DIR] | guide.sh update [--force] [--[no-]agent-home] [--rev SHA] [FLAKE_DIR]
@@ -247,13 +248,21 @@ guide. Step 3 asks for the environment's name; Enter keeps the project's name
 step 4, after `/remote-env`, offers to pin the environment in the project's
 `.claude/settings.local.json` (Enter accepts; other keys stay; a file that is
 not a JSON object is left alone; it warns when git does not ignore the file).
-That file is the only one the guide writes. guide. Step 5 asks which model to launch with (`sonnet`, the default, or
+That file is the only one the guide writes. Step 5 asks which model to launch with (`sonnet`, the default, or
 `opus`), lists the GitHub inputs no cache holds with what to do about them,
 and prints the launch lines, with each model's price per million tokens read
 from the price table in [`MODEL.md`](MODEL.md) (never a number of the
 guide's own; if the file, the row or a dollar amount is missing it prints
-`price: see docs/MODEL.md`). Output of step 5, after answering the two money
-checks, for a project whose inputs are all cached:
+`price: see docs/MODEL.md`). It ends with the `add_repo` permission prompt
+([`SETUP.md`](SETUP.md#permission-prompts)): it names the allow rule
+`mcp__claude-code-remote__add_repo` for the project's `.claude/settings.json`,
+says it also allows `access: "push"` and that whether it silences the prompt
+is not measured yet, and asks `[y/N]`; on `y` it copies the `settings.json`
+block to the clipboard and prints it, for you to commit. It never writes that
+file. With `--agent-home` it only says that the agent home's rule list
+(`nix/cloud-permissions.json`) decides `add_repo`, and asks nothing. Output of
+step 5, after answering the two money checks, for a project whose inputs are
+all cached, without the agent home:
 
 ```text
 == 5. Run a first session and check that it works ==
@@ -269,6 +278,12 @@ First check, it works when the output shows a Nix version and DEVSHELL-OK:
   claude --cloud "Run: nix --version && nix-dev -c true && echo DEVSHELL-OK. Report the output." --model sonnet
 In the browser, use the model picker when you start the session instead.
 Which model ran: the Co-Authored-By trailer of the session's commits.
+Permission prompts: a session stops on "Allow Claude to use add repo (claude-code-remote)?" until someone answers.
+An unattended run cannot answer it. The rule that allows it, committed in the project's .claude/settings.json:
+  mcp__claude-code-remote__add_repo
+It names the tool, not its arguments: it also allows add_repo with access: "push" on any repository your GitHub grant reaches.
+Whether it silences the prompt is not measured yet; see docs/SETUP.md, Permission prompts.
+Copy the settings.json allow block to commit it yourself? [y/N]:
 ```
 
 When some inputs are uncached, the second block instead lists them and says:
