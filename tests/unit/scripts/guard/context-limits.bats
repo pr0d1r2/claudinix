@@ -1,9 +1,8 @@
 #!/usr/bin/env bats
 # Unit tests for scripts/guard/context-limits.sh (SPEC scripts:T150,
-# .:C20): a .context-limits row raised or added on the branch, against
-# its merge base with origin/main, fails the gate unless a commit that
-# changes the file carries the owner's `Owner-Override: context-limits`
-# trailer.
+# .:C20): a .context-limits row raised or added, or the file deleted, on
+# the branch, against its merge base with origin/main, fails the gate;
+# there is no override (B81).
 
 setup() {
     SCRIPT="$BATS_TEST_DIRNAME/../../../../scripts/guard/context-limits.sh"
@@ -61,12 +60,11 @@ limits() {
     [ "$status" -eq 0 ]
 }
 
-@test "a raised file row fails and names the row, both values and the override" {
+@test "a raised file row fails and names the row and both values" {
     limits scripts/SPEC.md 4600
     run bash "$SCRIPT"
     [ "$status" -eq 1 ]
     [[ "$output" == *"raises the .context-limits row scripts/SPEC.md from 4200 to 4600"* ]]
-    [[ "$output" == *"Owner-Override: context-limits"* ]]
 }
 
 @test "a raised chain row fails" {
@@ -99,25 +97,20 @@ limits() {
     [ "$status" -eq 0 ]
 }
 
-@test "the owner's trailer on the raising commit lets the raise through" {
+@test "an Owner-Override trailer is no override: the owner raises on the merge side (B81)" {
     limits scripts/SPEC.md 4600 "$(printf 'chore: raise\n\nWhy: measured 4000.\n\nOwner-Override: context-limits')"
     run bash "$SCRIPT"
-    [ "$status" -eq 0 ]
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"raises the .context-limits row scripts/SPEC.md from 4200 to 4600"* ]]
+    [[ "$output" != *"Owner-Override"* ]]
 }
 
-@test "a trailer on a commit that does not change the file is no override" {
-    limits scripts/SPEC.md 4600
-    echo x >other
-    git add other
-    git commit -q -m "$(printf 'chore: other\n\nOwner-Override: context-limits')"
+@test "deleting .context-limits fails: the ceilings are gone (B81)" {
+    git rm -q .context-limits
+    git commit -q -m "chore: drop limits"
     run bash "$SCRIPT"
     [ "$status" -eq 1 ]
-}
-
-@test "a trailer with another value is no override" {
-    limits scripts/SPEC.md 4600 "$(printf 'chore: raise\n\nOwner-Override: hk.pkl')"
-    run bash "$SCRIPT"
-    [ "$status" -eq 1 ]
+    [[ "$output" == *"deletes .context-limits"* ]]
 }
 
 @test "the base is measured at the merge base, so main moving on is not a raise" {
@@ -136,14 +129,14 @@ limits() {
     [ "$status" -eq 0 ]
 }
 
-@test "a missing base fails, naming it (V18, V26)" {
+@test "a missing base fails, naming it (.:V18, scripts:V26)" {
     CONTEXT_LIMITS_BASE=nope/main run bash "$SCRIPT"
     [ "$status" -eq 1 ]
     [[ "$output" == *"nope/main"* ]]
     [[ "$output" == *"nothing was checked"* ]]
 }
 
-@test "a shallow clone fails with the fix (V29)" {
+@test "a shallow clone fails with the fix (scripts:V29)" {
     limits scripts/SPEC.md 4100
     git clone -q --depth 1 "file://$REPO" "$BATS_TEST_TMPDIR/shallow"
     cd "$BATS_TEST_TMPDIR/shallow" || exit 1
