@@ -259,8 +259,8 @@ guide's own; if the file, the row or a dollar amount is missing it prints
 says it also allows `access: "push"` and that whether it silences the prompt
 is not measured yet, and asks `[y/N]`; on `y` it copies the `settings.json`
 block to the clipboard and prints it, for you to commit. It never writes that
-file. With `--agent-home` it only says that the agent home's rule list
-(`nix/cloud-permissions.json`) decides `add_repo`, and asks nothing. Output of
+file. With `--agent-home` it only says that the agent home does not allow
+`add_repo`, so the prompt stays, and asks nothing. Output of
 step 5, after answering the two money checks, for a project whose inputs are
 all cached, without the agent home:
 
