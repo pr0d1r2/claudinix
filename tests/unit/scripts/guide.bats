@@ -710,3 +710,48 @@ config() {
     [[ "$output" == *"todo:"* ]]
     [ ! -e "$P/.claude/settings.local.json" ]
 }
+
+# clip_last: what the guide last copied to the clipboard stub.
+clip_last() {
+    awk '$0 == "--- clip" { buf = ""; next } { buf = buf $0 "\n" } END { printf "%s", buf }' "$LOG"
+}
+
+@test "step 5 names the add_repo allow rule; Enter copies nothing, writes nothing (T137)" {
+    run bash "$SCRIPT" --from 5 <<<$'y\ny\n\n'
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"mcp__claude-code-remote__add_repo"* ]]
+    [[ "$output" == *".claude/settings.json"* ]]
+    [[ "$output" == *"[y/N]"* ]]
+    run ! grep -q -- '--- clip' "$LOG"
+    [ ! -e "$P/.claude/settings.json" ]
+}
+
+@test "answering y copies the settings.json allow block, writes no file (T137)" {
+    run bash "$SCRIPT" --from 5 <<<$'y\ny\n\ny\n'
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"(copied to the clipboard)"* ]]
+    [ "$(clip_last | jq -c .permissions.allow)" = '["mcp__claude-code-remote__add_repo"]' ]
+    [ ! -e "$P/.claude/settings.json" ]
+}
+
+@test "the offer says what the rule also allows and that it is unmeasured (T137)" {
+    run bash "$SCRIPT" --from 5 <<<$'y\ny\n\n'
+    [[ "$output" == *'access: "push"'* ]]
+    [[ "$output" == *"not measured"* ]]
+    [[ "$output" == *"docs/SETUP.md"* ]]
+}
+
+@test "with --agent-home no add_repo offer: the agent home's rule list decides (T137)" {
+    run bash "$SCRIPT" --from 5 --agent-home <<<$'y\ny\n\ny\n'
+    [ "$status" -eq 0 ]
+    [[ "$output" != *"[y/N]"* ]]
+    [[ "$output" == *"nix/cloud-permissions.json"* ]]
+    run ! grep -q -- '--- clip' "$LOG"
+}
+
+@test "parity: the offered rule is the one docs/SETUP.md tells to commit (T137)" {
+    want="$(sed -n 's/.*"allow": \["\([^"]*\)"\].*/\1/p' "$REPO/docs/SETUP.md")"
+    [ "$want" = mcp__claude-code-remote__add_repo ]
+    run bash "$SCRIPT" --from 5 <<<$'y\ny\n\ny\n'
+    [ "$(clip_last | jq -r '.permissions.allow[0]')" = "$want" ]
+}
