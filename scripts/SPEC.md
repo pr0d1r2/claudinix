@@ -66,7 +66,7 @@ T116|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V26,`.:C2`
 T118|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B14,`.:C2`
 T119|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V26,T116,`.:C2`
 T137|.|`guide` offers `add_repo` allow|`docs:T47`,I.cmd
-T150|.|guard: `.context-limits` row ↑ vs `origin/main` → fail, owner override|`.:C20`
+T150|x|guard: `.context-limits` row ↑ vs `origin/main` → fail, owner override|`.:C20`
 
 ## §B BUGS
 
