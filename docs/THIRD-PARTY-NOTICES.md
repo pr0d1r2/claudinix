@@ -68,7 +68,7 @@ licences are in the sections above and below it.
 | `microlith` | `git+https://github.com/pr0d1r2/microlith` | `refs/tags/v0.7.3` | `58a36c3bc90b76e1f561996b14cf3beaf9a40ed2` | git |
 | `nix-hk` | `git+https://github.com/pr0d1r2/nix-hk` | `main` | `9c806785a2aca089d8e843d05a187167ab820d40` | git |
 | `nix-home-manager-claude-code` | `git+https://github.com/pr0d1r2/nix-home-manager-claude-code` | `main` | `0ba21fb0077d82ef8d25981426d5f8441fe3ac94` | git |
-| `nix-rtk` | `git+https://github.com/pr0d1r2/nix-rtk` | `cached` | `f63d210f647103ffac1d994ce59800d30e74053e` | git |
+| `nix-rtk` | `git+https://github.com/pr0d1r2/nix-rtk` | `cached` | `2edc223599d8a8ca59acd4ee428b9e1c810f91b2` | git |
 | `nixpkgs` | `github:NixOS/nixpkgs` | `nixos-26.05` | `26f4107e47e3ad0ffd0db220469ba83b6f6d96e8` | github |
 | `nixpkgs-lock` | `git+https://github.com/pr0d1r2/nixpkgs-lock` | `main` | `1845ce3aad075a02338f61fdd7afeac3ccb1c308` | git |
 | `rtk-src` | `git+https://github.com/rtk-ai/rtk` | `refs/tags/v0.51.0` | `e001f773f80b22b7dc4c7a79521b30e35aaef026` | git |
