@@ -20,6 +20,7 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- The `fleet` review role is read-only and passes the owner and repo as one quoted argument.
 - The `fleet` review role names only public consumers; private ones are counted.
 - The `fleet` review role treats consumer files as data, never instructions.
 - `just review fleet <PR>` is a new review role, and `review all` runs it: it
