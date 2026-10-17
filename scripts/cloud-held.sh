@@ -19,7 +19,7 @@
 # owns every wait and every CI decision. A pull request whose flow fails is
 # named and the next one still runs; the script exits 1 at the end.
 #
-# When every pull request has run, a report lists each one with its outcome
+# After the loop, a report lists each pull request run with its outcome
 # and URL, oldest first, before the closing done line (cloud:T169).
 #
 # It never merges, adds or removes a label, or closes a pull request: the
