@@ -245,6 +245,15 @@ fixup 14 --yes --model sonnet" ]
     grep -q 'review all 14 ' "$STATE/children.log"
 }
 
+@test "--merge never merges a PR found by its body: it stops for the owner and opens it (V55)" {
+    printf '%b\n' '15\tclaude/fix-the-thing\thttps://github.com/o/p/pull/15\tfalse\tBuilds T47' >"$STATE/new_pr"
+    run bash "$SCRIPT" docs:T47 --yes --merge
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"#15"* ]]
+    run ! grep -q '^merge' "$STATE/children.log"
+    grep -q 'pull/15' "$STATE/open.log"
+}
+
 @test "the script uses no bash 4 case folding: macOS bash 3.2 has none (V54)" {
     run ! grep -nE '\$\{[a-z_]+(,,|\^\^)\}' "$SCRIPT"
 }
