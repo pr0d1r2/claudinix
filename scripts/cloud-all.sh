@@ -205,8 +205,13 @@ max_gh_failures=3
 # What a wait's check returns for a failed gh call, and wait_for for the stop.
 readonly gh_failed=3
 
-# wait_failed RC MESSAGE: stop the flow after a failed wait_for. RC 3 is the
-# gh stop, which already said why; any other RC gets MESSAGE.
+# What find_pr returns for 2 or more pull requests naming the task, after
+# it said which: it passes through wait_for like any code but 2 and 3.
+readonly ambiguous=4
+
+# wait_failed RC MESSAGE: stop the flow after a failed wait_for. RC 3 (the gh
+# stop) and RC 4 (several pull requests name the task) already said why; any
+# other RC gets MESSAGE.
 wait_failed() {
     if [ "$1" = "$gh_failed" ] || [ "$1" = "$ambiguous" ]; then
         open_pr
@@ -216,7 +221,8 @@ wait_failed() {
 }
 
 # wait_for WHAT MAX CHECK...: run CHECK every $poll s until it returns 0
-# (done) or 1 (failed); 2 is not yet, printed as a dot; 3 is a failed gh
+# (done) or 1 (failed); any other code but 2 and 3 (4, say) stops the wait
+# and is returned as is; 2 is not yet, printed as a dot; 3 is a failed gh
 # call, which counts as not yet until $max_gh_failures come in a row (a
 # success resets the count), then stops the wait with gh's last stderr.
 # Returns 1 when MAX polls run out.
@@ -285,10 +291,6 @@ else
         [ -z "$n" ] || before="$before$n "
     done <<<"$snapshot"
 fi
-
-# What find_pr returns for 2 or more pull requests naming the task, after
-# it said which; wait_failed then only opens the pull request.
-readonly ambiguous=4
 
 # lower TEXT: TEXT with the case folded; bash 3.2 has no case-folding expansion (cloud:V54).
 lower() {
