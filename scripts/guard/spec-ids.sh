@@ -41,6 +41,10 @@ defined_and_pointed() {
             }
             next
         }
+        /^(- )?[TVBC][0-9]+[^|:]*: *ARCHIVED to/ || (/^[TVBC][0-9]+\|[^|]*\|ARCHIVED to/ && !/^[^|]*\|[^|]*\|ARCHIVED to SPEC-ARCHIVE\.md/) {
+            emit("E", "line " NR ": unparsed pointer: " $0)
+            next
+        }
         match($0, /^(- )?[TVBC][0-9]+[|:]/) {
             id = substr($0, RSTART, RLENGTH - 1)
             sub(/^- /, "", id)
