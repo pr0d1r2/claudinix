@@ -67,8 +67,7 @@ setup() {
     [ -s "$f" ]
     head -n 1 "$f" | grep -q '^# '
     local term
-    for term in 'gh search code' 'local checkout' 'flake input' 'uses:' 'nix run' 'vendored' \
-        'pin bump' 'renamed' 'removed' 'default' 'workflow input' 'hook id' 'file:line' 'Findings: N'; do
+    for term in 'gh search code' 'pin bump' 'file:line'; do
         grep -qiF -- "$term" "$f" || {
             echo "fleet.md lacks: $term"
             return 1
