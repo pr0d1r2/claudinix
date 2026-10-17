@@ -23,7 +23,7 @@
 #
 # Usage: cloud-held.sh [--label L] [--repo R...] [--max N] [--model M] [--yes] [--dry-run]
 # Env:   CLAUDINIX_PROJECTS  dir holding the owner's checkouts, one per repo
-#        CLAUDINIX_SCRIPTS   dir holding cloud-all.sh, review/ and config.sh
+#        CLAUDINIX_SCRIPTS   tests only: dir holding cloud-all.sh, review/ and config.sh
 
 set -euo pipefail
 

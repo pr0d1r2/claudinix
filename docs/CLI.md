@@ -1049,8 +1049,14 @@ your repositories, oldest first; `--repo` keeps only the named repos and
 `--max N` caps the run. It skips a pull request, naming it, when you are not
 its author, when its repository has no checkout at
 `$CLAUDINIX_PROJECTS/<repo>`, or when that checkout pins no claude.ai cloud
-environment (`remote.defaultEnvironmentId` in `.claude/settings.local.json`).
-A fork is refused by `all` itself.
+environment (`remote.defaultEnvironmentId` in `.claude/settings.local.json`),
+or when it comes from a fork. The search reads at most 100 pull requests; when
+a page is full it says so, and `--repo` goes to the search so a named repo is
+not cut off by other repos' pull requests.
+
+**Environment.** `CLAUDINIX_PROJECTS` is required: the directory holding your
+checkouts, one per repository, named as the repository. A path with a space
+works.
 
 **Asking.** One question names the pull requests and the sessions (one
 review per role and one fixup each); `--yes` skips only that question and
