@@ -76,7 +76,7 @@ access. That makes the following the classes worth reporting:
    `--delete` and `--mirror` are denied, and so is any push option after
    the remote: allowed pushes put theirs first. A push writes one ref: a
    second refspec and a destination after a `claude/` branch
-   (`claude/x:production`) are denied. So is every other way to merge (`gh pr merge`, `gh -R … pr merge`, `gh api …/merge` and the GitHub MCP merge tools): only the owner merges. `HEAD:<branch>` may still write any one
+   (`claude/x:production`) are denied. So is every other way to merge (`gh pr merge`, `gh -R … pr merge`, `gh api …/merge` and the GitHub MCP merge tools): only the owner merges. `gh pr close`, `gh pr edit` and the MCP `update_pull_request` tool are denied too, in every cloud session. `HEAD:<branch>` may still write any one
    branch but `main`. The rtk hook rewrites `git` and
    `cargo` commands to `rtk <cmd>`, and the rules match a command's start, so
    every `git` and `cargo` rule, allow or deny, has an `rtk` twin

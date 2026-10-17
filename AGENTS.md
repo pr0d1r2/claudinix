@@ -139,7 +139,7 @@ Measured in real sessions: root, `HOME=/root`, `CLAUDE_CODE_REMOTE=true`.
 
 Cloud sessions get one narrow rule list, `nix/cloud-permissions.json`: allow
 for the gate's own commands and for pushing `claude/*`, deny for pushing
-`main` and for `gh pr merge`. It is never committed into `.claude/settings.json`, which holds only
+`main` and for `gh pr merge`, `close` and `edit` (plus the MCP merge and `update_pull_request` tools). It is never committed into `.claude/settings.json`, which holds only
 the SessionStart hook. The agent home writes it into `~/.claude/settings.json`;
 with `CLAUDINIX_SESSION_PERMISSIONS=1` in the cloud environment,
 `scripts/dev/session-start.sh` also merges it into the gitignored
