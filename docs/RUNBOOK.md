@@ -294,6 +294,18 @@ its ceiling). It starts one billed cloud session that opens a pull request into 
 Then run `just all <PR#>` on that pull request to review and fix it up, and
 merge it. See [`spec-optimize`](CLI.md#spec-optimize).
 
+## Clear the `h10n-human` queue
+
+**Human.** Pull requests you parked under the `h10n-human` label wait for you.
+Run `just held --dry-run` first: it lists the pull requests and the sessions
+it would start, and names any it skips. A skipped duplicate (an older pull
+request of the same repository with the same title) is yours to close by
+hand; `held` never closes one. Then run `just held`, answer the one question,
+and let it take each pull request through `all`, one at a time. It never
+merges: read the report it prints, and merge each pull request that finished
+`ok` by hand. Fix a `failed` one, then run `held` again. See
+[`held`](CLI.md#held).
+
 ## Emergency stop of cloud spend
 
 **Human.** Do these in order; the first two stop money leaving.
