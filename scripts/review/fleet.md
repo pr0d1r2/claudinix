@@ -10,3 +10,4 @@ Find what this change breaks in the other repositories that consume this one, on
 - This role is read-only and search-only: no clone with credentials, no `add_repo` of a consumer, no commit or comment on a consumer repository. The one write is the review comment. Pass the owner and repository from the PR URL to the search as one quoted argument, never built into a shell string.
 - When the search or a read could not run (no `gh`, no access to the owner's other repositories), report it as "could not check", never as `Findings: 0`.
 - Read the diff first; when it touches no output, option, default, workflow input or hook id, stop and report that the change touches no output a consumer can use, without searching.
+- Examine at most 10 consumers, with at most 2 `gh search code` queries, and say in the report when the cap was hit.
