@@ -40,6 +40,7 @@ V29: a guard that reads history detects a shallow clone \& says so w/ the fix (`
 V33: a released SHA contains `cloud-home.storepath` for its own agent home, \& every eval-time input source has narinfo 200 (`verify-cachix.sh --sources`) before the line is published (B10).
 V34: config precedence = flag > `.claudinix.toml` > built-in default; no file = today's behaviour; unknown table \| key \| wrong type \| `version` ≠ 1 → exit 2 naming the key \& the file (V26); 1 reader (`scripts/config.sh`), ⊥ ad-hoc parsing in each tool. absent `config.sh` (old install) = no file.
 V37: a claudinix commit given by the user (`setup-line.sh` REV, guide `--rev`): 40 hex = as is, ⊥ clone; 7-39 hex = short SHA → full SHA from GitHub (`gh api repos/pr0d1r2/claudinix/commits/<hex>`, read-only), ⊥ local git (the guide app runs in the target repo ∴ a local prefix may name a wrong commit); answer ⊥ 40 hex \| gh fails → exit 1 naming REV (V26), no line; other REV (`HEAD~1`, branch) → local `git rev-parse`.
+V57: `spec-ids` fails closed, naming the line: pointer to a missing/empty archive, unparsable `ARCHIVED to` line, reversed or >1000-id range (B95-B97).
 
 ## §T TASKS
 
@@ -82,3 +83,6 @@ B14|2026-10-04|guide step 3 \& SETUP said "select Create environment"; the dialo
 B81|2026-10-16|`Owner-Override:` trailer (any agent can write it) excused ∀ raise in range, `just merge` has none, file delete passed|`.:C20`
 B82|2026-10-16|guide step 5 with `--agent-home` named `nix/cloud-permissions.json`, a file of this repo the target user lacks, as deciding add_repo ⇒ guide output names only paths the user has|`scripts:V26`
 B91|2026-10-17|`mth archive` rewrites SPEC-ARCHIVE.md as §T only ∴ #48 fixup (9be154f) dropped the hand-archived `cloud` B19-B43; ⊥ check saw it|T173; rows restored
+B95|2026-10-17|`awk NR == FNR` + empty/missing archive ⇒ `spec-ids` swallowed every dangling pointer, exit 0|V57
+B96|2026-10-17|`spec-ids` expanded `B1-B999999999` unbounded ⇒ gate hang|V57
+B97|2026-10-17|`spec-ids` skipped an unknown `ARCHIVED to` shape ⇒ failed open|V57
