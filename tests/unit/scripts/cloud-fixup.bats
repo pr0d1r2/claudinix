@@ -274,6 +274,28 @@ pr() {
     grep -qF 'CI logs and check output' "$STATE/claude.task"
 }
 
+@test "the prompt works in any repository: its AGENTS.md, gate and spec only if present, never this repo's rules (T165)" {
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 0 ]
+    local p="$STATE/claude.task"
+    grep -qF 'If the repository has an AGENTS.md or a SPEC.md' "$p"
+    grep -qF 'README' "$p"
+    grep -qF 'If the repository has a gate' "$p"
+    grep -qF "the repository's own tooling" "$p"
+    grep -qF "Follow this repository's rules, not those of the project that launched you" "$p"
+    run ! grep -qF 'Fix up one pull request of this repository in this' "$p"
+}
+
+@test "the prompt: a Review: fleet finding is fixed in the PR (old name kept or a shim) or named as a consumer change, never dropped (T165)" {
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 0 ]
+    local p="$STATE/claude.task"
+    grep -qF 'Review: fleet' "$p"
+    grep -qF 'keep the old name or add a shim' "$p"
+    grep -qF 'name the consumer change its owner must make' "$p"
+    grep -qF 'never drop a fleet finding' "$p"
+}
+
 # --- just ---
 
 @test "just fixup runs the script, one plain command" {
