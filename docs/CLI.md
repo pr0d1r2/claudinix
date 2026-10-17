@@ -20,6 +20,7 @@ has a bug.
 | [`all`](#all) | runs `cloud`, `review all` and `fixup` for one task, waits for CI after each, and opens the pull request (or merges it with `--merge`) | your machine, in the project's git checkout |
 | [`merge`](#merge) | rebase-merges a reviewed pull request, only when the strict rule holds; otherwise names every reason | your machine, in the project's git checkout |
 | [`drain`](#drain) | works through spec tasks one at a time with `all --merge`, stopping at the first failure | your machine, in the project's git checkout |
+| [`held`](#held) | takes your open pull requests labelled `h10n-human` through `all`, one at a time, never merging | your machine, with a checkout of each repo |
 | [`spec-optimize`](#spec-optimize) | brings spec nodes back under their `.context-limits` ceilings in a billed cloud session, which opens a pull request | your machine, in the project's git checkout |
 | [`config.sh`](#configsh) | reads and checks a project's optional [`.claudinix.toml`](CONFIG.md) | your machine or a session, in the project |
 | [`nix-dev`](#nix-dev) | `nix develop` that survives the GitHub proxy | inside a cloud session |
@@ -1029,6 +1030,42 @@ run the drain again.
 | 0 | every task in the run merged, nothing to do, or `--dry-run` printed the plan |
 | 1 | a refusal, the answer was not yes, `gh` could not count the merges, or a task stopped |
 | 2 | a usage error or a bad task argument |
+
+## held
+
+Takes the pull requests you parked under a label through [`all`](#all), one
+at a time. **It starts many billed sessions**, so it asks once, first. It
+never merges, adds or removes a label, or closes a pull request: the hold is
+yours.
+
+```text
+usage: cloud-held.sh [--label L] [--repo R...] [--max N] [--model M] [--yes] [--dry-run]
+```
+
+Run it as `scripts/cloud-held.sh ...` or `just held ...`.
+
+**Which pull requests.** The open ones labelled `h10n-human` (or L) across
+your repositories, oldest first; `--repo` keeps only the named repos and
+`--max N` caps the run. It skips a pull request, naming it, when you are not
+its author, when its repository has no checkout at
+`$CLAUDINIX_PROJECTS/<repo>`, or when that checkout pins no claude.ai cloud
+environment (`remote.defaultEnvironmentId` in `.claude/settings.local.json`).
+A fork is refused by `all` itself.
+
+**Asking.** One question names the pull requests and the sessions (one
+review per role and one fixup each); `--yes` skips only that question and
+`--dry-run` prints it and starts nothing.
+
+**Running.** Each pull request runs as `cloud-all.sh <PR URL> --yes` from its
+checkout. `all` does every wait and every CI decision. A pull request whose
+flow fails is named and the next one still runs; the last line is
+`held: done, <n> of <m>`.
+
+| exit | meaning |
+|---|---|
+| 0 | every pull request in the run finished, or there was nothing to do |
+| 1 | a refusal, the answer was not yes, `gh` failed, or a pull request's flow failed |
+| 2 | a usage error |
 
 ## spec-optimize
 
