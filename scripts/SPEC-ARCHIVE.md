@@ -30,3 +30,6 @@ T114|x|guide `--rev` takes a short SHA (7-40 hex), passed on to `setup-line.sh`;
 T116|x|guide env name: step 3 asks `Environment name (Enter: <project>)`, default = project name (git top basename of flake-dir), ⊥ fixed `nix`; steps 4 \& `update` name it; step 4 says `/remote-env` is user-wide ∴ pin per-project env in the repo `.claude/settings.json` (`remote.defaultEnvironmentId`)|I.cmd,V26,`.:C2`
 T118|x|guide step 3 ends w/ "select Add environment" (UI label seen 2026-10-04), ⊥ "Create environment"|I.cmd,B14,`.:C2`
 T119|x|guide step 4 = per-project pin (owner 2026-10-04: 1 env per project, more soon; `/remote-env` writes user scope only, `--environment` rejects `env_` ids): show the project pin if any, ask `Pin <id> to <project> [Y/n]`, write it, warn if not ignored; ⊥ id → todo; heading "(once per project)" + SETUP heading (parity)|I.cmd,V26,T116,`.:C2`
+T137|x|`guide` offers `add_repo` allow|`docs:T47`,I.cmd
+T150|x|guard: `.context-limits` row ↑ \| added \| file deleted vs `origin/main` → fail, ⊥ override|`.:C20`,B81
+T162|x|`scripts/lib/context-limits.sh` owns the row parser; `cloud_diff_reasons` \& the guard call it|`cloud:V51`,T150
