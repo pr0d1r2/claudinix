@@ -1058,7 +1058,8 @@ its author, when its repository has no checkout at
 `$CLAUDINIX_PROJECTS/<repo>`, or when that checkout pins no claude.ai cloud
 environment (`remote.defaultEnvironmentId` in `.claude/settings.local.json`),
 or when it comes from a fork, or when an older pull request of the same
-repository has the same title (the oldest runs; a skipped duplicate spends no
+repository that would run has the same title (equal titles are what makes a
+duplicate; the oldest runnable one runs, and a skipped duplicate spends no
 session and no `--max` slot). The search reads at most 100 pull requests; when
 a page is full it says so, and `--repo` goes to the search so a named repo is
 not cut off by other repos' pull requests.
