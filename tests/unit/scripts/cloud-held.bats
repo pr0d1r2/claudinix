@@ -256,6 +256,16 @@ alpha all https://github.com/owner/alpha/pull/7 --yes --model sonnet" ]
     [[ "$output" == *"1 of 2"* ]]
 }
 
+@test "a report lists every PR run, oldest first, with its outcome and URL, before the done line (cloud:T169)" {
+    echo 1 >"$STATE/rc.3"
+    run bash "$SCRIPT" --yes
+    report="$(grep -E '^held: (report$|.* https://)' <<<"$output")"
+    [ "$report" = "held: report
+held: owner/beta#3 failed https://github.com/owner/beta/pull/3
+held: owner/alpha#7 ok https://github.com/owner/alpha/pull/7" ]
+    [ "${lines[${#lines[@]} - 1]}" = "held: done, 1 of 2" ]
+}
+
 @test "gh cannot search: exit 1 with gh's stderr only, no session (cloud:V41)" {
     export GH_FAIL=1
     run bash "$SCRIPT" --yes

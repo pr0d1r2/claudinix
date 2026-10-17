@@ -19,6 +19,9 @@
 # owns every wait and every CI decision. A pull request whose flow fails is
 # named and the next one still runs; the script exits 1 at the end.
 #
+# When every pull request has run, a report lists each one with its outcome
+# and URL, oldest first, before the closing done line (cloud:T169).
+#
 # It never merges, adds or removes a label, or closes a pull request: the
 # hold is the owner's (cloud:V52).
 #
@@ -146,13 +149,18 @@ if [ "$yes" = 0 ]; then
 fi
 
 done_count=0
+report=()
 for entry in "${picked[@]}"; do
     IFS=$'\t' read -r name checkout url <<<"$entry"
     if (cd "$checkout" && "$scripts_dir/cloud-all.sh" "$url" --yes --model "$model"); then
         done_count=$((done_count + 1))
+        report+=("held: $name ok $url")
     else
         echo "held: $name failed (see the flow's last line above); going on" >&2
+        report+=("held: $name failed $url")
     fi
 done
+echo "held: report"
+printf '%s\n' "${report[@]}"
 echo "held: done, $done_count of $total"
 [ "$done_count" -eq "$total" ]
