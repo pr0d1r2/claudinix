@@ -69,8 +69,9 @@ T161|x|ARCHIVED to SPEC-ARCHIVE.md|V51,I.cmd
 T164|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V51
 T165|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T164,`.:C29`
 T166|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52,T161,V40,V41,T165,`.:C29`
-T168|.|`held` duplicates: 1 repo, same normalized title \| head-branch prefix → oldest kept, rest listed for the owner, ⊥ sessions|I.cmd,V52
-T169|.|`held` report per PR: findings, fixed, declined, CI (from the `all` result)|I.cmd,T166,`docs:T167`
+T168|.|`held` dedupe: same repo \& title → oldest kept, ⊥ sessions|I.cmd,V52
+T169|.|`held` report per PR from `all`|I.cmd,T166,`docs:T167`
+T170|.|`all` stops a PR whose head ≠ the last `fixup` push (V52)|V52,T166
 
 ## §B BUGS
 
@@ -96,7 +97,7 @@ B80|2026-10-15|`drain` progress used all candidates ∴ `--max 1` said `1 of 14`
 B83|2026-10-17|`fixup` prompt honoured `Review: fleet` comments of any author with "never drop" ahead of the decline rule ∴ anyone could force a change on the PR branch in a repo outside this one (#48)|V53: only OWNER \| MEMBER \| COLLABORATOR comments steer a fixup; "never drop silently"
 B84|2026-10-17|`fixup` prompt ran the gate \& repo tooling of the PR head, with the session's credentials, in repos whose PR authors are third parties (#48)|V53: tooling from the base; a PR that changes it → read-only, report
 B85|2026-10-17|shared CI-watch fragment told the session to follow AGENTS.md \| §B \| a gate and not to edit `hk.pkl` in repos that have none (#48)|CI-watch fragment is repo-neutral: those rules apply if present
-B86|2026-10-17|`held` ran a fork PR (#50)|V52: skipped at selection
+B86|2026-10-17|`held` ran a fork PR (#50)|V52: skipped
 B87|2026-10-17|`held` records split on spaces (#50)|V52: split on tab
-B88|2026-10-17|`held` lost PRs past the 100th (#50)|V52: `--repo` in the search, full page said
+B88|2026-10-17|`held` lost PRs past the 100th (#50)|V52: `--repo` in search
 B89|2026-10-17|`CLOUD_MERGE_KEPT` missed `scripts/cloud-held.sh` (#50)|V51: kept
