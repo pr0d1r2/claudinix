@@ -28,6 +28,7 @@ does are summarised briefly; the git history has the detail.
 - `just fixup` acts only on comments by the repository's owner, members and
   collaborators; other comments may be declined.
 - The CI-watch rules of every cloud session ask for AGENTS.md order and a gate only where the repository has them.
+- `just fixup` follows the rules of the repository it runs in, not the launching project's.
 - `just fixup` runs the gate the repository names; hk is one case, not the default.
 - `just fixup` runs the base branch's gate and tooling, and runs nothing from a
   pull request head that changes them.
