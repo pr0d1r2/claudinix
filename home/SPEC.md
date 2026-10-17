@@ -35,7 +35,7 @@ V50: allowed push writes 1 ref: 1 refspec, `claude/` src ⊥ `:dst` (B59); `head
 
 id|status|task|cites
 T155|x|ARCHIVED to SPEC-ARCHIVE.md|V45,V46,V47,B50,B51
-T172|.|cloud list denies `gh pr close *`, `gh pr edit *` + rtk \& `gh -R x` twins; guard requires them|`.:C29`,`cloud:V52`,B71
+T172|.|cloud list denies the PR verbs `merge`, `close`, `edit` from ONE verb list in the `cloud-permissions` guard: the guard derives the plain, rtk \& `gh -R x` forms from it \& checks `nix/cloud-permissions.json` against it ∴ a new verb = 1 line|`.:C29`,`cloud:V52`,B71
 
 ## §B BUGS
 
