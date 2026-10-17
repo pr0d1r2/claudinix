@@ -18,6 +18,11 @@ list() {
         '{allow: $allow, deny: $repo[0].deny}' >"$PERMISSIONS_FILE"
 }
 
+# pr_verbs: the verbs the guard requires denied, read from its own list.
+pr_verbs() {
+    sed -n 's/^pr_verbs=(\(.*\))$/\1/p' "$SCRIPT"
+}
+
 @test "a narrow list passes silently" {
     list '["Bash(nix develop -c hk *)", "Bash(bats *)", "Edit(/gate.log)"]'
     run bash "$SCRIPT"
@@ -484,7 +489,7 @@ denied_by_repo_list() {
 }
 
 @test "the repo's own list denies gh pr merge, close and edit in every form (home:T172, cloud:V52)" {
-    for verb in merge close edit; do
+    for verb in $(pr_verbs); do
         for cmd in "gh pr $verb 8" "rtk gh pr $verb 8" "gh -R o/r pr $verb 8" \
             "gh --repo o/r pr $verb 8" "rtk gh -R o/r pr $verb 8"; do
             denied_by_repo_list "$cmd" || {
@@ -496,7 +501,7 @@ denied_by_repo_list() {
 }
 
 @test "dropping any derived pr-verb deny is refused and named (home:T172, cloud:V52)" {
-    for verb in merge close edit; do
+    for verb in $(pr_verbs); do
         for rule in "Bash(gh pr $verb *)" "Bash(rtk gh pr $verb *)" \
             "Bash(gh * pr $verb *)" "Bash(rtk gh * pr $verb *)"; do
             list '["Bash(bats *)"]'
