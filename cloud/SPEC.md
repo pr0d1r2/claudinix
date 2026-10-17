@@ -72,6 +72,7 @@ T166|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52,T161,V40,V41,T165,`.:C29`
 T168|.|`held` dedupe: same repo \& title → oldest kept, ⊥ sessions|I.cmd,V52
 T169|.|`held` report per PR from `all`|I.cmd,T166,`docs:T167`
 T170|.|`all` stops a PR whose head ≠ the last `fixup` push (V52)|V52,T166
+T171|.|`all` finds the build's PR when its branch ≠ `claude/<node>-<task>`: the 1 same-repo PR opened after the launch whose body names the task id; 2+ → stop, naming them|I.cmd,B90
 
 ## §B BUGS
 
@@ -92,3 +93,4 @@ B86|2026-10-17|`held` ran a fork PR (#50)|V52: skipped
 B87|2026-10-17|`held` records split on spaces (#50)|V52: split on tab
 B88|2026-10-17|`held` lost PRs past the 100th (#50)|V52: `--repo` in search
 B89|2026-10-17|`CLOUD_MERGE_KEPT` missed `scripts/cloud-held.sh` (#50)|V51: kept
+B90|2026-10-17|`all` matched the build's PR by branch only; the harness named it after the session title (#48, #50) ∴ 180 min wait, `drain` stopped|T171
