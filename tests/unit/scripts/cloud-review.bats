@@ -62,6 +62,20 @@ setup() {
     done
 }
 
+@test "the fleet role finds consumers of the PR's repo and names what a pin bump changes (T164)" {
+    local f="$ROLES/fleet.md"
+    [ -s "$f" ]
+    head -n 1 "$f" | grep -q '^# '
+    local term
+    for term in 'gh search code' 'local checkout' 'flake input' 'uses:' 'nix run' 'vendored' \
+        'pin bump' 'renamed' 'removed' 'default' 'workflow input' 'hook id' 'file:line' 'Findings: N'; do
+        grep -qiF -- "$term" "$f" || {
+            echo "fleet.md lacks: $term"
+            return 1
+        }
+    done
+}
+
 @test "every role file has a '# ' title" {
     local f n=0
     for f in "$ROLES"/*.md; do
