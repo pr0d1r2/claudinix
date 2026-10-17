@@ -65,7 +65,7 @@ T160|x|ARCHIVED to SPEC-ARCHIVE.md|V51,I.cmd,`.:C29`
 
 T161|x|ARCHIVED to SPEC-ARCHIVE.md|V51,I.cmd
 
-T164|.|`fleet` review role `scripts/review/fleet.md`: find ∀ owner repo consuming the PR's repo (flake input, `uses: <owner>/<repo>/.github/workflows/…`, hook \| hk ref, `nix run …#app`, vendored copy) via `gh search code` \| local checkouts; per consumer: what the diff changes on its next pin bump (renamed \| removed output, option, default, workflow input, hook id), evidence = consumer file:line; ends `Findings: N`; `all` picks it up|I.cmd,V51
+T164|x|`fleet` review role `scripts/review/fleet.md`: find ∀ owner repo consuming the PR's repo (flake input, `uses: <owner>/<repo>/.github/workflows/…`, hook \| hk ref, `nix run …#app`, vendored copy) via `gh search code` \| local checkouts; per consumer: what the diff changes on its next pin bump (renamed \| removed output, option, default, workflow input, hook id), evidence = consumer file:line; ends `Findings: N`; `all` picks it up|I.cmd,V51
 T165|.|cross-repo `fixup`: `just fixup <URL>` from the target repo's checkout, as `review` (T156); prompt follows the target's AGENTS.md, gate \& spec if present, ⊥ this repo's rules; a `fleet` finding → fixed in the PR (keep the old name \| a shim) \| named as a consumer change for the owner, ⊥ dropped|I.cmd,T164,`.:C29`
 T166|.|`scripts/cloud-held.sh` selects PRs: open PRs labelled L across the owner's repos, oldest first; checkout lookup, skip naming it; hands each PR to the `all` flow (`cloud-all.sh <PR URL> --yes`, T139), ⊥ its own wait \| CI logic|I.cmd,V52,T161,V40,V41,T165,`.:C29`
 T168|.|`held` duplicates: 1 repo, same normalized title \| head-branch prefix → oldest kept, rest listed for the owner, ⊥ sessions|I.cmd,V52
