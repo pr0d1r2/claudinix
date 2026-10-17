@@ -94,7 +94,7 @@ if [ "${#repos[@]}" -gt 0 ]; then
         scope+=(--repo "$owner/$repo")
     done
 fi
-found="$(gh search prs "${scope[@]}" --label "$label" --state open --sort created --order asc --limit "$search_limit" \
+found="$(gh search prs "${scope[@]}" --label "$label" --state open --limit "$search_limit" \
     --json number,createdAt,url,repository,author </dev/null)" || exit 1
 if [ "$(jq length <<<"$found")" -ge "$search_limit" ]; then
     echo "held: only the first $search_limit labelled pull requests were found; the rest are not considered" >&2

@@ -78,8 +78,9 @@ alpha all https://github.com/owner/alpha/pull/7 --yes --model sonnet" ]
     [[ "$output" == *"held: done, 2 of 2"* ]]
 }
 
-@test "the label defaults to h10n-human, --label changes it; the search is the owner's, open, oldest first" {
+@test "the label defaults to h10n-human, --label changes it; the search is the owner's and open" {
     run bash "$SCRIPT" --yes
+    [ "$status" -eq 0 ]
     grep -qF -- '--label h10n-human' "$STATE/gh.log"
     grep -qF -- '--owner owner' "$STATE/gh.log"
     grep -qF -- '--state open' "$STATE/gh.log"
