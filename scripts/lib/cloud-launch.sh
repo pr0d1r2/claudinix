@@ -18,11 +18,21 @@ source "$(dirname "${BASH_SOURCE[0]}")/context-limits.sh"
 CLOUD_REVIEW_HEADING='Review:'
 # shellcheck disable=SC2034 # read by the scripts that source this file
 CLOUD_FIXUP_HEADING='Fixup:'
-# jq definitions for reading pull request comments. Anyone may comment, so
-# only the owner and members steer a flow: `all` and `merge` both filter
-# with `trusted` (cloud:V51, V52, B64, B99).
+# The label of the last line of a fixup reply, then the sha it pushed; the
+# prompt names it and `all` and `merge` read it (cloud:V51, V52).
 # shellcheck disable=SC2034 # read by the scripts that source this file
-CLOUD_COMMENT_JQ='def trusted: select(.authorAssociation == "OWNER" or .authorAssociation == "MEMBER");'
+CLOUD_FIXUP_HEAD_LABEL='Head:'
+# What counts as a heading line: any number of #s, then the heading.
+CLOUD_FIXUP_HEADING_RE="^#* *$CLOUD_FIXUP_HEADING"
+# jq definitions for reading pull request comments, the one place that
+# decides who may speak and what a fixup reply says. Anyone may comment, so
+# only the owner and members steer a flow (cloud:V51, V52, B64, B99).
+# head_of: the sha on the last `Head:` line of a comment, else null.
+# shellcheck disable=SC2034 # read by the scripts that source this file
+CLOUD_COMMENT_JQ='def trusted: select(.authorAssociation == "OWNER" or .authorAssociation == "MEMBER");
+def fixup_reply: select((.body | split("\n")[0]) | test("'"$CLOUD_FIXUP_HEADING_RE"'"));
+def head_of: [(.body // "") | gsub("\r"; "") | split("\n")[] | capture("^'"$CLOUD_FIXUP_HEAD_LABEL"' (?<sha>[0-9a-f]+)$")? | .sha] | last;
+'
 # The first word of the last line of a review comment, then the count; the
 # prompt names it and `just merge` reads it (cloud:V51).
 # shellcheck disable=SC2034 # read by the scripts that source this file

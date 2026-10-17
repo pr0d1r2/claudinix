@@ -402,7 +402,7 @@ comment_count() {
 }
 
 review_head="^#* *$CLOUD_REVIEW_HEADING "
-fixup_head="^#* *$CLOUD_FIXUP_HEADING"
+fixup_head="$CLOUD_FIXUP_HEADING_RE"
 
 # reviews_in SKIP: 0 when every role has a comment after the first SKIP;
 # else 2, with the roles still missing in $missing for the caller's message
@@ -450,12 +450,11 @@ read_head() {
     [ "$rc" != "$gh_failed" ] || fail "cannot read the head of #$pr -- check gh auth status"
 }
 
-# fixup_pushed_head SKIP: the sha of the last "Head: <sha>" line in the
-# "Fixup:" comments after the first SKIP, as cloud-fixup-prompt.txt tells
-# the session; empty when the reply has none (nothing was pushed).
+# fixup_pushed_head SKIP: the sha on the last "Head:" line of the last
+# "Fixup:" reply after the first SKIP, as cloud-fixup-prompt.txt tells the
+# session; empty when the reply has none (nothing was pushed).
 fixup_pushed_head() {
-    gh pr view "$pr" --json comments --jq "$CLOUD_COMMENT_JQ [.comments[] | trusted][$1:][] | select(.body | test(\"^#* *$CLOUD_FIXUP_HEADING\")) | .body" </dev/null |
-        tr -d '\r' | sed -n 's/^Head: \([0-9a-f]*\)$/\1/p' | tail -n 1
+    gh pr view "$pr" --json comments --jq "$CLOUD_COMMENT_JQ"'[.comments[] | trusted]['"$1"':] | map(select(fixup_reply)) | last | head_of // empty' </dev/null
 }
 
 # require_fixup_head SKIP REVIEWED: stop the flow unless the pull request's

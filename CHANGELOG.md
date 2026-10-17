@@ -25,7 +25,8 @@ does are summarised briefly; the git history has the detail.
   names the pull request, which sha it expected and why, and opens it, so a push by
   someone else is never taken.
   Only the owner's and members' comments count, for the fixup's reply and its
-  `Head:` line, as for `just merge`.
+  `Head:` line, as for `just merge`, which now reads that line the same way:
+  the sha must be alone on a `Head:` line, not anywhere in the reply.
 - The cloud permission list now also denies `gh pr close` and `gh pr edit` (plain,
   `rtk` and `gh -R x` forms), as it already denied `gh pr merge`; the guard
   derives all three from one verb list. It also denies the GitHub MCP
