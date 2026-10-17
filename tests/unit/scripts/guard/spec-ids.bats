@@ -191,3 +191,17 @@ edit() {
     [ "$status" -eq 1 ]
     [[ "$output" == *'T2 is archived by a pointer in node/SPEC.md'* ]]
 }
+
+@test "a pointer range past 1000 ids fails naming the line, without expanding it (B96)" {
+    edit node/SPEC.md 's/^B1-B3, B9:/B1-B999999999, B9:/'
+    run timeout 20 bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *'node/SPEC.md:'*'bad range B1-B999999999'* ]]
+}
+
+@test "a reversed pointer range fails naming the line (B96)" {
+    edit node/SPEC.md 's/^B1-B3, B9:/B3-B1, B9:/'
+    run timeout 20 bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *'node/SPEC.md:'*'bad range B3-B1'* ]]
+}
