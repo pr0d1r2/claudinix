@@ -1075,7 +1075,7 @@ review per role and one fixup each); `--yes` skips only that question and
 **Running.** Each pull request runs as `cloud-all.sh <PR URL> --yes` from its
 checkout. `all` does every wait and every CI decision. A pull request whose
 flow fails is named and the next one still runs. A report then lists each
-pull request, oldest first, as `held: <repo>#<n> ok|failed <URL>`; the last
+pull request, oldest first, as `held: report: <repo>#<n> ok|failed <URL>`; the last
 line is `held: done, <n> of <m>`.
 
 | exit | meaning |
