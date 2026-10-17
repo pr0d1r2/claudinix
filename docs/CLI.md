@@ -840,11 +840,12 @@ files in `scripts/review/`, it exits 1. Then one question covers every
 session:
 
 ```text
-all: docs:T47 runs 8 billed Claude Code cloud sessions (model sonnet), one after another: 1 build, 6 reviews (architecture correctness extensibility maintainability performance security), 1 fixup; it waits for each and for green CI, up to hours. Start? [y/N]
-all: #16 runs 7 billed Claude Code cloud sessions (model sonnet), one after another: 6 reviews (architecture correctness extensibility maintainability performance security), 1 fixup; it waits for each and for green CI, up to hours. Start? [y/N]
+all: docs:T47 runs <N+2> billed Claude Code cloud sessions (model sonnet), one after another: 1 build, <N> reviews (<the files in scripts/review/>), 1 fixup; it waits for each and for green CI, up to hours. Start? [y/N]
+all: #16 runs <N+1> billed Claude Code cloud sessions (model sonnet), one after another: <N> reviews (<the files in scripts/review/>), 1 fixup; it waits for each and for green CI, up to hours. Start? [y/N]
 ```
 
-The first line is a task, the second an existing pull request.
+The first line is a task, the second an existing pull request; `<N>` is the
+number of role files.
 
 `--yes` skips only that question, and each launcher then runs with
 `--yes`. `--dry-run` runs the checks, prints the plan above without the
