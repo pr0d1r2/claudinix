@@ -887,6 +887,12 @@ on once the rebase agent pushes a new head. If no new head comes, it
 stops: "the rebase of #<n> pushed no new head: a conflict needs the
 owner".
 
+**The head.** Once the fixup has replied, the pull request's head must be the
+sha on the last `Head:` line of that reply, or the sha it had before the
+fixup when the reply has none. Any other head was pushed by someone else, and
+`all` stops before it waits for CI: "the head of #<n> is <sha>, not <sha> (...):
+someone else pushed, so it is not taken". It opens the pull request and exits 1.
+
 Then it opens the pull request: `open -a Safari` on macOS, `xdg-open`
 elsewhere. Without `--merge` it never merges. With `--merge` it runs
 [`merge`](#merge) `--yes` instead: a pull request the strict rule allows is
@@ -903,6 +909,7 @@ all: CI failed on #<n>
 all: gave up waiting for CI on #<n> after 720 polls of 10s
 all: no review of #<n> by <roles>
 all: the fixup of #<n> never replied
+all: the head of #<n> is <sha>, not <sha> (...): someone else pushed, so it is not taken
 all: gave up waiting for <step>: 3 gh calls failed in a row; the last said:
 ```
 
