@@ -19,6 +19,12 @@ set -euo pipefail
 ID_KINDS=TVBC
 ARCHIVE_NAME=SPEC-ARCHIVE.md
 
+# Line shapes it reads (D, P below):
+#   row      `T2|x|task|cites`, `- C1: text`, `V1: text`      -> D id
+#   pointer  `T2|x|ARCHIVED to SPEC-ARCHIVE.md|cites`        -> D id, P id
+#   list     `B1-B3, B9: ARCHIVED to SPEC-ARCHIVE.md ...`    -> D, P per id
+# Any other line that says `ARCHIVED to` after an id is refused (E).
+#
 # defined_and_pointed: read a spec on stdin; print "D<TAB>id" per id it
 # defines (a row or list item start, or a pointer list member) and
 # "P<TAB>id" per id an ARCHIVED pointer sends to the archive, and
