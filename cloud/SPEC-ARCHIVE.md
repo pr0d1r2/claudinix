@@ -1,6 +1,8 @@
 # SPEC ARCHIVE
 
-Task rows moved out of `SPEC.md` by `mth archive`. An id is never reused
+Task rows moved out of `SPEC.md` by `mth archive`, then a second table,
+`## §B BUGS` below §T, with fixed bug rows moved by hand (`mth archive`
+appends only to §T). An id is never reused
 (`V12`), so a citation to an archived row still resolves -- here.
 
 This is a SINK, not a spec. The citations inside these rows point into
