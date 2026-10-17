@@ -69,6 +69,7 @@ T137|x|ARCHIVED to SPEC-ARCHIVE.md|`docs:T47`,I.cmd
 T150|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C20`,B81
 T162|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:V51`,T150
 T163|.|`require_full_history` in `scripts/lib` for `tdd-order` \& `context-limits`|V29,B7
+T173|.|guard: ∀ id (T V B C) in a base `SPEC*.md` ! stay in a head `SPEC*.md`; a vanished id fails, naming it|B91
 
 ## §B BUGS
 
@@ -80,3 +81,4 @@ B10|2026-10-03|`release.sh` pinned the line to REV, then asked to commit `cloud-
 B14|2026-10-04|guide step 3 \& SETUP said "select Create environment"; the dialog button reads "Add environment" (owner, 1st real run) ⇒ UI labels drift w/o notice; ⊥ invariant can check the UI (`.:C2`), ∴ a bats test pins the label the owner saw|`.:C2`
 B81|2026-10-16|`Owner-Override:` trailer (any agent can write it) excused ∀ raise in range, `just merge` has none, file delete passed|`.:C20`
 B82|2026-10-16|guide step 5 with `--agent-home` named `nix/cloud-permissions.json`, a file of this repo the target user lacks, as deciding add_repo ⇒ guide output names only paths the user has|`scripts:V26`
+B91|2026-10-17|`mth archive` rewrites SPEC-ARCHIVE.md as §T only ∴ #48 fixup (9be154f) dropped the hand-archived `cloud` B19-B43; ⊥ check saw it|T173; rows restored
