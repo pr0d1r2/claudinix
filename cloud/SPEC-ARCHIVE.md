@@ -32,6 +32,8 @@ T161|x|`just drain`: serial `just all --merge` over a task list (I.cmd)|V51,I.cm
 T164|x|`fleet` review role `scripts/review/fleet.md`: find ∀ owner repo consuming the PR's repo (flake input, `uses: <owner>/<repo>/.github/workflows/…`, hook \| hk ref, `nix run …#app`, vendored copy) via `gh search code` \| local checkouts; per consumer: what the diff changes on its next pin bump (renamed \| removed output, option, default, workflow input, hook id), evidence = consumer file:line; ends `Findings: N`; `all` picks it up|I.cmd,V51
 T165|x|cross-repo `fixup`: `just fixup <URL>` from the target repo's checkout, as `review` (T156); prompt follows the target's AGENTS.md, gate \& spec if present, ⊥ this repo's rules; a `fleet` finding → fixed in the PR (keep the old name \| a shim) \| named as a consumer change for the owner, ⊥ dropped|I.cmd,T164,`.:C29`
 T166|x|`scripts/cloud-held.sh` selects PRs: open PRs labelled L across the owner's repos, oldest first; checkout lookup, skip naming it; hands each PR to the `all` flow (`cloud-all.sh <PR URL> --yes`, T139), ⊥ its own wait \| CI logic|I.cmd,V52,T161,V40,V41,T165,`.:C29`
+T170|x|`all` stops a PR whose head ≠ the last `fixup` push (V52)|V52,T166
+T171|x|`all` finds the build's PR when its branch ≠ `claude/<node>-<task>`: the 1 same-repo PR opened after the launch whose body names the task id; 2+ → stop, naming them|I.cmd,B90
 
 ## §B BUGS
 
