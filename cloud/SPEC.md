@@ -96,5 +96,6 @@ B80|2026-10-15|`drain` progress used all candidates ∴ `--max 1` said `1 of 14`
 B83|2026-10-17|`fixup` prompt honoured `Review: fleet` comments of any author with "never drop" ahead of the decline rule ∴ anyone could force a change on the PR branch in a repo outside this one (#48)|V53: only OWNER \| MEMBER \| COLLABORATOR comments steer a fixup; "never drop silently"
 B84|2026-10-17|`fixup` prompt ran the gate \& repo tooling of the PR head, with the session's credentials, in repos whose PR authors are third parties (#48)|V53: tooling from the base; a PR that changes it → read-only, report
 B85|2026-10-17|shared CI-watch fragment told the session to follow AGENTS.md \| §B \| a gate and not to edit `hk.pkl` in repos that have none (#48)|CI-watch fragment is repo-neutral: those rules apply if present
-B86|2026-10-17|`held` counted a fork PR in the plan \& spent a `--max` slot on it; the flow then refused it \& `held` exited 1 (#50)|V52: a fork is skipped during selection, naming it
-B87|2026-10-17|`held` kept each PR as a space-joined string ∴ a `CLAUDINIX_PROJECTS` path with a space swapped checkout \& URL, every PR "failed" (#50)|V52: PR records split on tab, never on a space
+B86|2026-10-17|`held` counted a fork PR \& spent a `--max` slot on it (#50)|V52: fork skipped at selection
+B87|2026-10-17|`held` space-joined its PR records ∴ a space in `CLAUDINIX_PROJECTS` broke every run (#50)|V52: split on tab
+B88|2026-10-17|`held` filtered `--repo` after a 100-row search ∴ PRs lost (#50)|V52: `--repo` in the search; full page said
