@@ -71,7 +71,7 @@ setup() {
         '  n=$(( $(cat "$STATE/list.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/list.n"' \
         '  [ -z "${LIST_FAIL_FIRST:-}" ] || [ "$n" -ne 1 ] || exit 1' \
         '  gh_fails "${LIST_GH_FAILS:-}" "$n"' \
-        '  [ "$n" -le "${PR_AFTER:-0}" ] || cat "$STATE/prs" 2>/dev/null; exit 0 ;;' \
+        '  [ "$n" -le "${PR_AFTER:-0}" ] || cut -f1-4 "$STATE/prs" 2>/dev/null; exit 0 ;;' \
         '*mergeable*) tr " " "\t" <"$STATE/merge"; exit 0 ;;' \
         '*statusCheckRollup*)' \
         '  n=$(( $(cat "$STATE/ci.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/ci.n"' \
@@ -80,7 +80,7 @@ setup() {
         '  head -n 1 "$STATE/ci" | tr " " "\n" | grep -v "^$"' \
         '  [ "$(wc -l <"$STATE/ci")" -le 1 ] || { tail -n +2 "$STATE/ci" >"$STATE/ci.t"; mv "$STATE/ci.t" "$STATE/ci"; }' \
         '  exit 0 ;;' \
-        '*"--json body"*) [ -z "${BODY_FAIL:-}" ] || exit 1; grep "^$3\t" "$STATE/prs" | cut -f5; exit 0 ;;' \
+        '*"--json body"*) [ -z "${BODY_FAIL:-}" ] || exit 1; awk -F"\t" -v n="$3" "\$1==n{print \$5}" "$STATE/prs"; exit 0 ;;' \
         '*"--json url"*) [ -z "${URL_FAIL:-}" ] || exit 1; echo "https://github.com/o/p/pull/$3"; exit 0 ;;' \
         '*comments*)' \
         '  n=$(( $(cat "$STATE/comments.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/comments.n"' \
