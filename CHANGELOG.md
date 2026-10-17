@@ -20,6 +20,8 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- `just all` runs under the stock macOS bash 3.2 again: finding the build's
+  pull request no longer uses a bash 4 expansion.
 - `just all <task>` finds the build's pull request even when the harness did
   not name its branch `claude/<node>-<task>`: it takes the one new pull
   request of this repository whose body names the task id, and stops naming
