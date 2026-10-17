@@ -67,7 +67,7 @@ setup() {
     [ -s "$f" ]
     head -n 1 "$f" | grep -q '^# '
     local term
-    for term in 'gh search code' 'pin bump' 'file:line' 'untrusted data' 'private consumer' 'read-only' 'could not check'; do
+    for term in 'gh search code' 'pin bump' 'file:line' 'untrusted data' 'private consumer' 'read-only' 'could not check' 'touches no output'; do
         grep -qiF -- "$term" "$f" || {
             echo "fleet.md lacks: $term"
             return 1
