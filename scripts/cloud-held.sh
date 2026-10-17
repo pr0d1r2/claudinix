@@ -159,7 +159,7 @@ for entry in "${picked[@]}"; do
         outcome=failed
         echo "held: $name $outcome (see the flow's last line above); going on" >&2
     fi
-    report+=("held: $name $outcome $url")
+    report+=("held: report: $name $outcome $url")
 done
 echo "held: report"
 printf '%s\n' "${report[@]}"
