@@ -202,7 +202,7 @@ fixup 14 --yes --model sonnet" ]
     run bash "$SCRIPT" docs:T47 --yes
     [ "$status" -eq 1 ]
     [[ "$output" == *"pull request"* ]]
-    [[ "$output" == *"after 18 polls of 600s"* ]]
+    [[ "$output" == *"no pull request of docs:T47"* ]]
     run ! grep -q '^review' "$STATE/children.log"
 }
 
@@ -235,7 +235,7 @@ fixup 14 --yes --model sonnet" ]
     [ "$status" -eq 1 ]
     [[ "$output" == *"#15"* ]]
     [[ "$output" == *"#16"* ]]
-    [[ "$output" != *"after 18 polls"* ]]
+    [[ "$output" != *"no pull request of docs:T47"* ]]
     run ! grep -q '^review' "$STATE/children.log"
 }
 
