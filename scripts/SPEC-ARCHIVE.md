@@ -1,8 +1,7 @@
 # SPEC ARCHIVE
 
-Task rows moved out of `SPEC.md` by `mth archive`, then a second table,
-`## §B BUGS` below §T, with fixed bug rows moved by hand (`mth archive`
-appends only to §T). An id is never reused
+Task rows moved out of `SPEC.md` by `mth archive`; fixed bug rows moved by
+hand, see `docs/CONTRIBUTING.md`. An id is never reused
 (`V12`), so a citation to an archived row still resolves -- here.
 
 This is a SINK, not a spec. The citations inside these rows point into
@@ -38,7 +37,7 @@ T162|x|`scripts/lib/context-limits.sh` owns the row parser; `cloud_diff_reasons`
 
 ## §B BUGS
 
-Bug rows moved out of `SPEC.md` by hand: fixed, each with its fix or invariant on record (`mth archive` moves only §T rows).
+Bug rows moved by hand: see `docs/CONTRIBUTING.md`.
 
 id|date|cause|fix
 B4|2026-10-03|`scripts/inputs.sh /nonexistent` said `no directory .`: failed `dir="$(cd … && pwd)"` emptied `dir`, `${dir:-.}` showed `.` ⇒ user cannot tell which path was wrong (found by docs round 2 running the CLI)|V26
