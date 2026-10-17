@@ -30,13 +30,13 @@ V46: caveman hook \& `statusLine` commands: absolute interpreter, script in stor
 V47: `~/.claude/skills` = exactly the enabled toggles of `nix/agent-home.toml` (cavekit as `ck-<n>`); ∀ skill: dir name = its `name:`; `/<v>` → `/ck-<v>` ⇔ `v` shipped (B50), ∀ `/ck-<v>` resolves; FORMAT.md too (B51).
 V49: allowed push takes options before the remote only ∴ deny ∀ option after it (`Bash(git push * -*)` + rtk twin; no glob names every short-flag cluster, B58); older denies = 2nd layer.
 V50: allowed push writes 1 ref: 1 refspec, `claude/` src ⊥ `:dst` (B59); `heads/main` denied (B60).
-V58: cloud list ⊥ lets ANY cloud session (build ones too: they open a PR, never edit it) merge, close or edit a PR: `gh pr <verb>` for ∀ `pr_verbs` (plain, rtk, `gh -R x`) + MCP `merge_pull_request`, `enable_pr_auto_merge`, `update_pull_request`; guard requires them (B98). Left allowed: `issue_write`, `update_issue_comment` (fixup edits its own reply); not covered: `gh api -X PATCH`.
+V58: ∀ cloud session (build ones too) ⊥ merges, closes \| edits a PR: guard requires `gh pr <verb>` ∀ `pr_verbs` + MCP `merge_pull_request`, `enable_pr_auto_merge`, `update_pull_request` (B98). Allowed: `issue_write`, `update_issue_comment` (fixup edits its reply); uncovered: `gh api -X PATCH`.
 
 ## §T TASKS
 
 id|status|task|cites
 T155|x|ARCHIVED to SPEC-ARCHIVE.md|V45,V46,V47,B50,B51
-T172|x|cloud list denies the PR verbs `merge`, `close`, `edit` from ONE verb list in the `cloud-permissions` guard: the guard derives the plain, rtk \& `gh -R x` forms from it \& checks `nix/cloud-permissions.json` against it ∴ a new verb = 1 line|`.:C29`,`cloud:V52`,B71
+T172|x|cloud list denies the PR verbs `merge`, `close`, `edit` from ONE verb list in the `cloud-permissions` guard: the guard derives the plain, rtk \& `gh -R x` forms from it \& checks `nix/cloud-permissions.json` against it ∴ a new verb = 1 line + its 4 JSON deny rows (guard names a missing one)|`.:C29`,`cloud:V52`,B71
 
 ## §B BUGS
 
