@@ -16,15 +16,28 @@
 
 set -euo pipefail
 
+ID_KINDS=TVBC
+ARCHIVE_NAME=SPEC-ARCHIVE.md
+
 # defined_and_pointed: read a spec on stdin; print "D<TAB>id" per id it
 # defines (a row or list item start, or a pointer list member) and
 # "P<TAB>id" per id an ARCHIVED pointer sends to the archive, and
 # "E<TAB>problem" per pointer line it refuses.
 defined_and_pointed() {
-    awk -v max_range=1000 '
+    awk -v kinds="$ID_KINDS" -v archive="$ARCHIVE_NAME" -v max_range=1000 '
         function emit(kind, id) { print kind "\t" id }
         function pointed(id) { emit("D", id); emit("P", id) }
-        /ARCHIVED to SPEC-ARCHIVE\.md/ && /^[TVBC][0-9]+(-[TVBC][0-9]+)?(, *[TVBC][0-9]+(-[TVBC][0-9]+)?)*:/ {
+        BEGIN {
+            id_re = "[" kinds "][0-9]+"
+            span_re = id_re "(-" id_re ")?"
+            pointer_to = "ARCHIVED to " archive
+            list_re = "^" span_re "(, *" span_re ")*:"
+            bad_list_re = "^(- )?" id_re "[^|:]*: *ARCHIVED to"
+            bad_row_re = "^" id_re "\\|[^|]*\\|ARCHIVED to"
+            good_row_re = "^[^|]*\\|[^|]*\\|" pointer_to
+            start_re = "^(- )?" id_re "[|:]"
+        }
+        index($0, pointer_to) && $0 ~ list_re {
             list = $0
             sub(/:.*/, "", list)
             n = split(list, items, /, */)
@@ -41,14 +54,14 @@ defined_and_pointed() {
             }
             next
         }
-        /^(- )?[TVBC][0-9]+[^|:]*: *ARCHIVED to/ || (/^[TVBC][0-9]+\|[^|]*\|ARCHIVED to/ && !/^[^|]*\|[^|]*\|ARCHIVED to SPEC-ARCHIVE\.md/) {
+        $0 ~ bad_list_re || ($0 ~ bad_row_re && $0 !~ good_row_re) {
             emit("E", "line " NR ": unparsed pointer: " $0)
             next
         }
-        match($0, /^(- )?[TVBC][0-9]+[|:]/) {
+        match($0, start_re) {
             id = substr($0, RSTART, RLENGTH - 1)
             sub(/^- /, "", id)
-            if ($0 ~ /\|ARCHIVED to SPEC-ARCHIVE\.md/) pointed(id)
+            if (index($0, "|" pointer_to)) pointed(id)
             else emit("D", id)
         }
     '
@@ -105,9 +118,9 @@ while IFS= read -r file; do
         status=1
     done <<<"$(awk -F'\t' '$1 == "E"' <<<"$parsed")"
     case "$file" in
-    */SPEC-ARCHIVE.md | SPEC-ARCHIVE.md) continue ;;
+    */"$ARCHIVE_NAME" | "$ARCHIVE_NAME") continue ;;
     esac
-    archive="$(dirname "$file")/SPEC-ARCHIVE.md"
+    archive="$(dirname "$file")/$ARCHIVE_NAME"
     archive="${archive#./}"
     if git cat-file -e "HEAD:$archive" 2>/dev/null; then
         git show "HEAD:$archive" | defined_and_pointed | awk -F'\t' '$1 == "D" { print $2 }' >"$work/archive_ids"
