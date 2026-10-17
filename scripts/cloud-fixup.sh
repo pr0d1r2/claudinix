@@ -2,12 +2,14 @@
 # Fix up one pull request's review findings in a fresh cloud session,
 # from your terminal (SPEC cloud:T132, .:C29).
 #
-# PR is a number or a GitHub pull request URL of this repository (a URL
-# of another repository is refused, so the wrong pull request is never
-# fixed up). `gh pr view` must find it open, based on `main`, with a head
-# other than `main` whose name is a plain ref (letters, digits, `._/-`):
-# the name goes into the session's prompt and commands, and its author
-# chose it.
+# PR is a number or a GitHub pull request URL; a URL must name the
+# remote's repository (the checkout you run from, not necessarily this
+# project), checked before any `gh` call so the wrong pull request is
+# never fixed up. `gh pr view` must find it open, not from a fork, based
+# on `main`, with a head other than `main` whose name is a plain ref
+# (letters, digits, `._/-`): the name goes into the session's prompt and
+# commands, and its author chose it. A repository whose default branch is
+# not `main` is refused, and the checked-out branch must be pushed (cloud:T165).
 #
 # The launch rules are lib/cloud-launch.sh's: the remote must exist, the
 # current branch must be pushed and equal to its upstream (the session

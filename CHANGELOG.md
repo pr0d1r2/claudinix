@@ -25,6 +25,8 @@ does are summarised briefly; the git history has the detail.
   gate and spec only if it has them, not this repository's rules. A finding of
   the `fleet` review is fixed in the pull request (keep the old name or add a
   shim) or named as a consumer change for its owner, never dropped silently.
+- `just fixup` from another repository's checkout needs a pull request based on
+  `main` and a pushed branch checked out, as in this repository.
 - `just fixup` acts only on comments by the repository's owner, members and
   collaborators; other comments may be declined.
 - The CI-watch rules of every cloud session ask for AGENTS.md order and a gate only where the repository has them.

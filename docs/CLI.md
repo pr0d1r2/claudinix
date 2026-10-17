@@ -786,6 +786,8 @@ pull request filled in.
   the pull request (keep the old name or add a shim) or named in the
   `Fixup:` reply as a change its consumer's owner must make. It is never
   dropped.
+  The same limits hold as for any `fixup`: the pull request is based on
+  `main`, and the branch you run from is pushed and equal to its upstream.
 - It runs the gate and pushes with `git push origin HEAD:<branch>`,
   without force. If the branch moved, it stops and reports.
 - It adds a +1 reaction to each comment whose findings it all fixed, and
