@@ -474,6 +474,15 @@ denied_by_repo_list() {
     done
 }
 
+@test "dropping the MCP update_pull_request deny is refused and named (home:V58, home:B98)" {
+    list '["Bash(bats *)"]'
+    jq '.deny -= ["mcp__github__update_pull_request"]' "$PERMISSIONS_FILE" >"$PERMISSIONS_FILE.new"
+    mv "$PERMISSIONS_FILE.new" "$PERMISSIONS_FILE"
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"mcp__github__update_pull_request"* ]]
+}
+
 @test "the repo's own list denies gh pr merge, close and edit in every form (home:T172, cloud:V52)" {
     for verb in merge close edit; do
         for cmd in "gh pr $verb 8" "rtk gh pr $verb 8" "gh -R o/r pr $verb 8" \

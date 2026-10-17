@@ -97,6 +97,9 @@ required_denies=(
     'Bash(gh api *merge*)'
     'mcp__github__merge_pull_request'
     'mcp__github__enable_pr_auto_merge'
+    # update_pull_request closes or edits a PR as `gh pr close | edit` do
+    # (home:V58, home:B98).
+    'mcp__github__update_pull_request'
     # Any other way to write main: the MCP file writes take a branch, and
     # a ref update moves it (home:V50, home:B75).
     'Bash(gh api *refs/heads/main*)'
