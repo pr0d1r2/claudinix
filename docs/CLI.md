@@ -612,14 +612,16 @@ Run it as `scripts/cloud-review.sh ...` or `just review ...`, for example
 [`cloud`](#cloud). `CLAUDINIX_SCRIPTS` holds `review/`,
 `cloud-review-prompt.txt` and `config.sh`.
 
-**The roles.** Each role is one file, `scripts/review/<role>.md`. Its first
-line is a `# ` title, and the rest tells the reviewer what to look for. The
-roles so far are `correctness`, `maintainability`, `extensibility`,
-`performance`, `security`, `architecture` and `fleet`. `fleet` looks outside the
-repository: it finds the owner's other repositories that consume this one and
-reports what the change breaks in each on its next pin bump. To add a role, add a file:
-the launcher and its tests read the directory, so no code changes. A role
-file may contain `@`, even a placeholder such as `@PR@`: it reaches the
+**The roles.** Each role is one file, `scripts/review/<role>.md`, and that
+directory is the list of roles (an unknown role prints it). A file's first
+line is a `# ` title, and the rest tells the reviewer what to look for.
+`fleet` looks outside the repository: it finds the owner's other
+repositories that consume this one and reports what the change breaks in
+each on its next pin bump.
+
+To add a role, add a file: the launcher and its tests read the directory,
+so no code changes. A role file may contain `@`, even a placeholder such as
+`@PR@`: it reaches the
 session as written. `all` is not a role name. An unknown role
 exits 2 and lists the roles:
 
