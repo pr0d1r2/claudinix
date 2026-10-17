@@ -8,8 +8,8 @@
 # One is skipped, naming it, when its author is not the owner (cloud:V52),
 # when its repository has no checkout at $CLAUDINIX_PROJECTS/<repo>, or when
 # that checkout pins no claude.ai cloud environment
-# (remote.defaultEnvironmentId in .claude/settings.local.json). A fork is
-# refused by the flow itself.
+# (remote.defaultEnvironmentId in .claude/settings.local.json), or when it
+# comes from a fork (cloud:B86).
 #
 # --max caps how many run. One y/N answer names the pull requests and the
 # billed sessions (1 per role and 1 fixup each); --yes skips only that
@@ -112,6 +112,8 @@ while IFS= read -r row; do
         echo "held: skip $name: no checkout at $checkout" >&2
     elif [ -z "$(jq -r '.remote.defaultEnvironmentId // empty' "$settings" 2>/dev/null)" ]; then
         echo "held: skip $name: no claude.ai environment pinned in $settings" >&2
+    elif [ "$(gh pr view "$(jq -r .url <<<"$row")" --json isCrossRepository --jq .isCrossRepository </dev/null)" = true ]; then
+        echo "held: skip $name: it comes from a fork" >&2
     else
         picked+=("$name $checkout $(jq -r .url <<<"$row")")
     fi
