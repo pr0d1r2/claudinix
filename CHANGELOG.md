@@ -20,6 +20,10 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- `just held` runs only the oldest of the labelled pull requests that share a
+  repository and a title, and names each newer one it skips, so a parked
+  duplicate no longer bills a session.
+
 - `just all` stops a pull request whose head is not the sha the fixup pushed (the
   `Head:` line of its reply), or the reviewed sha when the fixup pushed none: it
   names the pull request, which sha it expected and why, and opens it, so a push by

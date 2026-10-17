@@ -9,7 +9,8 @@
 # when its repository has no checkout at $CLAUDINIX_PROJECTS/<repo>, or when
 # that checkout pins no claude.ai cloud environment
 # (remote.defaultEnvironmentId in .claude/settings.local.json), or when it
-# comes from a fork (cloud:B86).
+# comes from a fork (cloud:B86), or when an older pull request of the same
+# repository has the same title (cloud:T168).
 #
 # --max caps how many run. One y/N answer names the pull requests and the
 # billed sessions (1 per role and 1 fixup each); --yes skips only that
@@ -95,15 +96,23 @@ if [ "${#repos[@]}" -gt 0 ]; then
     done
 fi
 found="$(gh search prs "${scope[@]}" --label "$label" --state open --limit "$search_limit" \
-    --json number,createdAt,url,repository,author </dev/null)" || exit 1
+    --json number,title,createdAt,url,repository,author </dev/null)" || exit 1
 if [ "$(jq length <<<"$found")" -ge "$search_limit" ]; then
     echo "held: only the first $search_limit labelled pull requests were found; the rest are not considered" >&2
 fi
-rows="$(jq -r 'sort_by(.createdAt) | .[] | ["\(.repository.nameWithOwner)#\(.number)", (.author.login // "ghost"), .repository.name, .url] | @tsv' <<<"$found")"
+rows="$(jq -r 'sort_by(.createdAt) | .[] | ["\(.repository.nameWithOwner)#\(.number)", (.author.login // "ghost"), .repository.name, .url, .title] | @tsv' <<<"$found")"
 
 picked=()
-while IFS=$'\t' read -r name author repo url; do
+kept=
+while IFS=$'\t' read -r name author repo url title; do
     [ -n "$name" ] || continue
+    # Rows are oldest first, so the first of a repo \& title is the one kept (cloud:T168).
+    key="$repo"$'\t'"$title"
+    if first="$(awk -F'\t' -v k="$key" '$1 "\t" $2 == k {print $3; exit}' <<<"$kept")" && [ -n "$first" ]; then
+        echo "held: skip $name: duplicate of $first, the oldest with that title" >&2
+        continue
+    fi
+    kept+="$key"$'\t'"$name"$'\n'
     [ -z "$max" ] || [ "${#picked[@]}" -lt "$max" ] || break
     checkout="$CLAUDINIX_PROJECTS/$repo"
     settings="$checkout/.claude/settings.local.json"
