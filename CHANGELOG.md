@@ -20,6 +20,7 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- The `fleet` review role examines at most 10 consumers with at most 2 searches.
 - The `fleet` review role stops without searching when the diff changes no consumable name.
 - The `fleet` review role reports a search that could not run as "could not check", not as 0 findings.
 - The `fleet` review role is read-only and passes the owner and repo as one quoted argument.
