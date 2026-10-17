@@ -20,6 +20,9 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- `just review fleet <PR>` is a new review role, and `review all` runs it: it
+  finds the repositories that consume the PR's repo and reports what the
+  change breaks in each on its next pin bump. Cloud review sessions only.
 - The `guide` app's step 5 names the allow rule that answers the `add_repo`
   prompt ahead of time (`mcp__claude-code-remote__add_repo`), says what it
   also allows, and on `y` copies the `.claude/settings.json` block for you
