@@ -12,7 +12,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     # Long polls keep the timed-out waits to a few polls each.
     export CLOUD_ALL_POLL=600
-    unset TASK_REFUSE REBASE_SILENT FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS BODY_FAIL
+    unset FIXUP_HEAD FIXUP_MOVES_HEAD TASK_REFUSE REBASE_SILENT FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS BODY_FAIL
     mkdir -p "$STUBS" "$STATE" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
@@ -43,8 +43,10 @@ setup() {
         '  [ -z "${FIXUP_REFUSE:-}" ] || { echo "fixup: #$1 is MERGED, not OPEN -- nothing to fix up" >&2; exit 1; }' \
         '  exit 0' \
         'fi' \
+        '[ -z "${FIXUP_MOVES_HEAD:-}" ] || echo "MERGEABLE ccc" >"$STATE/merge"' \
         '[ -z "${FIXUP_BOT:-}" ] || echo "Coverage 92%" >>"$STATE/comments"' \
-        '[ -n "${FIXUP_SILENT:-}" ] || [ -n "${FIXUP_BOT:-}" ] || echo "## Fixup: pushed" >>"$STATE/comments"' >"$CLAUDINIX_SCRIPTS/cloud-fixup.sh"
+        '[ -n "${FIXUP_SILENT:-}" ] || [ -n "${FIXUP_BOT:-}" ] || echo "## Fixup: pushed" >>"$STATE/comments"' \
+        '[ -z "${FIXUP_HEAD:-}" ] || echo "Head: $FIXUP_HEAD" >>"$STATE/comments"' >"$CLAUDINIX_SCRIPTS/cloud-fixup.sh"
     # cloud-rebase.sh: pushes a new head that merges cleanly.
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
@@ -593,6 +595,36 @@ fixup 16 --yes --model sonnet" ]
     [[ "$output" == *"3 gh calls failed in a row"* ]]
     [[ "$output" != *"never replied"* ]]
     [ "$(cat "$STATE/open.log")" = "-a Safari https://github.com/o/p/pull/14" ]
+}
+
+# --- the head the fixup pushed (cloud:T170, V52) ---
+
+@test "a fixup whose Head: line is the PR's head: the flow goes on (cloud:V52)" {
+    FIXUP_MOVES_HEAD=1 FIXUP_HEAD=ccc run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"green"* ]]
+}
+
+@test "a PR whose head is not the Head: of the fixup reply: stops naming it, opens it (cloud:V52)" {
+    FIXUP_MOVES_HEAD=1 FIXUP_HEAD=aaa run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"#14"* ]]
+    [[ "$output" == *"ccc"* ]]
+    [[ "$output" == *"aaa"* ]]
+    [ -s "$STATE/open.log" ]
+}
+
+@test "a fixup reply without Head: and a head that moved since the reviews: stops (cloud:V52)" {
+    FIXUP_MOVES_HEAD=1 run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"#14"* ]]
+    [[ "$output" == *"reviewed"* ]]
+}
+
+@test "a stopped head is never merged (cloud:V52)" {
+    FIXUP_MOVES_HEAD=1 run bash "$SCRIPT" docs:T47 --yes --merge
+    [ "$status" -eq 1 ]
+    run ! grep -q '^merge' "$STATE/children.log"
 }
 
 # --- conflicts (cloud:T146) ---
