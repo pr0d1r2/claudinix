@@ -74,8 +74,8 @@ T165|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T164,`.:C29`
 T166|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52,T161,V40,V41,T165,`.:C29`
 T168|.|`held` dedupe: same repo \& title → oldest kept, ⊥ sessions|I.cmd,V52
 T169|.|`held` report per PR from `all`|I.cmd,T166,`docs:T167`
-T170|x|`all` stops a PR whose head ≠ the last `fixup` push (V52)|V52,T166
-T171|x|`all` finds the build's PR when its branch ≠ `claude/<node>-<task>`: the 1 same-repo PR opened after the launch whose body names the task id; 2+ → stop, naming them|I.cmd,B90
+T170|x|ARCHIVED to SPEC-ARCHIVE.md|V52,T166
+T171|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B90
 
 ## §B BUGS
 
@@ -100,3 +100,4 @@ B90|2026-10-17|`all` matched the build's PR by branch only; the harness named it
 B92|2026-10-17|T171's `find_pr` used `${x,,}`; macOS bash 3.2 has no it ∴ `all` dies at its first poll (#52)|V54
 B93|2026-10-17|T171's body match could bind `all --merge` to another PR that cites the task id (#52)|V55
 B94|2026-10-17|T171's `open_prs` pulled the body of 200 PRs on each 10 s poll of a 180 min wait (#52)|V56
+B99|2026-10-17|`all` (T170) took the `Head:` line \& the `Fixup:` reply of any author: a non-member forged `Fixup:`/`Head: <their sha>` and V52 never stopped (#55)|V52: only OWNER \| MEMBER comments count in `all`, one jq filter in `lib/cloud-launch.sh` shared with `merge` (as V51, B64, B78)
