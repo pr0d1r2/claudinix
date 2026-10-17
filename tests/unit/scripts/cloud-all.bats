@@ -205,6 +205,46 @@ fixup 14 --yes --model sonnet" ]
     run ! grep -q '^review' "$STATE/children.log"
 }
 
+@test "a PR on the harness's own branch name is the build's when its body names the task" {
+    printf '%b\n' '15\tclaude/fix-the-thing\thttps://github.com/o/p/pull/15\tfalse\tBuilds docs:T47 as asked' >"$STATE/new_pr"
+    run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 0 ]
+    grep -q 'review all 15 ' "$STATE/children.log"
+}
+
+@test "a PR whose body names another task, or only part of the id, is not the build's" {
+    printf '%b\n' '15\tclaude/fix-the-thing\thttps://github.com/o/p/pull/15\tfalse\tBuilds T470, not T4' >"$STATE/new_pr"
+    run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"after 18 polls of 600s"* ]]
+    run ! grep -q '^review' "$STATE/children.log"
+}
+
+@test "a fork's PR is not the build's, even when its body names the task" {
+    printf '%b\n' '15\tclaude/fix-the-thing\thttps://github.com/o/p/pull/15\ttrue\tBuilds T47' >"$STATE/new_pr"
+    run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 1 ]
+    run ! grep -q '^review' "$STATE/children.log"
+}
+
+@test "2 PRs whose bodies name the task stop the flow, naming both" {
+    printf '%b\n' '15\tclaude/a\thttps://github.com/o/p/pull/15\tfalse\tBuilds T47' \
+        '16\tclaude/b\thttps://github.com/o/p/pull/16\tfalse\tAlso T47' >"$STATE/new_pr"
+    run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"#15"* ]]
+    [[ "$output" == *"#16"* ]]
+    [[ "$output" != *"after 18 polls"* ]]
+    run ! grep -q '^review' "$STATE/children.log"
+}
+
+@test "a PR open before the launch is not the build's, even when its body names the task" {
+    printf '%b\n' '9\tclaude/old\thttps://github.com/o/p/pull/9\tfalse\tBuilds T47' >"$STATE/prs"
+    run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 0 ]
+    grep -q 'review all 14 ' "$STATE/children.log"
+}
+
 # --- CI ---
 
 @test "CI with no checks yet or pending is waited for; skipped counts as passed" {
