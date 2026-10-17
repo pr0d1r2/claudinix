@@ -97,3 +97,4 @@ B83|2026-10-17|`fixup` prompt honoured `Review: fleet` comments of any author wi
 B84|2026-10-17|`fixup` prompt ran the gate \& repo tooling of the PR head, with the session's credentials, in repos whose PR authors are third parties (#48)|V53: tooling from the base; a PR that changes it → read-only, report
 B85|2026-10-17|shared CI-watch fragment told the session to follow AGENTS.md \| §B \| a gate and not to edit `hk.pkl` in repos that have none (#48)|CI-watch fragment is repo-neutral: those rules apply if present
 B86|2026-10-17|`held` counted a fork PR in the plan \& spent a `--max` slot on it; the flow then refused it \& `held` exited 1 (#50)|V52: a fork is skipped during selection, naming it
+B87|2026-10-17|`held` kept each PR as a space-joined string ∴ a `CLAUDINIX_PROJECTS` path with a space swapped checkout \& URL, every PR "failed" (#50)|V52: PR records split on tab, never on a space
