@@ -184,10 +184,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1791560397,
-        "narHash": "sha256-wPj3LKnI/8+DuD+rtz3r8lC4ncTyVDGPeAivaP9CppU=",
+        "lastModified": 1792243052,
+        "narHash": "sha256-nWAGOiFLUJhXAGjGbk4V4m37o9UqvwSGIzQCh1BqCn0=",
         "ref": "cached",
-        "rev": "f63d210f647103ffac1d994ce59800d30e74053e",
+        "rev": "2edc223599d8a8ca59acd4ee428b9e1c810f91b2",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/pr0d1r2/nix-rtk"
