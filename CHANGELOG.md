@@ -24,7 +24,9 @@ does are summarised briefly; the git history has the detail.
   repository's checkout. The session follows that repository's `AGENTS.md`,
   gate and spec only if it has them, not this repository's rules. A finding of
   the `fleet` review is fixed in the pull request (keep the old name or add a
-  shim) or named as a consumer change for its owner, never dropped.
+  shim) or named as a consumer change for its owner, never dropped silently.
+- `just fixup` acts only on comments by the repository's owner, members and
+  collaborators; other comments may be declined.
 - The `fleet` review role examines at most 10 consumers with at most 2 searches.
 - The `fleet` review role stops without searching when the diff changes no consumable name.
 - The `fleet` review role reports a search that could not run as "could not check", not as 0 findings.
