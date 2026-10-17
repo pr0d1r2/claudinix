@@ -53,10 +53,10 @@ checkout() {
     jq -n --arg id "${2-env_1}" '{remote: {defaultEnvironmentId: $id}}' >"$CLAUDINIX_PROJECTS/$1/.claude/settings.local.json"
 }
 
-# pr REPO N CREATED [AUTHOR]: one `gh search prs` row.
+# pr REPO N CREATED [AUTHOR] [TITLE]: one `gh search prs` row.
 pr() {
-    jq -n --arg r "$1" --argjson n "$2" --arg c "$3" --arg a "${4-owner}" \
-        '{number: $n, createdAt: $c, url: "https://github.com/owner/\($r)/pull/\($n)", repository: {name: $r, nameWithOwner: "owner/\($r)"}, author: {login: $a}}'
+    jq -n --arg r "$1" --argjson n "$2" --arg c "$3" --arg a "${4-owner}" --arg t "${5-title $2}" \
+        '{number: $n, title: $t, createdAt: $c, url: "https://github.com/owner/\($r)/pull/\($n)", repository: {name: $r, nameWithOwner: "owner/\($r)"}, author: {login: $a}}'
 }
 
 # prs ROW...: the PRs the search finds.
@@ -159,6 +159,21 @@ alpha all https://github.com/owner/alpha/pull/7 --yes --model sonnet" ]
     [ "$status" -eq 0 ]
     [[ "$output" == *"skip owner/beta#3"*"fork"* ]]
     [ "$(ran)" = "alpha all https://github.com/owner/alpha/pull/7 --yes --model sonnet" ]
+}
+
+@test "PRs of one repo with one title: the oldest runs, the newer is skipped naming it, no session, no --max slot (cloud:T168)" {
+    prs "$(pr alpha 9 2026-10-03 owner same)" "$(pr alpha 7 2026-10-01 owner same)" "$(pr beta 3 2026-10-02)"
+    run bash "$SCRIPT" --yes --max 2
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"skip owner/alpha#9"*"duplicate"*"owner/alpha#7"* ]]
+    [ "$(ran)" = "alpha all https://github.com/owner/alpha/pull/7 --yes --model sonnet
+beta all https://github.com/owner/beta/pull/3 --yes --model sonnet" ]
+}
+
+@test "the same title in two repos is no duplicate (cloud:T168)" {
+    prs "$(pr alpha 7 2026-10-02 owner same)" "$(pr beta 3 2026-10-01 owner same)"
+    run bash "$SCRIPT" --yes
+    [[ "$output" == *"held: done, 2 of 2"* ]]
 }
 
 @test "a checkout path with a space still runs each PR from its checkout (cloud:B87)" {
