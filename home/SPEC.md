@@ -30,6 +30,7 @@ V46: caveman hook \& `statusLine` commands: absolute interpreter, script in stor
 V47: `~/.claude/skills` = exactly the enabled toggles of `nix/agent-home.toml` (cavekit as `ck-<n>`); ∀ skill: dir name = its `name:`; `/<v>` → `/ck-<v>` ⇔ `v` shipped (B50), ∀ `/ck-<v>` resolves; FORMAT.md too (B51).
 V49: allowed push takes options before the remote only ∴ deny ∀ option after it (`Bash(git push * -*)` + rtk twin; no glob names every short-flag cluster, B58); older denies = 2nd layer.
 V50: allowed push writes 1 ref: 1 refspec, `claude/` src ⊥ `:dst` (B59); `heads/main` denied (B60).
+V58: cloud list ⊥ lets ANY cloud session (build ones too: they open a PR, never edit it) merge, close or edit a PR: `gh pr <verb>` for ∀ `pr_verbs` (plain, rtk, `gh -R x`) + MCP `merge_pull_request`, `enable_pr_auto_merge`, `update_pull_request`; guard requires them (B98). Left allowed: `issue_write`, `update_issue_comment` (fixup edits its own reply); not covered: `gh api -X PATCH`.
 
 ## §T TASKS
 
@@ -50,3 +51,4 @@ B59|2026-10-12|`claude/x:prod`, `claude/x rel` passed `claude/*`, `HEAD:*` allow
 B60|2026-10-12|`HEAD:heads/main` passed `HEAD:*`|V50
 B71|2026-10-15|deny `gh pr merge *` missed `gh -R x pr merge`, `gh api …/merge`, MCP merge (C29)|V50: guard requires those denies
 B75|2026-10-15|deny missed MCP file writes \& `gh api …/refs/heads/main`|V50: guard requires them
+B98|2026-10-17|deny `gh pr close \| edit *` left MCP `update_pull_request` closing \| editing a PR (#54)|V58: guard requires the MCP deny
