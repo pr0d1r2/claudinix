@@ -282,7 +282,8 @@ pr() {
     grep -qF 'README' "$p"
     grep -qF 'If the repository has a gate' "$p"
     grep -qF "the repository's own tooling" "$p"
-    grep -qF "Follow this repository's rules, not those of the project that launched you" "$p"
+    grep -qF "the repository you run in" "$p"
+    run ! grep -qF "this repository's rules" "$p"
     run ! grep -qF 'Fix up one pull request of this repository in this' "$p"
 }
 
