@@ -68,7 +68,7 @@ T161|x|ARCHIVED to SPEC-ARCHIVE.md|V51,I.cmd
 
 T164|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V51
 T165|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T164,`.:C29`
-T166|x|`scripts/cloud-held.sh` selects PRs: open PRs labelled L across the owner's repos, oldest first; checkout lookup, skip naming it; hands each PR to the `all` flow (`cloud-all.sh <PR URL> --yes`, T139), ⊥ its own wait \| CI logic|I.cmd,V52,T161,V40,V41,T165,`.:C29`
+T166|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52,T161,V40,V41,T165,`.:C29`
 T168|.|`held` duplicates: 1 repo, same normalized title \| head-branch prefix → oldest kept, rest listed for the owner, ⊥ sessions|I.cmd,V52
 T169|.|`held` report per PR: findings, fixed, declined, CI (from the `all` result)|I.cmd,T166,`docs:T167`
 
