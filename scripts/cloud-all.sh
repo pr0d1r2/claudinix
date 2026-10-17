@@ -40,6 +40,10 @@
 #   request given by number fails on its first red run;
 # - the reviews: one comment headed "Review: <role>" for every role;
 # - the fixup: a comment after its launch headed "Fixup:";
+# - the head (cloud:T170, V52): once the fixup has replied, the pull
+#   request's head is the sha of its last "Head:" line, else the one
+#   reviewed; any other head was pushed by someone else, and the flow
+#   stops naming it;
 # - conflicts (cloud:T146): once the pull request is known and again
 #   after the fixup, a pull request that conflicts with main (it gets no
 #   CI) is rebased by cloud-rebase.sh; the flow goes on once a new head
@@ -438,6 +442,34 @@ merge_state() {
     esac
 }
 
+# read_head: sets $head_sha to the pull request's head; a failed gh call
+# stops the flow (the head is the one thing V52 compares).
+read_head() {
+    local rc=0
+    merge_state || rc=$?
+    [ "$rc" != "$gh_failed" ] || fail "cannot read the head of #$pr -- check gh auth status"
+}
+
+# fixup_pushed_head SKIP: the sha of the last "Head: <sha>" line in the
+# "Fixup:" comments after the first SKIP, as cloud-fixup-prompt.txt tells
+# the session; empty when the reply has none (nothing was pushed).
+fixup_pushed_head() {
+    gh pr view "$pr" --json comments --jq ".comments[$1:][] | select(.body | test(\"^#* *$CLOUD_FIXUP_HEADING\")) | .body" </dev/null |
+        tr -d '\r' | sed -n 's/^Head: \([0-9a-f]*\)$/\1/p' | tail -n 1
+}
+
+# require_fixup_head SKIP REVIEWED: stop the flow unless the pull request's
+# head is the sha the fixup pushed, else the one reviewed (cloud:V52): a
+# head that moved otherwise was pushed by someone else.
+require_fixup_head() {
+    local pushed expected
+    pushed="$(fixup_pushed_head "$1")" || fail "cannot read the fixup reply of #$pr -- check gh auth status"
+    expected="${pushed:-$2}"
+    read_head
+    [ "$head_sha" = "$expected" ] ||
+        fail "the head of #$pr is $head_sha, not $expected (${pushed:+the sha the fixup pushed}${pushed:-the reviewed sha; the fixup pushed none}): someone else pushed, so it is not taken"
+}
+
 # head_moved OLD: 0 once the pull request's head is no longer OLD.
 head_moved() {
     local rc=0
@@ -490,8 +522,11 @@ wait_for "the reviews of #$pr" "$polls_reviews" reviews_in "$skip" || wait_faile
 
 echo "all: every role reviewed #$pr; starting the fixup"
 skip="$(comment_count)"
+read_head
+reviewed_head="$head_sha"
 "$scripts_dir/cloud-fixup.sh" "$target" "${child_args[@]}" || fail "the fixup of #$pr did not start"
 wait_for "the fixup of #$pr" "$polls_fixup" fixup_replied "$skip" || wait_failed $? "the fixup of #$pr never replied"
+require_fixup_head "$skip" "$reviewed_head"
 resolve_conflicts
 echo "all: the fixup replied on #$pr; waiting for CI"
 wait_ci 1 || wait_failed $? "CI is not green on #$pr after the fixup"
