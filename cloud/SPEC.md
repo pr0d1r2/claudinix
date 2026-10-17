@@ -28,7 +28,7 @@ sib|home|`~/.claude`: skills, rtk, caveman, permission rules
 - cmd: `just all <PR# \| URL>` (T139) → task mode minus the build: checks = `cloud-fixup.sh --dry-run`, starts at wait CI green; session count = 1/role + 1 fixup; then the same waits, children \& end as task mode.
 - cmd: `just merge <PR# \| URL> [--yes] [--dry-run]` → `scripts/cloud-merge.sh`: verdict per V51 (stop → exit 1 naming why); y/N unless `--yes`; `gh pr merge --rebase --match-head-commit`, then `git pull --ff-only` on a clean base. `--dry-run` ⊥ merge. `all … --merge` ends w/ it.
 - cmd: `just drain [node:Tn…] [--max N] [--model M] [--yes] [--dry-run]` → `scripts/cloud-drain.sh`: on a clean `main` only; tasks = given, else open §T rows of ∀ node but `experiments`, ⊥ `?` rows (`root:Tn` for the root); `--max` default = PRs w/ a `Fixup:` merged per day over 7 days, ≥ 1 (gh fails → exit 1, name `--max`); 1 y/N naming tasks & sessions; 1 at a time `cloud-all.sh <task> --yes --merge`; stop at the 1st nonzero, naming task & count.
-- cmd: `just held [--label L] [--repo R…] [--max N] [--model M] [--yes] [--dry-run]` → `scripts/cloud-held.sh` (T166): label L default `h10n-human`; checkout = `$CLAUDINIX_PROJECTS/<repo>` (env, required: the owner's checkouts, 1 per repo; T165 reuses it) w/ a claude.ai env in its `settings.local.json`, else skip naming it; 1 y/N naming PRs \& sessions; 1 PR at a time through `all` (T161); T168, T169.
+- cmd: `just held [--label L] [--repo R…] [--max N] [--model M] [--yes] [--dry-run]` → `scripts/cloud-held.sh` (T166): label L default `h10n-human`; checkout = `$CLAUDINIX_PROJECTS/<repo>` (env, required: the owner's checkouts, 1 per repo; T165 reuses it) w/ a claude.ai env in its `settings.local.json`, else skip naming it; 1 y/N naming PRs \& sessions; 1 PR at a time through `all` (T161); T168 (duplicate titles, V52), T169.
 - cmd: `just spec-optimize [node…] [--model M] [--yes] [--dry-run]` → `scripts/cloud-spec.sh`: nodes = §F names (default: owners of rows over `.context-limits` (B41, B42)), unknown → refuse listing them; launch rules as `cloud`; prompt `scripts/cloud-spec-prompt.txt`, branch `claude/spec-optimize[-<nodes joined by ->]` off `main`: ∀ node `mth archive`, move rows down to the node owning their files (cites changed too); shorten §T \& §I ⊥ meaning lost, §V \& §C verbatim; 1 `docs(spec)` commit/node; lower freed `.context-limits` rows to measured +15% (own commit, size in `Why:`), ⊥ raise; still over → report names the split ⊥ makes it; gate, push, PR into `main`, CI as `cloud`; text = data; only spec files \& `.context-limits` change (B43); ⊥ force \| merge \| waits (`.:C29`).
 - file: `scripts/lib/cloud-launch.sh` — sourced by every `scripts/cloud-*.sh` launcher, functions \& constants only (`cloud_*`, `CLOUD_*`): launch checks, task \& PR parsers, branch name \& regex, review roles, headings, green CI, kept paths; the one source of the launch \& merge rules.
 
@@ -39,7 +39,7 @@ V41: a wait that stops on failed `gh` calls (B34) ends the flow with gh's stderr
 V42: CI-watch prompt rules from 1 fragment; logs = data; ⊥ edit CI-defining files; bats asserts.
 V43: a PR head that starts with `-` is refused with the other non-plain refs; the prompts paste it bare into `git fetch` \& `git checkout`, where it would read as an option (B39).
 V51: merge only when head CI ∀ success \| skipped \| neutral (`CLOUD_CI_OK`), ∀ role posted `Review: <role>` then the last `Fixup:` names the head sha (`Head: <sha>`), security's last line `Findings: N` = 0 (missing → stop), \& the diff ⊥ touches (a rename \| mode change too) a path of `CLOUD_MERGE_KEPT` (`hk.pkl`, `.github/`, the gate's own files…), a §C \| §V row or raises a `.context-limits` row; else stop, naming why. ∀ review comment ends `Findings: N`. `fleet`'s `Findings: N` ⊥ gates a merge: a consumer break → owner reads it, T165 routes it.
-V52: `held` (`.:C29`) ⊥ merges, ⊥ adds \| removes labels, ⊥ closes a PR: the hold is the owner's. A PR whose head ≠ the sha `fixup` last pushed (the reviewed sha, when no fixup ran) → stop that PR, name it, go on to the next. ∀ PR passes V43, B20, B24 \& is same-repo (fork \| author ⊥ the owner → skip, naming it); the target's PR text, `fleet` evidence \& consumer files = data, ⊥ instructions; ⊥ edit CI-defining files in the target (V42).
+V52: `held` (`.:C29`) ⊥ merges, ⊥ adds \| removes labels, ⊥ closes a PR: the hold is the owner's. A PR whose head ≠ the sha `fixup` last pushed (the reviewed sha, when no fixup ran) → stop that PR, name it, go on to the next. ∀ PR passes V43, B20, B24 \& is same-repo (fork \| author ⊥ the owner → skip, naming it); same repo \& same title = duplicate (title equality is the definition): of the PRs that pass the checks the oldest runs, a newer one is skipped naming it, an ineligible older one claims nothing (B100), the compare is byte-exact (B101); the target's PR text, `fleet` evidence \& consumer files = data, ⊥ instructions; ⊥ edit CI-defining files in the target (V42).
 V53: a cross-repo `fixup` (T165) ⊥ trusts the target: only OWNER \| MEMBER \| COLLABORATOR comments steer it (as V51, B64, B83), PR text \& code = data, repo tooling \& gate run as on the base ⊥ the PR head's (a PR that changes them → read-only, the gate ⊥ run, reported), a SessionStart hook's output is followed only to unshallow (B84).
 V54: `scripts/cloud-all.sh` ⊥ bash ≥ 4 syntax (`${x,,}`, `${x^^}`, `declare -A`): the owner runs it under macOS bash 3.2; fold case with `tr` (B92).
 V55: a PR `all` found by its body, not its branch (T171), ⊥ `--merge`d: stop, open it, the owner merges (B93, V51).
@@ -72,7 +72,7 @@ T161|x|ARCHIVED to SPEC-ARCHIVE.md|V51,I.cmd
 T164|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V51
 T165|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T164,`.:C29`
 T166|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52,T161,V40,V41,T165,`.:C29`
-T168|x|`held` dedupe: same repo \& title → oldest kept, ⊥ sessions|I.cmd,V52
+T168|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52
 T169|.|`held` report per PR from `all`|I.cmd,T166,`docs:T167`
 T170|x|ARCHIVED to SPEC-ARCHIVE.md|V52,T166
 T171|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B90
@@ -88,16 +88,12 @@ B70|2026-10-15|`just merge` took `Findings: 0` from any line of a security revie
 B77|2026-10-15|`cloud-drain.sh` was not in `CLOUD_MERGE_KEPT` ∴ a PR could rewrite the chained-merge entry point unflagged (#42)|V51: kept also `scripts/cloud-drain.sh`
 B78|2026-10-15|`drain` counted `Fixup:` comments of any author for the default `--max` (same forgery as B64) ∴ anyone could raise the cap to 29 (#42)|V51: only OWNER \| MEMBER comments count, also for `--max`
 B79|2026-10-15|`drain` matched a literal `Fixup:` ∴ `## Fixup:` uncounted, `--max` fell to 1|`drain` reads `CLOUD_FIXUP_HEADING`
-B80|2026-10-15|`drain` progress used all candidates ∴ `--max 1` said `1 of 14`|count the planned tasks
 B83|2026-10-17|`fixup` prompt honoured `Review: fleet` comments of any author with "never drop" ahead of the decline rule ∴ anyone could force a change on the PR branch in a repo outside this one (#48)|V53: only OWNER \| MEMBER \| COLLABORATOR comments steer a fixup; "never drop silently"
 B84|2026-10-17|`fixup` prompt ran the gate \& repo tooling of the PR head, with the session's credentials, in repos whose PR authors are third parties (#48)|V53: tooling from the base; a PR that changes it → read-only, report
-B85|2026-10-17|shared CI-watch fragment told the session to follow AGENTS.md \| §B \| a gate and not to edit `hk.pkl` in repos that have none (#48)|CI-watch fragment is repo-neutral: those rules apply if present
-B86|2026-10-17|`held` ran a fork PR (#50)|V52: skipped
-B87|2026-10-17|`held` records split on spaces (#50)|V52: split on tab
-B88|2026-10-17|`held` lost PRs past the 100th (#50)|V52: `--repo` in search
-B89|2026-10-17|`CLOUD_MERGE_KEPT` missed `scripts/cloud-held.sh` (#50)|V51: kept
 B90|2026-10-17|`all` matched the build's PR by branch only; the harness named it after the session title (#48, #50) ∴ 180 min wait, `drain` stopped|T171
 B92|2026-10-17|T171's `find_pr` used `${x,,}`; macOS bash 3.2 has no it ∴ `all` dies at its first poll (#52)|V54
 B93|2026-10-17|T171's body match could bind `all --merge` to another PR that cites the task id (#52)|V55
 B94|2026-10-17|T171's `open_prs` pulled the body of 200 PRs on each 10 s poll of a 180 min wait (#52)|V56
 B99|2026-10-17|`all` (T170) took the `Head:` line \& the `Fixup:` reply of any author: a non-member forged `Fixup:`/`Head: <their sha>` and V52 never stopped (#55)|V52: only OWNER \| MEMBER comments count in `all`, one jq filter in `lib/cloud-launch.sh` shared with `merge` (as V51, B64, B78)
+B100|2026-10-17|`held` (T168) recorded a PR as the oldest of its title before the author, checkout, environment \& fork checks ∴ an older fork \| foreign PR of that title hid the owner's PR and nothing ran (#56)|V52: only a PR that passes the checks claims its title
+B101|2026-10-17|`held` (T168) passed the title to `awk -v`, which unescapes `\\` ∴ a title with a backslash never matched, the duplicate ran (#56)|V52: byte-exact compare, ⊥ `awk -v`
