@@ -327,6 +327,16 @@ pr() {
     [[ "$flat" != *"run the gate again"* ]]
 }
 
+@test "the prompt: the gate is the command the repository names, hk only as one case (T165)" {
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 0 ]
+    local flat
+    flat="$(tr '\n' ' ' <"$STATE/claude.task" | tr -s ' ')"
+    [[ "$flat" == *"with the command it names"* ]]
+    [[ "$flat" == *"for an hk gate"* ]]
+    [[ "$flat" != *"For hk:"* ]]
+}
+
 # --- just ---
 
 @test "just fixup runs the script, one plain command" {
