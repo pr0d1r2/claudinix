@@ -162,11 +162,17 @@ alpha all https://github.com/owner/alpha/pull/7 --yes --model sonnet" ]
 
 @test "a checkout path with a space still runs each PR from its checkout (cloud:B87)" {
     mv "$CLAUDINIX_PROJECTS" "$BATS_TEST_TMPDIR/my projects"
-    export CLAUDINIX_PROJECTS="$BATS_TEST_TMPDIR/my projects"
-    run bash "$SCRIPT" --yes
+    run env CLAUDINIX_PROJECTS="$BATS_TEST_TMPDIR/my projects" bash "$SCRIPT" --yes
     [ "$status" -eq 0 ]
     [ "$(ran)" = "beta all https://github.com/owner/beta/pull/3 --yes --model sonnet
 alpha all https://github.com/owner/alpha/pull/7 --yes --model sonnet" ]
+}
+
+@test "--max with no PR that can run: nothing to do, exit 0 (the empty slice needs a bash 3.2 guard)" {
+    rm -r "${CLAUDINIX_PROJECTS:?}/alpha" "${CLAUDINIX_PROJECTS:?}/beta"
+    run bash "$SCRIPT" --yes --max 1
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"nothing to do"* ]]
 }
 
 @test "CLAUDINIX_PROJECTS unset: exit 1 saying to set it, no session" {

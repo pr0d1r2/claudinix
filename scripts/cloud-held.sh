@@ -130,7 +130,7 @@ while IFS= read -r row; do
 done <<<"$rows"
 
 if [ -n "$max" ]; then
-    picked=("${picked[@]:0:max}")
+    picked=(${picked[@]+"${picked[@]:0:max}"})
 fi
 total="${#picked[@]}"
 if [ "$total" -eq 0 ]; then

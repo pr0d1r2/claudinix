@@ -59,7 +59,7 @@ does are summarised briefly; the git history has the detail.
   by someone else, from a fork, or in a repo with no checkout or no pinned
   cloud environment, naming it. It never merges and never touches a label, and
   works when `CLAUDINIX_PROJECTS` contains a space. `--repo` goes to the
-  search, and a full page of 100 is reported, not dropped silently.
+  search, and a full page of 100 is reported, not dropped silently. `--max` with nothing to run ends cleanly on macOS's bash 3.2. `--max` with nothing to run ends cleanly on macOS's bash 3.2.
 - `just merge` stops at a pull request that changes `scripts/cloud-drain.sh`, so a
   merged change cannot rewrite the drain unreviewed.
 - `just drain` counts only your own and members' `Fixup:` replies for its default
