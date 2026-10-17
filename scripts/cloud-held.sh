@@ -115,7 +115,7 @@ while IFS= read -r row; do
     elif [ "$(gh pr view "$(jq -r .url <<<"$row")" --json isCrossRepository --jq .isCrossRepository </dev/null)" = true ]; then
         echo "held: skip $name: it comes from a fork" >&2
     else
-        picked+=("$name $checkout $(jq -r .url <<<"$row")")
+        picked+=("$name"$'\t'"$checkout"$'\t'"$(jq -r .url <<<"$row")")
     fi
 done <<<"$rows"
 
@@ -128,7 +128,7 @@ if [ "$total" -eq 0 ]; then
     exit 0
 fi
 
-names="$(printf '%s\n' "${picked[@]}" | cut -d' ' -f1 | paste -sd' ' -)"
+names="$(printf '%s\n' "${picked[@]}" | cut -f1 | paste -sd' ' -)"
 plan="held: $names ($total pull requests labelled $label): the all flow on each (review all, fixup, wait for green CI), $((total * per_pr)) billed Claude Code cloud sessions (model $model), one pull request at a time; it merges nothing and keeps every label"
 if [ "$dry" = 1 ]; then
     echo "$plan"
@@ -141,7 +141,7 @@ fi
 
 done_count=0
 for entry in "${picked[@]}"; do
-    read -r name checkout url <<<"$entry"
+    IFS=$'\t' read -r name checkout url <<<"$entry"
     if (cd "$checkout" && "$scripts_dir/cloud-all.sh" "$url" --yes --model "$model"); then
         done_count=$((done_count + 1))
     else

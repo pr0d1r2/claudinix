@@ -57,7 +57,8 @@ does are summarised briefly; the git history has the detail.
   labelled `h10n-human` (or L), oldest first, through `just all` one at a time
   from each repo's checkout under `CLAUDINIX_PROJECTS`. It skips a pull request
   by someone else, from a fork, or in a repo with no checkout or no pinned
-  cloud environment, naming it. It never merges and never touches a label.
+  cloud environment, naming it. It never merges and never touches a label, and
+  works when `CLAUDINIX_PROJECTS` contains a space.
 - `just merge` stops at a pull request that changes `scripts/cloud-drain.sh`, so a
   merged change cannot rewrite the drain unreviewed.
 - `just drain` counts only your own and members' `Fixup:` replies for its default

@@ -147,6 +147,15 @@ alpha all https://github.com/owner/alpha/pull/7 --yes --model sonnet" ]
     [ "$(ran)" = "alpha all https://github.com/owner/alpha/pull/7 --yes --model sonnet" ]
 }
 
+@test "a checkout path with a space still runs each PR from its checkout (cloud:B87)" {
+    mv "$CLAUDINIX_PROJECTS" "$BATS_TEST_TMPDIR/my projects"
+    export CLAUDINIX_PROJECTS="$BATS_TEST_TMPDIR/my projects"
+    run bash "$SCRIPT" --yes
+    [ "$status" -eq 0 ]
+    [ "$(ran)" = "beta all https://github.com/owner/beta/pull/3 --yes --model sonnet
+alpha all https://github.com/owner/alpha/pull/7 --yes --model sonnet" ]
+}
+
 @test "CLAUDINIX_PROJECTS unset: exit 1 saying to set it, no session" {
     unset CLAUDINIX_PROJECTS
     run bash "$SCRIPT" --yes
