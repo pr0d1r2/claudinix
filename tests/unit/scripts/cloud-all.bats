@@ -12,7 +12,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     # Long polls keep the timed-out waits to a few polls each.
     export CLOUD_ALL_POLL=600
-    unset TASK_REFUSE REBASE_SILENT FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS
+    unset TASK_REFUSE REBASE_SILENT FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS BODY_FAIL
     mkdir -p "$STUBS" "$STATE" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
@@ -80,6 +80,7 @@ setup() {
         '  head -n 1 "$STATE/ci" | tr " " "\n" | grep -v "^$"' \
         '  [ "$(wc -l <"$STATE/ci")" -le 1 ] || { tail -n +2 "$STATE/ci" >"$STATE/ci.t"; mv "$STATE/ci.t" "$STATE/ci"; }' \
         '  exit 0 ;;' \
+        '*"--json body"*) [ -z "${BODY_FAIL:-}" ] || exit 1; grep "^$3\t" "$STATE/prs" | cut -f5; exit 0 ;;' \
         '*"--json url"*) [ -z "${URL_FAIL:-}" ] || exit 1; echo "https://github.com/o/p/pull/$3"; exit 0 ;;' \
         '*comments*)' \
         '  n=$(( $(cat "$STATE/comments.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/comments.n"' \
@@ -252,6 +253,28 @@ fixup 14 --yes --model sonnet" ]
     [[ "$output" == *"#15"* ]]
     run ! grep -q '^merge' "$STATE/children.log"
     grep -q 'pull/15' "$STATE/open.log"
+}
+
+@test "the open PR list asks for no body: bodies are read only for new PRs off the task's branch (T171)" {
+    run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 0 ]
+    run ! grep -E '^pr list.*body' "$STATE/gh.log"
+    run ! grep -E '^pr view.*--json body' "$STATE/gh.log"
+}
+
+@test "a PR on the task's branch is taken without reading any body" {
+    printf '%b\n' '14\tclaude/docs-t47-dk9i03\thttps://github.com/o/p/pull/14\tfalse\tBuilds T47' >"$STATE/new_pr"
+    run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 0 ]
+    run ! grep -E 'json body' "$STATE/gh.log"
+}
+
+@test "an unreadable body is a failed gh call: the PR wait goes on" {
+    printf '%b\n' '15\tclaude/fix-the-thing\thttps://github.com/o/p/pull/15\tfalse\tBuilds T47' >"$STATE/new_pr"
+    BODY_FAIL=1 run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"gh calls failed in a row"* ]]
+    run ! grep -q '^review' "$STATE/children.log"
 }
 
 @test "the script uses no bash 4 case folding: macOS bash 3.2 has none (V54)" {
