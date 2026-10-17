@@ -30,7 +30,7 @@ CLOUD_MERGE_KEPT=(
     hk.pkl flake.nix flake.lock nix/cloud-permissions.json nix/dev-shell.nix
     nix/checks.nix nix/apps.nix .github/ .claude/ justfile
     scripts/guard/ scripts/hk/ scripts/dev/ scripts/review/ scripts/lib/
-    scripts/cloud-all.sh scripts/cloud-drain.sh scripts/cloud-merge.sh scripts/cloud-review.sh
+    scripts/cloud-all.sh scripts/cloud-drain.sh scripts/cloud-held.sh scripts/cloud-merge.sh scripts/cloud-review.sh
     scripts/cloud-review-prompt.txt tests/unit/scripts/guard/
 )
 
