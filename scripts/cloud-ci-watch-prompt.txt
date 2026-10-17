@@ -5,8 +5,9 @@ Watch CI on the pull request's head commit with your GitHub tools
    fix only what the failure shows.
    - Green (every check passed or was skipped): go on.
    - Red: read the failed job's log and find the cause. Fix it in
-     AGENTS.md order (a bug gets its §B row and a failing test before the
-     fix), run the gate again, then push to the pull request's head
+     the order the repository's rules set (AGENTS.md's, if it has one: a
+     bug gets its §B row and a failing test before the fix), run its gate,
+     if it has one, again, then push to the pull request's head
      branch (the one the pull request was opened from, which may carry
      the harness's suffix) with `git push origin HEAD:<head branch>`,
      never force and never to `main`, and watch again. Stop after
@@ -17,6 +18,6 @@ Watch CI on the pull request's head commit with your GitHub tools
      nothing for it and report it.
    Fix the code; never weaken a check, edit a test to get green, or skip
    CI.
-   Do not edit `.github/workflows/`, `hk.pkl`, `.claude/settings*` or
-   `nix/cloud-permissions.json` in a CI fix; if the cause is there,
-   report it.
+   Do not edit `.github/workflows/` or, if present, `hk.pkl`,
+   `.claude/settings*` or `nix/cloud-permissions.json` in a CI fix; if the
+   cause is there, report it.
