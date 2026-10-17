@@ -72,7 +72,7 @@ T166|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52,T161,V40,V41,T165,`.:C29`
 T168|.|`held` dedupe: same repo \& title → oldest kept, ⊥ sessions|I.cmd,V52
 T169|.|`held` report per PR from `all`|I.cmd,T166,`docs:T167`
 T170|.|`all` stops a PR whose head ≠ the last `fixup` push (V52)|V52,T166
-T171|.|`all` finds the build's PR when its branch ≠ `claude/<node>-<task>`: the 1 same-repo PR opened after the launch whose body names the task id; 2+ → stop, naming them|I.cmd,B90
+T171|x|`all` finds the build's PR when its branch ≠ `claude/<node>-<task>`: the 1 same-repo PR opened after the launch whose body names the task id; 2+ → stop, naming them|I.cmd,B90
 
 ## §B BUGS
 
