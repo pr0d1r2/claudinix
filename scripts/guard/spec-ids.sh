@@ -18,9 +18,10 @@ set -euo pipefail
 
 # defined_and_pointed: read a spec on stdin; print "D<TAB>id" per id it
 # defines (a row or list item start, or a pointer list member) and
-# "P<TAB>id" per id an ARCHIVED pointer sends to the archive.
+# "P<TAB>id" per id an ARCHIVED pointer sends to the archive, and
+# "E<TAB>problem" per pointer line it refuses.
 defined_and_pointed() {
-    awk '
+    awk -v max_range=1000 '
         function emit(kind, id) { print kind "\t" id }
         function pointed(id) { emit("D", id); emit("P", id) }
         /ARCHIVED to SPEC-ARCHIVE\.md/ && /^[TVBC][0-9]+(-[TVBC][0-9]+)?(, *[TVBC][0-9]+(-[TVBC][0-9]+)?)*:/ {
@@ -32,6 +33,10 @@ defined_and_pointed() {
                 kind = substr(ends[1], 1, 1)
                 first = substr(ends[1], 2) + 0
                 last = (2 in ends) ? substr(ends[2], 2) + 0 : first
+                if (last < first || last - first > max_range) {
+                    emit("E", "line " NR ": bad range " items[i])
+                    continue
+                }
                 for (k = first; k <= last; k++) pointed(kind k)
             }
             next
@@ -90,6 +95,11 @@ while IFS= read -r file; do
     [ -n "$file" ] || continue
     parsed="$(git show "HEAD:$file" | defined_and_pointed)"
     awk -F'\t' '$1 == "D" { print $2 }' <<<"$parsed" >>"$work/head_ids"
+    while IFS=$'\t' read -r _ problem; do
+        [ -n "$problem" ] || continue
+        echo "spec-ids: $file: $problem" >&2
+        status=1
+    done <<<"$(awk -F'\t' '$1 == "E"' <<<"$parsed")"
     case "$file" in
     */SPEC-ARCHIVE.md | SPEC-ARCHIVE.md) continue ;;
     esac
