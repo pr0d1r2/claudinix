@@ -53,6 +53,10 @@ merge *args:
 drain *args:
     scripts/cloud-drain.sh {{ args }}
 
+# Take the open pull requests you labelled h10n-human, across your repos, through `just all` one at a time (never merges); `--dry-run` prints the plan.
+held *args:
+    scripts/cloud-held.sh {{ args }}
+
 # Bring spec nodes (default: those over `.context-limits`) under their ceilings in a billed cloud session.
 spec-optimize *args:
     scripts/cloud-spec.sh {{ args }}

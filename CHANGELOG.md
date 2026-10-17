@@ -53,6 +53,11 @@ does are summarised briefly; the git history has the detail.
   the first pull request the strict merge rule leaves to you. Without tasks it
   takes the open ones outside `experiments` that are not open questions;
   `--max` defaults to your merge rate over the last 7 days.
+- `just held [--label L] [--repo R…] [--max N]` takes your open pull requests
+  labelled `h10n-human` (or L), oldest first, through `just all` one at a time
+  from each repo's checkout under `CLAUDINIX_PROJECTS`. It skips a pull request
+  by someone else, or in a repo with no checkout or no pinned cloud
+  environment, naming it. It never merges and never touches a label.
 - `just merge` stops at a pull request that changes `scripts/cloud-drain.sh`, so a
   merged change cannot rewrite the drain unreviewed.
 - `just drain` counts only your own and members' `Fixup:` replies for its default
