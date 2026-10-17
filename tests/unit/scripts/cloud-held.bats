@@ -26,7 +26,8 @@ setup() {
     chmod +x "$CLAUDINIX_SCRIPTS"/*.sh
 
     # gh: `api user` answers the owner, `search prs` answers
-    # $STATE/prs.json, or either fails with $GH_FAIL.
+    # $STATE/prs.json, `pr view URL` says whether $STATE/fork.<PR number>
+    # exists, or any fails with $GH_FAIL.
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "$*" >>"$STATE/gh.log"' \
@@ -34,6 +35,7 @@ setup() {
         'case "$*" in' \
         'api\ user*) echo owner ;;' \
         'search\ prs*) cat "$STATE/prs.json" ;;' \
+        'pr\ view*) [ -f "$STATE/fork.${3##*/}" ] && echo true || echo false ;;' \
         '*) exit 9 ;;' \
         'esac' >"$STUBS/gh"
     chmod +x "$STUBS"/*
@@ -134,6 +136,14 @@ alpha all https://github.com/owner/alpha/pull/7 --yes --model sonnet" ]
     prs "$(pr beta 3 2026-10-01 stranger)" "$(pr alpha 7 2026-10-02)"
     run bash "$SCRIPT" --yes
     [[ "$output" == *"skip owner/beta#3"*"stranger"* ]]
+    [ "$(ran)" = "alpha all https://github.com/owner/alpha/pull/7 --yes --model sonnet" ]
+}
+
+@test "a fork PR is skipped naming it and spends no --max slot (cloud:B86)" {
+    touch "$STATE/fork.3"
+    run bash "$SCRIPT" --yes --max 1
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"skip owner/beta#3"*"fork"* ]]
     [ "$(ran)" = "alpha all https://github.com/owner/alpha/pull/7 --yes --model sonnet" ]
 }
 
