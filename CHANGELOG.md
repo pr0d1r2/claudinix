@@ -27,6 +27,8 @@ does are summarised briefly; the git history has the detail.
   shim) or named as a consumer change for its owner, never dropped silently.
 - `just fixup` acts only on comments by the repository's owner, members and
   collaborators; other comments may be declined.
+- `just fixup` runs the base branch's gate and tooling, and runs nothing from a
+  pull request head that changes them.
 - The `fleet` review role examines at most 10 consumers with at most 2 searches.
 - The `fleet` review role stops without searching when the diff changes no consumable name.
 - The `fleet` review role reports a search that could not run as "could not check", not as 0 findings.
