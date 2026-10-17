@@ -386,10 +386,10 @@ wait_ci() {
     wait_for "CI on #$pr" "$max" ci_state
 }
 
-# comments: the first line of every comment on the pull request, without
-# the CR a comment written in the web UI ends its lines with.
+# comments: the first line of every comment by the owner or a member, without
+# the CR a comment written in the web UI ends its lines with (cloud:B99).
 comments() {
-    gh pr view "$pr" --json comments --jq '.comments[] | (.body | split("\n") | .[0]) // ""' </dev/null |
+    gh pr view "$pr" --json comments --jq "$CLOUD_COMMENT_JQ"'.comments[] | trusted | (.body | split("\n") | .[0]) // ""' </dev/null |
         tr -d '\r'
 }
 
@@ -454,7 +454,7 @@ read_head() {
 # "Fixup:" comments after the first SKIP, as cloud-fixup-prompt.txt tells
 # the session; empty when the reply has none (nothing was pushed).
 fixup_pushed_head() {
-    gh pr view "$pr" --json comments --jq ".comments[$1:][] | select(.body | test(\"^#* *$CLOUD_FIXUP_HEADING\")) | .body" </dev/null |
+    gh pr view "$pr" --json comments --jq "$CLOUD_COMMENT_JQ [.comments[] | trusted][$1:][] | select(.body | test(\"^#* *$CLOUD_FIXUP_HEADING\")) | .body" </dev/null |
         tr -d '\r' | sed -n 's/^Head: \([0-9a-f]*\)$/\1/p' | tail -n 1
 }
 

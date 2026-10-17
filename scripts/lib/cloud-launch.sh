@@ -18,6 +18,11 @@ source "$(dirname "${BASH_SOURCE[0]}")/context-limits.sh"
 CLOUD_REVIEW_HEADING='Review:'
 # shellcheck disable=SC2034 # read by the scripts that source this file
 CLOUD_FIXUP_HEADING='Fixup:'
+# jq definitions for reading pull request comments. Anyone may comment, so
+# only the owner and members steer a flow: `all` and `merge` both filter
+# with `trusted` (cloud:V51, V52, B64, B99).
+# shellcheck disable=SC2034 # read by the scripts that source this file
+CLOUD_COMMENT_JQ='def trusted: select(.authorAssociation == "OWNER" or .authorAssociation == "MEMBER");'
 # The first word of the last line of a review comment, then the count; the
 # prompt names it and `just merge` reads it (cloud:V51).
 # shellcheck disable=SC2034 # read by the scripts that source this file
