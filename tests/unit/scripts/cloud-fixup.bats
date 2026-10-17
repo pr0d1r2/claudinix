@@ -316,6 +316,17 @@ pr() {
     run ! grep -qF 'If the SessionStart hook warned, do what it says first' "$p"
 }
 
+@test "the CI-watch fragment states this project's rules only as 'if present': no unconditional AGENTS.md, §B or gate after step 8 (cloud:B85)" {
+    local f="$BATS_TEST_DIRNAME/../../../scripts/cloud-ci-watch-prompt.txt"
+    local flat
+    flat="$(tr '\n' ' ' <"$f" | tr -s ' ')"
+    [[ "$flat" == *"in the order the repository's rules set"* ]]
+    [[ "$flat" == *"run its gate, if it has one"* ]]
+    [[ "$flat" == *"if present"* ]]
+    [[ "$flat" != *"Fix it in AGENTS.md order"* ]]
+    [[ "$flat" != *"run the gate again"* ]]
+}
+
 # --- just ---
 
 @test "just fixup runs the script, one plain command" {
