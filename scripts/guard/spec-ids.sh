@@ -104,13 +104,13 @@ while IFS= read -r file; do
         [ -n "$id" ] || continue
         echo "spec-ids: $id is archived by a pointer in $file but is not a row of $archive" >&2
         status=1
-    done <<<"$(awk -F'\t' 'NR == FNR { have[$1]; next } $1 == "P" && !($2 in have) { print $2 }' "$work/archive_ids" - <<<"$parsed")"
+    done <<<"$(awk -F'\t' 'FILENAME == ARGV[1] { have[$1]; next } $1 == "P" && !($2 in have) { print $2 }' "$work/archive_ids" - <<<"$parsed")"
 done <<<"$(spec_files HEAD)"
 
 while IFS=$'\t' read -r id file; do
     [ -n "$id" ] || continue
     echo "spec-ids: $id was defined in $file at $base and is in no SPEC*.md now -- ids are never reused; restore the row (B91)" >&2
     status=1
-done <<<"$(awk -F'\t' 'NR == FNR { here[$1]; next } !($1 in here)' "$work/head_ids" "$work/base_ids")"
+done <<<"$(awk -F'\t' 'FILENAME == ARGV[1] { here[$1]; next } !($1 in here)' "$work/head_ids" "$work/base_ids")"
 
 exit "$status"
