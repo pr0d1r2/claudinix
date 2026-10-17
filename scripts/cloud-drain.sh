@@ -78,14 +78,7 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 cloud_resolve_model "$scripts_dir" || exit "$?"
-roles=0
-while IFS= read -r _; do
-    roles=$((roles + 1))
-done < <(cloud_roles "$scripts_dir/review")
-if [ "$roles" -eq 0 ]; then
-    echo "drain: no review roles in $scripts_dir/review -- add one (ROLE.md) first" >&2
-    exit 1
-fi
+roles="$(cloud_role_count drain "$scripts_dir")" || exit 1
 per_task="$(cloud_session_count "$roles")"
 
 if [ "${#tasks[@]}" -eq 0 ]; then

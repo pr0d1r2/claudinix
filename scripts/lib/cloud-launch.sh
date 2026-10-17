@@ -79,6 +79,21 @@ cloud_roles() {
     done
 }
 
+# cloud_role_count LABEL DIR: the number of review roles in DIR/review, or,
+# for none, the refusal LABEL prints and a return of 1. The one guard
+# cloud-drain.sh and cloud-held.sh share.
+cloud_role_count() {
+    local count=0
+    while IFS= read -r _; do
+        count=$((count + 1))
+    done < <(cloud_roles "$2/review")
+    if [ "$count" -eq 0 ]; then
+        echo "$1: no review roles in $2/review -- add one (ROLE.md) first" >&2
+        return 1
+    fi
+    echo "$count"
+}
+
 # cloud_session_count ROLES [pr]: the billed sessions one `all` run starts
 # for ROLES review roles: 1 build (none for a pull request, the word `pr`),
 # 1 per role and 1 fixup. The one source cloud-all.sh and cloud-drain.sh

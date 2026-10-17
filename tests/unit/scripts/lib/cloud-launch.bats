@@ -139,6 +139,20 @@ repo_with_upstream() {
 beta" ]
 }
 
+@test "cloud_role_count counts the roles, or refuses naming the caller when there are none" {
+    # shellcheck source=/dev/null
+    source "$LIB"
+    mkdir -p "$BATS_TEST_TMPDIR/s/review"
+    run cloud_role_count held "$BATS_TEST_TMPDIR/s"
+    [ "$status" -eq 1 ]
+    [[ "$output" == "held: no review roles in $BATS_TEST_TMPDIR/s/review"* ]]
+    : >"$BATS_TEST_TMPDIR/s/review/a.md"
+    : >"$BATS_TEST_TMPDIR/s/review/b.md"
+    run cloud_role_count held "$BATS_TEST_TMPDIR/s"
+    [ "$status" -eq 0 ]
+    [ "$output" = 2 ]
+}
+
 @test "cloud_roles prints nothing for a directory without role files" {
     # shellcheck source=/dev/null
     source "$LIB"
