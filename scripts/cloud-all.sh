@@ -28,7 +28,10 @@
 # - the pull request: a newly open one whose branch is
 #   claude/<node>-<task>, maybe with the harness's suffix, compared with
 #   the case folded (any node for a bare Tn); one open before the launch
-#   or from a fork is not it;
+#   or from a fork is not it. With no such branch (the harness may name
+#   it after the session title, cloud:B90), the one new same-repo pull
+#   request whose body names the task id; 2 or more stop the flow,
+#   naming them (cloud:T171);
 # - CI: the head commit's checks, none pending and none failed (skipped
 #   and neutral pass); no checks yet counts as pending, and so does a
 #   cancelled one (an outage, or a run a newer push superseded; said once
@@ -204,7 +207,7 @@ readonly gh_failed=3
 # wait_failed RC MESSAGE: stop the flow after a failed wait_for. RC 3 is the
 # gh stop, which already said why; any other RC gets MESSAGE.
 wait_failed() {
-    if [ "$1" = "$gh_failed" ]; then
+    if [ "$1" = "$gh_failed" ] || [ "$1" = "$ambiguous" ]; then
         open_pr
         exit 1
     fi
@@ -251,10 +254,10 @@ wait_for() {
 }
 
 # open_prs: the open pull requests, as number TAB branch TAB URL TAB
-# whether it comes from a fork.
+# whether it comes from a fork TAB its body on one line.
 open_prs() {
-    gh pr list --state open --limit 200 --json number,headRefName,url,isCrossRepository \
-        --jq '.[] | [.number, .headRefName, .url, .isCrossRepository] | @tsv' </dev/null
+    gh pr list --state open --limit 200 --json number,headRefName,url,isCrossRepository,body \
+        --jq '.[] | [.number, .headRefName, .url, .isCrossRepository, (.body // "" | gsub("[\\t\\r\\n]+"; " "))] | @tsv' </dev/null
 }
 
 # The PRs open before the launch; an unreadable list stops the flow, as an
@@ -276,21 +279,39 @@ else
     done <<<"$snapshot"
 fi
 
-# find_pr: sets $pr and $url to the build's pull request, never a fork's.
+# What find_pr returns for 2 or more pull requests naming the task, after
+# it said which; wait_failed then only opens the pull request.
+readonly ambiguous=4
+
+# find_pr: sets $pr and $url to the build's pull request, never a fork's:
+# the new one on the task's branch, else the one new one whose body names
+# the task id (cloud:T171).
 find_pr() {
-    local n head link fork lines
+    local n head link fork body lines named=()
+    local id_word="(^|[^a-z0-9])${id,,}([^a-z0-9]|\$)"
     lines="$(open_prs 2>"$gh_err")" || return "$gh_failed"
-    while IFS="$(printf '\t')" read -r n head link fork; do
+    while IFS="$(printf '\t')" read -r n head link fork body; do
         [ -n "$n" ] || continue
         [ "$fork" != true ] || continue
         [[ "$before" != *" $n "* ]] || continue
-        if [[ "$(printf %s "$head" | tr '[:upper:]' '[:lower:]')" =~ $want_head ]]; then
+        if [[ "${head,,}" =~ $want_head ]]; then
             pr="$n"
             url="$link"
             return 0
         fi
+        if [[ "${body,,}" =~ $id_word ]]; then
+            named+=("$n $link")
+        fi
     done <<<"$lines"
-    return 2
+    case "${#named[@]}" in
+    0) return 2 ;;
+    1) read -r pr url <<<"${named[0]}" ;;
+    *)
+        printf 'all: %d new pull requests name %s, so none is taken as its build: %s\n' \
+            "${#named[@]}" "$id" "$(printf '#%s ' "${named[@]%% *}")" >&2
+        return "$ambiguous"
+        ;;
+    esac
 }
 
 # ci_state: the head commit's checks: 0 green, 1 red, 2 pending. A cancelled
