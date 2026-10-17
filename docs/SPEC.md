@@ -68,7 +68,7 @@ T134|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:T132`,C22
 T136|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:T135`,C22
 T149|x|CLI `spec-optimize` section, RUNBOOK: a node near its ceiling → `just spec-optimize [node]`, then `just all <PR#>`|`cloud:T148`,C22
 T157|x|CLI `review`: review a PR of another repo from that repo's checkout (`<claudinix>/scripts/cloud-review.sh`); needs its own claude.ai env, GitHub app access, `gh` sign-in|`cloud:T156`,C22
-T167|.|CLI `held` section; RUNBOOK: clear the `h10n-human` queue → `just held --dry-run`, close the listed duplicates, `just held`, merge each PR by hand|`cloud:T166`,`cloud:T169`,C22
+T167|x|CLI `held` section; RUNBOOK: clear the `h10n-human` queue → `just held --dry-run`, close the listed duplicates, `just held`, merge each PR by hand|`cloud:T166`,`cloud:T169`,C22
 
 ## §B BUGS
 
