@@ -20,6 +20,10 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- `just all <task>` finds the build's pull request even when the harness did
+  not name its branch `claude/<node>-<task>`: it takes the one new pull
+  request of this repository whose body names the task id, and stops naming
+  them when two or more do.
 - `just fixup` works for a pull request of any repository when run from that
   repository's checkout. The session follows that repository's `AGENTS.md`,
   gate and spec only if it has them, not this repository's rules. A finding of
