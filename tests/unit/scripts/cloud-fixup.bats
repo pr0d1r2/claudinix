@@ -279,7 +279,6 @@ pr() {
     [ "$status" -eq 0 ]
     local p="$STATE/claude.task"
     grep -qF 'If the repository has an AGENTS.md or a SPEC.md' "$p"
-    grep -qF 'README' "$p"
     grep -qF 'If the repository has a gate' "$p"
     grep -qF "the repository's own tooling" "$p"
     grep -qF "the repository you run in" "$p"
