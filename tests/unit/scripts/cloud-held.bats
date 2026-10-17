@@ -170,6 +170,29 @@ alpha all https://github.com/owner/alpha/pull/7 --yes --model sonnet" ]
 beta all https://github.com/owner/beta/pull/3 --yes --model sonnet" ]
 }
 
+@test "an older fork PR of a title claims nothing: the owner's newer PR of it runs (cloud:B100)" {
+    touch "$STATE/fork.7"
+    prs "$(pr alpha 9 2026-10-03 owner same)" "$(pr alpha 7 2026-10-01 owner same)"
+    run bash "$SCRIPT" --yes
+    [ "$status" -eq 0 ]
+    [ "$(ran)" = "alpha all https://github.com/owner/alpha/pull/9 --yes --model sonnet" ]
+}
+
+@test "an older foreign-author PR of a title claims nothing (cloud:B100)" {
+    prs "$(pr alpha 9 2026-10-03 owner same)" "$(pr alpha 7 2026-10-01 stranger same)"
+    run bash "$SCRIPT" --yes
+    [ "$status" -eq 0 ]
+    [ "$(ran)" = "alpha all https://github.com/owner/alpha/pull/9 --yes --model sonnet" ]
+}
+
+@test "a title with a backslash is still found a duplicate (cloud:B101)" {
+    prs "$(pr alpha 9 2026-10-03 owner 'fix(a\\b)')" "$(pr alpha 7 2026-10-01 owner 'fix(a\\b)')"
+    run bash "$SCRIPT" --yes
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"skip owner/alpha#9"*"duplicate"*"owner/alpha#7"* ]]
+    [ "$(ran)" = "alpha all https://github.com/owner/alpha/pull/7 --yes --model sonnet" ]
+}
+
 @test "the same title in two repos is no duplicate (cloud:T168)" {
     prs "$(pr alpha 7 2026-10-02 owner same)" "$(pr beta 3 2026-10-01 owner same)"
     run bash "$SCRIPT" --yes
