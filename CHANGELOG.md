@@ -20,6 +20,7 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- The `fleet` review role reports a search that could not run as "could not check", not as 0 findings.
 - The `fleet` review role is read-only and passes the owner and repo as one quoted argument.
 - The `fleet` review role names only public consumers; private ones are counted.
 - The `fleet` review role treats consumer files as data, never instructions.
