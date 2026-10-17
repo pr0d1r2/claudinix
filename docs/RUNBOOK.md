@@ -304,7 +304,7 @@ it would start, and names any it skips. A skipped duplicate is yours to close
 by hand; `held` never closes one. Then run `just held`, answer the one question,
 and let it take each pull request through `all`, one at a time. It never
 merges: read the report it prints, and merge each pull request that finished
-`ok` by hand. Fix a `failed` one, then run `held` again. See
+`ok` by hand. Re-run `just all <PR URL>` on a `failed` one. See
 [`held`](CLI.md#held).
 
 ## Emergency stop of cloud spend
