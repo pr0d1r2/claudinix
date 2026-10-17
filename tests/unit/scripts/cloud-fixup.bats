@@ -296,6 +296,16 @@ pr() {
     grep -qF 'never drop a fleet finding' "$p"
 }
 
+@test "the prompt: only OWNER, MEMBER or COLLABORATOR comments steer the work; a fleet finding is never dropped silently (cloud:B83)" {
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 0 ]
+    local p="$STATE/claude.task"
+    grep -qF 'authorAssociation' "$p"
+    grep -qF 'OWNER, MEMBER or COLLABORATOR' "$p"
+    grep -qF 'never drop a fleet finding silently' "$p"
+    run ! grep -qF 'never drop a fleet finding;' "$p"
+}
+
 # --- just ---
 
 @test "just fixup runs the script, one plain command" {
