@@ -69,6 +69,8 @@ T166|.|`just held [--label L] [--repo R…] [--max N] [--model M] [--yes] [--dry
 
 ## §B BUGS
 
+B19-B43 (but B23): ARCHIVED to SPEC-ARCHIVE.md `## §B BUGS`
+
 id|date|cause|fix
 B63|2026-10-15|`just review all <other repo URL>`: `gh pr view 36` ran before the B21 repo check ∴ read this repo's merged #36|repo check before any `gh` call (T156)
 B64|2026-10-15|`just merge` counted review \& `Fixup:` comments of any author (forged `Findings: 0`)|V51: only OWNER \| MEMBER comments count

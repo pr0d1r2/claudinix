@@ -69,7 +69,8 @@ hk fix             # the formatters
 - **A bug found gets a `§B` row** stating its cause and the invariant that
   would have caught it. Do not fix a root cause silently.
 - **Ids are never reused.** Finished tasks move to `SPEC-ARCHIVE.md` and keep
-  their ids.
+  their ids. Fixed bug rows move there by hand, into its `## §B BUGS`
+  table (`mth archive` moves only tasks); the node's `§B` keeps a pointer.
 - **Test first.** Every shell script is a RED `test:` commit adding the
   failing bats file, then a GREEN `feat:` or `fix:` commit adding the script,
   then any `refactor:` commit with the tests unchanged and green. The guard
