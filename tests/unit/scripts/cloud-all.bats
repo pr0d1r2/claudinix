@@ -245,6 +245,10 @@ fixup 14 --yes --model sonnet" ]
     grep -q 'review all 14 ' "$STATE/children.log"
 }
 
+@test "the script uses no bash 4 case folding: macOS bash 3.2 has none (V54)" {
+    run ! grep -nE '\$\{[a-z_]+(,,|\^\^)\}' "$SCRIPT"
+}
+
 # --- CI ---
 
 @test "CI with no checks yet or pending is waited for; skipped counts as passed" {
