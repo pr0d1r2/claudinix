@@ -1,8 +1,7 @@
 # SPEC ARCHIVE
 
-Task rows moved out of `SPEC.md` by `mth archive`, then a second table,
-`## §B BUGS` below §T, with fixed bug rows moved by hand (`mth archive`
-appends only to §T). An id is never reused
+Task rows moved out of `SPEC.md` by `mth archive`; fixed bug rows moved by
+hand, see `docs/CONTRIBUTING.md`. An id is never reused
 (`V12`), so a citation to an archived row still resolves -- here.
 
 This is a SINK, not a spec. The citations inside these rows point into
@@ -15,7 +14,7 @@ T155|x|move the `nix` skill, hook & toggle invariants (V45-V47) & their bugs (B5
 
 ## §B BUGS
 
-Bug rows moved out of `SPEC.md` by hand: fixed, each with its fix or invariant on record (`mth archive` moves only §T rows).
+Bug rows moved by hand: see `docs/CONTRIBUTING.md`.
 
 id|date|cause|fix
 B46|2026-10-09|`caveman-commit` ("skip the body") in sessions; `commit-msg` refuses that|V45; skill dropped
