@@ -20,6 +20,9 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- The cloud permission list now also denies `gh pr close` and `gh pr edit` (plain,
+  `rtk` and `gh -R x` forms), as it already denied `gh pr merge`; the guard
+  derives all three from one verb list.
 - `just all` no longer downloads the body of every open pull request on each
   poll: it reads bodies only of new pull requests off the task's branch.
 - `just all --merge` does not merge a pull request it found only by its body
