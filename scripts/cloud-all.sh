@@ -283,23 +283,28 @@ fi
 # it said which; wait_failed then only opens the pull request.
 readonly ambiguous=4
 
+# lower TEXT: TEXT with the case folded; bash 3.2 has no case-folding expansion (cloud:V54).
+lower() {
+    printf %s "$1" | tr '[:upper:]' '[:lower:]'
+}
+
 # find_pr: sets $pr and $url to the build's pull request, never a fork's:
 # the new one on the task's branch, else the one new one whose body names
 # the task id (cloud:T171).
 find_pr() {
-    local n head link fork body lines named=()
-    local id_word="(^|[^a-z0-9])${id,,}([^a-z0-9]|\$)"
+    local n head link fork body lines id_word named=()
+    id_word="(^|[^a-z0-9])$(lower "$id")([^a-z0-9]|\$)"
     lines="$(open_prs 2>"$gh_err")" || return "$gh_failed"
     while IFS="$(printf '\t')" read -r n head link fork body; do
         [ -n "$n" ] || continue
         [ "$fork" != true ] || continue
         [[ "$before" != *" $n "* ]] || continue
-        if [[ "${head,,}" =~ $want_head ]]; then
+        if [[ "$(lower "$head")" =~ $want_head ]]; then
             pr="$n"
             url="$link"
             return 0
         fi
-        if [[ "${body,,}" =~ $id_word ]]; then
+        if [[ "$(lower "$body")" =~ $id_word ]]; then
             named+=("$n $link")
         fi
     done <<<"$lines"
