@@ -174,3 +174,20 @@ edit() {
     [ "$status" -eq 0 ]
     [ -z "$output" ]
 }
+
+@test "a pointer in a node with no archive fails, naming the id (B95)" {
+    git rm -q node/SPEC-ARCHIVE.md
+    git commit -q -m "chore: drop archive"
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *'T2 is archived by a pointer in node/SPEC.md'* ]]
+}
+
+@test "a pointer to an archive that defines no ids fails, naming the id (B95)" {
+    : >node/SPEC-ARCHIVE.md
+    git add node/SPEC-ARCHIVE.md
+    git commit -q -m "chore: empty archive"
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *'T2 is archived by a pointer in node/SPEC.md'* ]]
+}
