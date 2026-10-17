@@ -154,11 +154,12 @@ for entry in "${picked[@]}"; do
     IFS=$'\t' read -r name checkout url <<<"$entry"
     if (cd "$checkout" && "$scripts_dir/cloud-all.sh" "$url" --yes --model "$model"); then
         done_count=$((done_count + 1))
-        report+=("held: $name ok $url")
+        outcome=ok
     else
-        echo "held: $name failed (see the flow's last line above); going on" >&2
-        report+=("held: $name failed $url")
+        outcome=failed
+        echo "held: $name $outcome (see the flow's last line above); going on" >&2
     fi
+    report+=("held: $name $outcome $url")
 done
 echo "held: report"
 printf '%s\n' "${report[@]}"
