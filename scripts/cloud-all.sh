@@ -255,10 +255,16 @@ wait_for() {
 }
 
 # open_prs: the open pull requests, as number TAB branch TAB URL TAB
-# whether it comes from a fork TAB its body on one line.
+# whether it comes from a fork. No body: the poll runs every few seconds
+# for hours (cloud:V56).
 open_prs() {
-    gh pr list --state open --limit 200 --json number,headRefName,url,isCrossRepository,body \
-        --jq '.[] | [.number, .headRefName, .url, .isCrossRepository, (.body // "" | gsub("[\\t\\r\\n]+"; " "))] | @tsv' </dev/null
+    gh pr list --state open --limit 200 --json number,headRefName,url,isCrossRepository \
+        --jq '.[] | [.number, .headRefName, .url, .isCrossRepository] | @tsv' </dev/null
+}
+
+# pr_body N: the body of pull request N on one line.
+pr_body() {
+    gh pr view "$1" --json body --jq '.body // "" | gsub("[\\t\\r\\n]+"; " ")' </dev/null 2>"$gh_err"
 }
 
 # The PRs open before the launch; an unreadable list stops the flow, as an
@@ -291,12 +297,13 @@ lower() {
 
 # find_pr: sets $pr and $url to the build's pull request, never a fork's:
 # the new one on the task's branch, else the one new one whose body names
-# the task id (cloud:T171).
+# the task id (cloud:T171), which only an unlisted body can tell; its
+# bodies are read after the branch scan found nothing (cloud:V56).
 find_pr() {
-    local n head link fork body lines id_word named=()
+    local n head link fork lines id_word body candidates=() named=()
     id_word="(^|[^a-z0-9])$(lower "$id")([^a-z0-9]|\$)"
     lines="$(open_prs 2>"$gh_err")" || return "$gh_failed"
-    while IFS="$(printf '\t')" read -r n head link fork body; do
+    while IFS="$(printf '\t')" read -r n head link fork; do
         [ -n "$n" ] || continue
         [ "$fork" != true ] || continue
         [[ "$before" != *" $n "* ]] || continue
@@ -305,10 +312,14 @@ find_pr() {
             url="$link"
             return 0
         fi
-        if [[ "$(lower "$body")" =~ $id_word ]]; then
-            named+=("$n $link")
-        fi
+        candidates+=("$n $link")
     done <<<"$lines"
+    for n in "${candidates[@]+"${candidates[@]}"}"; do
+        body="$(pr_body "${n%% *}")" || return "$gh_failed"
+        if [[ "$(lower "$body")" =~ $id_word ]]; then
+            named+=("$n")
+        fi
+    done
     case "${#named[@]}" in
     0) return 2 ;;
     1)

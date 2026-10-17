@@ -20,6 +20,8 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- `just all` no longer downloads the body of every open pull request on each
+  poll: it reads bodies only of new pull requests off the task's branch.
 - `just all --merge` does not merge a pull request it found only by its body
   naming the task id: it opens it and leaves the merge to the owner.
 - `just all` runs under the stock macOS bash 3.2 again: finding the build's
