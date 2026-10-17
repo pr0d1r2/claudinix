@@ -259,11 +259,11 @@ alpha all https://github.com/owner/alpha/pull/7 --yes --model sonnet" ]
 @test "a report lists every PR run, oldest first, with its outcome and URL, before the done line (cloud:T169)" {
     echo 1 >"$STATE/rc.3"
     run bash "$SCRIPT" --yes
-    report="$(grep -E '^held: report' <<<"$output")"
+    report="$(sed -n '/^held: report$/,/^held: done/p' <<<"$output")"
     [ "$report" = "held: report
 held: report: owner/beta#3 failed https://github.com/owner/beta/pull/3
-held: report: owner/alpha#7 ok https://github.com/owner/alpha/pull/7" ]
-    [ "${lines[${#lines[@]} - 1]}" = "held: done, 1 of 2" ]
+held: report: owner/alpha#7 ok https://github.com/owner/alpha/pull/7
+held: done, 1 of 2" ]
 }
 
 @test "gh cannot search: exit 1 with gh's stderr only, no session (cloud:V41)" {
