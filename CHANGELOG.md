@@ -20,6 +20,11 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- `just fixup` works for a pull request of any repository when run from that
+  repository's checkout. The session follows that repository's `AGENTS.md`,
+  gate and spec only if it has them, not this repository's rules. A finding of
+  the `fleet` review is fixed in the pull request (keep the old name or add a
+  shim) or named as a consumer change for its owner, never dropped.
 - The `fleet` review role examines at most 10 consumers with at most 2 searches.
 - The `fleet` review role stops without searching when the diff changes no consumable name.
 - The `fleet` review role reports a search that could not run as "could not check", not as 0 findings.
