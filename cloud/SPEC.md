@@ -72,7 +72,7 @@ T161|x|ARCHIVED to SPEC-ARCHIVE.md|V51,I.cmd
 T164|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V51
 T165|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T164,`.:C29`
 T166|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52,T161,V40,V41,T165,`.:C29`
-T168|.|`held` dedupe: same repo \& title → oldest kept, ⊥ sessions|I.cmd,V52
+T168|x|`held` dedupe: same repo \& title → oldest kept, ⊥ sessions|I.cmd,V52
 T169|.|`held` report per PR from `all`|I.cmd,T166,`docs:T167`
 T170|x|ARCHIVED to SPEC-ARCHIVE.md|V52,T166
 T171|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B90
