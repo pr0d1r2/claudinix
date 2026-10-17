@@ -67,7 +67,8 @@ while IFS= read -r rule; do
 done <<<"$blanket"
 
 # Denies the list must keep (its rtk twins are required by the twin check
-# below). One array: a rule that must stay denied is added here.
+# below). One array: a rule that must stay denied is added here; the
+# `gh pr <verb>` rules are derived from pr_verbs below.
 required_denies=(
     'Bash(git push * main)'
     'Bash(git push * main *)'
@@ -117,7 +118,7 @@ for verb in "${pr_verbs[@]}"; do
 done
 for rule in "${required_denies[@]}"; do
     if ! jq -e --arg rule "$rule" '.deny | index($rule)' "$list" >/dev/null; then
-        fail "$list must deny \"$rule\" -- see the comment above required_denies"
+        fail "$list must deny \"$rule\" -- see required_denies and pr_verbs"
         status=1
     fi
 done
