@@ -10,7 +10,7 @@
 # that checkout pins no claude.ai cloud environment
 # (remote.defaultEnvironmentId in .claude/settings.local.json), or when it
 # comes from a fork (cloud:B86), or when an older pull request of the same
-# repository has the same title (cloud:T168).
+# repository that would run has the same title (cloud:T168, B100, B101).
 #
 # --max caps how many run. One y/N answer names the pull requests and the
 # billed sessions (1 per role and 1 fixup each); --yes skips only that
@@ -106,14 +106,8 @@ picked=()
 kept=
 while IFS=$'\t' read -r name author repo url title; do
     [ -n "$name" ] || continue
-    # Rows are oldest first, so the first of a repo \& title is the one kept (cloud:T168).
+    # Rows are oldest first, so the first runnable PR of a repo and title is the one kept (cloud:T168).
     key="$repo"$'\t'"$title"
-    if first="$(awk -F'\t' -v k="$key" '$1 "\t" $2 == k {print $3; exit}' <<<"$kept")" && [ -n "$first" ]; then
-        echo "held: skip $name: duplicate of $first, the oldest with that title" >&2
-        continue
-    fi
-    kept+="$key"$'\t'"$name"$'\n'
-    [ -z "$max" ] || [ "${#picked[@]}" -lt "$max" ] || break
     checkout="$CLAUDINIX_PROJECTS/$repo"
     settings="$checkout/.claude/settings.local.json"
     if [ "$author" != "$owner" ]; then
@@ -122,9 +116,14 @@ while IFS=$'\t' read -r name author repo url title; do
         echo "held: skip $name: no checkout at $checkout" >&2
     elif [ -z "$(jq -r '.remote.defaultEnvironmentId // empty' "$settings" 2>/dev/null)" ]; then
         echo "held: skip $name: no claude.ai environment pinned in $settings" >&2
+    elif first="$(K="$key" awk -F'\t' '$1 "\t" $2 == ENVIRON["K"] {print $3; exit}' <<<"$kept")" && [ -n "$first" ]; then
+        echo "held: skip $name: duplicate of $first, the oldest with that title" >&2
+    elif [ -n "$max" ] && [ "${#picked[@]}" -ge "$max" ]; then
+        break
     elif [ "$(gh pr view "$url" --json isCrossRepository --jq .isCrossRepository </dev/null)" = true ]; then
         echo "held: skip $name: it comes from a fork" >&2
     else
+        kept+="$key"$'\t'"$name"$'\n'
         picked+=("$name"$'\t'"$checkout"$'\t'"$url")
     fi
 done <<<"$rows"

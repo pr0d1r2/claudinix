@@ -22,7 +22,9 @@ does are summarised briefly; the git history has the detail.
 
 - `just held` runs only the oldest of the labelled pull requests that share a
   repository and a title, and names each newer one it skips, so a parked
-  duplicate no longer bills a session.
+  duplicate no longer bills a session. Only a pull request that would run
+  counts as the oldest, so an older fork or foreign one no longer hides yours,
+  and a title with a backslash is matched too.
 
 - `just all` stops a pull request whose head is not the sha the fixup pushed (the
   `Head:` line of its reply), or the reviewed sha when the fixup pushed none: it
