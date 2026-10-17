@@ -93,8 +93,7 @@ required_denies=(
     # git resolves a partial ref to refs/heads/main (home:V50, home:B60).
     'Bash(git push *:heads/main*)'
     # Only the owner merges, from the owner's terminal (.:C29, cloud:V51).
-    'Bash(gh pr merge *)'
-    'Bash(gh * pr merge *)'
+    # The other PR verbs come from pr_verbs below.
     'Bash(gh api *merge*)'
     'mcp__github__merge_pull_request'
     'mcp__github__enable_pr_auto_merge'
@@ -105,6 +104,14 @@ required_denies=(
     'mcp__github__create_or_update_file'
     'mcp__github__delete_file'
 )
+# The PR verbs a cloud session never runs (.:C29, cloud:V51, cloud:V52):
+# the owner merges, and a launcher acting on another repo's PR neither
+# closes nor edits it. A new verb is one line here; the plain and the
+# `gh -R x` forms are derived, and the rtk twins follow from the twin check.
+pr_verbs=(merge close edit)
+for verb in "${pr_verbs[@]}"; do
+    required_denies+=("Bash(gh pr $verb *)" "Bash(gh * pr $verb *)")
+done
 for rule in "${required_denies[@]}"; do
     if ! jq -e --arg rule "$rule" '.deny | index($rule)' "$list" >/dev/null; then
         fail "$list must deny \"$rule\" -- see the comment above required_denies"
