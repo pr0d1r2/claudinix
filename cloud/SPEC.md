@@ -76,7 +76,7 @@ T171|.|`all` finds the build's PR when its branch ≠ `claude/<node>-<task>`: th
 
 ## §B BUGS
 
-B19-B43 (but B23), B65-B69, B72-B74, B76: ARCHIVED to SPEC-ARCHIVE.md `## §B BUGS`
+B19-B22, B24-B43, B65-B69, B72-B74, B76: ARCHIVED to SPEC-ARCHIVE.md `## §B BUGS`
 
 id|date|cause|fix
 B63|2026-10-15|`just review all <other repo URL>`: `gh pr view 36` ran before the B21 repo check ∴ read this repo's merged #36|repo check before any `gh` call (T156)
