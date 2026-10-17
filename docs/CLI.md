@@ -615,7 +615,9 @@ Run it as `scripts/cloud-review.sh ...` or `just review ...`, for example
 **The roles.** Each role is one file, `scripts/review/<role>.md`. Its first
 line is a `# ` title, and the rest tells the reviewer what to look for. The
 roles so far are `correctness`, `maintainability`, `extensibility`,
-`performance`, `security` and `architecture`. To add a role, add a file:
+`performance`, `security`, `architecture` and `fleet`. `fleet` looks outside the
+repository: it finds the owner's other repositories that consume this one and
+reports what the change breaks in each on its next pin bump. To add a role, add a file:
 the launcher and its tests read the directory, so no code changes. A role
 file may contain `@`, even a placeholder such as `@PR@`: it reaches the
 session as written. `all` is not a role name. An unknown role
