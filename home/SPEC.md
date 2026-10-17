@@ -38,18 +38,12 @@ T155|x|ARCHIVED to SPEC-ARCHIVE.md|V45,V46,V47,B50,B51
 
 ## §B BUGS
 
+B46-B49, B52, B54-B56: ARCHIVED to SPEC-ARCHIVE.md `## §B BUGS`
+
 id|date|cause|fix
 B11|2026-10-03|`programs.claude-code.permissions.{allow,deny}` writes flat keys Claude Code ignores; use freeform `settings.permissions` (pr0d1r2/nix-home-manager-claude-code#35)|V35
-B46|2026-10-09|`caveman-commit` ("skip the body") in sessions; `commit-msg` refuses that|V45; skill dropped
-B47|2026-10-09|check matched strings; moved `src/hooks` passed|V46: script must exist
-B48|2026-10-09|`statusLine` ran `bash` from PATH|V46: absolute interpreter
-B49|2026-10-09|hook timeout 5 vs upstream 30; slow start drops terse mode|V46: timeout ≥ 30
 B50|2026-10-10|hardcoded verb list: dangling `/ck-x`, unpatched `/x`|V47: nix passes verbs; refs checked
 B51|2026-10-10|FORMAT.md named `/spec`, `/build`: absent in home|V47: same rewrite, checked
-B52|2026-10-12|rtk 0.51 rewrite of `git push origin claude/x` got no allow|`.:V44`
-B54|2026-10-12|`push … HEAD:claude/x -f` matched `HEAD:*` allow (#28)|deny `-f` \& rtk twins
-B55|2026-10-12|deny `*-f` refused `claude/review-f` (#29)|deny ` -f` as a word
-B56|2026-10-12|`-uf`/`-fu` force-pushed past the deny (#29)|deny both as words; `-nf`… B58
 B58|2026-10-12|`-nf`, `-vf`, `-d` after the refspec matched `HEAD:*` \& `claude/*` allows|V49
 B59|2026-10-12|`claude/x:prod`, `claude/x rel` passed `claude/*`, `HEAD:*` allows (#32)|V50
 B60|2026-10-12|`HEAD:heads/main` passed `HEAD:*`|V50

@@ -1,6 +1,8 @@
 # SPEC ARCHIVE
 
-Task rows moved out of `SPEC.md` by `mth archive`. An id is never reused
+Task rows moved out of `SPEC.md` by `mth archive`, then a second table,
+`## §B BUGS` below §T, with fixed bug rows moved by hand (`mth archive`
+appends only to §T). An id is never reused
 (`V12`), so a citation to an archived row still resolves -- here.
 
 This is a SINK, not a spec. The citations inside these rows point into
@@ -33,3 +35,13 @@ T119|x|guide step 4 = per-project pin (owner 2026-10-04: 1 env per project, more
 T137|x|`guide` offers `add_repo` allow|`docs:T47`,I.cmd
 T150|x|guard: `.context-limits` row ↑ \| added \| file deleted vs `origin/main` → fail, ⊥ override|`.:C20`,B81
 T162|x|`scripts/lib/context-limits.sh` owns the row parser; `cloud_diff_reasons` \& the guard call it|`cloud:V51`,T150
+
+## §B BUGS
+
+Bug rows moved out of `SPEC.md` by hand: fixed, each with its fix or invariant on record (`mth archive` moves only §T rows).
+
+id|date|cause|fix
+B4|2026-10-03|`scripts/inputs.sh /nonexistent` said `no directory .`: failed `dir="$(cd … && pwd)"` emptied `dir`, `${dir:-.}` showed `.` ⇒ user cannot tell which path was wrong (found by docs round 2 running the CLI)|V26
+B13|2026-10-04|`just guide --rev c63d695` (short SHA, as git prints it) → bare usage line, exit 2: `--rev` matched only 40 hex \& the message named neither the flag nor the value ⇒ owner could not tell what was wrong; pre-release there is no published line, so `--rev` is the only path|V37,V26
+B17|2026-10-04|git exports `GIT_EXEC_PATH` to hooks; cloud push by image git 2.43 leaked `/usr/lib/git-core` into bats ∴ legacy-hook test's git 2.54 ran the old git's dir first, the shim saw 2.43 \& the gate ran twice; setup unset a fixed `GIT_*` list|`.:V21`
+B62|2026-10-13|setup-line test "gh not signed in" asserted `404` absent from output that names the random commit SHA ∴ ~1% of SHAs contain `404` ⇒ CI failed on a PR that changed no code (#35 run 99); test fixture forces a SHA with `404`, the assertion ignores the SHA|`scripts:V26`
