@@ -172,6 +172,7 @@ if [ "$yes" = 0 ]; then
 fi
 
 url=
+found_by_body=0 # 1 when find_pr took the PR by its body, which --merge never merges (cloud:V55)
 
 # open_pr: show the pull request, when there is one, in Safari (macOS)
 # or the default browser.
@@ -310,7 +311,11 @@ find_pr() {
     done <<<"$lines"
     case "${#named[@]}" in
     0) return 2 ;;
-    1) read -r pr url <<<"${named[0]}" ;;
+    1)
+        read -r pr url <<<"${named[0]}"
+        found_by_body=1
+        return 0
+        ;;
     *)
         printf 'all: %d new pull requests name %s, so none is taken as its build: %s\n' \
             "${#named[@]}" "$id" "$(printf '#%s ' "${named[@]%% *}")" >&2
@@ -478,6 +483,9 @@ resolve_conflicts
 echo "all: the fixup replied on #$pr; waiting for CI"
 wait_ci 1 || wait_failed $? "CI is not green on #$pr after the fixup"
 
+if [ "$merge" = 1 ] && [ "$found_by_body" = 1 ]; then
+    fail "#$pr was found by its body naming $id, not by its branch, so it is not merged: the owner merges it"
+fi
 if [ "$merge" = 1 ]; then
     echo "all: CI is green on #$pr after ${built}the reviews and the fixup; merging"
     "$scripts_dir/cloud-merge.sh" "$pr" --yes || fail "#$pr stops for the owner (see above)"

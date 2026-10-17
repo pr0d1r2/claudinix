@@ -20,6 +20,8 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- `just all --merge` does not merge a pull request it found only by its body
+  naming the task id: it opens it and leaves the merge to the owner.
 - `just all` runs under the stock macOS bash 3.2 again: finding the build's
   pull request no longer uses a bash 4 expansion.
 - `just all <task>` finds the build's pull request even when the harness did
