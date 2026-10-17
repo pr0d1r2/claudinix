@@ -255,6 +255,14 @@ not_pulled() {
     grep -q '^pr merge 8 --rebase --match-head-commit def456' "$STATE/gh.log"
 }
 
+@test "a Fixup: reply that names the head only inside a longer line stops (cloud:V51)" {
+    jq '.headRefOid = "def456" | .comments[-1].body += "\nsee Head: def456 for the rest"' "$STATE/pr.json" >"$STATE/p" && mv "$STATE/p" "$STATE/pr.json"
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"does not name the head"* ]]
+    not_merged
+}
+
 @test "security reported findings, or no Findings: line: stops, naming security" {
     for tail in 'Findings: 2' 'No blocking findings.'; do
         pr_json "$GREEN" "$tail" end
