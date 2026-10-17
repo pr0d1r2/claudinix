@@ -473,3 +473,29 @@ denied_by_repo_list() {
         [[ "$output" == *"$rule"* ]]
     done
 }
+
+@test "the repo's own list denies gh pr merge, close and edit in every form (home:T172, cloud:V52)" {
+    for verb in merge close edit; do
+        for cmd in "gh pr $verb 8" "rtk gh pr $verb 8" "gh -R o/r pr $verb 8" \
+            "gh --repo o/r pr $verb 8" "rtk gh -R o/r pr $verb 8"; do
+            denied_by_repo_list "$cmd" || {
+                echo "not denied: $cmd"
+                return 1
+            }
+        done
+    done
+}
+
+@test "dropping any derived pr-verb deny is refused and named (home:T172, cloud:V52)" {
+    for verb in merge close edit; do
+        for rule in "Bash(gh pr $verb *)" "Bash(rtk gh pr $verb *)" \
+            "Bash(gh * pr $verb *)" "Bash(rtk gh * pr $verb *)"; do
+            list '["Bash(bats *)"]'
+            jq --arg r "$rule" '.deny -= [$r]' "$PERMISSIONS_FILE" >"$PERMISSIONS_FILE.new"
+            mv "$PERMISSIONS_FILE.new" "$PERMISSIONS_FILE"
+            run bash "$SCRIPT"
+            [ "$status" -eq 1 ]
+            [[ "$output" == *"$rule"* ]]
+        done
+    done
+}
