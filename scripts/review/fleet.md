@@ -5,4 +5,3 @@ Find what this change breaks in the other repositories that consume this one, on
 - Evidence for each finding is the consumer's `file:line` that still uses the old name or value.
 - A change nothing consumes is not a finding; say that no consumer was found rather than padding.
 - Suggest the fix: keep the old name, add a shim, or name the consumer change its owner must make.
-- End with one last line `Findings: N`, the number of consumer breaks you reported.
