@@ -662,9 +662,10 @@ it, and `gh` must be able to read its pull requests. The session reads
 CONTRIBUTING and CLAUDE.md. The role files say "if the repository has" for
 every spec or gate rule, so they apply there too.
 
-Only `review` runs from another repository's checkout. `fixup`, `rebase`
-and `all` need `AGENTS.md`, `SPEC.md` and the gate of the repository they
-run in, so `just all <URL>` of another repository fails at the fixup.
+Only `review` and [`fixup`](#fixup) run from another repository's
+checkout. `rebase` and `all` need `AGENTS.md`, `SPEC.md` and the gate of the
+repository they run in, so run `review` and `fixup` by hand for another
+repository's pull request.
 
 Unlike `cloud`, it needs only the remote (`origin`, or `CLOUD_TASK_REMOTE`):
 the session fetches the pull request's branch from GitHub, so the branch
@@ -779,6 +780,12 @@ pull request filled in.
   is fixed in its own commits in `AGENTS.md` order (a §B row and a failing
   test before a bug fix). A wrong or out-of-scope finding is declined with
   a reason.
+- In another repository's checkout it follows that repository's rules:
+  `AGENTS.md`, `SPEC.md` and the gate only if they exist, else the README,
+  CONTRIBUTING and CLAUDE.md. A finding of the `fleet` review is fixed in
+  the pull request (keep the old name or add a shim) or named in the
+  `Fixup:` reply as a change its consumer's owner must make. It is never
+  dropped.
 - It runs the gate and pushes with `git push origin HEAD:<branch>`,
   without force. If the branch moved, it stops and reports.
 - It adds a +1 reaction to each comment whose findings it all fixed, and
