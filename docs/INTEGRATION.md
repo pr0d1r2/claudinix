@@ -19,11 +19,11 @@ A fourth hook, `commit-msg`, runs two steps on the commit message.
 
 `all` is `fast` plus six steps that judge the branch rather than a single
 commit: the bats suite, the dev crate's `cargo test`, `bats-mirror`,
-`tdd-order`, `context-limits` and `spec-ids`. They stay off `pre-commit` on purpose. A
-RED commit adds a failing test before its code exists, so running the
-suites or the mirror check on every commit would make the RED commit
-impossible; `context-limits` reads the branch's commits, which a commit in
-progress is not yet one of.
+`tdd-order`, `context-limits` and `spec-ids`. They stay off `pre-commit` on
+purpose. A RED commit adds a failing test before its code exists, so
+running the suites or the mirror check on every commit would make the RED
+commit impossible; `context-limits` reads the branch's commits, which a
+commit in progress is not yet one of.
 
 [`ci.yml`](../.github/workflows/ci.yml) does not list any step. It enters
 the pinned dev shell and delegates:
