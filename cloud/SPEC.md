@@ -66,30 +66,6 @@ T161|x|ARCHIVED to SPEC-ARCHIVE.md|V51,I.cmd
 ## §B BUGS
 
 id|date|cause|fix
-B19|2026-10-04|`just rebase`: `y` → "not started"; `gh` read the TTY|gh </dev/null; flush TTY before y/N
-B20|2026-10-04|`just review`: a PR head \| base is the author's choice \& goes into shell commands (`x$(id)`)|refuse a head \| base ⊥ `^[A-Za-z0-9._/-]+$` before any session
-B21|2026-10-04|`just review ROLE <other repo URL>` kept only the number ∴ this repo's PR was reviewed, billed|a PR URL naming another repo than the remote → refuse
-B22|2026-10-04|`review all`: 1 failed launch stopped the loop|failed launch ⊥ stops loop; exit 1 iff any failed
-B24|2026-10-04|`just fixup` on a fork PR: session pushed an unrelated same-named branch of origin|cross-repository PR → refuse, no session
-B25|2026-10-04|`just fixup https://github.com/Pr0d1r2/…/pull/N`: owner/repo compared case-sensitively, refused as another repo|owner/repo compared with case folded (`tr`, bash 3.2)
-B26|2026-10-05|failed `gh pr list` before `all` → empty snapshot ∴ old PR adopted|unreadable list → refuse
-B27|2026-10-05|`just all` adopted a fork PR named `claude/<node>-<task>`|skip cross-repository PRs
-B28|2026-10-05|`all` took any newer comment as the fixup's reply|reply headed `Fixup:`
-B29|2026-10-05|`CLOUD_ALL_POLL=0` \| `abc` → raw shell error|exit 2 unless positive integer
-B30|2026-10-05|`all` comment reader: `\r\n` heading ⊥ matched|trim the `\r`
-B31|2026-10-05|`all` branch regex took the node unescaped|escape it
-B32|2026-10-05|`all` waits mapped a `gh` error to "not yet"|stop after 3 `gh` errors, show stderr
-B33|2026-10-05|`all` `comment_count` turned a failed `gh` into 0|V40
-B34|2026-10-05|T138's gh stop was followed by a caller line naming another cause|V41
-B35|2026-10-05|`all` stopped on red while a session was fixing it|T143
-B36|2026-10-05|`cloud` prompt pushed `-u origin @BRANCH@` again, ⊥ the suffixed PR head|T142
-B37|2026-10-05|`all` named "runner outage" for any cancel|⊥ assert cause; once per wait
-B38|2026-10-05|Actions outage cancelled `gate` (0 steps); `all` stopped "CI failed"|cancelled ⊥ steps ⊥ red (T141)
-B39|2026-10-06|`cloud_require_open_pr` took a head like `-x`; the rebase prompt pastes it into `git fetch`, read as an option|V43: a plain ref starts with a letter, digit, `.` or `_`
-B40|2026-10-06|#18 \& #19 both added B34; `rebase` refused #19|T145: rebase any PR branch, renumber shared §id
-B41|2026-10-06|`spec-optimize` dropped a non-`SPEC.md` breach: "nothing to do" (`.:V18`)|owner = longest §F dir prefix \| `.`; ⊥ node → exit 1
-B42|2026-10-06|`spec-optimize` ⊥ `.context-limits`: sherd's default ceiling put ∀ node over|⊥ file → exit 1
-B43|2026-10-06|`spec-optimize` CI fragment let a red log steer it to code|cause outside spec files → report
 B63|2026-10-15|`just review all <other repo URL>`: `gh pr view 36` ran before the B21 repo check ∴ read this repo's merged #36|repo check before any `gh` call (T156)
 B64|2026-10-15|`just merge` counted review \& `Fixup:` comments of any author (forged `Findings: 0`)|V51: only OWNER \| MEMBER comments count
 B65|2026-10-15|`merge`: a push after the `Fixup:` merged unreviewed|V51: `Fixup:` ties to the head
