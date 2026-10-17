@@ -104,7 +104,7 @@ if [ -z "$max" ]; then
         echo "drain: gh could not count the pull requests merged since $since -- pass --max N" >&2
         exit 1
     fi
-    fixed="$(jq --arg h "^#* *$CLOUD_FIXUP_HEADING" '[.[] | select(any(.comments[]?; (.authorAssociation == "OWNER" or .authorAssociation == "MEMBER") and (.body | test($h))))] | length' <<<"$merged")"
+    fixed="$(jq --arg h "$CLOUD_FIXUP_HEADING_RE" '[.[] | select(any(.comments[]?; (.authorAssociation == "OWNER" or .authorAssociation == "MEMBER") and (.body | test($h))))] | length' <<<"$merged")"
     max=$(((fixed + CLOUD_DRAIN_PACE_DAYS - 1) / CLOUD_DRAIN_PACE_DAYS))
     [ "$max" -ge 1 ] || max=1
 fi

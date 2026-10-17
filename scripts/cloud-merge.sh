@@ -98,7 +98,7 @@ reasons="$(jq -r --arg ci_ok "$CLOUD_CI_OK" --arg review_heading "$CLOUD_REVIEW_
        then "fixup: no Fixup: reply after the reviews" else empty end),
     ([$comments[] | select(.body | startswith($fixup_heading))] | last) as $fixup
     | (.headRefOid // "") as $head_sha
-    | (if $fixup != null and (($fixup.body | contains("Head: " + $head_sha)) | not)
+    | (if $fixup != null and (($fixup | head_of) != $head_sha)
        then "push: the Fixup: reply does not name the head \($head_sha)" else empty end),
     ([$reviews[] | select(.value | reviewed("security"))] | last) as $sec
     | (if $sec == null then empty

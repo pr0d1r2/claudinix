@@ -22,7 +22,7 @@
 #
 # The prompt is cloud-fixup-prompt.txt with @CI_WATCH@ (the shared
 # cloud-ci-watch-prompt.txt, cloud:T142), @PR@, @URL@, @BRANCH@ and
-# @BASE@ filled in. The session works through the findings one at a
+# @BASE@ and @HEAD_LABEL@ filled in. The session works through the findings one at a
 # time, each fixed in its own commits or declined with a reason, runs the
 # gate, pushes to the same branch without force, gives a thumbs-up to
 # each comment whose findings it fixed, and replies once. It merges and
@@ -84,6 +84,7 @@ cloud_resolve_model "$lib" || exit "$?"
 prompt="$(cat "$lib/cloud-fixup-prompt.txt")"
 cloud_fill @CI_WATCH@ "$(cat "$lib/cloud-ci-watch-prompt.txt")"
 cloud_fill @PR@ "$pr"
+cloud_fill @HEAD_LABEL@ "$CLOUD_FIXUP_HEAD_LABEL"
 cloud_fill @BASE@ "$base"
 cloud_fill @BRANCH@ "$head"
 cloud_fill @URL@ "$url"
