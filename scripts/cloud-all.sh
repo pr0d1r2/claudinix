@@ -462,12 +462,13 @@ fixup_pushed_head() {
 # head is the sha the fixup pushed, else the one reviewed (cloud:V52): a
 # head that moved otherwise was pushed by someone else.
 require_fixup_head() {
-    local pushed expected
+    local pushed expected source
     pushed="$(fixup_pushed_head "$1")" || fail "cannot read the fixup reply of #$pr -- check gh auth status"
     expected="${pushed:-$2}"
+    if [ -n "$pushed" ]; then source="the sha the fixup pushed"; else source="the reviewed sha; the fixup pushed none"; fi
     read_head
     [ "$head_sha" = "$expected" ] ||
-        fail "the head of #$pr is $head_sha, not $expected (${pushed:+the sha the fixup pushed}${pushed:-the reviewed sha; the fixup pushed none}): someone else pushed, so it is not taken"
+        fail "the head of #$pr is $head_sha, not $expected ($source): someone else pushed, so it is not taken"
 }
 
 # head_moved OLD: 0 once the pull request's head is no longer OLD.
