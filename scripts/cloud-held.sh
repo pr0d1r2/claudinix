@@ -91,12 +91,22 @@ per_pr="$(cloud_session_count "$roles" pr)"
 
 # </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
 owner="$(gh api user --jq .login </dev/null)" || exit 1
-found="$(gh search prs --owner "$owner" --label "$label" --state open --sort created --order asc --limit 100 \
+# --repo goes to the search itself: filtering a capped page afterwards would
+# lose a repo's PRs past the cap (cloud:B88).
+search_limit=100
+scope=(--owner "$owner")
+if [ "${#repos[@]}" -gt 0 ]; then
+    scope=()
+    for repo in "${repos[@]}"; do
+        scope+=(--repo "$owner/$repo")
+    done
+fi
+found="$(gh search prs "${scope[@]}" --label "$label" --state open --sort created --order asc --limit "$search_limit" \
     --json number,createdAt,url,repository,author </dev/null)" || exit 1
-
-only_repos="$(jq -cn '$ARGS.positional' --args ${repos[@]+"${repos[@]}"})"
-rows="$(jq -c --argjson only "$only_repos" \
-    'sort_by(.createdAt) | .[] | select(($only | length) == 0 or (.repository.name | IN($only[])))' <<<"$found")"
+if [ "$(jq length <<<"$found")" -ge "$search_limit" ]; then
+    echo "held: only the first $search_limit labelled pull requests were found; the rest are not considered" >&2
+fi
+rows="$(jq -c 'sort_by(.createdAt) | .[]' <<<"$found")"
 
 picked=()
 while IFS= read -r row; do

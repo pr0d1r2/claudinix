@@ -34,7 +34,8 @@ setup() {
         '[ -z "${GH_FAIL:-}" ] || { echo "HTTP 502: bad gateway" >&2; exit 1; }' \
         'case "$*" in' \
         'api\ user*) echo owner ;;' \
-        'search\ prs*) cat "$STATE/prs.json" ;;' \
+        'search\ prs*) repos="$(grep -o -- "--repo [^ ]*" <<<"$*" | cut -d/ -f2)"' \
+        '  jq -c --arg only "$repos" "map(select(\$only == \"\" or (.repository.name | IN(\$only | split(\"\\n\")[]))))" "$STATE/prs.json" ;;' \
         'pr\ view*) [ -f "$STATE/fork.${3##*/}" ] && echo true || echo false ;;' \
         '*) exit 9 ;;' \
         'esac' >"$STUBS/gh"
@@ -90,6 +91,18 @@ alpha all https://github.com/owner/alpha/pull/7 --yes --model sonnet" ]
     run bash "$SCRIPT" --yes --repo alpha
     [ "$status" -eq 0 ]
     [ "$(ran)" = "alpha all https://github.com/owner/alpha/pull/7 --yes --model sonnet" ]
+}
+
+@test "--repo goes to the search as OWNER/REPO, so a match past the first page is found (cloud:B88)" {
+    run bash "$SCRIPT" --yes --repo alpha --repo beta
+    grep -qF -- '--repo owner/alpha' "$STATE/gh.log"
+    grep -qF -- '--repo owner/beta' "$STATE/gh.log"
+}
+
+@test "a full page of 100 labelled PRs is said aloud, not dropped silently (cloud:B88)" {
+    jq -n '[range(100) | {number: ., createdAt: "2026-10-01", url: "https://github.com/owner/alpha/pull/\(.)", repository: {name: "alpha", nameWithOwner: "owner/alpha"}, author: {login: "owner"}}]' >"$STATE/prs.json"
+    run bash "$SCRIPT" --dry-run
+    [[ "$output" == *"only the first 100"* ]]
 }
 
 @test "--max caps how many PRs run" {
