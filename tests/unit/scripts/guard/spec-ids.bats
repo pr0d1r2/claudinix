@@ -205,3 +205,18 @@ edit() {
     [ "$status" -eq 1 ]
     [[ "$output" == *'node/SPEC.md:'*'bad range B3-B1'* ]]
 }
+
+@test "an ARCHIVED line in a shape the parser does not know fails naming it (B97)" {
+    local shape
+    for shape in 'B1–B3, B9: ARCHIVED to SPEC-ARCHIVE.md' \
+        '- C1: ARCHIVED to SPEC-ARCHIVE.md' \
+        'T1|x|ARCHIVED to OTHER.md|-'; do
+        git reset -q --hard HEAD
+        printf '%s\n' "$shape" >>node/SPEC.md
+        git commit -q -am "chore: odd pointer"
+        run bash "$SCRIPT"
+        [ "$status" -eq 1 ]
+        [[ "$output" == *"node/SPEC.md: line "*"unparsed pointer"* ]]
+        git reset -q --hard HEAD~1
+    done
+}
