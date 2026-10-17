@@ -99,14 +99,12 @@ found="$(gh search prs "${scope[@]}" --label "$label" --state open --sort create
 if [ "$(jq length <<<"$found")" -ge "$search_limit" ]; then
     echo "held: only the first $search_limit labelled pull requests were found; the rest are not considered" >&2
 fi
-rows="$(jq -c 'sort_by(.createdAt) | .[]' <<<"$found")"
+rows="$(jq -r 'sort_by(.createdAt) | .[] | ["\(.repository.nameWithOwner)#\(.number)", (.author.login // "ghost"), .repository.name, .url] | @tsv' <<<"$found")"
 
 picked=()
-while IFS= read -r row; do
-    [ -n "$row" ] || continue
-    name="$(jq -r '"\(.repository.nameWithOwner)#\(.number)"' <<<"$row")"
-    author="$(jq -r .author.login <<<"$row")"
-    repo="$(jq -r .repository.name <<<"$row")"
+while IFS=$'\t' read -r name author repo url; do
+    [ -n "$name" ] || continue
+    [ -z "$max" ] || [ "${#picked[@]}" -lt "$max" ] || break
     checkout="$CLAUDINIX_PROJECTS/$repo"
     settings="$checkout/.claude/settings.local.json"
     if [ "$author" != "$owner" ]; then
@@ -115,16 +113,13 @@ while IFS= read -r row; do
         echo "held: skip $name: no checkout at $checkout" >&2
     elif [ -z "$(jq -r '.remote.defaultEnvironmentId // empty' "$settings" 2>/dev/null)" ]; then
         echo "held: skip $name: no claude.ai environment pinned in $settings" >&2
-    elif [ "$(gh pr view "$(jq -r .url <<<"$row")" --json isCrossRepository --jq .isCrossRepository </dev/null)" = true ]; then
+    elif [ "$(gh pr view "$url" --json isCrossRepository --jq .isCrossRepository </dev/null)" = true ]; then
         echo "held: skip $name: it comes from a fork" >&2
     else
-        picked+=("$name"$'\t'"$checkout"$'\t'"$(jq -r .url <<<"$row")")
+        picked+=("$name"$'\t'"$checkout"$'\t'"$url")
     fi
 done <<<"$rows"
 
-if [ -n "$max" ]; then
-    picked=(${picked[@]+"${picked[@]:0:max}"})
-fi
 total="${#picked[@]}"
 if [ "$total" -eq 0 ]; then
     echo "held: nothing to do -- no open pull request of $owner labelled $label that can run"
