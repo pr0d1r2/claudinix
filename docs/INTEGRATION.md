@@ -12,14 +12,14 @@ right and this file has a bug.
 | caller | set | when |
 |---|---|---|
 | `pre-commit` hook | `fast`, 38 steps | every commit, on the staged files |
-| `pre-push` hook | `all`, 43 steps | every push |
-| `hk check --all` in CI | `all`, 43 steps | every push to `main` and every pull request |
+| `pre-push` hook | `all`, 44 steps | every push |
+| `hk check --all` in CI | `all`, 44 steps | every push to `main` and every pull request |
 
 A fourth hook, `commit-msg`, runs two steps on the commit message.
 
-`all` is `fast` plus five steps that judge the branch rather than a single
+`all` is `fast` plus six steps that judge the branch rather than a single
 commit: the bats suite, the dev crate's `cargo test`, `bats-mirror`,
-`tdd-order` and `context-limits`. They stay off `pre-commit` on purpose. A
+`tdd-order`, `context-limits` and `spec-ids`. They stay off `pre-commit` on purpose. A
 RED commit adds a failing test before its code exists, so running the
 suites or the mirror check on every commit would make the RED commit
 impossible; `context-limits` reads the branch's commits, which a commit in
@@ -134,6 +134,7 @@ the `integration-steps` step fails when it no longer matches.
 | `bats-mirror` | all | `**/*` | `scripts/guard/bats-mirror.sh` | - |
 | `tdd-order` | all | `**/*` | `scripts/guard/tdd-order.sh` | - |
 | `context-limits` | all | `.context-limits` `scripts/guard/context-limits.sh` `scripts/lib/context-limits.sh` | `scripts/guard/context-limits.sh` | - |
+| `spec-ids` | all | `**/SPEC*.md` `scripts/guard/spec-ids.sh` | `scripts/guard/spec-ids.sh` | - |
 | `commit-msg` | commit-msg | the message | `scripts/guard/commit-msg.sh` | - |
 | `changelog` | commit-msg | the message | `claudinix-dev changelog <message-file>` | - |
 <!-- END steps -->
@@ -168,6 +169,12 @@ A few notes on why the steps look the way they do:
   merge side. The rows are read by `scripts/lib/context-limits.sh`, the
   parser `just merge` shares, so a reviewed raise still waits for the owner
   there.
+- **spec-ids** (`scripts/guard/spec-ids.sh`) keeps the specs' ids: one
+  defined in any `SPEC*.md` at the branch's merge base with `origin/main`
+  (`SPEC_IDS_BASE` picks another base) must be defined in some `SPEC*.md`
+  at HEAD, and an id an `ARCHIVED to SPEC-ARCHIVE.md` pointer names must be
+  a row of that node's archive. `mth archive` once dropped hand-archived
+  bug rows without a trace (scripts:B91); each offender is named.
 - **claudinix-config** checks this repository's own
   [`.claudinix.toml`](CONFIG.md) with the reader every tool uses, so a typo
   in it fails the gate and not a later `probe` or `guide` run. It is in the

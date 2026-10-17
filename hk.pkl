@@ -377,6 +377,13 @@ local all = (fast) {
     glob = List(".context-limits", "scripts/guard/context-limits.sh", "scripts/lib/context-limits.sh")
     check = "scripts/guard/context-limits.sh"
   }
+  // An id lost from the specs, or an ARCHIVED pointer with no archive row,
+  // against the merge base with origin/main (scripts:T173, B91). Reads
+  // history, so push only.
+  ["spec-ids"] {
+    glob = List("**/SPEC*.md", "scripts/guard/spec-ids.sh")
+    check = "scripts/guard/spec-ids.sh"
+  }
 }
 
 hooks {
