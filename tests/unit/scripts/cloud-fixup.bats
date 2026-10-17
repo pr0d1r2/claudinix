@@ -306,6 +306,16 @@ pr() {
     run ! grep -qF 'never drop a fleet finding;' "$p"
 }
 
+@test "the prompt: tooling and gate come from the base, a PR that changes them runs nothing from its head (cloud:B84)" {
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 0 ]
+    local p="$STATE/claude.task"
+    grep -qF 'tooling of origin/main' "$p"
+    grep -qF 'runs nothing from the head' "$p"
+    grep -qF 'only to unshallow' "$p"
+    run ! grep -qF 'If the SessionStart hook warned, do what it says first' "$p"
+}
+
 # --- just ---
 
 @test "just fixup runs the script, one plain command" {
