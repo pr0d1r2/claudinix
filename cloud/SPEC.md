@@ -81,7 +81,7 @@ T170|x|ARCHIVED to SPEC-ARCHIVE.md|V52,T166
 T171|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B90
 T174|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52,V59,`.:C29`,`scripts:T119`,`scripts:I.cmd`
 T175|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T165,T174,V52,V53,V59
-T177|.|task, review \& fixup prompts: PR text ends w/ the session `burn --self` line (`scripts:I.cmd`; ⊥ `just`, ⊥ a checkout path: bats), run last (a review comment: before its closing `Findings: N`, V51); `all` after last CI → `burn --pr <n> --post`|I.cmd,V51,`scripts:T176`
+T177|.|∀ launcher prompt that writes PR text (bats: each carries the 1 shared `CLOUD_*` snippet, none names a checkout path): PR text ends w/ the session `burn --self` line (`scripts:I.cmd`; ⊥ `just`), run last (a review comment: before its closing `Findings: N`, V51); `all` after last CI → `burn --pr <n> --post`|I.cmd,V51,`scripts:T176`
 
 ## §B BUGS
 
