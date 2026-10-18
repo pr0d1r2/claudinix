@@ -214,12 +214,14 @@ nix run github:pr0d1r2/claudinix#burn -- --pr 12 --post
 | `FILE` | that transcript |
 | `DIR` | every transcript below it |
 | `--self` | one line, `Burn: in=<n> cw=<n> cr=<n> out=<n> $<x.xx> (<models>)`; `Burn: unmeasured (no-transcript)` or `(no-usage)` when it cannot measure, exit 0 |
-| `--pr N` | a table of the `Burn:` lines in the pull request's comments by its owner or members, and their total (needs `gh`) |
+| `--pr N` | a table of the `Burn:` lines in the pull request's comments by its owner or members, and their total (needs `gh`); `N` is a pull request number, not a URL. A `Burn:` line it cannot parse counts as `+?` in the total |
 | `--post` | with `--pr`: write that table as one `## Burn` comment |
+| `--prices` | the price table as JSON, `{model-prefix: [input, output]}` in dollars per million tokens; reads no transcript |
 
 Assistant rows are deduped by message id (the last one wins). The table has
 one row per model: input, cache-write (5 minute and 1 hour), cache-read and
 output tokens, and dollars from the list prices in `scripts/burn.sh`. A
+model name matches by prefix and the longest prefix sets the price; rows marked `<synthetic>` are skipped. A
 model with no price keeps its tokens and prints `?` for dollars; the total
 then reads `<known>+?`.
 
