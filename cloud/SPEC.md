@@ -45,7 +45,7 @@ V53: a cross-repo `fixup` (T165) ⊥ trusts the target: only OWNER \| MEMBER \| 
 V54: `scripts/cloud-all.sh` ⊥ bash ≥ 4 syntax (`${x,,}`, `${x^^}`, `declare -A`): the owner runs it under macOS bash 3.2; fold case with `tr` (B92).
 V55: a PR `all` found by its body, not its branch (T171), ⊥ `--merge`d: stop, open it, the owner merges (B93, V51).
 V56: `all`'s PR poll lists PRs without `body`; it reads a body (`gh pr view`) only of a new same-repo PR off the task's branch, only when no branch matched (B94).
-V59: `enroll` (T174) ⊥ runs anything from a repo it clones \| fetches (hook, direnv, nix); `owner/repo` ~ `^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$` else refuse, cloned from github.com only; `--label` enrols only same-repo PRs of the authenticated user (as V52; others skipped, named); a checkout whose `origin` ≠ the repo → failed, ⊥ touched.
+V59: `enroll` (T174) ⊥ runs anything from a repo it clones \| fetches (hook, direnv, nix); `owner/repo` ~ `^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9._][A-Za-z0-9._-]*$` (⊥ leading `-`, `.`, `..`; ∀ repo, found ones too) else refuse \| skip, cloned from github.com only; `--label` enrols only same-repo PRs of the authenticated user (as V52; others skipped, named); a checkout whose `origin` ≠ the repo → failed, ⊥ touched.
 
 ## §T TASKS
 
@@ -92,3 +92,4 @@ B102|2026-10-18|`enroll` fork check: a failed `gh pr view` printed nothing ∴ `
 B103|2026-10-18|`enroll` wrote `.claude/settings.local.json` through a `.claude` symlink the cloned repo tracks ∴ the write landed outside the checkout|V59: a symlinked `.claude` \| pin file → failed, ⊥ written
 B104|2026-10-18|`enroll` rewrote a `.claude/settings.local.json` the repo tracks ∴ dirty tree, `info/exclude` no effect|V59: a tracked pin file → failed, ⊥ touched
 B105|2026-10-18|`enroll_one` ran in `$(…)` ∴ a failed `info/exclude` write still printed `enrolled`, the pin file left unexcluded|V59: every step of an enrol is checked; a failed one → failed
+B106|2026-10-18|`--repo -x/y` passed `repo_re`, read as a gh flag; found repos unchecked|V59: one check ∀ repo
