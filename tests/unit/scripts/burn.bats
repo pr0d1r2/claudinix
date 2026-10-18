@@ -176,3 +176,17 @@ row() {
     [ "$status" -eq 0 ]
     [ "${lines[-1]}" = "| total | 1000000 | 0 | 0 | 0 | 4.00 |" ]
 }
+
+# --pr reads GH_COMMENTS: 1 OWNER comment per given Burn body.
+comments_of() {
+    jq -n '{comments: [$ARGS.positional[] | {authorAssociation: "OWNER", body: .}]}' --args "$@" \
+        >"$GH_COMMENTS"
+}
+
+@test "--pr keeps the known part of a <known>+? line and marks the total +?" {
+    GH_COMMENTS="$BATS_TEST_TMPDIR/rt.json"
+    # shellcheck disable=SC2016 # a literal $ in the fixture line
+    comments_of 'Burn: in=1 cw=0 cr=0 out=0 $38.20+? (a, b)' 'Burn: in=1 cw=0 cr=0 out=0 $1.50 (c)'
+    run --separate-stderr "$SCRIPT" --pr 7
+    [ "${lines[-1]}" = "| total | 2 | 0 | 0 | 0 | 39.70+? |" ]
+}
