@@ -359,18 +359,9 @@ pr() {
     [ "$(head -n 1 "$STATE/gh.pwd")" = "$PROJECTS/alpha" ]
 }
 
-@test "a checkout that is dirty, off the base or whose origin is another repo is refused, no session (T175)" {
+@test "a checkout that is dirty, off the base, behind the fetched tip or with another origin is refused, no session (T175)" {
     cross_fixture
-    touch "$PROJECTS/alpha/stray"
-    run bash "$SCRIPT" https://github.com/owner/alpha/pull/8 --yes
-    [ "$status" -eq 1 ]
-    [[ "$output" == *"not clean"* ]]
-    rm "$PROJECTS/alpha/stray" "$STATE/gh.log"
-    git -C "$PROJECTS/alpha" remote set-url origin https://github.com/owner/zeta
-    run bash "$SCRIPT" https://github.com/owner/alpha/pull/8 --yes
-    [ "$status" -eq 1 ]
-    [ ! -e "$STATE/gh.log" ]
-    [ ! -e "$STATE/claude.1" ]
+    cross_refuses_unready bash "$SCRIPT" https://github.com/owner/alpha/pull/8 --yes
 }
 
 @test "no checkout of the URL's repository: refused as before, gh never asked (T175, B63)" {
