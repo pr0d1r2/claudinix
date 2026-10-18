@@ -106,7 +106,8 @@ while [ "$#" -gt 0 ]; do
 done
 [ -n "$arg" ] || usage
 
-scripts_dir="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
+# Absolute: the run may cd into another repo's checkout (cloud:T175).
+scripts_dir="${CLAUDINIX_SCRIPTS:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 # shellcheck source=/dev/null # lib/cloud-launch.sh, beside this script
 source "$(dirname "${BASH_SOURCE[0]}")/lib/cloud-launch.sh"
 want_node= # set by cloud_parse_task
@@ -136,6 +137,16 @@ polls_ci_fix="$(polls "$minutes_ci_fix")"
 polls_reviews="$(polls "$minutes_reviews")"
 polls_fixup="$(polls "$minutes_fixup")"
 polls_rebase="$(polls "$minutes_rebase")"
+
+# Another repository's URL is run from its checkout (cloud:T175): every gh
+# call below and every child then reads that repository. Without a usable
+# checkout nothing changes here, and the fixup dry run below refuses it.
+enter_rc=0
+cloud_enter_url_repo all origin || enter_rc=$?
+[ "$enter_rc" != 1 ] || exit 1
+if [ -n "$entered_checkout" ]; then
+    cloud_read_pr all origin "$arg" || exit 1
+fi
 
 cloud_resolve_model "$scripts_dir" || exit "$?"
 child_args=(--yes --model "$model") # every child runs unasked, on the one model
