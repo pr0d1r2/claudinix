@@ -13,7 +13,7 @@ def row($label; $in; $cw; $cr; $out; $usd):
 def sum_of(f): map(f) | add // 0;
 
 def price_of($model):
-    [$prices | to_entries[] | select(.key as $k | $model | startswith($k)) | .value][0];
+    [$prices | to_entries[] | select(.key as $k | ($model // "") | startswith($k)) | .value][0];
 
 def cost($model; $m):
     price_of($model) as $p
