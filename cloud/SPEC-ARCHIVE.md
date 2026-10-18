@@ -68,6 +68,8 @@ B40|2026-10-06|#18 \& #19 both added B34; `rebase` refused #19|T145: rebase any 
 B41|2026-10-06|`spec-optimize` dropped a non-`SPEC.md` breach: "nothing to do" (`.:V18`)|owner = longest §F dir prefix \| `.`; ⊥ node → exit 1
 B42|2026-10-06|`spec-optimize` ⊥ `.context-limits`: sherd's default ceiling put ∀ node over|⊥ file → exit 1
 B43|2026-10-06|`spec-optimize` CI fragment let a red log steer it to code|cause outside spec files → report
+B63|2026-10-15|`just review all <other repo URL>`: `gh pr view 36` ran before the B21 repo check ∴ read this repo's merged #36|repo check before any `gh` call (T156)
+B64|2026-10-15|`just merge` counted review \& `Fixup:` comments of any author (forged `Findings: 0`)|V51: only OWNER \| MEMBER comments count
 B65|2026-10-15|`merge`: a push after the `Fixup:` merged unreviewed|V51: `Fixup:` ties to the head
 B66|2026-10-15|`just merge` read `+`\|`-` lines ∴ a pure rename \| mode change of a kept file passed|V51: judge the `diff --git` header
 B67|2026-10-15|`just merge` kept 4 paths ∴ a PR could weaken a guard, review role or the merge script|V51: also `CLOUD_MERGE_KEPT`
@@ -101,8 +103,6 @@ B103|2026-10-18|`enroll` wrote `.claude/settings.local.json` through a `.claude`
 B104|2026-10-18|`enroll` rewrote a `.claude/settings.local.json` the repo tracks ∴ dirty tree, `info/exclude` no effect|V59: a tracked pin file → failed, ⊥ touched
 B105|2026-10-18|`enroll_one` ran in `$(…)` ∴ a failed `info/exclude` write still printed `enrolled`, the pin file left unexcluded|V59: every step of an enrol is checked; a failed one → failed
 B106|2026-10-18|`--repo -x/y` passed `repo_re`, read as a gh flag; found repos unchecked|V59: one check ∀ repo
-B63|2026-10-15|`just review all <other repo URL>`: `gh pr view 36` ran before the B21 repo check ∴ read this repo's merged #36|repo check before any `gh` call (T156)
-B64|2026-10-15|`just merge` counted review \& `Fixup:` comments of any author (forged `Findings: 0`)|V51: only OWNER \| MEMBER comments count
 B107|2026-10-18|T175 put the `cd` into `cloud_read_pr` ∴ `merge` \| `rebase` entered a foreign checkout too (cwd moved, `scripts_dir` relative, V51's refusal gone)|V60: entering is opt-in; `merge` \| `rebase` refuse a foreign URL
 B108|2026-10-18|`gh pr view <N>` in the entered checkout resolved the repo by gh's own default, not the URL's ∴ a checkout w/ another gh default read another repo's PR #N|V60: `gh pr view --repo <url repo>`
 B109|2026-10-18|the entered checkout was fetched \| matched as `origin` while the launcher used `CLOUD_TASK_REMOTE`, never checked there ∴ a missing remote failed late|V60: remote re-required after entering; the checkout's remote is one constant
