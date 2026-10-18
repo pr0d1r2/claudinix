@@ -12,7 +12,7 @@ setup() {
     export GH_COMMENTS="$FIXTURES/pr-comments.json"
     SESSIONS="$HOME/.claude/projects/-p"
     mkdir -p "$STUBS" "$SESSIONS"
-    unset CLAUDINIX_SCRIPTS
+    unset CLAUDINIX_SCRIPTS CLAUDE_CONFIG_DIR
     # gh: `pr view N --json comments` prints the fixture; `pr comment`
     # logs its body (stdin).
     # shellcheck disable=SC2016 # expands inside the stub, not here
