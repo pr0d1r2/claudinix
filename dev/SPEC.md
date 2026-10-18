@@ -47,6 +47,7 @@ T110|x|ARCHIVED to SPEC-ARCHIVE.md|V1
 T111|x|ARCHIVED to SPEC-ARCHIVE.md|`.:V20`,`docs:T37`
 T112|.|? `select`: run only the generated outputs a changed file can affect (xenolith `select`) — when the gate gets slow|V3
 T123|x|ARCHIVED to SPEC-ARCHIVE.md|V39,`.:V36`,B18
+T179|.|`claudinix-dev` fills the `docs/MODEL.md` price block (`<!-- BEGIN\|END -->`) from the `scripts/burn.sh` table; `--check` fails on drift (gate step: `hk.pkl` \& the block in 1 commit, `.:V36`)|`scripts:V61`,`docs:T178`
 
 ## §B BUGS
 
