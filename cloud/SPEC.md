@@ -78,7 +78,7 @@ T168|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52
 T169|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T166,`docs:T167`
 T170|x|ARCHIVED to SPEC-ARCHIVE.md|V52,T166
 T171|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B90
-T174|.|`enroll`: missing checkout → `gh repo clone`, else `git fetch`; pin = own `jq` write of the `/remote-env` pick to `.claude/settings.local.json` (`guide` sources no lib; bats: its `env_id` reads it), file → `.git/info/exclude`; ⊥ pick \| another repo's → `needs-env`; ⊥ commit \| push|I.cmd,V52,V59,`scripts:T119`,`scripts:I.cmd`
+T174|x|`enroll`: missing checkout → `gh repo clone`, else `git fetch`; pin = own `jq` write of the `/remote-env` pick to `.claude/settings.local.json` (`guide` sources no lib; bats: its `env_id` reads it), file → `.git/info/exclude`; ⊥ pick \| another repo's → `needs-env`; ⊥ commit \| push|I.cmd,V52,V59,`scripts:T119`,`scripts:I.cmd`
 T175|.|`all` \| `review` \| `fixup` w/ another repo's URL → run from `$CLAUDINIX_PROJECTS/<repo>` if its `origin` is `<repo>` (case folded), clean, on the PR's base, fetched; tooling \& gate as on the base (V53); else refuse as now (B21, B25, B63 kept)|I.cmd,T165,T174,V52,V53,V59
 
 ## §B BUGS
