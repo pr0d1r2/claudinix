@@ -24,6 +24,8 @@ does are summarised briefly; the git history has the detail.
   else those with an open pull request of yours under `h10n-human`) and pins the
   environment `/remote-env` picked in it, so `just held` can run there. It
   commits and pushes nothing and starts no billed session.
+- `just enroll` skips a pull request when it cannot tell whether it comes from a
+  fork, instead of enrolling its repo.
 - `just held` ends with a report that lists each pull request it ran, oldest
   first, as `held: report: <repo>#<n> ok|failed <URL>` rows, before the closing
   `done` line.
