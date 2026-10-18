@@ -44,3 +44,11 @@ B4|2026-10-03|`scripts/inputs.sh /nonexistent` said `no directory .`: failed `di
 B13|2026-10-04|`just guide --rev c63d695` (short SHA, as git prints it) → bare usage line, exit 2: `--rev` matched only 40 hex \& the message named neither the flag nor the value ⇒ owner could not tell what was wrong; pre-release there is no published line, so `--rev` is the only path|V37,V26
 B17|2026-10-04|git exports `GIT_EXEC_PATH` to hooks; cloud push by image git 2.43 leaked `/usr/lib/git-core` into bats ∴ legacy-hook test's git 2.54 ran the old git's dir first, the shim saw 2.43 \& the gate ran twice; setup unset a fixed `GIT_*` list|`.:V21`
 B62|2026-10-13|setup-line test "gh not signed in" asserted `404` absent from output that names the random commit SHA ∴ ~1% of SHAs contain `404` ⇒ CI failed on a PR that changed no code (#35 run 99); test fixture forces a SHA with `404`, the assertion ignores the SHA|`scripts:V26`
+B7|2026-10-03|`tdd-order` in a shallow clone (every cloud session) counted the graft commit as adding all 27 scripts \& refused the push w/o saying the clone is shallow|V29
+B10|2026-10-03|`release.sh` pinned the line to REV, then asked to commit `cloud-home.storepath` after it ⇒ the released SHA lacks the file, tier 2 404s; release ⊥ checked input sources|V33
+B81|2026-10-16|`Owner-Override:` trailer (any agent can write it) excused ∀ raise in range, `just merge` has none, file delete passed|`.:C20`
+B82|2026-10-16|guide step 5 with `--agent-home` named `nix/cloud-permissions.json`, a file of this repo the target user lacks, as deciding add_repo ⇒ guide output names only paths the user has|`scripts:V26`
+B91|2026-10-17|`mth archive` rewrites SPEC-ARCHIVE.md as §T only ∴ #48 fixup (9be154f) dropped the hand-archived `cloud` B19-B43; ⊥ check saw it|T173; rows restored
+B95|2026-10-17|`awk NR == FNR` + empty/missing archive ⇒ `spec-ids` swallowed every dangling pointer, exit 0|V57
+B96|2026-10-17|`spec-ids` expanded `B1-B999999999` unbounded ⇒ gate hang|V57
+B97|2026-10-17|`spec-ids` skipped an unknown `ARCHIVED to` shape ⇒ failed open|V57

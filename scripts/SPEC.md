@@ -74,15 +74,7 @@ T173|x|guard: ∀ id (T V B C) in a base `SPEC*.md` ! stay in a head `SPEC*.md`;
 
 ## §B BUGS
 
-B4, B13, B17, B62: ARCHIVED to SPEC-ARCHIVE.md `## §B BUGS`
+B4, B7, B10, B13, B17, B62, B81, B82, B91, B95-B97: ARCHIVED to SPEC-ARCHIVE.md `## §B BUGS`
 
 id|date|cause|fix
-B7|2026-10-03|`tdd-order` in a shallow clone (every cloud session) counted the graft commit as adding all 27 scripts \& refused the push w/o saying the clone is shallow|V29
-B10|2026-10-03|`release.sh` pinned the line to REV, then asked to commit `cloud-home.storepath` after it ⇒ the released SHA lacks the file, tier 2 404s; release ⊥ checked input sources|V33
 B14|2026-10-04|guide step 3 \& SETUP said "select Create environment"; the dialog button reads "Add environment" (owner, 1st real run) ⇒ UI labels drift w/o notice; ⊥ invariant can check the UI (`.:C2`), ∴ a bats test pins the label the owner saw|`.:C2`
-B81|2026-10-16|`Owner-Override:` trailer (any agent can write it) excused ∀ raise in range, `just merge` has none, file delete passed|`.:C20`
-B82|2026-10-16|guide step 5 with `--agent-home` named `nix/cloud-permissions.json`, a file of this repo the target user lacks, as deciding add_repo ⇒ guide output names only paths the user has|`scripts:V26`
-B91|2026-10-17|`mth archive` rewrites SPEC-ARCHIVE.md as §T only ∴ #48 fixup (9be154f) dropped the hand-archived `cloud` B19-B43; ⊥ check saw it|T173; rows restored
-B95|2026-10-17|`awk NR == FNR` + empty/missing archive ⇒ `spec-ids` swallowed every dangling pointer, exit 0|V57
-B96|2026-10-17|`spec-ids` expanded `B1-B999999999` unbounded ⇒ gate hang|V57
-B97|2026-10-17|`spec-ids` skipped an unknown `ARCHIVED to` shape ⇒ failed open|V57
