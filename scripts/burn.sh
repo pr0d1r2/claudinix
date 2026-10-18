@@ -89,7 +89,11 @@ fi
 # The newest session of the projects dir, then its subagents.
 newest_session() {
     [ -d "$projects" ] || return 0
-    find "$projects" -name '*.jsonl' -not -path '*/subagents/*' -exec ls -t {} + | head -n 1
+    local newest='' file
+    while IFS= read -r file; do
+        if [ -z "$newest" ] || [ "$file" -nt "$newest" ]; then newest="$file"; fi
+    done < <(find "$projects" -name '*.jsonl' -not -path '*/subagents/*')
+    echo "$newest"
 }
 
 transcripts=()
