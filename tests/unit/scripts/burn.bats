@@ -183,10 +183,30 @@ comments_of() {
         >"$GH_COMMENTS"
 }
 
+@test "--pr reads back what --self wrote: a priced line and a \$? line" {
+    priced=$("$SCRIPT" --self "$FIXTURES/two-models.jsonl")
+    unpriced=$("$SCRIPT" --self "$FIXTURES/unknown.jsonl")
+    GH_COMMENTS="$BATS_TEST_TMPDIR/rt.json"
+    comments_of "$priced" "$unpriced"
+    run --separate-stderr "$SCRIPT" --pr 7
+    [ "$status" -eq 0 ]
+    [ "${lines[2]}" = "| 1 | 1500000 | 3000000 | 11000000 | 600000 | 38.20 |" ]
+    [ "${lines[3]}" = "| 2 | 100 | 0 | 0 | 50 | ? |" ]
+    [ "${lines[4]}" = "| total | 1500100 | 3000000 | 11000000 | 600050 | 38.20+? |" ]
+}
+
 @test "--pr keeps the known part of a <known>+? line and marks the total +?" {
     GH_COMMENTS="$BATS_TEST_TMPDIR/rt.json"
     # shellcheck disable=SC2016 # a literal $ in the fixture line
     comments_of 'Burn: in=1 cw=0 cr=0 out=0 $38.20+? (a, b)' 'Burn: in=1 cw=0 cr=0 out=0 $1.50 (c)'
     run --separate-stderr "$SCRIPT" --pr 7
     [ "${lines[-1]}" = "| total | 2 | 0 | 0 | 0 | 39.70+? |" ]
+}
+
+@test "--pr counts a Burn: line it cannot parse as +? in the total" {
+    GH_COMMENTS="$BATS_TEST_TMPDIR/rt.json"
+    # shellcheck disable=SC2016 # a literal $ in the fixture line
+    comments_of 'Burn: in=1 cw=0 cr=0 out=0 $1.50 (c)' 'Burn: in=2 cw=0 cr=0 out=0 $1.00 cache-1h=5 (c)'
+    run --separate-stderr "$SCRIPT" --pr 7
+    [ "${lines[-1]}" = "| total | 1 | 0 | 0 | 0 | 1.50+? |" ]
 }
