@@ -91,3 +91,4 @@ B64|2026-10-15|`just merge` counted review \& `Fixup:` comments of any author (f
 B102|2026-10-18|`enroll` fork check: a failed `gh pr view` printed nothing ∴ `= true` false ∴ a fork PR's repo enrolled (failed open)|V59: enrol only on an explicit `isCrossRepository` false; a failed lookup skips, naming the PR
 B103|2026-10-18|`enroll` wrote `.claude/settings.local.json` through a `.claude` symlink the cloned repo tracks ∴ the write landed outside the checkout|V59: a symlinked `.claude` \| pin file → failed, ⊥ written
 B104|2026-10-18|`enroll` rewrote a `.claude/settings.local.json` the repo tracks ∴ dirty tree, `info/exclude` no effect|V59: a tracked pin file → failed, ⊥ touched
+B105|2026-10-18|`enroll_one` ran in `$(…)` ∴ a failed `info/exclude` write still printed `enrolled`, the pin file left unexcluded|V59: every step of an enrol is checked; a failed one → failed
