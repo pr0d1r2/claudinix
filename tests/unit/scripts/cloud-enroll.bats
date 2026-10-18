@@ -172,3 +172,11 @@ pinned() {
     [[ "$output" == *"enroll: report: owner/alpha failed"* ]]
     [ "$(jq -c . "$CLAUDINIX_PROJECTS/alpha/.claude/settings.local.json")" = '{"keep":1}' ]
 }
+
+@test "a failed write to info/exclude is failed, not enrolled (cloud:B105)" {
+    existing alpha
+    rm -f "$CLAUDINIX_PROJECTS/alpha/.git/info/exclude"
+    mkdir "$CLAUDINIX_PROJECTS/alpha/.git/info/exclude"
+    run bash "$SCRIPT" --repo owner/alpha --yes
+    [[ "$output" == *"enroll: report: owner/alpha failed"* ]]
+}
