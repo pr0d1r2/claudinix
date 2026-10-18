@@ -421,3 +421,10 @@ roles() {
     [ ! -e "$STATE/gh.log" ]
     [ ! -e "$STATE/claude.1" ]
 }
+
+@test "gh pr view is pinned to the URL's repository, not gh's default for the checkout (V60, B108)" {
+    cross_fixture
+    run bash "$SCRIPT" security https://github.com/owner/alpha/pull/12 --yes
+    [ "$status" -eq 0 ]
+    grep -q '^pr view 12 --repo owner/alpha ' "$STATE/gh.log"
+}
