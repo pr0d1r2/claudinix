@@ -29,3 +29,34 @@ cross_fixture() {
     chmod +x "$STUBS/git-real"
     cd "$HERE" || return
 }
+
+# cross_refuses_unready COMMAND...: after cross_fixture, COMMAND (a launcher run
+# on the other repo's URL, so $STATE/{gh.log,claude.1} show whether it went
+# on) is refused, with no session, for each unready checkout: dirty, off the
+# base, behind the fetched tip, and with another repo's origin.
+cross_refuses_unready() {
+    local case_name want
+    for case_name in dirty off-base stale-tip other-origin; do
+        rm -f "$STATE/gh.log" "$STATE/claude.1"
+        case "$case_name" in
+        dirty) touch "$PROJECTS/alpha/stray"; want="not clean" ;;
+        off-base) rm -f "$PROJECTS/alpha/stray"; git -C "$PROJECTS/alpha" checkout -q -b topic; want="not on main" ;;
+        stale-tip)
+            git -C "$PROJECTS/alpha" checkout -q main
+            git -C "$PROJECTS/alpha" commit -q --allow-empty -m local
+            want="not at the fetched"
+            ;;
+        other-origin)
+            git -C "$PROJECTS/alpha" reset -q --hard HEAD~1
+            git -C "$PROJECTS/alpha" remote set-url origin https://github.com/owner/zeta
+            want="is not a checkout of owner/alpha"
+            ;;
+        esac
+        run "$@"
+        # shellcheck disable=SC2154 # status and output: set by bats `run`
+        [ "$status" -eq 1 ]
+        [[ "$output" == *"$want"* ]]
+        [ ! -e "$STATE/claude.1" ]
+        if [ "$case_name" = other-origin ]; then [ ! -e "$STATE/gh.log" ]; fi
+    done
+}
