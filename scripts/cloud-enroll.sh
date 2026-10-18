@@ -183,10 +183,17 @@ enroll_one() {
         return 0
     fi
 
-    exclude="$(git -C "$dir" rev-parse --path-format=absolute --git-path info/exclude)"
-    mkdir -p "${exclude%/*}"
-    grep -qxF '/.claude/settings.local.json' "$exclude" 2>/dev/null ||
-        echo '/.claude/settings.local.json' >>"$exclude"
+    exclude="$(git -C "$dir" rev-parse --path-format=absolute --git-path info/exclude)" || {
+        echo failed
+        return 0
+    }
+    if ! { mkdir -p "${exclude%/*}" && {
+        grep -qxF '/.claude/settings.local.json' "$exclude" 2>/dev/null ||
+            echo '/.claude/settings.local.json' >>"$exclude"
+    }; }; then
+        echo failed
+        return 0
+    fi
     echo enrolled
 }
 
