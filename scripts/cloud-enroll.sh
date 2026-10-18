@@ -126,20 +126,7 @@ if [ "$yes" = 0 ]; then
 fi
 
 settings="${CLAUDE_SETTINGS:-$HOME/.claude/settings.json}"
-pick=
-[ ! -f "$settings" ] || pick="$(jq -r '.remote.defaultEnvironmentId // empty' "$settings" 2>/dev/null || true)"
-
-# origin_is REPO DIR: DIR's origin is github.com/REPO, case folded (cloud:V59).
-origin_is() {
-    local url
-    url="$(git -C "$2" remote get-url origin 2>/dev/null)" || return 1
-    url="${url%.git}"
-    url="$(tr '[:upper:]' '[:lower:]' <<<"$url")"
-    case "$url" in
-    "https://github.com/$(tr '[:upper:]' '[:lower:]' <<<"$1")" | "git@github.com:$(tr '[:upper:]' '[:lower:]' <<<"$1")") ;;
-    *) return 1 ;;
-    esac
-}
+pick="$(cloud_pin_env "$settings")"
 
 # enroll_one REPO: print the status word for REPO's checkout.
 enroll_one() {
@@ -155,7 +142,7 @@ enroll_one() {
             return 0
         }
     fi
-    origin_is "$repo" "$dir" || {
+    cloud_origin_is "$repo" "$dir" || {
         echo failed
         return 0
     }
@@ -164,14 +151,14 @@ enroll_one() {
         return 0
     }
 
-    file="$dir/.claude/settings.local.json"
+    file="$dir/$CLOUD_PIN_FILE"
     if [ -L "$dir/.claude" ] || [ -L "$file" ]; then
         echo "enroll: $repo: .claude is a symlink; not writing through it" >&2
         echo failed
         return 0
     fi
-    if git -C "$dir" ls-files --error-unmatch -- .claude/settings.local.json >/dev/null 2>&1; then
-        echo "enroll: $repo: the repo tracks .claude/settings.local.json; not touching it" >&2
+    if git -C "$dir" ls-files --error-unmatch -- "$CLOUD_PIN_FILE" >/dev/null 2>&1; then
+        echo "enroll: $repo: the repo tracks $CLOUD_PIN_FILE; not touching it" >&2
         echo failed
         return 0
     fi
@@ -182,7 +169,7 @@ enroll_one() {
             return 0
         }
     fi
-    case "$(jq -r '.remote.defaultEnvironmentId // empty' <<<"$existing")" in
+    case "$(cloud_pin_env <(echo "$existing"))" in
     '' | "$pick") ;;
     *)
         echo needs-env
@@ -190,7 +177,7 @@ enroll_one() {
         ;;
     esac
     mkdir -p "${file%/*}"
-    if ! { jq --arg id "$pick" '.remote = ((.remote // {}) | .defaultEnvironmentId = $id)' <<<"$existing" >"$file.tmp.$$" && mv "$file.tmp.$$" "$file"; }; then
+    if ! { cloud_pin_set "$pick" <<<"$existing" >"$file.tmp.$$" && mv "$file.tmp.$$" "$file"; }; then
         echo failed
         return 0
     fi
@@ -200,8 +187,8 @@ enroll_one() {
         return 0
     }
     if ! { mkdir -p "${exclude%/*}" && {
-        grep -qxF '/.claude/settings.local.json' "$exclude" 2>/dev/null ||
-            echo '/.claude/settings.local.json' >>"$exclude"
+        grep -qxF "/$CLOUD_PIN_FILE" "$exclude" 2>/dev/null ||
+            echo "/$CLOUD_PIN_FILE" >>"$exclude"
     }; }; then
         echo failed
         return 0
