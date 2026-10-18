@@ -72,6 +72,13 @@ for repo in ${repos[@]+"${repos[@]}"}; do
     fi
 done
 
+# Case folded: the checkout is $CLAUDINIX_PROJECTS/<repo>, one per name (cloud:V59).
+dup_name="$(printf '%s\n' ${repos[@]+"${repos[@]}"} | sed 's|.*/||' | tr '[:upper:]' '[:lower:]' | sort | uniq -d | head -n 1)"
+if [ -n "$dup_name" ]; then
+    echo "enroll: refused: two repos are named $dup_name; they would share one checkout" >&2
+    exit 2
+fi
+
 # repos_with_open_pr: owner/repo of the owner's own same-repo PRs under the label.
 repos_with_open_pr() {
     local owner found rows name author url repo is_fork
