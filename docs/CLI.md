@@ -21,6 +21,7 @@ has a bug.
 | [`merge`](#merge) | rebase-merges a reviewed pull request, only when the strict rule holds; otherwise names every reason | your machine, in the project's git checkout |
 | [`drain`](#drain) | works through spec tasks one at a time with `all --merge`, stopping at the first failure | your machine, in the project's git checkout |
 | [`held`](#held) | takes your open pull requests labelled `h10n-human` through `all`, one at a time, never merging | your machine, with a checkout of each repo |
+| [`enroll`](#enroll) | clones or fetches your checkout of each repo and pins the `/remote-env` environment in it, so `held` can run there | your machine, with `gh` signed in |
 | [`spec-optimize`](#spec-optimize) | brings spec nodes back under their `.context-limits` ceilings in a billed cloud session, which opens a pull request | your machine, in the project's git checkout |
 | [`config.sh`](#configsh) | reads and checks a project's optional [`.claudinix.toml`](CONFIG.md) | your machine or a session, in the project |
 | [`nix-dev`](#nix-dev) | `nix develop` that survives the GitHub proxy | inside a cloud session |
@@ -1083,6 +1084,51 @@ line is `held: done, <n> of <m>`.
 | 0 | every pull request in the run finished, or there was nothing to do |
 | 1 | a refusal, the answer was not yes, `gh` failed, or a pull request's flow failed |
 | 2 | a usage error |
+
+## enroll
+
+Prepares your checkouts of other repositories for [`held`](#held). It clones a
+missing checkout, fetches an existing one and pins the claude.ai cloud
+environment `/remote-env` picked. It starts no billed session and commits and
+pushes nothing. Nothing from the repository runs: no hook, direnv or nix.
+
+```text
+usage: cloud-enroll.sh [--repo owner/repo...] [--label L] [--yes] [--dry-run]
+```
+
+Run it as `scripts/cloud-enroll.sh ...` or `just enroll ...`.
+
+| argument | meaning |
+|---|---|
+| `--repo owner/repo` | enroll this repo; any number. Without it, the repos where you have an open pull request labelled `h10n-human` (or L) that you wrote in the same repo; others are skipped, naming them |
+| `--label L` | the label to search for |
+| `--yes` | skip the one y/N question that names the repos |
+| `--dry-run` | print that question and change nothing |
+
+| variable | meaning |
+|---|---|
+| `CLAUDINIX_PROJECTS` | required: the directory holding your checkouts, one per repo, named as the repo |
+| `CLAUDE_SETTINGS` | your user settings file; default `~/.claude/settings.json` |
+
+**What it writes.** `remote.defaultEnvironmentId` from your user settings,
+merged into the checkout's `.claude/settings.local.json` and listed in its
+`.git/info/exclude`. Running it again changes nothing. A repo name must be
+`owner/repo` and cannot start with `-`; two repos with one name are refused,
+since they would share a checkout.
+
+**Report.** One row per repo, `enroll: report: <repo> <status>`:
+
+| status | meaning |
+|---|---|
+| `enrolled` | cloned or fetched, and pinned |
+| `needs-env` | `/remote-env` picked no environment, or the checkout is pinned to another one; nothing is clobbered |
+| `failed` | the reason is on stderr: the origin is another repo, `.claude` is a symlink, the repo tracks the pin file, the pin file is not a JSON object, or a clone, fetch or write failed |
+
+| exit | meaning |
+|---|---|
+| 0 | no repo failed, or there was nothing to do |
+| 1 | a repo failed, `gh` failed, or the answer was not yes |
+| 2 | a usage error or a bad repo name |
 
 ## spec-optimize
 
