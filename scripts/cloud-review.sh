@@ -62,7 +62,8 @@ done
 role="${args[0]}"
 arg="${args[1]}"
 
-scripts_dir="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
+# Absolute: the run may cd into another repo's checkout (cloud:T175).
+scripts_dir="${CLAUDINIX_SCRIPTS:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 # shellcheck source=/dev/null # lib/cloud-launch.sh, beside this script
 source "$(dirname "${BASH_SOURCE[0]}")/lib/cloud-launch.sh"
 remote="${CLOUD_TASK_REMOTE:-origin}"

@@ -20,6 +20,10 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- `just all`, `just review` and `just fixup` given another repository's pull
+  request URL run from your checkout of it in `$CLAUDINIX_PROJECTS/<repo>`, when
+  that checkout's `origin` is the repository, it is clean, on the pull request's
+  base and at the fetched tip; otherwise they refuse as before.
 - `just enroll` clones or fetches your checkout of each repo (the `--repo` ones,
   else those with an open pull request of yours under `h10n-human`) and pins the
   environment `/remote-env` picked in it, so `just held` can run there. It

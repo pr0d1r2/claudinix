@@ -72,7 +72,8 @@ base=""
 url="" # head, base and url: set by cloud_require_open_pr
 cloud_parse_pr "$arg" || usage
 
-lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
+# Absolute: the run may cd into another repo's checkout (cloud:T175).
+lib="${CLAUDINIX_SCRIPTS:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 remote="${CLOUD_TASK_REMOTE:-origin}"
 
 cloud_require_remote fixup "$remote" || exit 1
