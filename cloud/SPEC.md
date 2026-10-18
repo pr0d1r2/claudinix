@@ -88,3 +88,4 @@ B19-B22, B24-B43, B65-B70, B72-B74, B76-B80, B83-B90, B92-B94, B99-B101: ARCHIVE
 id|date|cause|fix
 B63|2026-10-15|`just review all <other repo URL>`: `gh pr view 36` ran before the B21 repo check ∴ read this repo's merged #36|repo check before any `gh` call (T156)
 B64|2026-10-15|`just merge` counted review \& `Fixup:` comments of any author (forged `Findings: 0`)|V51: only OWNER \| MEMBER comments count
+B102|2026-10-18|`enroll` fork check: a failed `gh pr view` printed nothing ∴ `= true` false ∴ a fork PR's repo enrolled (failed open)|V59: enrol only on an explicit `isCrossRepository` false; a failed lookup skips, naming the PR
