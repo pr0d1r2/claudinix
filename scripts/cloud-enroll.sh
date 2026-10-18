@@ -101,47 +101,38 @@ fi
 settings="${CLAUDE_SETTINGS:-$HOME/.claude/settings.json}"
 pick="$(cloud_pin_env "$settings")"
 
-# enroll_one REPO: print the status word for REPO's checkout.
+# enroll_one REPO: print enrolled or needs-env for REPO's checkout; return 1,
+# after a reason on stderr, when it cannot be enrolled (the caller reports failed).
 enroll_one() {
     local repo="$1" dir file existing exclude
     dir="$(cloud_repo_checkout "$repo")"
-    [ -n "$pick" ] || {
+    if [ -z "$pick" ]; then
         echo needs-env
         return 0
-    }
+    fi
     if [ ! -e "$dir" ]; then
-        gh repo clone "$repo" "$dir" </dev/null >&2 || {
-            echo failed
-            return 0
-        }
+        gh repo clone "$repo" "$dir" </dev/null >&2 || return 1
     fi
     cloud_origin_is "$repo" "$dir" || {
         echo "enroll: $repo: origin is $(git -C "$dir" remote get-url origin 2>/dev/null || echo missing), not $repo" >&2
-        echo failed
-        return 0
+        return 1
     }
-    git -C "$dir" fetch origin </dev/null >&2 || {
-        echo failed
-        return 0
-    }
+    git -C "$dir" fetch origin </dev/null >&2 || return 1
 
     file="$dir/$CLOUD_PIN_FILE"
     if [ -L "$dir/.claude" ] || [ -L "$file" ]; then
         echo "enroll: $repo: .claude is a symlink; not writing through it" >&2
-        echo failed
-        return 0
+        return 1
     fi
     if git -C "$dir" ls-files --error-unmatch -- "$CLOUD_PIN_FILE" >/dev/null 2>&1; then
         echo "enroll: $repo: the repo tracks $CLOUD_PIN_FILE; not touching it" >&2
-        echo failed
-        return 0
+        return 1
     fi
     existing='{}'
     if [ -e "$file" ]; then
         existing="$(jq -e 'if type == "object" then . else error end' "$file" 2>/dev/null)" || {
             echo "enroll: $repo: $CLOUD_PIN_FILE is not a JSON object" >&2
-            echo failed
-            return 0
+            return 1
         }
     fi
     case "$(cloud_pin_env <(echo "$existing"))" in
@@ -151,29 +142,20 @@ enroll_one() {
         return 0
         ;;
     esac
-    mkdir -p "${file%/*}"
-    if ! { cloud_pin_set "$pick" <<<"$existing" >"$file.tmp.$$" && mv "$file.tmp.$$" "$file"; }; then
-        echo failed
-        return 0
-    fi
+    mkdir -p "${file%/*}" || return 1
+    cloud_pin_set "$pick" <<<"$existing" >"$file.tmp.$$" || return 1
+    mv "$file.tmp.$$" "$file" || return 1
 
-    exclude="$(git -C "$dir" rev-parse --path-format=absolute --git-path info/exclude)" || {
-        echo failed
-        return 0
-    }
-    if ! { mkdir -p "${exclude%/*}" && {
-        grep -qxF "/$CLOUD_PIN_FILE" "$exclude" 2>/dev/null ||
-            echo "/$CLOUD_PIN_FILE" >>"$exclude"
-    }; }; then
-        echo failed
-        return 0
-    fi
+    exclude="$(git -C "$dir" rev-parse --path-format=absolute --git-path info/exclude)" || return 1
+    mkdir -p "${exclude%/*}" || return 1
+    grep -qxF "/$CLOUD_PIN_FILE" "$exclude" 2>/dev/null ||
+        echo "/$CLOUD_PIN_FILE" >>"$exclude" || return 1
     echo enrolled
 }
 
 failed=0
 for repo in "${repos[@]}"; do
-    status="$(enroll_one "$repo")"
+    status="$(enroll_one "$repo")" || status=failed
     [ "$status" != failed ] || failed=1
     cloud_report enroll "$repo" "$status"
 done
