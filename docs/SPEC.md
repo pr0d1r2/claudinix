@@ -69,6 +69,7 @@ T136|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:T135`,C22
 T149|x|CLI `spec-optimize` section, RUNBOOK: a node near its ceiling → `just spec-optimize [node]`, then `just all <PR#>`|`cloud:T148`,C22
 T157|x|CLI `review`: review a PR of another repo from that repo's checkout (`<claudinix>/scripts/cloud-review.sh`); needs its own claude.ai env, GitHub app access, `gh` sign-in|`cloud:T156`,C22
 T167|x|CLI `held` section; RUNBOOK: clear the `h10n-human` queue → `just held --dry-run`, close the listed duplicates, `just held`, merge each PR by hand|`cloud:T166`,`cloud:T169`,C22
+T178|.|MODEL.md "What a session costs": 2026-10-03 figure = before rtk (2026-10-09), say so; how to measure (`just burn`, `nix run …#burn`, a PR's `## Burn`); 1 table (session, model, tokens, $) from the `## Burn` of this task's own `just all` (build, 7 reviews, fixup), added by the owner session before merge; prices + cache rates (`scripts:V61`); FACTS cost row; SETUP step 0 \& CLI `burn` link it|C22,`scripts:T176`,`cloud:T177`
 
 ## §B BUGS
 
