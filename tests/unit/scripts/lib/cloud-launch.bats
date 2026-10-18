@@ -350,3 +350,28 @@ docs" ]
     cloud_origin_is Owner/alpha "$BATS_TEST_TMPDIR/c"
     run ! cloud_origin_is owner/zeta "$BATS_TEST_TMPDIR/c"
 }
+
+# gh_prs ROWS_JSON: a gh stub that answers the owner, those search rows, and
+# "false" to the fork question.
+gh_prs() {
+    printf '%s\n' '#!/usr/bin/env bash' \
+        'case "$*" in' \
+        'api\ user*) echo owner ;;' \
+        "search\\ prs*) echo '$1' ;;" \
+        'pr\ view*) echo false ;;' \
+        'esac' >"$STUBS/gh"
+    chmod +x "$STUBS/gh"
+}
+
+@test "cloud_repos_with_label lists each repo once for the owner's own PRs (cloud:V52, cloud:V59)" {
+    gh_prs '[{"number":1,"url":"u/1","repository":{"nameWithOwner":"owner/b"},"author":{"login":"owner"}},{"number":2,"url":"u/2","repository":{"nameWithOwner":"owner/b"},"author":{"login":"owner"}},{"number":3,"url":"u/3","repository":{"nameWithOwner":"owner/c"},"author":{"login":"other"}}]'
+    run --separate-stderr cloud_repos_with_label enroll h10n-human
+    [ "$output" = owner/b ]
+    [[ "$stderr" == *"enroll: skip owner/c#3: its author is other, not owner"* ]]
+}
+
+@test "cloud_repos_with_label warns when the search cap is reached (cloud:B88)" {
+    gh_prs "$(jq -nc '[range(100) | {number: ., url: "u/\(.)", repository: {nameWithOwner: "owner/b"}, author: {login: "owner"}}]')"
+    run --separate-stderr cloud_repos_with_label enroll h10n-human
+    [[ "$stderr" == *"enroll: only the first 100 labelled pull requests were found"* ]]
+}
