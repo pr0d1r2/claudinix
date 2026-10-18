@@ -89,4 +89,8 @@ def pr:
           $ls | sum_of(.cr | tonumber); $ls | sum_of(.out | tonumber);
           total_usd({known: $known, unknown: $unknown}));
 
-if $mode == "table" then table elif $mode == "self" then self else .[0] | pr end
+if $mode == "table" then table
+elif $mode == "self" then self
+elif $mode == "pr" then .[0] | pr
+else error("burn.jq: unknown mode \($mode)")
+end
