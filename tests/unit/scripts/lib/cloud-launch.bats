@@ -310,3 +310,17 @@ docs" ]
     [ "$(cloud_session_count 4 pr)" -eq 5 ]
     [ "$(cloud_session_count 1)" -eq 3 ]
 }
+
+@test "cloud_report prints one '<cmd>: report: <subject> <status>' row (cloud:I.file)" {
+    run cloud_report enroll owner/alpha enrolled
+    [ "$output" = "enroll: report: owner/alpha enrolled" ]
+    run cloud_report held owner/alpha#7 ok https://github.com/owner/alpha/pull/7
+    [ "$output" = "held: report: owner/alpha#7 ok https://github.com/owner/alpha/pull/7" ]
+}
+
+@test "cloud_repo_checkout is \$CLAUDINIX_PROJECTS/<repo>, owner dropped (cloud:I.file)" {
+    CLAUDINIX_PROJECTS=/work run cloud_repo_checkout owner/alpha
+    [ "$output" = /work/alpha ]
+    CLAUDINIX_PROJECTS=/work run cloud_repo_checkout alpha
+    [ "$output" = /work/alpha ]
+}
