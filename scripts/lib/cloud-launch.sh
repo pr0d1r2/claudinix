@@ -224,6 +224,12 @@ cloud_require_remote() {
     fi
 }
 
+# cloud_same_repo A B: owner/repo A and B name the same repository; GitHub
+# names ignore case (`tr`, as bash 3.2 has no ${var,,}).
+cloud_same_repo() {
+    [ "$(printf %s "$1" | tr '[:upper:]' '[:lower:]')" = "$(printf %s "$2" | tr '[:upper:]' '[:lower:]')" ]
+}
+
 # cloud_remote_repo REMOTE: owner/repo of REMOTE's URL.
 cloud_remote_repo() {
     git remote get-url "$1" | sed -E 's#^.*[:/]([^/]+/[^/]+)$#\1#; s#\.git$##'
@@ -251,10 +257,7 @@ entered_checkout=
 cloud_enter_url_repo() {
     local dir
     [ -n "$url_repo" ] || return 0
-    # GitHub names ignore case; `tr`, as bash 3.2 has no ${var,,}.
-    if [ "$(printf %s "$url_repo" | tr '[:upper:]' '[:lower:]')" = "$(cloud_remote_repo "$2" | tr '[:upper:]' '[:lower:]')" ]; then
-        return 0
-    fi
+    ! cloud_same_repo "$url_repo" "$(cloud_remote_repo "$2")" || return 0
     [ -n "${CLAUDINIX_PROJECTS:-}" ] || return 0
     cloud_valid_repo "$url_repo" || return 0
     dir="$(cloud_repo_checkout "$url_repo")"
@@ -276,8 +279,7 @@ cloud_require_url_repo() {
     local remote_repo
     [ -n "$url_repo" ] || return 0
     remote_repo="$(cloud_remote_repo "$2")"
-    # GitHub names ignore case; `tr`, as bash 3.2 has no ${var,,}.
-    if [ "$(printf %s "$url_repo" | tr '[:upper:]' '[:lower:]')" != "$(printf %s "$remote_repo" | tr '[:upper:]' '[:lower:]')" ]; then
+    if ! cloud_same_repo "$url_repo" "$remote_repo"; then
         echo "$1: $3 is a pull request of $url_repo, but remote $2 is $remote_repo -- run it from a checkout of $url_repo" >&2
         return 1
     fi
