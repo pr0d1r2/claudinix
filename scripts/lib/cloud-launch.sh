@@ -432,3 +432,41 @@ cloud_origin_is() {
     want="$(tr '[:upper:]' '[:lower:]' <<<"$1")"
     [ "$url" = "https://github.com/$want" ] || [ "$url" = "git@github.com:$want" ]
 }
+
+# cloud_valid_repo REPO: owner/repo, nothing else, no leading - (cloud:V59,
+# cloud:B106).
+cloud_valid_repo() {
+    [[ "$1" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9._][A-Za-z0-9._-]*$ ]] && [[ "$1" != */. && "$1" != */.. ]]
+}
+
+# cloud_repos_with_label CMD LABEL: owner/repo, one per line, of the repos where
+# the authenticated user has an open pull request under LABEL that they wrote
+# in the same repo (cloud:V52, cloud:V59). A pull request by someone else, from
+# a fork, or of a repo that is not owner/repo is skipped, naming it on stderr
+# with CMD; so is one whose fork check fails: only a plain `false` passes.
+cloud_repos_with_label() {
+    local cmd="$1" label="$2" owner found rows name author url repo is_fork
+    local search_limit=100
+    # </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
+    owner="$(gh api user --jq .login </dev/null)" || return 1
+    found="$(gh search prs --owner "$owner" --label "$label" --state open --limit "$search_limit" \
+        --json number,url,repository,author </dev/null)" || return 1
+    if [ "$(jq length <<<"$found")" -ge "$search_limit" ]; then
+        echo "$cmd: only the first $search_limit labelled pull requests were found; the rest are not considered" >&2
+    fi
+    rows="$(jq -r 'sort_by(.url) | .[] | ["\(.repository.nameWithOwner)#\(.number)", (.author.login // "ghost"), .repository.nameWithOwner, .url] | @tsv' <<<"$found")"
+    while IFS=$'\t' read -r name author repo url; do
+        [ -n "$name" ] || continue
+        if [ "$author" != "$owner" ]; then
+            echo "$cmd: skip $name: its author is $author, not $owner" >&2
+        elif ! is_fork="$(gh pr view "$url" --json isCrossRepository --jq .isCrossRepository </dev/null)"; then
+            echo "$cmd: skip $name: cannot tell whether it comes from a fork" >&2
+        elif [ "$is_fork" != false ]; then
+            echo "$cmd: skip $name: it comes from a fork" >&2
+        elif ! cloud_valid_repo "$repo"; then
+            echo "$cmd: skip $name: '$repo' is not owner/repo" >&2
+        else
+            echo "$repo"
+        fi
+    done <<<"$rows" | awk '!seen[$0]++'
+}

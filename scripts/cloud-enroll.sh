@@ -61,12 +61,9 @@ if [ -z "${CLAUDINIX_PROJECTS:-}" ]; then
     exit 1
 fi
 
-# valid_repo REPO: owner/repo, nothing else, no leading - (cloud:V59, cloud:B106).
-valid_repo() {
-    [[ "$1" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9._][A-Za-z0-9._-]*$ ]] && [[ "$1" != */. && "$1" != */.. ]]
-}
+# cloud:V59: owner/repo, nothing else, before any gh call.
 for repo in ${repos[@]+"${repos[@]}"}; do
-    if ! valid_repo "$repo"; then
+    if ! cloud_valid_repo "$repo"; then
         echo "enroll: refused: '$repo' is not owner/repo" >&2
         exit 2
     fi
@@ -79,32 +76,8 @@ if [ -n "$dup_name" ]; then
     exit 2
 fi
 
-# repos_with_open_pr: owner/repo of the owner's own same-repo PRs under the label.
-repos_with_open_pr() {
-    local owner found rows name author url repo is_fork
-    # </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
-    owner="$(gh api user --jq .login </dev/null)" || return 1
-    found="$(gh search prs --owner "$owner" --label "$label" --state open --limit 100 \
-        --json number,url,repository,author </dev/null)" || return 1
-    rows="$(jq -r 'sort_by(.url) | .[] | ["\(.repository.nameWithOwner)#\(.number)", (.author.login // "ghost"), .repository.nameWithOwner, .url] | @tsv' <<<"$found")"
-    while IFS=$'\t' read -r name author repo url; do
-        [ -n "$name" ] || continue
-        if [ "$author" != "$owner" ]; then
-            echo "enroll: skip $name: its author is $author, not $owner" >&2
-        elif ! is_fork="$(gh pr view "$url" --json isCrossRepository --jq .isCrossRepository </dev/null)"; then
-            echo "enroll: skip $name: cannot tell whether it comes from a fork" >&2
-        elif [ "$is_fork" != false ]; then
-            echo "enroll: skip $name: it comes from a fork" >&2
-        elif ! valid_repo "$repo"; then
-            echo "enroll: skip $name: '$repo' is not owner/repo" >&2
-        else
-            echo "$repo"
-        fi
-    done <<<"$rows" | awk '!seen[$0]++'
-}
-
 if [ "${#repos[@]}" -eq 0 ]; then
-    found_repos="$(repos_with_open_pr)" || exit 1
+    found_repos="$(cloud_repos_with_label enroll "$label")" || exit 1
     while IFS= read -r repo; do
         [ -z "$repo" ] || repos+=("$repo")
     done <<<"$found_repos"
