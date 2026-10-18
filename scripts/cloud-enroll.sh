@@ -116,6 +116,7 @@ enroll_one() {
         }
     fi
     cloud_origin_is "$repo" "$dir" || {
+        echo "enroll: $repo: origin is $(git -C "$dir" remote get-url origin 2>/dev/null || echo missing), not $repo" >&2
         echo failed
         return 0
     }
@@ -138,6 +139,7 @@ enroll_one() {
     existing='{}'
     if [ -e "$file" ]; then
         existing="$(jq -e 'if type == "object" then . else error end' "$file" 2>/dev/null)" || {
+            echo "enroll: $repo: $CLOUD_PIN_FILE is not a JSON object" >&2
             echo failed
             return 0
         }

@@ -38,6 +38,8 @@ does are summarised briefly; the git history has the detail.
   `/remote-env` has picked no environment.
 - `just enroll` refuses two repos with the same name, which would share one
   checkout.
+- `just enroll` says why a repo failed when its origin is another repo or its
+  pin file is not a JSON object.
 - `just held` ends with a report that lists each pull request it ran, oldest
   first, as `held: report: <repo>#<n> ok|failed <URL>` rows, before the closing
   `done` line.
