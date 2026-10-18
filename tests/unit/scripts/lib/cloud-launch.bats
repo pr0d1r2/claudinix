@@ -324,3 +324,29 @@ docs" ]
     CLAUDINIX_PROJECTS=/work run cloud_repo_checkout alpha
     [ "$output" = /work/alpha ]
 }
+
+@test "cloud_pin_env reads the environment id of a settings file, empty when none (cloud:I.file)" {
+    echo '{"remote":{"defaultEnvironmentId":"env_a"}}' >"$BATS_TEST_TMPDIR/s.json"
+    run cloud_pin_env "$BATS_TEST_TMPDIR/s.json"
+    [ "$output" = env_a ]
+    run cloud_pin_env "$BATS_TEST_TMPDIR/missing.json"
+    [ -z "$output" ]
+}
+
+@test "cloud_pin_set merges the id into settings JSON and keeps the other keys (cloud:I.file)" {
+    run cloud_pin_set env_b <<<'{"keep":1,"remote":{"x":2}}'
+    [ "$(jq -c . <<<"$output")" = '{"keep":1,"remote":{"x":2,"defaultEnvironmentId":"env_b"}}' ]
+}
+
+@test "CLOUD_PIN_FILE is the per-checkout pin path (cloud:I.file)" {
+    [ "$CLOUD_PIN_FILE" = .claude/settings.local.json ]
+}
+
+@test "cloud_origin_is matches github.com https and ssh origins, case folded (cloud:V59)" {
+    git init -q "$BATS_TEST_TMPDIR/c"
+    git -C "$BATS_TEST_TMPDIR/c" remote add origin https://github.com/Owner/Alpha.git
+    cloud_origin_is owner/alpha "$BATS_TEST_TMPDIR/c"
+    git -C "$BATS_TEST_TMPDIR/c" remote set-url origin git@github.com:owner/alpha.git
+    cloud_origin_is Owner/alpha "$BATS_TEST_TMPDIR/c"
+    run ! cloud_origin_is owner/zeta "$BATS_TEST_TMPDIR/c"
+}
