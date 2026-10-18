@@ -114,7 +114,7 @@ fi
 rows() { jq -R 'fromjson?' "${transcripts[@]}"; }
 
 if [ "$self" = 1 ]; then
-    rows | burn_jq self || echo "Burn: unmeasured (no-usage)"
+    rows | burn_jq self
 else
     rows | burn_jq table
 fi
