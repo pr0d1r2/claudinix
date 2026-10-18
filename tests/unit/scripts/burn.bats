@@ -221,8 +221,9 @@ comments_of() {
 }
 
 @test "burn.jq names an unknown mode instead of running the pr pipeline" {
-    run jq -sr --arg mode table --argjson prices '{}' \
-        -f "$BATS_TEST_DIRNAME/../../../scripts/burn.jq" <<<'{}'
+    echo '{}' >"$BATS_TEST_TMPDIR/empty.json"
+    run jq -sr --arg mode nonesuch --argjson prices '{}' \
+        -f "$BATS_TEST_DIRNAME/../../../scripts/burn.jq" "$BATS_TEST_TMPDIR/empty.json"
     [ "$status" -ne 0 ]
-    [[ "$output" == *"burn.jq: unknown mode table"* ]]
+    [[ "$output" == *"burn.jq: unknown mode nonesuch"* ]]
 }
