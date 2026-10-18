@@ -364,7 +364,7 @@ pr() {
     run bash "$SCRIPT" https://github.com/owner/alpha/pull/8 --yes
     [ "$status" -eq 1 ]
     [[ "$output" == *"not clean"* ]]
-    rm "$PROJECTS/alpha/stray"
+    rm "$PROJECTS/alpha/stray" "$STATE/gh.log"
     git -C "$PROJECTS/alpha" remote set-url origin https://github.com/owner/zeta
     run bash "$SCRIPT" https://github.com/owner/alpha/pull/8 --yes
     [ "$status" -eq 1 ]
