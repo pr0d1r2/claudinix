@@ -24,7 +24,8 @@ def cost($model; $m):
 
 # Last row of a message id wins (streaming rows repeat the id).
 def models:
-    [.[] | select(.type == "assistant" and (.message.usage? != null) and (.message.id? != null))]
+    [.[] | select(.type == "assistant" and (.message.usage? != null) and (.message.id? != null)
+                         and (.message.model? != "<synthetic>"))]
     | group_by(.message.id) | map(last | .message)
     | group_by(.model) | map({
         model: .[0].model,
