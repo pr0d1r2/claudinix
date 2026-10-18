@@ -41,12 +41,12 @@ V39: pre-commit checks each generated file AS STAGED: a commit staging a source 
 id|status|task|cites
 T106|x|ARCHIVED to SPEC-ARCHIVE.md|V1,V3,`.:T105`
 T107|x|ARCHIVED to SPEC-ARCHIVE.md|V1,V3
-T108|x|`config --write\|--check`: `docs/CONFIG.md` key table (key, type, default, readers) from `scripts/config.jq`'s schema (pklith `catalog`)|V1,V3,`scripts:V34`
+T108|x|ARCHIVED to SPEC-ARCHIVE.md|V1,V3,`scripts:V34`
 T109|x|ARCHIVED to SPEC-ARCHIVE.md|V1,V3
 T110|x|ARCHIVED to SPEC-ARCHIVE.md|V1
 T111|x|ARCHIVED to SPEC-ARCHIVE.md|`.:V20`,`docs:T37`
 T112|.|? `select`: run only the generated outputs a changed file can affect (xenolith `select`) — when the gate gets slow|V3
-T123|x|enforce V39: `badges` \& `steps` `--check` on an index snapshot (`git checkout-index`) in pre-commit|V39,`.:V36`,B18
+T123|x|ARCHIVED to SPEC-ARCHIVE.md|V39,`.:V36`,B18
 
 ## §B BUGS
 
