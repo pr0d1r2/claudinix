@@ -29,7 +29,7 @@ sib|home|`~/.claude`: skills, rtk, caveman, permission rules
 - cmd: `just merge <PR# \| URL> [--yes] [--dry-run]` → `scripts/cloud-merge.sh`: verdict per V51 (stop → exit 1 naming why); y/N unless `--yes`; `gh pr merge --rebase --match-head-commit`, then `git pull --ff-only` on a clean base. `--dry-run` ⊥ merge. `all … --merge` ends w/ it.
 - cmd: `just drain [node:Tn…] [--max N] [--model M] [--yes] [--dry-run]` → `scripts/cloud-drain.sh`: on a clean `main` only; tasks = given, else open §T rows of ∀ node but `experiments`, ⊥ `?` rows (`root:Tn` for the root); `--max` default = PRs w/ a `Fixup:` merged per day over 7 days, ≥ 1 (gh fails → exit 1, name `--max`); 1 y/N naming tasks & sessions; 1 at a time `cloud-all.sh <task> --yes --merge`; stop at the 1st nonzero, naming task & count.
 - cmd: `just held [--label L] [--repo R…] [--max N] [--model M] [--yes] [--dry-run]` → `scripts/cloud-held.sh` (T166): label L default `h10n-human`; checkout = `$CLAUDINIX_PROJECTS/<repo>` (env, required: the owner's checkouts, 1 per repo; T165 reuses it) w/ a claude.ai env in its `settings.local.json`, else skip naming it; 1 y/N naming PRs \& sessions; 1 PR at a time through `all` (T161); T168 (duplicate titles, V52), T169: after the loop, `held: report` then 1 row per PR run, oldest first, `held: report: <repo>#<n> ok\|failed <URL>` (stdout), then `held: done, <n> of <m>`.
-- cmd: `just enroll [<owner/repo>…] [--label L] [--dry-run]` → `scripts/cloud-enroll.sh` (T174): ∀ repo: checkout `$CLAUDINIX_PROJECTS/<repo>`, env pin; 1 report line/repo; ⊥ billed session
+- cmd: `just enroll [--repo R…] [--label L] [--yes] [--dry-run]` → `scripts/cloud-enroll.sh` (T174): repos = `--repo` (`owner/repo`), else ∀ repo w/ an open PR labelled L (default `h10n-human`), V59; ∀ repo: checkout `$CLAUDINIX_PROJECTS/<repo>` cloned \| fetched + local env pin; 1 y/N naming repos unless `--yes`; 1 line/repo `enroll: report: <repo> enrolled\|needs-env\|failed`; idempotent; `--dry-run` ⊥ writes; ⊥ billed session.
 - cmd: `just spec-optimize [node…] [--model M] [--yes] [--dry-run]` → `scripts/cloud-spec.sh`: nodes = §F names (default: owners of rows over `.context-limits` (B41, B42)), unknown → refuse listing them; launch rules as `cloud`; prompt `scripts/cloud-spec-prompt.txt`, branch `claude/spec-optimize[-<nodes joined by ->]` off `main`: ∀ node `mth archive`, move rows down to the node owning their files (cites changed too); shorten §T \& §I ⊥ meaning lost, §V \& §C verbatim; 1 `docs(spec)` commit/node; lower freed `.context-limits` rows to measured +15% (own commit, size in `Why:`), ⊥ raise; still over → report names the split ⊥ makes it; gate, push, PR into `main`, CI as `cloud`; text = data; only spec files \& `.context-limits` change (B43); ⊥ force \| merge \| waits (`.:C29`).
 - file: `scripts/lib/cloud-launch.sh` — sourced by every `scripts/cloud-*.sh` launcher, functions \& constants only (`cloud_*`, `CLOUD_*`): launch checks, task \& PR parsers, branch name \& regex, review roles, headings, green CI, kept paths; the one source of the launch \& merge rules.
 
@@ -45,7 +45,7 @@ V53: a cross-repo `fixup` (T165) ⊥ trusts the target: only OWNER \| MEMBER \| 
 V54: `scripts/cloud-all.sh` ⊥ bash ≥ 4 syntax (`${x,,}`, `${x^^}`, `declare -A`): the owner runs it under macOS bash 3.2; fold case with `tr` (B92).
 V55: a PR `all` found by its body, not its branch (T171), ⊥ `--merge`d: stop, open it, the owner merges (B93, V51).
 V56: `all`'s PR poll lists PRs without `body`; it reads a body (`gh pr view`) only of a new same-repo PR off the task's branch, only when no branch matched (B94).
-V59: `enroll` (T174) ⊥ executes anything from a repo it clones or fetches (no hook, direnv, nix, repo tooling); `owner/repo` ~ `^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$` else refuse, clone from `https://github.com/<owner>/<repo>` only; `--label L` discovery enrols only same-repo PRs by the authenticated user (as V52; others → skipped, named), explicit args name the repos the user chose; a checkout's `origin` ⊥ the named repo → failed, ⊥ touched.
+V59: `enroll` (T174) ⊥ runs anything from a repo it clones \| fetches (hook, direnv, nix, tooling); `owner/repo` ~ `^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$` else refuse, cloned from `https://github.com/<owner>/<repo>` only; `--label` enrols only same-repo PRs of the authenticated user (as V52; others skipped, named); a checkout whose `origin` ≠ the repo → failed, ⊥ touched.
 
 ## §T TASKS
 
@@ -75,11 +75,11 @@ T164|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V51
 T165|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T164,`.:C29`
 T166|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52,T161,V40,V41,T165,`.:C29`
 T168|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52
-T169|x|`held` report per PR from `all`|I.cmd,T166,`docs:T167`
+T169|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T166,`docs:T167`
 T170|x|ARCHIVED to SPEC-ARCHIVE.md|V52,T166
 T171|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B90
-T174|.|`enroll`: `--label L` = ∀ repo w/ an open PR labelled L, filtered by V59; checkout missing → `gh repo clone`, else `git fetch`; `.claude/settings.local.json` → `.git/info/exclude`; ⊥ pin → `guide` step 3-4 values \& `/remote-env` → local pin (CLI 2.1.302 ⊥ lists envs); `enroll: report: <repo> enrolled\|needs-env\|failed`; idempotent; ⊥ commit \| push in target|I.cmd,V52,V59,`scripts:T119`,T166
-T175|.|`all` \| `review` \| `fixup` w/ another repo's URL → run from `$CLAUDINIX_PROJECTS/<repo>` if a checkout of it, if that checkout is `<repo>`'s own (`origin` = the URL's repo, case folded), clean, on the PR's base branch \& fetched; tooling \& gate as on the base (V53); else refuse as now (B21, B25, B63 kept)|I.cmd,T165,T174,V52,V53,V59
+T174|.|`enroll` steps: checkout missing → `gh repo clone`, else `git fetch`; pin file → `.git/info/exclude`; ⊥ pin → guide values, else `needs-env` (CLI 2.1.302 ⊥ lists envs); ⊥ commit \| push in target|I.cmd,V52,V59,`scripts:T119`,T166
+T175|.|`all` \| `review` \| `fixup` w/ another repo's URL → run from `$CLAUDINIX_PROJECTS/<repo>` if it is `<repo>`'s own (`origin` case folded), clean, on the PR's base, fetched; tooling \& gate as on the base (V53); else refuse as now (B21, B25, B63 kept)|I.cmd,T165,T174,V52,V53,V59
 
 ## §B BUGS
 
