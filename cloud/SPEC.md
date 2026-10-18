@@ -45,6 +45,7 @@ V53: a cross-repo `fixup` (T165) ⊥ trusts the target: only OWNER \| MEMBER \| 
 V54: `scripts/cloud-all.sh` ⊥ bash ≥ 4 syntax (`${x,,}`, `${x^^}`, `declare -A`): the owner runs it under macOS bash 3.2; fold case with `tr` (B92).
 V55: a PR `all` found by its body, not its branch (T171), ⊥ `--merge`d: stop, open it, the owner merges (B93, V51).
 V56: `all`'s PR poll lists PRs without `body`; it reads a body (`gh pr view`) only of a new same-repo PR off the task's branch, only when no branch matched (B94).
+V59: `enroll` (T174) ⊥ executes anything from a repo it clones or fetches (no hook, direnv, nix, repo tooling); `owner/repo` ~ `^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$` else refuse, clone from `https://github.com/<owner>/<repo>` only; `--label L` discovery enrols only same-repo PRs by the authenticated user (as V52; others → skipped, named), explicit args name the repos the user chose; a checkout's `origin` ⊥ the named repo → failed, ⊥ touched.
 
 ## §T TASKS
 
@@ -77,7 +78,7 @@ T168|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52
 T169|x|`held` report per PR from `all`|I.cmd,T166,`docs:T167`
 T170|x|ARCHIVED to SPEC-ARCHIVE.md|V52,T166
 T171|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B90
-T174|.|`enroll`: `--label L` = ∀ repo w/ an open PR labelled L (as `held`); checkout missing → `gh repo clone`, else `git fetch`; `.claude/settings.local.json` → `.git/info/exclude`; ⊥ pin → `guide` step 3-4 values \& `/remote-env` → local pin (CLI 2.1.302 ⊥ lists envs); `enroll: report: <repo> enrolled\|needs-env\|failed`; idempotent; ⊥ commit \| push in target|I.cmd,`scripts:T119`,T166
+T174|.|`enroll`: `--label L` = ∀ repo w/ an open PR labelled L, filtered by V59; checkout missing → `gh repo clone`, else `git fetch`; `.claude/settings.local.json` → `.git/info/exclude`; ⊥ pin → `guide` step 3-4 values \& `/remote-env` → local pin (CLI 2.1.302 ⊥ lists envs); `enroll: report: <repo> enrolled\|needs-env\|failed`; idempotent; ⊥ commit \| push in target|I.cmd,V52,V59,`scripts:T119`,T166
 T175|.|`all` \| `review` \| `fixup` w/ another repo's URL → run from `$CLAUDINIX_PROJECTS/<repo>` if a checkout of it, else refuse as now (B21, B25, B63 kept)|I.cmd,T165,T174
 
 ## §B BUGS
