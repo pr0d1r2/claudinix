@@ -161,3 +161,9 @@ row() {
     run --separate-stderr "$SCRIPT" "$BATS_TEST_TMPDIR/cw.jsonl"
     [ "${lines[-1]}" = "| total | 0 | 1000000 | 0 | 0 | 2.50 |" ]
 }
+
+@test "--prices prints the price table as JSON and reads no transcript" {
+    run --separate-stderr "$SCRIPT" --prices
+    [ "$status" -eq 0 ]
+    [ "$(jq -c '.["claude-sonnet-5-5"]' <<<"$output")" = "[2,10]" ]
+}
