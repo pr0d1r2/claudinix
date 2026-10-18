@@ -12,7 +12,7 @@ docs|plain-English docs: setup, facts, runbook, security, release|the gate's def
 experiments|cloud-session experiments \& results|setup code (root), tools (`scripts`), the docs prose (`docs`)|-
 dev|`claudinix-dev`: generated badges \& doc numbers|session code (root `setup.sh`, `scripts`), anything a user installs|-
 home|`~/.claude`: skills, rtk, caveman, permission rules|flake wiring (`nix`), setup (root)|-
-cloud|cloud launchers \& their prompts|the gate \& other shell (`scripts`), permissions (`home`)|-
+cloud|cloud launchers \& their prompts, `enroll`|the gate \& other shell (`scripts`), permissions (`home`)|-
 
 ## §N NAV
 

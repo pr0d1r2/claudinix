@@ -14,7 +14,7 @@ sib|docs|plain-English docs: setup, facts, runbook, security, release
 sib|experiments|cloud-session experiments \& results
 sib|dev|`claudinix-dev`: generated badges \& doc numbers
 sib|home|`~/.claude`: skills, rtk, caveman, permission rules
-sib|cloud|cloud launchers \& their prompts
+sib|cloud|cloud launchers \& their prompts, `enroll`
 
 ## §C CONSTRAINTS
 
