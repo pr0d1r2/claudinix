@@ -229,6 +229,10 @@ cloud_remote_repo() {
     git remote get-url "$1" | sed -E 's#^.*[:/]([^/]+/[^/]+)$#\1#; s#\.git$##'
 }
 
+# The remote of the owner's checkouts in $CLAUDINIX_PROJECTS: the one name
+# cloud_origin_is and cloud_require_checkout_ready look up there (cloud:V60).
+CLOUD_CHECKOUT_REMOTE=origin
+
 # The checkout cloud_enter_url_repo changed into, else empty; the caller hands
 # it to cloud_require_checkout_ready (cloud:T175).
 entered_checkout=
@@ -256,7 +260,7 @@ cloud_enter_url_repo() {
     dir="$(cloud_repo_checkout "$url_repo")"
     [ -d "$dir" ] || return 0
     if ! cloud_origin_is "$url_repo" "$dir"; then
-        echo "$1: $dir is not a checkout of $url_repo (its origin is another repository) -- fix $CLAUDINIX_PROJECTS" >&2
+        echo "$1: $dir is not a checkout of $url_repo (its $CLOUD_CHECKOUT_REMOTE is another repository) -- fix $CLAUDINIX_PROJECTS" >&2
         return 1
     fi
     cd "$dir" || return 1
@@ -295,12 +299,12 @@ cloud_require_checkout_ready() {
         echo "$1: $2 is not on $3 (the pull request's base) -- check it out first" >&2
         return 1
     fi
-    if ! git -C "$2" fetch --quiet origin "$3"; then
+    if ! git -C "$2" fetch --quiet "$CLOUD_CHECKOUT_REMOTE" "$3"; then
         echo "$1: could not fetch $3 in $2" >&2
         return 1
     fi
     if [ "$(git -C "$2" rev-parse HEAD)" != "$(git -C "$2" rev-parse FETCH_HEAD)" ]; then
-        echo "$1: $2 is not at the fetched origin/$3 -- pull it first" >&2
+        echo "$1: $2 is not at the fetched $CLOUD_CHECKOUT_REMOTE/$3 -- pull it first" >&2
         return 1
     fi
 }
@@ -493,11 +497,11 @@ cloud_pin_set() {
     jq --arg id "$1" '.remote = ((.remote // {}) | .defaultEnvironmentId = $id)'
 }
 
-# cloud_origin_is REPO DIR: DIR's origin is github.com/REPO, case folded
+# cloud_origin_is REPO DIR: DIR's $CLOUD_CHECKOUT_REMOTE (origin) is github.com/REPO, case folded
 # (cloud:V59).
 cloud_origin_is() {
     local url want
-    url="$(git -C "$2" remote get-url origin 2>/dev/null)" || return 1
+    url="$(git -C "$2" remote get-url "$CLOUD_CHECKOUT_REMOTE" 2>/dev/null)" || return 1
     url="$(tr '[:upper:]' '[:lower:]' <<<"${url%.git}")"
     want="$(tr '[:upper:]' '[:lower:]' <<<"$1")"
     [ "$url" = "https://github.com/$want" ] || [ "$url" = "git@github.com:$want" ]
