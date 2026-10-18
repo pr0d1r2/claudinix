@@ -158,6 +158,11 @@ enroll_one() {
         echo failed
         return 0
     fi
+    if git -C "$dir" ls-files --error-unmatch -- .claude/settings.local.json >/dev/null 2>&1; then
+        echo "enroll: $repo: the repo tracks .claude/settings.local.json; not touching it" >&2
+        echo failed
+        return 0
+    fi
     existing='{}'
     if [ -e "$file" ]; then
         existing="$(jq -e 'if type == "object" then . else error end' "$file" 2>/dev/null)" || {
