@@ -59,6 +59,7 @@ while [ $# -gt 0 ]; do
 done
 [ "$post" = 0 ] || [ -n "$pr" ] || usage
 [ -z "$pr" ] || [ "$self" = 0 ] || usage
+[ -z "$pr" ] || [[ "$pr" =~ ^[0-9]+$ ]] || usage
 
 lib="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
 projects="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects"
