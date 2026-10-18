@@ -664,9 +664,17 @@ it, and `gh` must be able to read its pull requests. The session reads
 CONTRIBUTING and CLAUDE.md. The role files say "if the repository has" for
 every spec or gate rule, so they apply there too.
 
+Instead of changing directory, set `CLAUDINIX_PROJECTS` to the directory
+holding your checkouts and give `review`, [`fixup`](#fixup) or [`all`](#all)
+the pull request's URL. They run from `$CLAUDINIX_PROJECTS/<repo>` when its
+`origin` is that repository (case folded) and the checkout is clean, on the
+pull request's base and at the fetched tip, so the session sees the base's
+tooling and gate. They refuse as before when there is no such checkout, and
+ask `gh` nothing until the origin matches.
+
 Only `review` and [`fixup`](#fixup) run from another repository's
-checkout. `rebase` and `all` need `AGENTS.md`, `SPEC.md` and the gate of the
-repository they run in, so run `review` and `fixup` by hand for another
+checkout by path. `rebase` needs `AGENTS.md`, `SPEC.md` and the gate of the
+repository it runs in, so run `review` and `fixup` by hand for another
 repository's pull request.
 
 Unlike `cloud`, it needs only the remote (`origin`, or `CLOUD_TASK_REMOTE`):
