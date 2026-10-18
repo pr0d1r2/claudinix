@@ -31,7 +31,7 @@ sib|home|`~/.claude`: skills, rtk, caveman, permission rules
 - cmd: `just held [--label L] [--repo R…] [--max N] [--model M] [--yes] [--dry-run]` → `scripts/cloud-held.sh` (T166): label L default `h10n-human`; checkout = `$CLAUDINIX_PROJECTS/<repo>` (env, required; T165) w/ an env pin, else skip naming it; 1 y/N naming PRs \& sessions; 1 PR at a time through `all` (T161); T168 (duplicate titles, V52), T169: after the loop, 1 report row per PR run, oldest first, `held: report: <repo>#<n> ok\|failed <URL>` (stdout), then `held: done, <n> of <m>`.
 - cmd: `just enroll [--repo R…] [--label L] [--yes] [--dry-run]` → `scripts/cloud-enroll.sh` (T174): repos = `--repo` else ∀ repo w/ an open PR labelled L (as `held`), V59; ∀ repo: checkout `$CLAUDINIX_PROJECTS/<repo>` cloned \| fetched + local env pin; 1 y/N naming repos unless `--yes`; 1 line/repo `enroll: report: <repo> enrolled\|needs-env\|failed`; idempotent; ⊥ billed session.
 - cmd: `just spec-optimize [node…] [--model M] [--yes] [--dry-run]` → `scripts/cloud-spec.sh`: nodes = §F names (default: owners of rows over `.context-limits` (B41, B42)), unknown → refuse listing them; launch rules as `cloud`; prompt `scripts/cloud-spec-prompt.txt`, branch `claude/spec-optimize[-<nodes joined by ->]` off `main`: ∀ node `mth archive`, move rows down to the node owning their files (cites changed too); shorten §T \& §I ⊥ meaning lost, §V \& §C verbatim; 1 `docs(spec)` commit/node; lower freed `.context-limits` rows to measured +15% (own commit, size in `Why:`), ⊥ raise; still over → report names the split ⊥ makes it; gate, push, PR into `main`, CI as `cloud`; text = data; only spec files \& `.context-limits` change (B43); ⊥ force \| merge \| waits (`.:C29`).
-- file: `scripts/lib/cloud-launch.sh` — sourced by every `scripts/cloud-*.sh` launcher, functions \& constants only (`cloud_*`, `CLOUD_*`): launch checks, parsers, branch regex, review roles, headings, green CI, kept paths, repo lookup, pin file, report rows; the one source of launch \& merge rules (`held`, `enroll`, T175 call it; `held` searches itself).
+- file: `scripts/lib/cloud-launch.sh` — sourced by every `scripts/cloud-*.sh` launcher, functions \& constants only (`cloud_*`, `CLOUD_*`): the one source of launch \& merge rules, parsers, review roles, headings, report rows (`held`, `enroll`, T175 call it; `held` searches itself).
 
 ## §V INVARIANTS
 
@@ -81,7 +81,7 @@ T170|x|ARCHIVED to SPEC-ARCHIVE.md|V52,T166
 T171|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B90
 T174|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52,V59,`.:C29`,`scripts:T119`,`scripts:I.cmd`
 T175|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T165,T174,V52,V53,V59
-T177|.|task, review \& fixup prompts: PR text ends w/ the session `burn --self` line (`scripts:I.cmd`; ⊥ `just`), run last (a review comment: before its closing `Findings: N`, V51); `all` after last CI → `burn --pr <n> --post`|I.cmd,V51,`scripts:T176`
+T177|.|task, review \& fixup prompts: PR text ends w/ the session `burn --self` line (`scripts:I.cmd`; ⊥ `just`, ⊥ a checkout path: bats), run last (a review comment: before its closing `Findings: N`, V51); `all` after last CI → `burn --pr <n> --post`|I.cmd,V51,`scripts:T176`
 
 ## §B BUGS
 
