@@ -89,3 +89,4 @@ id|date|cause|fix
 B63|2026-10-15|`just review all <other repo URL>`: `gh pr view 36` ran before the B21 repo check ∴ read this repo's merged #36|repo check before any `gh` call (T156)
 B64|2026-10-15|`just merge` counted review \& `Fixup:` comments of any author (forged `Findings: 0`)|V51: only OWNER \| MEMBER comments count
 B102|2026-10-18|`enroll` fork check: a failed `gh pr view` printed nothing ∴ `= true` false ∴ a fork PR's repo enrolled (failed open)|V59: enrol only on an explicit `isCrossRepository` false; a failed lookup skips, naming the PR
+B103|2026-10-18|`enroll` wrote `.claude/settings.local.json` through a `.claude` symlink the cloned repo tracks ∴ the write landed outside the checkout|V59: a symlinked `.claude` \| pin file → failed, ⊥ written
