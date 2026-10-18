@@ -428,3 +428,12 @@ roles() {
     [ "$status" -eq 0 ]
     grep -q '^pr view 12 --repo owner/alpha ' "$STATE/gh.log"
 }
+
+@test "CLOUD_TASK_REMOTE must exist in the entered checkout too: refused there, no gh call (V60, B109)" {
+    cross_fixture
+    git -C "$HERE" remote add upstream https://github.com/me/here
+    CLOUD_TASK_REMOTE=upstream run bash "$SCRIPT" security https://github.com/owner/alpha/pull/12 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"no remote upstream"* ]]
+    [ ! -e "$STATE/gh.log" ]
+}
