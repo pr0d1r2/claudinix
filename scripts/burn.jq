@@ -68,10 +68,14 @@ def burn_lines:
      | .body | split("\n")[]
      | capture("^Burn: in=(?<in>[0-9]+) cw=(?<cw>[0-9]+) cr=(?<cr>[0-9]+) out=(?<out>[0-9]+) \\$(?<usd>[0-9.?+]+) \\(")];
 
+# `$` of a Burn line: <known>, `?` or <known>+?.
+def usd_known: capture("^(?<n>[0-9]+\\.[0-9]{2})?(?<unknown>\\+?\\?)?$");
+
 def pr:
     burn_lines as $ls
-    | ($ls | map(select(.usd | test("^[0-9]+\\.[0-9]{2}$")) | .usd | tonumber) | add // 0) as $known
-    | ($ls | map(select(.usd | test("^[0-9]+\\.[0-9]{2}$") | not)) | length) as $unknown
+    | ($ls | map(.usd | usd_known)) as $usd
+    | ($usd | map(select(.n != null) | .n | tonumber) | add // 0) as $known
+    | ($usd | map(select((.unknown // "") != "")) | length) as $unknown
     | header("comment"),
       ($ls | to_entries[] | .key as $i | .value
          | row($i + 1; .in; .cw; .cr; .out; .usd)),
