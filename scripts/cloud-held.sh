@@ -112,12 +112,12 @@ while IFS=$'\t' read -r name author repo url title; do
     # Rows are oldest first, so the first runnable PR of a repo and title is the one kept (cloud:T168).
     key="$repo"$'\t'"$title"
     checkout="$(cloud_repo_checkout "$repo")"
-    settings="$checkout/.claude/settings.local.json"
+    settings="$checkout/$CLOUD_PIN_FILE"
     if [ "$author" != "$owner" ]; then
         echo "held: skip $name: its author is $author, not $owner" >&2
     elif [ ! -d "$checkout" ]; then
         echo "held: skip $name: no checkout at $checkout" >&2
-    elif [ -z "$(jq -r '.remote.defaultEnvironmentId // empty' "$settings" 2>/dev/null)" ]; then
+    elif [ -z "$(cloud_pin_env "$settings")" ]; then
         echo "held: skip $name: no claude.ai environment pinned in $settings" >&2
     elif first="$(K="$key" awk -F'\t' '$1 "\t" $2 == ENVIRON["K"] {print $3; exit}' <<<"$kept")" && [ -n "$first" ]; then
         echo "held: skip $name: duplicate of $first, the oldest with that title" >&2

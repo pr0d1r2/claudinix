@@ -405,3 +405,30 @@ cloud_report() {
 cloud_repo_checkout() {
     echo "$CLAUDINIX_PROJECTS/${1##*/}"
 }
+
+# The per-checkout file that pins the claude.ai cloud environment, relative
+# to the checkout; `enroll` writes it, `held` reads it (cloud:T174).
+# shellcheck disable=SC2034 # read by the scripts that source this file
+CLOUD_PIN_FILE=.claude/settings.local.json
+
+# cloud_pin_env FILE: the environment id pinned in settings FILE, empty when
+# FILE is missing, unreadable or has none. `/remote-env` writes the same key.
+cloud_pin_env() {
+    jq -r '.remote.defaultEnvironmentId // empty' "$1" 2>/dev/null || true
+}
+
+# cloud_pin_set ID: settings JSON on stdin, printed with the environment
+# pinned to ID and every other key kept. The twin of guide.sh's pin_env.
+cloud_pin_set() {
+    jq --arg id "$1" '.remote = ((.remote // {}) | .defaultEnvironmentId = $id)'
+}
+
+# cloud_origin_is REPO DIR: DIR's origin is github.com/REPO, case folded
+# (cloud:V59).
+cloud_origin_is() {
+    local url want
+    url="$(git -C "$2" remote get-url origin 2>/dev/null)" || return 1
+    url="$(tr '[:upper:]' '[:lower:]' <<<"${url%.git}")"
+    want="$(tr '[:upper:]' '[:lower:]' <<<"$1")"
+    [ "$url" = "https://github.com/$want" ] || [ "$url" = "git@github.com:$want" ]
+}
