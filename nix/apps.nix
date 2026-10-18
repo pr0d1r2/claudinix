@@ -45,6 +45,16 @@ in
     description = "List a flake's github inputs: cached, or uncached (nix-dev fetches those over git)";
   };
 
+  burn = app {
+    name = "burn";
+    runtimeInputs = [
+      pkgs.jq
+      pkgs.coreutils
+      pkgs.findutils
+    ];
+    description = "What a Claude Code session cost, from its transcripts (--pr sums a PR's Burn lines)";
+  };
+
   domains = app {
     name = "domains";
     runtimeInputs = [

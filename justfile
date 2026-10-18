@@ -13,6 +13,10 @@ default:
 inputs *args:
     scripts/inputs.sh {{ args }}
 
+# What a Claude Code session cost, from its transcripts; --self, --pr N [--post].
+burn *args:
+    scripts/burn.sh {{ args }}
+
 # Print the allowed domains a cloud environment needs for projects.
 domains *args:
     scripts/domains.sh {{ args }}
