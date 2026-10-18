@@ -72,7 +72,7 @@ T137|x|ARCHIVED to SPEC-ARCHIVE.md|`docs:T47`,I.cmd
 T150|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C20`,B81
 T162|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:V51`,T150
 T163|.|`require_full_history` in `scripts/lib` for `tdd-order`, `context-limits` \& `spec-ids` (3rd copy of the preamble)|V29,B7
-T173|x|guard: ∀ id (T V B C) in a base `SPEC*.md` ! stay in a head `SPEC*.md`; a vanished id fails, naming it; ∀ id in an `ARCHIVED to SPEC-ARCHIVE.md` pointer line ! exist in that node's archive|B91
+T173|x|ARCHIVED to SPEC-ARCHIVE.md|B91
 T176|.|`burn` (I.cmd, V61): bats on fixture transcripts (dup `message.id`, 2 models, a subagent file, an unknown model, `--self`); app `burn` in `nix/apps.nix`|I.cmd,V61,V26
 
 ## §B BUGS
