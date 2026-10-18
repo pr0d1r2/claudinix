@@ -209,3 +209,14 @@ pinned() {
     [ "$status" -eq 2 ]
     [ ! -e "$STATE/gh.log" ]
 }
+
+@test "a failed row says why: another origin, a corrupt pin file" {
+    existing alpha owner/zeta
+    run bash "$SCRIPT" --repo owner/alpha --yes
+    [[ "$output" == *"enroll: owner/alpha: origin is https://github.com/owner/zeta.git, not owner/alpha"* ]]
+    existing beta
+    mkdir -p "$CLAUDINIX_PROJECTS/beta/.claude"
+    echo '[1]' >"$CLAUDINIX_PROJECTS/beta/.claude/settings.local.json"
+    run bash "$SCRIPT" --repo owner/beta --yes
+    [[ "$output" == *"enroll: owner/beta: .claude/settings.local.json is not a JSON object"* ]]
+}
