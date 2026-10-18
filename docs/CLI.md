@@ -11,6 +11,7 @@ has a bug.
 |---|---|---|
 | [`inputs`](#inputs) | lists a flake's `github:` inputs as `cached` or `uncached` | your machine, in the project |
 | [`domains`](#domains) | prints the allowed domains the environment needs | your machine, in the project |
+| [`burn`](#burn) | prints what a Claude Code session cost, per model, from its transcripts | your machine, anywhere |
 | [`guide`](#guide) | walks the setup steps of [`SETUP.md`](SETUP.md) | your machine, in the project |
 | [`probe`](#probe) | starts a billed cloud session that probes the project and prints its report | your machine, in the project's git checkout |
 | [`cloud`](#cloud) | builds one task of this repository's spec in a billed cloud session | your machine, in the project's git checkout |
@@ -43,7 +44,7 @@ nix run github:pr0d1r2/claudinix#probe -- --model opus
 ```
 
 Everything after `--` goes to the command. The apps are `inputs`, `domains`,
-`guide` and `probe`; `nix-dev`, `setup.sh`, `setup-line.sh` and `bump-nix.sh` are not flake apps. Each
+`burn`, `guide` and `probe`; `nix-dev`, `setup.sh`, `setup-line.sh` and `bump-nix.sh` are not flake apps. Each
 app is the script read verbatim, with its helper programs (`jq`, `curl` and
 so on) put on its `PATH`, so the apps behave the same on any machine with
 Nix.
@@ -195,6 +196,35 @@ static.crates.io	p/Cargo.toml
 | 0 | the list was printed |
 | 1 | the base list, a project directory or a log could not be read |
 | 2 | a usage error |
+
+## burn
+
+What a Claude Code session cost, from its `*.jsonl` transcripts. It reads
+files only, and writes only with `--post`.
+
+```sh
+nix run github:pr0d1r2/claudinix#burn
+nix run github:pr0d1r2/claudinix#burn -- --self
+nix run github:pr0d1r2/claudinix#burn -- --pr 12 --post
+```
+
+| argument | meaning |
+|---|---|
+| none | the newest session in `~/.claude/projects` (or `$CLAUDE_CONFIG_DIR/projects`) and its `<id>/subagents/` |
+| `FILE` | that transcript |
+| `DIR` | every transcript below it |
+| `--self` | one line, `Burn: in=<n> cw=<n> cr=<n> out=<n> $<x.xx> (<models>)`; `Burn: unmeasured (no-transcript)` or `(no-usage)` when it cannot measure, exit 0 |
+| `--pr N` | a table of the `Burn:` lines in the pull request's comments by its owner or members, and their total (needs `gh`) |
+| `--post` | with `--pr`: write that table as one `## Burn` comment |
+
+Assistant rows are deduped by message id (the last one wins). The table has
+one row per model: input, cache-write (5 minute and 1 hour), cache-read and
+output tokens, and dollars from the list prices in `scripts/burn.sh`. A
+model with no price keeps its tokens and prints `?` for dollars; the total
+then reads `<known>+?`.
+
+Exit codes: 0 on success. 1 when there is no transcript to read (the error
+names the directory). 2 for a usage error.
 
 ## guide
 
