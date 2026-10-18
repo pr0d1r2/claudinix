@@ -5,6 +5,9 @@ bats_require_minimum_version 1.5.0
 # cloud:I.cmd, cloud:B19). claude and script are stubs; git is real,
 # in a throwaway repository.
 
+# shellcheck source=/dev/null # the cross-repo fixture, beside this directory
+load ../helpers/cross-repo.bash
+
 setup() {
     REPO="$BATS_TEST_DIRNAME/../../../.."
     LIB="$REPO/scripts/lib/cloud-launch.sh"
@@ -384,4 +387,90 @@ gh_prs() {
     run ! cloud_valid_repo owner/..
     run ! cloud_valid_repo owner/repo/extra
     run ! cloud_valid_repo repo
+}
+
+# --- another repository's pull request, run from its checkout (cloud:T175) ---
+
+# lib_cross_fixture: cross_fixture, with the real git behind `git`.
+lib_cross_fixture() {
+    cross_fixture
+    cp "$STUBS/git-real" "$STUBS/git"
+    pr=7 url_repo=owner/alpha
+}
+
+@test "cloud_require_url_repo enters the URL repo's checkout when its origin is that repo, case folded (cloud:T175)" {
+    lib_cross_fixture
+    cloud_require_url_repo review origin https://github.com/owner/alpha/pull/7
+    [ "$PWD" = "$PROJECTS/alpha" ]
+    [ "$entered_checkout" = "$PROJECTS/alpha" ]
+}
+
+@test "cloud_require_url_repo refuses as before without a usable checkout (cloud:B21, B25, B63, T175)" {
+    lib_cross_fixture
+    unset CLAUDINIX_PROJECTS
+    run cloud_require_url_repo review origin u
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"run it from a checkout of owner/alpha"* ]]
+    export CLAUDINIX_PROJECTS="$PROJECTS"
+    url_repo=owner/missing
+    run cloud_require_url_repo review origin u
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"run it from a checkout of owner/missing"* ]]
+    url_repo=owner/..
+    run cloud_require_url_repo review origin u
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"run it from a checkout of owner/.."* ]]
+}
+
+@test "cloud_require_url_repo refuses a checkout whose origin is another repo, staying where it is (cloud:T175)" {
+    lib_cross_fixture
+    git -C "$PROJECTS/alpha" remote set-url origin https://github.com/owner/zeta
+    run cloud_require_url_repo review origin u
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"origin"* ]] && [[ "$output" == *"owner/alpha"* ]]
+    [ -z "$entered_checkout" ]
+}
+
+@test "cloud_require_url_repo leaves a URL of this repo alone (cloud:T175)" {
+    lib_cross_fixture
+    url_repo=me/here
+    cloud_require_url_repo review origin u
+    [ "$PWD" = "$HERE" ]
+    [ -z "$entered_checkout" ]
+}
+
+@test "cloud_require_checkout_ready passes a clean checkout on the base at the fetched tip (cloud:T175)" {
+    lib_cross_fixture
+    cloud_require_url_repo review origin u
+    # shellcheck disable=SC2034 # read by cloud_require_checkout_ready
+    base=main
+    cloud_require_checkout_ready review
+}
+
+@test "cloud_require_checkout_ready refuses a dirty tree, another branch or a stale tip (cloud:T175)" {
+    lib_cross_fixture
+    cloud_require_url_repo review origin u
+    # shellcheck disable=SC2034 # read by cloud_require_checkout_ready
+    base=main
+    touch "$PROJECTS/alpha/stray"
+    run cloud_require_checkout_ready review
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"not clean"* ]]
+    rm "$PROJECTS/alpha/stray"
+    git -C "$PROJECTS/alpha" checkout -q -b topic
+    run cloud_require_checkout_ready review
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"not on main"* ]]
+    git -C "$PROJECTS/alpha" checkout -q main
+    git -C "$PROJECTS/alpha" commit -q --allow-empty -m local
+    run cloud_require_checkout_ready review
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"not at the fetched"* ]]
+}
+
+@test "cloud_require_checkout_ready does nothing when no checkout was entered (cloud:T175)" {
+    lib_cross_fixture
+    # shellcheck disable=SC2034 # read by cloud_require_checkout_ready
+    base=main
+    cloud_require_checkout_ready review
 }
