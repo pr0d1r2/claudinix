@@ -133,3 +133,17 @@ row() {
     run --separate-stderr "$SCRIPT" --self "$BATS_TEST_TMPDIR/synth.jsonl"
     [ "$output" = "Burn: in=1000000 cw=0 cr=0 out=0 \$2.00 (claude-sonnet-5-5)" ]
 }
+
+@test "a row with usage but no model is a ? row, not a crash" {
+    row m1 null '{"input_tokens":10,"output_tokens":5}' >"$BATS_TEST_TMPDIR/nomodel.jsonl"
+    run --separate-stderr "$SCRIPT" "$BATS_TEST_TMPDIR/nomodel.jsonl"
+    [ "$status" -eq 0 ]
+    [ "${lines[-1]}" = "| total | 10 | 0 | 0 | 5 | ? |" ]
+    [ -z "$stderr" ]
+}
+
+@test "--self on a row without a model reports its tokens, never no-usage" {
+    row m1 null '{"input_tokens":10,"output_tokens":5}' >"$BATS_TEST_TMPDIR/nomodel.jsonl"
+    run --separate-stderr "$SCRIPT" --self "$BATS_TEST_TMPDIR/nomodel.jsonl"
+    [[ "$output" == "Burn: in=10 cw=0 cr=0 out=5 \$?"* ]]
+}
