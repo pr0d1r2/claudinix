@@ -27,6 +27,11 @@ setup() {
     export PATH="$STUBS:$PATH"
 }
 
+# One assistant row: id, model (a JSON value) and the usage object.
+row() {
+    printf '{"type":"assistant","message":{"id":"%s","model":%s,"usage":%s}}\n' "$1" "$2" "$3"
+}
+
 @test "a transcript FILE prints 1 row per model and a total, last duplicate id wins" {
     run --separate-stderr "$SCRIPT" "$FIXTURES/two-models.jsonl"
     [ "$status" -eq 0 ]
@@ -118,4 +123,13 @@ setup() {
 @test "--post without --pr is refused" {
     run --separate-stderr "$SCRIPT" --post
     [ "$status" -eq 2 ]
+}
+
+@test "a <synthetic> row is no model: the total of the real rows stays priced" {
+    {
+        row m1 '"<synthetic>"' '{"input_tokens":0,"output_tokens":0}'
+        row m2 '"claude-sonnet-5-5"' '{"input_tokens":1000000,"output_tokens":0}'
+    } >"$BATS_TEST_TMPDIR/synth.jsonl"
+    run --separate-stderr "$SCRIPT" --self "$BATS_TEST_TMPDIR/synth.jsonl"
+    [ "$output" = "Burn: in=1000000 cw=0 cr=0 out=0 \$2.00 (claude-sonnet-5-5)" ]
 }
