@@ -210,3 +210,12 @@ comments_of() {
     run --separate-stderr "$SCRIPT" --pr 7
     [ "${lines[-1]}" = "| total | 1 | 0 | 0 | 0 | 1.50+? |" ]
 }
+
+@test "--pr takes a number only: an option or a URL is refused with usage" {
+    for value in --repo=other/repo -x 7x https://github.com/o/r/pull/7; do
+        run --separate-stderr "$SCRIPT" --pr "$value" --post
+        [ "$status" -eq 2 ]
+        [[ "$stderr" == usage:* ]]
+    done
+    run ! grep -q . "$GH_LOG"
+}
