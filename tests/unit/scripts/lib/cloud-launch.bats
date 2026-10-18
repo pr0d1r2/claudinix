@@ -375,3 +375,13 @@ gh_prs() {
     run --separate-stderr cloud_repos_with_label enroll h10n-human
     [[ "$stderr" == *"enroll: only the first 100 labelled pull requests were found"* ]]
 }
+
+@test "cloud_valid_repo accepts owner/repo and refuses a leading -, dots and extra parts (cloud:V59, cloud:B106)" {
+    cloud_valid_repo owner/repo.name-1
+    cloud_valid_repo owner/.github
+    run ! cloud_valid_repo -x/y
+    run ! cloud_valid_repo owner/-y
+    run ! cloud_valid_repo owner/..
+    run ! cloud_valid_repo owner/repo/extra
+    run ! cloud_valid_repo repo
+}
