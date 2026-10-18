@@ -26,6 +26,8 @@ does are summarised briefly; the git history has the detail.
   commits and pushes nothing and starts no billed session.
 - `just enroll` skips a pull request when it cannot tell whether it comes from a
   fork, instead of enrolling its repo.
+- `just enroll` refuses a checkout whose `.claude` is a symlink, so a cloned
+  repository cannot steer where the pin is written.
 - `just held` ends with a report that lists each pull request it ran, oldest
   first, as `held: report: <repo>#<n> ok|failed <URL>` rows, before the closing
   `done` line.
