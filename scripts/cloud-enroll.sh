@@ -153,6 +153,11 @@ enroll_one() {
     }
 
     file="$dir/.claude/settings.local.json"
+    if [ -L "$dir/.claude" ] || [ -L "$file" ]; then
+        echo "enroll: $repo: .claude is a symlink; not writing through it" >&2
+        echo failed
+        return 0
+    fi
     existing='{}'
     if [ -e "$file" ]; then
         existing="$(jq -e 'if type == "object" then . else error end' "$file" 2>/dev/null)" || {
