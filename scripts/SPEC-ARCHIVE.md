@@ -35,6 +35,7 @@ T137|x|`guide` offers `add_repo` allow|`docs:T47`,I.cmd
 T150|x|guard: `.context-limits` row ↑ \| added \| file deleted vs `origin/main` → fail, ⊥ override|`.:C20`,B81
 T162|x|`scripts/lib/context-limits.sh` owns the row parser; `cloud_diff_reasons` \& the guard call it|`cloud:V51`,T150
 T173|x|guard: ∀ id (T V B C) in a base `SPEC*.md` ! stay in a head `SPEC*.md`; a vanished id fails, naming it; ∀ id in an `ARCHIVED to SPEC-ARCHIVE.md` pointer line ! exist in that node's archive|B91
+T176|x|`burn`: bats w/ fixture transcripts (dup ids, 2 models, subagent, unknown model, `--self`, unmeasured) \& stubbed `gh` (`--pr`, non-member skipped); app `burn` in `nix/apps.nix`|I.cmd,V61,V26,`cloud:V51`
 
 ## §B BUGS
 
