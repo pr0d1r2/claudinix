@@ -57,6 +57,10 @@ drain *args:
 held *args:
     scripts/cloud-held.sh {{ args }}
 
+# Clone or fetch your repos' checkouts and pin the /remote-env environment in each, for `just held`; commits and pushes nothing, no billed session; `--dry-run` prints the plan.
+enroll *args:
+    scripts/cloud-enroll.sh {{ args }}
+
 # Bring spec nodes (default: those over `.context-limits`) under their ceilings in a billed cloud session.
 spec-optimize *args:
     scripts/cloud-spec.sh {{ args }}
