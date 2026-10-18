@@ -61,10 +61,12 @@ if [ -z "${CLAUDINIX_PROJECTS:-}" ]; then
     exit 1
 fi
 
-# cloud:V59: owner/repo, nothing else, before any gh call.
-repo_re='^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$'
+# valid_repo REPO: owner/repo, nothing else, no leading - (cloud:V59, cloud:B106).
+valid_repo() {
+    [[ "$1" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9._][A-Za-z0-9._-]*$ ]] && [[ "$1" != */. && "$1" != */.. ]]
+}
 for repo in ${repos[@]+"${repos[@]}"}; do
-    if [[ ! "$repo" =~ $repo_re ]] || [[ "$repo" == */. || "$repo" == */.. ]]; then
+    if ! valid_repo "$repo"; then
         echo "enroll: refused: '$repo' is not owner/repo" >&2
         exit 2
     fi
@@ -86,6 +88,8 @@ repos_with_open_pr() {
             echo "enroll: skip $name: cannot tell whether it comes from a fork" >&2
         elif [ "$is_fork" != false ]; then
             echo "enroll: skip $name: it comes from a fork" >&2
+        elif ! valid_repo "$repo"; then
+            echo "enroll: skip $name: '$repo' is not owner/repo" >&2
         else
             echo "$repo"
         fi
