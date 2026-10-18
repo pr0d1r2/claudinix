@@ -30,8 +30,9 @@ def models:
     | group_by(.model) | map({
         model: .[0].model,
         in: sum_of(.usage.input_tokens // 0),
-        cw5: sum_of(.usage.cache_creation.ephemeral_5m_input_tokens
-                    // .usage.cache_creation_input_tokens // 0),
+        cw5: sum_of(if .usage.cache_creation != null
+                    then .usage.cache_creation.ephemeral_5m_input_tokens // 0
+                    else .usage.cache_creation_input_tokens // 0 end),
         cw1: sum_of(.usage.cache_creation.ephemeral_1h_input_tokens // 0),
         cr: sum_of(.usage.cache_read_input_tokens // 0),
         out: sum_of(.usage.output_tokens // 0)
