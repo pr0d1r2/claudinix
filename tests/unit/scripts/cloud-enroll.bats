@@ -194,3 +194,12 @@ pinned() {
     run ! grep -q 'repo clone owner/-x' "$STATE/gh.log"
     [ -d "$CLAUDINIX_PROJECTS/alpha" ]
 }
+
+@test "without a /remote-env pick nothing is cloned or fetched" {
+    rm "$CLAUDE_SETTINGS"
+    existing alpha
+    run bash "$SCRIPT" --repo owner/alpha --repo owner/beta --yes
+    [[ "$output" == *"enroll: report: owner/beta needs-env"* ]]
+    [ ! -e "$CLAUDINIX_PROJECTS/beta" ]
+    [ ! -e "$STATE/git.log" ]
+}
