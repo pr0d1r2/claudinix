@@ -141,11 +141,11 @@ polls_rebase="$(polls "$minutes_rebase")"
 # Another repository's URL is run from its checkout (cloud:T175): every gh
 # call below and every child then reads that repository. Without a usable
 # checkout nothing changes here, and the fixup dry run below refuses it.
-enter_rc=0
-cloud_enter_url_repo all origin || enter_rc=$?
-[ "$enter_rc" != 1 ] || exit 1
+cloud_enter_url_repo all origin || exit 1
 if [ -n "$entered_checkout" ]; then
     cloud_read_pr all origin "$arg" || exit 1
+    # shellcheck disable=SC2154 # base: set by cloud_read_pr
+    cloud_require_checkout_ready all "$entered_checkout" "$base" || exit 1
 fi
 
 cloud_resolve_model "$scripts_dir" || exit "$?"

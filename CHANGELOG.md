@@ -20,6 +20,8 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- `just merge` and `just rebase` refuse another repository's pull request URL even when
+  `$CLAUDINIX_PROJECTS` holds a checkout of it; only `all`, `review` and `fixup` run from one.
 - `just all`, `just review` and `just fixup` given another repository's pull
   request URL run from your checkout of it in `$CLAUDINIX_PROJECTS/<repo>`, when
   that checkout's `origin` is the repository, it is clean, on the pull request's

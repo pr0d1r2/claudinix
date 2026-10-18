@@ -34,6 +34,7 @@ setup() {
     # git: a work tree at $TOPLEVEL on branch main, pushed to origin/main.
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
+        'case "$PWD" in "${CLAUDINIX_PROJECTS:-/nonexistent}"/*) exec "$STUBS/git-real" "$@" ;; esac' \
         'case "$*" in' \
         '-C\ *) exec "$STUBS/git-real" "$@" ;;' \
         'remote\ get-url\ *) echo https://github.com/o/p ; exit 0 ;;' \
