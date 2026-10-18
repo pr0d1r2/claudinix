@@ -1,0 +1,7 @@
+{"comments":[
+{"authorAssociation":"OWNER","body":"Burn: in=100 cw=200 cr=300 out=400 $1.50 (claude-sonnet-5-5)"},
+{"authorAssociation":"MEMBER","body":"review text\nBurn: in=10 cw=20 cr=30 out=40 $0.25 (claude-opus-5-5)"},
+{"authorAssociation":"NONE","body":"Burn: in=999999 cw=999999 cr=999999 out=999999 $99.00 (claude-opus-5-5)"},
+{"authorAssociation":"OWNER","body":"Burn: unmeasured (no-transcript)"},
+{"authorAssociation":"OWNER","body":"nothing to see"}
+]}
