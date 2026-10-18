@@ -84,11 +84,6 @@ T175|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T165,T174,V52,V53,V59
 
 ## §B BUGS
 
-B19-B22, B24-B43, B65-B70, B72-B74, B76-B80, B83-B90, B92-B94, B99-B106: ARCHIVED to SPEC-ARCHIVE.md `## §B BUGS`
+B19-B22, B24-B43, B63-B70, B72-B74, B76-B80, B83-B90, B92-B94, B99-B109: ARCHIVED to SPEC-ARCHIVE.md `## §B BUGS`
 
 id|date|cause|fix
-B63|2026-10-15|`just review all <other repo URL>`: `gh pr view 36` ran before the B21 repo check ∴ read this repo's merged #36|repo check before any `gh` call (T156)
-B64|2026-10-15|`just merge` counted review \& `Fixup:` comments of any author (forged `Findings: 0`)|V51: only OWNER \| MEMBER comments count
-B107|2026-10-18|T175 put the `cd` into `cloud_read_pr` ∴ `merge` \| `rebase` entered a foreign checkout too (cwd moved, `scripts_dir` relative, V51's refusal gone)|V60: entering is opt-in; `merge` \| `rebase` refuse a foreign URL
-B108|2026-10-18|`gh pr view <N>` in the entered checkout resolved the repo by gh's own default, not the URL's ∴ a checkout w/ another gh default read another repo's PR #N|V60: `gh pr view --repo <url repo>`
-B109|2026-10-18|the entered checkout was fetched \| matched as `origin` while the launcher used `CLOUD_TASK_REMOTE`, never checked there ∴ a missing remote failed late|V60: remote re-required after entering; the checkout's remote is one constant

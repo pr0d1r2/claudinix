@@ -101,3 +101,8 @@ B103|2026-10-18|`enroll` wrote `.claude/settings.local.json` through a `.claude`
 B104|2026-10-18|`enroll` rewrote a `.claude/settings.local.json` the repo tracks ∴ dirty tree, `info/exclude` no effect|V59: a tracked pin file → failed, ⊥ touched
 B105|2026-10-18|`enroll_one` ran in `$(…)` ∴ a failed `info/exclude` write still printed `enrolled`, the pin file left unexcluded|V59: every step of an enrol is checked; a failed one → failed
 B106|2026-10-18|`--repo -x/y` passed `repo_re`, read as a gh flag; found repos unchecked|V59: one check ∀ repo
+B63|2026-10-15|`just review all <other repo URL>`: `gh pr view 36` ran before the B21 repo check ∴ read this repo's merged #36|repo check before any `gh` call (T156)
+B64|2026-10-15|`just merge` counted review \& `Fixup:` comments of any author (forged `Findings: 0`)|V51: only OWNER \| MEMBER comments count
+B107|2026-10-18|T175 put the `cd` into `cloud_read_pr` ∴ `merge` \| `rebase` entered a foreign checkout too (cwd moved, `scripts_dir` relative, V51's refusal gone)|V60: entering is opt-in; `merge` \| `rebase` refuse a foreign URL
+B108|2026-10-18|`gh pr view <N>` in the entered checkout resolved the repo by gh's own default, not the URL's ∴ a checkout w/ another gh default read another repo's PR #N|V60: `gh pr view --repo <url repo>`
+B109|2026-10-18|the entered checkout was fetched \| matched as `origin` while the launcher used `CLOUD_TASK_REMOTE`, never checked there ∴ a missing remote failed late|V60: remote re-required after entering; the checkout's remote is one constant
