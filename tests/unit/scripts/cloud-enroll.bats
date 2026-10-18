@@ -9,7 +9,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     export CLAUDINIX_PROJECTS="$BATS_TEST_TMPDIR/projects"
     export CLAUDE_SETTINGS="$BATS_TEST_TMPDIR/user-settings.json"
-    unset GH_FAIL
+    unset GH_FAIL GH_FAIL_PR_VIEW
     mkdir -p "$STUBS" "$STATE" "$CLAUDINIX_PROJECTS"
     jq -n '{remote: {defaultEnvironmentId: "env_pick"}}' >"$CLAUDE_SETTINGS"
 
@@ -20,6 +20,7 @@ setup() {
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "$*" >>"$STATE/gh.log"' \
         '[ -z "${GH_FAIL:-}" ] || { echo "HTTP 502: bad gateway" >&2; exit 1; }' \
+        '[ -z "${GH_FAIL_PR_VIEW:-}" ] || [[ "$*" != "pr view"* ]] || { echo "HTTP 502" >&2; exit 1; }' \
         'case "$*" in' \
         'api\ user*) echo owner ;;' \
         'search\ prs*) cat "$STATE/prs.json" ;;' \
@@ -144,4 +145,11 @@ pinned() {
     unset CLAUDINIX_PROJECTS
     run bash "$SCRIPT" --repo owner/alpha --yes
     [ "$status" -eq 1 ]
+}
+
+@test "a PR whose fork lookup fails is skipped, its repo not enrolled (cloud:B102)" {
+    prs "$(pr alpha 7)"
+    GH_FAIL_PR_VIEW=1 run bash "$SCRIPT" --yes
+    [[ "$output" == *"enroll: skip owner/alpha#7"* ]]
+    [ ! -e "$CLAUDINIX_PROJECTS/alpha" ]
 }
