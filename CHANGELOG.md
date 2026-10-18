@@ -34,6 +34,8 @@ does are summarised briefly; the git history has the detail.
   file to the checkout's `.git/info/exclude`.
 - `just enroll` refuses a repo name that starts with `-`, and checks the repos it
   finds by search like the ones you name.
+- `just enroll` reports `needs-env` before it clones or fetches anything when
+  `/remote-env` has picked no environment.
 - `just held` ends with a report that lists each pull request it ran, oldest
   first, as `held: report: <repo>#<n> ok|failed <URL>` rows, before the closing
   `done` line.

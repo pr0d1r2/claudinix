@@ -137,6 +137,10 @@ origin_is() {
 # enroll_one REPO: print the status word for REPO's checkout.
 enroll_one() {
     local repo="$1" dir="$CLAUDINIX_PROJECTS/${1#*/}" file existing exclude
+    [ -n "$pick" ] || {
+        echo needs-env
+        return 0
+    }
     if [ ! -e "$dir" ]; then
         gh repo clone "$repo" "$dir" </dev/null >&2 || {
             echo failed
@@ -149,10 +153,6 @@ enroll_one() {
     }
     git -C "$dir" fetch origin </dev/null >&2 || {
         echo failed
-        return 0
-    }
-    [ -n "$pick" ] || {
-        echo needs-env
         return 0
     }
 
