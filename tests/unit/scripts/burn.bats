@@ -167,3 +167,12 @@ row() {
     [ "$status" -eq 0 ]
     [ "$(jq -c '.["claude-sonnet-5-5"]' <<<"$output")" = "[2,10]" ]
 }
+
+@test "the longest matching price prefix wins, not the first by key order" {
+    row m1 '"claude-opus-5-5-20260101"' '{"input_tokens":1000000}' >"$BATS_TEST_TMPDIR/opus.jsonl"
+    run jq -sr --arg mode table \
+        --argjson prices '{"claude-opus-5":[1,1],"claude-opus-5-5":[4,20]}' \
+        -f "$BATS_TEST_DIRNAME/../../../scripts/burn.jq" "$BATS_TEST_TMPDIR/opus.jsonl"
+    [ "$status" -eq 0 ]
+    [ "${lines[-1]}" = "| total | 1000000 | 0 | 0 | 0 | 4.00 |" ]
+}
