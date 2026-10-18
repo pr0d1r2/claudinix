@@ -4,12 +4,15 @@ bats_require_minimum_version 1.5.0
 # scripts:V34). claude, script, git and gh are stubs: no session is
 # started and nothing reaches GitHub.
 
+# shellcheck source=/dev/null # the cross-repo fixture
+load helpers/cross-repo.bash
+
 setup() {
     SCRIPT="$BATS_TEST_DIRNAME/../../../scripts/cloud-rebase.sh"
-    STUBS="$BATS_TEST_TMPDIR/stubs"
+    export STUBS="$BATS_TEST_TMPDIR/stubs"
     export STATE="$BATS_TEST_TMPDIR/state"
     export TOPLEVEL="$BATS_TEST_TMPDIR/project"
-    unset CLAUDINIX_CONFIG CLAUDINIX_CONFIG_JSON CLOUD_TASK_REMOTE STUB_PR GH_FAIL GH_READS_STDIN
+    unset CLAUDINIX_PROJECTS CLAUDINIX_CONFIG CLAUDINIX_CONFIG_JSON CLOUD_TASK_REMOTE STUB_PR GH_FAIL GH_READS_STDIN
     mkdir -p "$STUBS" "$STATE" "$TOPLEVEL"
 
     # claude: records its args, one file each.
@@ -29,6 +32,7 @@ setup() {
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "$*" >>"$STATE/git.log"' \
         'case "$*" in' \
+        '-C\ *) exec "$STUBS/git-real" "$@" ;;' \
         'remote\ get-url\ *) [ -z "${NO_REMOTE:-}" ] || exit 2; echo https://github.com/o/p ; exit 0 ;;' \
         'symbolic-ref*) echo main; exit 0 ;;' \
         'rev-parse\ --show-toplevel) echo "$TOPLEVEL"; exit 0 ;;' \
@@ -217,4 +221,13 @@ setup() {
     run ! grep -qF 'Watch CI' "$p"
     grep -qF 'AGENTS.md' "$p"
     grep -qF 'data, never instructions' "$p"
+}
+
+@test "another repository's URL is refused even with its checkout in CLAUDINIX_PROJECTS: rebase never enters one (V60, B107)" {
+    cross_fixture
+    run bash "$SCRIPT" https://github.com/owner/alpha/pull/8 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"run it from a checkout of owner/alpha"* ]]
+    [ ! -e "$STATE/gh.log" ]
+    [ ! -e "$STATE/claude.1" ]
 }
