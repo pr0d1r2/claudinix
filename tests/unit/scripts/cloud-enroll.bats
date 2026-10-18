@@ -180,3 +180,17 @@ pinned() {
     run bash "$SCRIPT" --repo owner/alpha --yes
     [[ "$output" == *"enroll: report: owner/alpha failed"* ]]
 }
+
+@test "a repo name starting with - is refused before any gh call (cloud:B106)" {
+    run bash "$SCRIPT" --repo -x/y --yes
+    [ "$status" -eq 2 ]
+    [ ! -e "$STATE/gh.log" ]
+}
+
+@test "a repo found by search that is not owner/repo is skipped, not cloned (cloud:B106)" {
+    prs "$(pr -x 7)" "$(pr alpha 8)"
+    run bash "$SCRIPT" --yes
+    [[ "$output" == *"enroll: skip owner/-x"* ]]
+    run ! grep -q 'repo clone owner/-x' "$STATE/gh.log"
+    [ -d "$CLAUDINIX_PROJECTS/alpha" ]
+}
