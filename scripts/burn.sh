@@ -21,8 +21,8 @@
 #        CLAUDE_CONFIG_DIR  holds `projects/` (default: ~/.claude)
 #
 # List price in $ per million tokens: input, output. A model name matches
-# by prefix, so a dated id finds its row. The one source of prices;
-# docs/MODEL.md's price block is generated from it.
+# by prefix (the longest wins), so a dated id finds its row. The one source
+# of prices (`--prices`); docs/MODEL.md is filled from it once dev:T179 lands.
 PRICES=(
     "claude-opus-5-5 4 20"
     "claude-opus-4-6 5 25"
