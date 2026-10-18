@@ -14,7 +14,7 @@ sib|nix|flake outputs: dev shell, checks, agent home build, cachix push
 sib|docs|plain-English docs: setup, facts, runbook, security, release
 sib|dev|`claudinix-dev`: generated badges \& doc numbers
 sib|home|`~/.claude`: skills, rtk, caveman, permission rules
-sib|cloud|cloud launchers \& their prompts
+sib|cloud|cloud launchers \& their prompts, `enroll`
 
 ## §C CONSTRAINTS
 

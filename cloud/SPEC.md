@@ -8,7 +8,7 @@ the cloud launchers run from a terminal (`just cloud`, `rebase`, `review`, `fixu
 
 rel|path|lens
 up|.|-
-self|cloud|cloud launchers \& their prompts
+self|cloud|cloud launchers \& their prompts, `enroll`
 sib|scripts|repo shell: gate guards, hk runners, CI checks, target-project apps
 sib|nix|flake outputs: dev shell, checks, agent home build, cachix push
 sib|docs|plain-English docs: setup, facts, runbook, security, release
