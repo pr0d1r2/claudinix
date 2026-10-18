@@ -671,6 +671,8 @@ the pull request's URL. They run from `$CLAUDINIX_PROJECTS/<repo>` when its
 pull request's base and at the fetched tip, so the session sees the base's
 tooling and gate. They refuse as before when there is no such checkout, and
 ask `gh` nothing until the origin matches.
+`merge` and `rebase` never use such a checkout: another repository's URL is
+refused even when one exists.
 
 Only `review` and [`fixup`](#fixup) run from another repository's
 checkout by path. `rebase` needs `AGENTS.md`, `SPEC.md` and the gate of the
