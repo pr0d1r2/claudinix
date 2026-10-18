@@ -103,6 +103,8 @@ row() {
     [[ "$stderr" == *"$HOME/.claude/projects"* ]]
 }
 
+# pr-comments.json: 2 trusted Burn lines (OWNER $1.50, MEMBER $0.25), 1 from a
+# NONE author ($99.00, skipped), an `unmeasured` line and a comment without one.
 @test "--pr sums trusted Burn lines only; a non-member's line is skipped" {
     run --separate-stderr "$SCRIPT" --pr 7
     [ "$status" -eq 0 ]
