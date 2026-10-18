@@ -162,3 +162,13 @@ pinned() {
     [[ "$output" == *"enroll: report: owner/alpha failed"* ]]
     [ ! -e "$BATS_TEST_TMPDIR/victim/settings.local.json" ]
 }
+
+@test "a pin file the repo tracks is failed and left untouched (cloud:B104)" {
+    existing alpha
+    mkdir -p "$CLAUDINIX_PROJECTS/alpha/.claude"
+    echo '{"keep": 1}' >"$CLAUDINIX_PROJECTS/alpha/.claude/settings.local.json"
+    git -C "$CLAUDINIX_PROJECTS/alpha" add -f .claude/settings.local.json
+    run bash "$SCRIPT" --repo owner/alpha --yes
+    [[ "$output" == *"enroll: report: owner/alpha failed"* ]]
+    [ "$(jq -c . "$CLAUDINIX_PROJECTS/alpha/.claude/settings.local.json")" = '{"keep":1}' ]
+}
