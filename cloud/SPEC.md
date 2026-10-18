@@ -81,6 +81,7 @@ T170|x|ARCHIVED to SPEC-ARCHIVE.md|V52,T166
 T171|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B90
 T174|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52,V59,`.:C29`,`scripts:T119`,`scripts:I.cmd`
 T175|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T165,T174,V52,V53,V59
+T177|.|task, review \& fixup prompts: PR text ends w/ the `just burn --self` line, run last; `all` after last CI → `burn --pr <n> --post`|I.cmd,`scripts:T176`
 
 ## §B BUGS
 
