@@ -153,3 +153,12 @@ pinned() {
     [[ "$output" == *"enroll: skip owner/alpha#7"* ]]
     [ ! -e "$CLAUDINIX_PROJECTS/alpha" ]
 }
+
+@test "a .claude symlink in the checkout is failed, nothing written through it (cloud:B103)" {
+    existing alpha
+    mkdir "$BATS_TEST_TMPDIR/victim"
+    ln -s "$BATS_TEST_TMPDIR/victim" "$CLAUDINIX_PROJECTS/alpha/.claude"
+    run bash "$SCRIPT" --repo owner/alpha --yes
+    [[ "$output" == *"enroll: report: owner/alpha failed"* ]]
+    [ ! -e "$BATS_TEST_TMPDIR/victim/settings.local.json" ]
+}
