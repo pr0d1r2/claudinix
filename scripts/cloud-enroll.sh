@@ -143,7 +143,8 @@ origin_is() {
 
 # enroll_one REPO: print the status word for REPO's checkout.
 enroll_one() {
-    local repo="$1" dir="$CLAUDINIX_PROJECTS/${1#*/}" file existing exclude
+    local repo="$1" dir file existing exclude
+    dir="$(cloud_repo_checkout "$repo")"
     [ -n "$pick" ] || {
         echo needs-env
         return 0
@@ -212,6 +213,6 @@ failed=0
 for repo in "${repos[@]}"; do
     status="$(enroll_one "$repo")"
     [ "$status" != failed ] || failed=1
-    echo "enroll: report: $repo $status"
+    cloud_report enroll "$repo" "$status"
 done
 exit "$failed"

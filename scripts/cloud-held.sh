@@ -111,7 +111,7 @@ while IFS=$'\t' read -r name author repo url title; do
     [ -n "$name" ] || continue
     # Rows are oldest first, so the first runnable PR of a repo and title is the one kept (cloud:T168).
     key="$repo"$'\t'"$title"
-    checkout="$CLAUDINIX_PROJECTS/$repo"
+    checkout="$(cloud_repo_checkout "$repo")"
     settings="$checkout/.claude/settings.local.json"
     if [ "$author" != "$owner" ]; then
         echo "held: skip $name: its author is $author, not $owner" >&2
@@ -159,7 +159,7 @@ for entry in "${picked[@]}"; do
         outcome=failed
         echo "held: $name $outcome (see the flow's last line above); going on" >&2
     fi
-    report+=("held: report: $name $outcome $url")
+    report+=("$(cloud_report held "$name" "$outcome" "$url")")
 done
 echo "held: report"
 printf '%s\n' "${report[@]}"

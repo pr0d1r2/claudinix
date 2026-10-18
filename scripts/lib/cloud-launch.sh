@@ -391,3 +391,17 @@ cloud_diff_reasons() {
         }
     ' <<<"$patch"
 }
+
+# cloud_report CMD SUBJECT STATUS...: one report row, `<cmd>: report: <subject>
+# <status>`, the shape `just held` and `just enroll` print and read back.
+cloud_report() {
+    local cmd="$1" subject="$2"
+    shift 2
+    echo "$cmd: report: $subject $*"
+}
+
+# cloud_repo_checkout REPO: the owner's checkout of REPO (owner/repo or just
+# repo), $CLAUDINIX_PROJECTS/<repo>: one directory per repo name (cloud:V59).
+cloud_repo_checkout() {
+    echo "$CLAUDINIX_PROJECTS/${1##*/}"
+}
