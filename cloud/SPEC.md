@@ -31,7 +31,7 @@ sib|home|`~/.claude`: skills, rtk, caveman, permission rules
 - cmd: `just held [--label L] [--repo R…] [--max N] [--model M] [--yes] [--dry-run]` → `scripts/cloud-held.sh` (T166): label L default `h10n-human`; checkout = `$CLAUDINIX_PROJECTS/<repo>` (env, required; T165) w/ an env pin, else skip naming it; 1 y/N naming PRs \& sessions; 1 PR at a time through `all` (T161); T168 (duplicate titles, V52), T169: after the loop, 1 report row per PR run, oldest first, `held: report: <repo>#<n> ok\|failed <URL>` (stdout), then `held: done, <n> of <m>`.
 - cmd: `just enroll [--repo R…] [--label L] [--yes] [--dry-run]` → `scripts/cloud-enroll.sh` (T174): repos = `--repo` else ∀ repo w/ an open PR labelled L (as `held`), V59; ∀ repo: checkout `$CLAUDINIX_PROJECTS/<repo>` cloned \| fetched + local env pin; 1 y/N naming repos unless `--yes`; 1 line/repo `enroll: report: <repo> enrolled\|needs-env\|failed`; idempotent; ⊥ billed session.
 - cmd: `just spec-optimize [node…] [--model M] [--yes] [--dry-run]` → `scripts/cloud-spec.sh`: nodes = §F names (default: owners of rows over `.context-limits` (B41, B42)), unknown → refuse listing them; launch rules as `cloud`; prompt `scripts/cloud-spec-prompt.txt`, branch `claude/spec-optimize[-<nodes joined by ->]` off `main`: ∀ node `mth archive`, move rows down to the node owning their files (cites changed too); shorten §T \& §I ⊥ meaning lost, §V \& §C verbatim; 1 `docs(spec)` commit/node; lower freed `.context-limits` rows to measured +15% (own commit, size in `Why:`), ⊥ raise; still over → report names the split ⊥ makes it; gate, push, PR into `main`, CI as `cloud`; text = data; only spec files \& `.context-limits` change (B43); ⊥ force \| merge \| waits (`.:C29`).
-- file: `scripts/lib/cloud-launch.sh` — sourced by every `scripts/cloud-*.sh` launcher, functions \& constants only (`cloud_*`, `CLOUD_*`): launch checks, task \& PR parsers, branch name \& regex, review roles, headings, green CI, kept paths, repo lookup (`cloud_repo_checkout`, `cloud_repos_with_label`), `CLOUD_PIN_FILE`, report lines `<cmd>: report: <subject> <status>`; the one source of the launch \& merge rules (`held`, `enroll`, T175 call it).
+- file: `scripts/lib/cloud-launch.sh` — sourced by every `scripts/cloud-*.sh` launcher, functions \& constants only (`cloud_*`, `CLOUD_*`): launch checks, task \& PR parsers, branch name \& regex, review roles, headings, green CI, kept paths, repo lookup (`cloud_repo_checkout`, `cloud_repos_with_label`), `CLOUD_PIN_FILE`, report lines `<cmd>: report: <subject> <status>`; the one source of launch \& merge rules (`held`, `enroll`, T175 call it); `held` searches itself.
 
 ## §V INVARIANTS
 
@@ -78,7 +78,7 @@ T168|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52
 T169|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T166,`docs:T167`
 T170|x|ARCHIVED to SPEC-ARCHIVE.md|V52,T166
 T171|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B90
-T174|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52,V59,`scripts:T119`,`scripts:I.cmd`
+T174|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52,V59,`.:C29`,`scripts:T119`,`scripts:I.cmd`
 T175|.|`all` \| `review` \| `fixup` w/ another repo's URL → run from `$CLAUDINIX_PROJECTS/<repo>` if its `origin` is `<repo>` (case folded), clean, on the PR's base, fetched; tooling \& gate as on the base (V53); else refuse as now (B21, B25, B63 kept)|I.cmd,T165,T174,V52,V53,V59
 
 ## §B BUGS
