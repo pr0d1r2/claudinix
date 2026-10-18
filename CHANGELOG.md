@@ -20,6 +20,8 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- New `burn` command (`just burn`, `nix run …#burn`): what a Claude Code session cost, per model, from its
+  transcripts; `--self` prints one line, `--pr N [--post]` sums the `Burn:` lines of a pull request.
 - `just all`, `review`, `fixup`, `merge` and `rebase` read a pull request URL's number from the
   repository the URL names, not from whatever `gh` defaults to in the directory.
 - `just merge` and `just rebase` refuse another repository's pull request URL even when
