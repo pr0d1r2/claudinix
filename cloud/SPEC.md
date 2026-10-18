@@ -46,6 +46,7 @@ V54: `scripts/cloud-all.sh` ⊥ bash ≥ 4 syntax (`${x,,}`, `${x^^}`, `declare 
 V55: a PR `all` found by its body, not its branch (T171), ⊥ `--merge`d: stop, open it, the owner merges (B93, V51).
 V56: `all`'s PR poll lists PRs without `body`; it reads a body (`gh pr view`) only of a new same-repo PR off the task's branch, only when no branch matched (B94).
 V59: `enroll` (T174) ⊥ runs anything from a repo it clones \| fetches (hook, direnv, nix); `owner/repo` ~ `^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9._][A-Za-z0-9._-]*$` (⊥ leading `-`, `.`, `..`; ∀ repo, found ones too) else refuse \| skip, cloned from github.com only; `--label` enrols only same-repo PRs of the authenticated user (as V52; others skipped, named); a checkout whose `origin` ≠ the repo → failed, ⊥ touched; two repos ⊥ one name (the checkout is `<repo>`) → refuse.
+V60: entering another repo's checkout (T175) is opt-in per launcher (`all` \| `review` \| `fixup` call `cloud_enter_url_repo`); `merge` \| `rebase` ⊥ enter, a foreign URL → refused (B21, B63); after entering, `gh pr view` is pinned `--repo <url repo>`, the remote (`CLOUD_TASK_REMOTE`) must exist there, the checkout's own remote is the one constant `CLOUD_CHECKOUT_REMOTE`.
 
 ## §T TASKS
 
@@ -79,17 +80,15 @@ T169|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T166,`docs:T167`
 T170|x|ARCHIVED to SPEC-ARCHIVE.md|V52,T166
 T171|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B90
 T174|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52,V59,`.:C29`,`scripts:T119`,`scripts:I.cmd`
-T175|x|`all` \| `review` \| `fixup` w/ another repo's URL → run from `$CLAUDINIX_PROJECTS/<repo>` if its `origin` is `<repo>` (case folded), clean, on the PR's base, fetched; tooling \& gate as on the base (V53); else refuse as now (B21, B25, B63 kept)|I.cmd,T165,T174,V52,V53,V59
+T175|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T165,T174,V52,V53,V59
 
 ## §B BUGS
 
-B19-B22, B24-B43, B65-B70, B72-B74, B76-B80, B83-B90, B92-B94, B99-B101: ARCHIVED to SPEC-ARCHIVE.md `## §B BUGS`
+B19-B22, B24-B43, B65-B70, B72-B74, B76-B80, B83-B90, B92-B94, B99-B106: ARCHIVED to SPEC-ARCHIVE.md `## §B BUGS`
 
 id|date|cause|fix
 B63|2026-10-15|`just review all <other repo URL>`: `gh pr view 36` ran before the B21 repo check ∴ read this repo's merged #36|repo check before any `gh` call (T156)
 B64|2026-10-15|`just merge` counted review \& `Fixup:` comments of any author (forged `Findings: 0`)|V51: only OWNER \| MEMBER comments count
-B102|2026-10-18|`enroll` fork check: a failed `gh pr view` printed nothing ∴ `= true` false ∴ a fork PR's repo enrolled (failed open)|V59: enrol only on an explicit `isCrossRepository` false; a failed lookup skips, naming the PR
-B103|2026-10-18|`enroll` wrote `.claude/settings.local.json` through a `.claude` symlink the cloned repo tracks ∴ the write landed outside the checkout|V59: a symlinked `.claude` \| pin file → failed, ⊥ written
-B104|2026-10-18|`enroll` rewrote a `.claude/settings.local.json` the repo tracks ∴ dirty tree, `info/exclude` no effect|V59: a tracked pin file → failed, ⊥ touched
-B105|2026-10-18|`enroll_one` ran in `$(…)` ∴ a failed `info/exclude` write still printed `enrolled`, the pin file left unexcluded|V59: every step of an enrol is checked; a failed one → failed
-B106|2026-10-18|`--repo -x/y` passed `repo_re`, read as a gh flag; found repos unchecked|V59: one check ∀ repo
+B107|2026-10-18|T175 put the `cd` into `cloud_read_pr` ∴ `merge` \| `rebase` entered a foreign checkout too (cwd moved, `scripts_dir` relative, V51's refusal gone)|V60: entering is opt-in; `merge` \| `rebase` refuse a foreign URL
+B108|2026-10-18|`gh pr view <N>` in the entered checkout resolved the repo by gh's own default, not the URL's ∴ a checkout w/ another gh default read another repo's PR #N|V60: `gh pr view --repo <url repo>`
+B109|2026-10-18|the entered checkout was fetched \| matched as `origin` while the launcher used `CLOUD_TASK_REMOTE`, never checked there ∴ a missing remote failed late|V60: remote re-required after entering; the checkout's remote is one constant
