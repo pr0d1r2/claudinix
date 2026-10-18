@@ -21,7 +21,7 @@ does are summarised briefly; the git history has the detail.
 ## Unreleased
 
 - New `burn` command (`just burn`, `nix run …#burn`): what a Claude Code session cost, per model, from its
-  transcripts; `--self` prints one line, `--pr N [--post]` sums the `Burn:` lines of a pull request. It skips `<synthetic>` rows and prices a row without a model as `?`, and counts a 1h cache write once. `burn --prices` prints the price table, and the longest matching model prefix sets the price. `burn --pr` keeps the known part of a `$x+?` line.
+  transcripts; `--self` prints one line, `--pr N [--post]` sums the `Burn:` lines of a pull request. It skips `<synthetic>` rows and prices a row without a model as `?`, and counts a 1h cache write once. `burn --prices` prints the price table, and the longest matching model prefix sets the price. `burn --pr` keeps the known part of a `$x+?` line and marks a `Burn:` line it cannot parse as `+?`.
 - `just all`, `review`, `fixup`, `merge` and `rebase` read a pull request URL's number from the
   repository the URL names, not from whatever `gh` defaults to in the directory.
 - `just merge` and `just rebase` refuse another repository's pull request URL even when

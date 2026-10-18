@@ -63,19 +63,25 @@ def self:
       else "Burn: in=\($t.in) cw=\($t.cw) cr=\($t.cr) out=\($t.out) $\(total_usd($t)) (\($ms | map(.model) | join(", ")))"
       end;
 
-def burn_lines:
+# The `Burn:` lines of the trusted comments, parsed or not.
+def trusted_burn_lines:
     [.comments[] | select(.authorAssociation == "OWNER" or .authorAssociation == "MEMBER")
      | .body | split("\n")[]
-     | capture("^Burn: in=(?<in>[0-9]+) cw=(?<cw>[0-9]+) cr=(?<cr>[0-9]+) out=(?<out>[0-9]+) \\$(?<usd>[0-9.?+]+) \\(")];
+     | select(startswith("Burn: ") and (startswith("Burn: unmeasured") | not))];
+
+def parse_burn_line:
+    capture("^Burn: in=(?<in>[0-9]+) cw=(?<cw>[0-9]+) cr=(?<cr>[0-9]+) out=(?<out>[0-9]+) \\$(?<usd>[0-9.?+]+) \\(");
 
 # `$` of a Burn line: <known>, `?` or <known>+?.
 def usd_known: capture("^(?<n>[0-9]+\\.[0-9]{2})?(?<unknown>\\+?\\?)?$");
 
 def pr:
-    burn_lines as $ls
+    trusted_burn_lines as $raw
+    | [$raw[] | parse_burn_line?] as $ls
+    | ($raw | length) - ($ls | length) as $unparsed
     | ($ls | map(.usd | usd_known)) as $usd
     | ($usd | map(select(.n != null) | .n | tonumber) | add // 0) as $known
-    | ($usd | map(select((.unknown // "") != "")) | length) as $unknown
+    | ($usd | map(select((.unknown // "") != "")) | length) + $unparsed as $unknown
     | header("comment"),
       ($ls | to_entries[] | .key as $i | .value
          | row($i + 1; .in; .cw; .cr; .out; .usd)),
