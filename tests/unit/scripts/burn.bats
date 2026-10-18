@@ -147,3 +147,17 @@ row() {
     run --separate-stderr "$SCRIPT" --self "$BATS_TEST_TMPDIR/nomodel.jsonl"
     [[ "$output" == "Burn: in=10 cw=0 cr=0 out=5 \$?"* ]]
 }
+
+@test "a partial cache_creation does not count the 1h tokens twice" {
+    row m1 '"claude-sonnet-5-5"' \
+        '{"cache_creation_input_tokens":1000000,"cache_creation":{"ephemeral_1h_input_tokens":1000000}}' \
+        >"$BATS_TEST_TMPDIR/cw.jsonl"
+    run --separate-stderr "$SCRIPT" "$BATS_TEST_TMPDIR/cw.jsonl"
+    [ "${lines[-1]}" = "| total | 0 | 1000000 | 0 | 0 | 4.00 |" ]
+}
+
+@test "cache_creation_input_tokens alone is the 5m write" {
+    row m1 '"claude-sonnet-5-5"' '{"cache_creation_input_tokens":1000000}' >"$BATS_TEST_TMPDIR/cw.jsonl"
+    run --separate-stderr "$SCRIPT" "$BATS_TEST_TMPDIR/cw.jsonl"
+    [ "${lines[-1]}" = "| total | 0 | 1000000 | 0 | 0 | 2.50 |" ]
+}
