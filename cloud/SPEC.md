@@ -79,7 +79,7 @@ T169|x|`held` report per PR from `all`|I.cmd,T166,`docs:T167`
 T170|x|ARCHIVED to SPEC-ARCHIVE.md|V52,T166
 T171|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B90
 T174|.|`enroll`: `--label L` = ∀ repo w/ an open PR labelled L, filtered by V59; checkout missing → `gh repo clone`, else `git fetch`; `.claude/settings.local.json` → `.git/info/exclude`; ⊥ pin → `guide` step 3-4 values \& `/remote-env` → local pin (CLI 2.1.302 ⊥ lists envs); `enroll: report: <repo> enrolled\|needs-env\|failed`; idempotent; ⊥ commit \| push in target|I.cmd,V52,V59,`scripts:T119`,T166
-T175|.|`all` \| `review` \| `fixup` w/ another repo's URL → run from `$CLAUDINIX_PROJECTS/<repo>` if a checkout of it, else refuse as now (B21, B25, B63 kept)|I.cmd,T165,T174
+T175|.|`all` \| `review` \| `fixup` w/ another repo's URL → run from `$CLAUDINIX_PROJECTS/<repo>` if a checkout of it, if that checkout is `<repo>`'s own (`origin` = the URL's repo, case folded), clean, on the PR's base branch \& fetched; tooling \& gate as on the base (V53); else refuse as now (B21, B25, B63 kept)|I.cmd,T165,T174,V52,V53,V59
 
 ## §B BUGS
 
