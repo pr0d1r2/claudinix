@@ -219,3 +219,10 @@ comments_of() {
     done
     run ! grep -q . "$GH_LOG"
 }
+
+@test "burn.jq names an unknown mode instead of running the pr pipeline" {
+    run jq -sr --arg mode table --argjson prices '{}' \
+        -f "$BATS_TEST_DIRNAME/../../../scripts/burn.jq" <<<'{}'
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"burn.jq: unknown mode table"* ]]
+}
