@@ -20,6 +20,10 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- `just enroll` clones or fetches your checkout of each repo (the `--repo` ones,
+  else those with an open pull request of yours under `h10n-human`) and pins the
+  environment `/remote-env` picked in it, so `just held` can run there. It
+  commits and pushes nothing and starts no billed session.
 - `just held` ends with a report that lists each pull request it ran, oldest
   first, as `held: report: <repo>#<n> ok|failed <URL>` rows, before the closing
   `done` line.

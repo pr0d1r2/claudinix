@@ -27,6 +27,10 @@ setup() {
         'repo\ clone*) git init -q "$4" && git -C "$4" remote add origin "https://github.com/$3.git" ;;' \
         '*) exit 9 ;;' \
         'esac' >"$STUBS/gh"
+    # git: logs a fetch and succeeds, so nothing reaches GitHub; the rest is the real git.
+    REAL_GIT="$(command -v git)" run bash -c 'printf "%s\n" "#!/usr/bin/env bash" \
+        "case \"\$*\" in *fetch*) echo \"\$*\" >>\"\$STATE/git.log\"; exit 0 ;; esac" \
+        "exec $REAL_GIT \"\$@\"" >"$1"' _ "$STUBS/git"
     chmod +x "$STUBS"/*
     export PATH="$STUBS:$PATH"
     export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
@@ -73,11 +77,6 @@ pinned() {
     existing alpha
     mkdir -p "$CLAUDINIX_PROJECTS/alpha/.claude"
     echo '{"keep": 1}' >"$CLAUDINIX_PROJECTS/alpha/.claude/settings.local.json"
-    # git: logs a fetch and succeeds; everything else is the real git.
-    REAL_GIT="$(command -v git)" run bash -c 'printf "%s\n" "#!/usr/bin/env bash" \
-        "case \"\$*\" in *fetch*) echo \"\$*\" >>\"\$STATE/git.log\"; exit 0 ;; esac" \
-        "exec $REAL_GIT \"\$@\"" >"$1"' _ "$STUBS/git"
-    chmod +x "$STUBS/git"
     run bash "$SCRIPT" --repo owner/alpha --yes
     [ "$status" -eq 0 ]
     run ! grep -q 'repo clone' "$STATE/gh.log"
