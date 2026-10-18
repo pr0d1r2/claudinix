@@ -31,7 +31,7 @@ sib|cloud|cloud launchers \& their prompts, `enroll`
 - cmd: `just domains [project-dir…] [--from-log FILE]` → union, deduped, sorted after base: (1) `allowlist.txt` base; (2) hosts detected from each project's files: `Cargo.lock`\|`Cargo.toml` → `index.crates.io`, `static.crates.io` (+ `[source]` \& git dep hosts); `flake.nix` `nixConfig` substituters; `flake.lock` non-`github` input URLs (`github` ones → `just inputs`); `.gitmodules`; `package-lock.json`\|`yarn.lock`\|`pnpm-lock.yaml` `resolved` hosts; `uv.lock`\|`requirements*.txt` → `pypi.org`, `files.pythonhosted.org`; `Gemfile.lock` remotes; `go.sum` → `proxy.golang.org`, `sum.golang.org`; (3) `--from-log`: hosts named in proxy refusals (`Host not in allowlist: <host>`, `CONNECT tunnel failed, response 403` w/ URL) from a session log. each line tagged source (`base`\|`<file>`\|`log`) w/ `--why`; plain output = paste-ready, copied to clipboard when available (as `guide`). ⊥ network.
 - cmd: `nix run …#probe [--model M] [--yes] [--cleanup]` (refuses w/o remote `origin`, detached HEAD, unpushed \| out-of-date branch; asks y/N before a billed session unless `--yes`) (+ `just probe`): from target project, starts 1 cloud session (`claude --cloud` under `script -q`; default `--model sonnet`) w/ the probe prompt (`.:C8` facts, fetch tiers, devShell, `cargo`\|`hk` if present), finds its pushed branch by prefix `claude/nix-probe`, prints the report; `--cleanup` deletes `claude/nix-probe*` branches. follow-ups via `claude -p MSG --cloud ID`.
 - cmd: `just inputs [flake-dir]` → `scripts/inputs.sh`: ∀ node in `flake.lock` (recursive, deduped) of type `github` → 1 line `owner/repo rev status`; status = `cached` (input source store path from `nix flake archive --dry-run --json` has narinfo in `pr0d1r2.cachix.org` ∨ `cache.nixos.org`) \| `uncached` (⊥ cached ∴ must be uncacheded to session \| routine, docs/SETUP.md). default flake-dir = `.`; works on any target flake. exit 1 iff any `uncached` w/ `--check`. any `uncached` → 1 remedy line on stderr (nix-dev fetches over git \| rewrite as `git+https://github.com/<o>/<r>`).
-- cmd: `just burn [--self \| --pr <n> [--post]] [FILE \| DIR…]` (app `burn`) → `scripts/burn.sh`: reads Claude Code `*.jsonl` transcripts (default: newest session in `~/.claude/projects` + its `<id>/subagents/`; DIR → ∀ below); assistant rows deduped by `message.id` (last wins); 1 row/model: input, cache write 5m \& 1h, cache read, output tokens, $ (V61); + total; `--self` (session form `nix run git+https://github.com/pr0d1r2/claudinix?rev=<main sha>#burn -- --self` (⊥ PR checkout code; `github:` 403s) → 1 line `Burn: in=<n> cw=<n> cr=<n> out=<n> $<x.xx> (<models>)` (cannot measure → `Burn: unmeasured (<why>)`, exit 0); else ⊥ transcript → exit 1 naming the dir (V26); `--pr` → table of the PR's `Burn:` lines (trusted comments only, V61) + total; `--post` → 1 `## Burn` comment.
+- cmd: `just burn [--self \| --pr <n> [--post]] [FILE \| DIR…]` (app `burn`): reads `*.jsonl` transcripts (default: newest session in `~/.claude/projects` + its `subagents/`; DIR → ∀ below); deduped by `message.id` (last wins); 1 row/model (in, cache write, cache read, out, $; V61) + total; `--self` (session: `nix run git+https://github.com/pr0d1r2/claudinix?rev=<main sha>#burn -- --self`, ⊥ PR code) → 1 line `Burn: in=<n> cw=<n> cr=<n> out=<n> $<x.xx> (<models>)` (else `Burn: unmeasured (<why>)`, exit 0); ⊥ transcript → exit 1 naming dir (V26); `--pr` → table of trusted `Burn:` lines (V61) + total; `--post` → 1 `## Burn` comment; `--prices` → price table.
 - file: `.claudinix.toml` — `version = 1` !; tables \& keys: `[session] model` (sonnet\|opus), `agent_home` (bool); `[devshell] installable` (str); `[network] extra_domains` ([str]); `[cache] name` (str), `push_sources` (bool); `[probe] branch_prefix` (str). read via `scripts/config.sh [--dir D] get <table.key>` \| `json` \| `check`. lookup: `CLAUDINIX_CONFIG_JSON` (effective config from a caller, ⊥ nix) \| `--dir D` → git top of D \| D \| w/o `--dir`: `CLAUDINIX_CONFIG` \| git top of cwd \| cwd; no file ⇒ ⊥ nix eval; default installable `.`; values: strings ≠ "", `cache.name` ~ `^[a-z0-9][a-z0-9-]*$`, `extra_domains` bare hostnames, `installable` \& `branch_prefix` ⊥ space \| quote \| control char.
 
 ## §V INVARIANTS
@@ -42,11 +42,11 @@ V33: a released SHA contains `cloud-home.storepath` for its own agent home, \& e
 V34: config precedence = flag > `.claudinix.toml` > built-in default; no file = today's behaviour; unknown table \| key \| wrong type \| `version` ≠ 1 → exit 2 naming the key \& the file (V26); 1 reader (`scripts/config.sh`), ⊥ ad-hoc parsing in each tool. absent `config.sh` (old install) = no file.
 V37: a claudinix commit given by the user (`setup-line.sh` REV, guide `--rev`): 40 hex = as is, ⊥ clone; 7-39 hex = short SHA → full SHA from GitHub (`gh api repos/pr0d1r2/claudinix/commits/<hex>`, read-only), ⊥ local git (the guide app runs in the target repo ∴ a local prefix may name a wrong commit); answer ⊥ 40 hex \| gh fails → exit 1 naming REV (V26), no line; other REV (`HEAD~1`, branch) → local `git rev-parse`.
 V57: `spec-ids` fails closed, naming the line: pointer to a missing/empty archive, unparsable `ARCHIVED to` line, reversed or >1000-id range (B95-B97).
-V61: `burn` $ = list price per model from 1 table in `scripts/burn.sh` ; the `docs/MODEL.md` price block is generated from it (`dev:T179`), ⊥ a 2nd copy; cache read 0.1×, write 5m 1.25×, 1h 2× input; unknown model → its tokens, $ `?`, ⊥ guessed; `<why>` of `unmeasured` ∈ fixed codes (`no-transcript`, `no-usage`), ⊥ raw error \| path (bats); network only `gh` (`--pr`), writes only `--post`; `--pr` trusts OWNER \| MEMBER (own set; `cloud:V51` is in `cloud-launch.sh`, ⊥ sourceable here).
+V61: `burn` $ = list price/model from 1 table in `burn.sh`; `docs/MODEL.md` price block from it (`dev:T179`), ⊥ 2nd copy; cache read 0.1×, write 5m 1.25×, 1h 2× input; unknown model → tokens, $ `?`, ⊥ guessed; `unmeasured (<why>)` ∈ `no-transcript` \| `no-usage`, ⊥ raw error \| path; network only `gh` (`--pr`); writes only `--post`; `--pr` trusts OWNER \| MEMBER.
+V62: `burn` rows: usage \& `model` ≠ `<synthetic>`; ⊥ jq failure → code; 1h ⊥ twice; longest price prefix; 1 `Burn:` definition; `--pr` ∈ digits
 
 ## §T TASKS
 
-id|status|task|cites
 T12|x|ARCHIVED to SPEC-ARCHIVE.md|V13,`.:V8`,I.cmd
 T25|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:V8`,V13,C6
 T26|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,C2,`.:V10`,`docs:T13`,T25
@@ -73,11 +73,14 @@ T150|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C20`,B81
 T162|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:V51`,T150
 T163|.|`require_full_history` in `scripts/lib` for `tdd-order`, `context-limits` \& `spec-ids` (3rd copy of the preamble)|V29,B7
 T173|x|ARCHIVED to SPEC-ARCHIVE.md|B91
-T176|x|`burn`: bats w/ fixture transcripts (dup ids, 2 models, subagent, unknown model, `--self`, unmeasured) \& stubbed `gh` (`--pr`, non-member skipped); app `burn` in `nix/apps.nix`|I.cmd,V61,V26,`cloud:V51`
+T176|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V61,V26,`cloud:V51`
 
 ## §B BUGS
 
 B4, B7, B10, B13, B17, B62, B81, B82, B91, B95-B97: ARCHIVED to SPEC-ARCHIVE.md `## §B BUGS`
 
 id|date|cause|fix
-B14|2026-10-04|guide step 3 \& SETUP said "select Create environment"; the dialog button reads "Add environment" (owner, 1st real run) ⇒ UI labels drift w/o notice; ⊥ invariant can check the UI (`.:C2`), ∴ a bats test pins the label the owner saw|`.:C2`
+B14|2026-10-04|guide step 3 \& SETUP said "Create environment"; button reads "Add environment" ⇒ UI labels drift; ⊥ invariant checks the UI (`.:C2`), ∴ bats pins it|`.:C2`
+B110|2026-10-18|`<synthetic>` row = a model ⇒ every total `X+?`|V62
+B111|2026-10-18|row w/o `model` crashed jq, `--self` said `no-usage`|V62
+B112|2026-10-18|1h cache write counted twice|V62
