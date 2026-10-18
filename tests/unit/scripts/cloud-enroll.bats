@@ -203,3 +203,9 @@ pinned() {
     [ ! -e "$CLAUDINIX_PROJECTS/beta" ]
     [ ! -e "$STATE/git.log" ]
 }
+
+@test "two repos with one name are refused before any gh call (cloud:V59)" {
+    run bash "$SCRIPT" --repo a/foo --repo B/FOO --yes
+    [ "$status" -eq 2 ]
+    [ ! -e "$STATE/gh.log" ]
+}
