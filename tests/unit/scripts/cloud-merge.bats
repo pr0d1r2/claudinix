@@ -4,12 +4,15 @@ bats_require_minimum_version 1.5.0
 # .:C29). git and gh are stubs: nothing reaches GitHub and nothing is
 # merged.
 
+# shellcheck source=/dev/null # the cross-repo fixture
+load helpers/cross-repo.bash
+
 setup() {
     SCRIPT="$BATS_TEST_DIRNAME/../../../scripts/cloud-merge.sh"
-    STUBS="$BATS_TEST_TMPDIR/stubs"
+    export STUBS="$BATS_TEST_TMPDIR/stubs"
     export STATE="$BATS_TEST_TMPDIR/state"
     export TOPLEVEL="$BATS_TEST_TMPDIR/project"
-    unset CLOUD_TASK_REMOTE STUB_PR STUB_BRANCH STUB_DIRTY GH_MERGE_RC
+    unset CLAUDINIX_PROJECTS CLOUD_TASK_REMOTE STUB_PR STUB_BRANCH STUB_DIRTY GH_MERGE_RC
     mkdir -p "$STUBS" "$STATE" "$TOPLEVEL"
 
     # git: a work tree at $TOPLEVEL on $STUB_BRANCH (default main), clean
@@ -18,6 +21,7 @@ setup() {
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "$*" >>"$STATE/git.log"' \
         'case "$*" in' \
+        '-C\ *) exec "$STUBS/git-real" "$@" ;;' \
         'remote\ get-url\ *) echo https://github.com/o/p ;;' \
         'symbolic-ref*) echo "${STUB_BRANCH:-main}" ;;' \
         'rev-parse\ --show-toplevel) echo "$TOPLEVEL" ;;' \
@@ -397,4 +401,12 @@ not_pulled() {
     [ "$status" -eq 2 ]
     run bash "$SCRIPT" 8 --force
     [ "$status" -eq 2 ]
+}
+
+@test "another repository's URL is refused even with its checkout in CLAUDINIX_PROJECTS: merge never enters one (V60, B107)" {
+    cross_fixture
+    run bash "$SCRIPT" https://github.com/owner/alpha/pull/8 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"run it from a checkout of owner/alpha"* ]]
+    [ ! -e "$STATE/gh.log" ]
 }
