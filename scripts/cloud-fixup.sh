@@ -76,8 +76,11 @@ cloud_parse_pr "$arg" || usage
 lib="${CLAUDINIX_SCRIPTS:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 remote="${CLOUD_TASK_REMOTE:-origin}"
 
+cloud_enter_url_repo fixup "$remote" || exit 1 # another repo's URL: its checkout (T175)
 cloud_require_remote fixup "$remote" || exit 1
 cloud_require_open_pr fixup "$remote" "$arg" || exit 1
+# shellcheck disable=SC2154 # entered_checkout: set by cloud_enter_url_repo
+cloud_require_checkout_ready fixup "$entered_checkout" "$base" || exit 1
 
 cloud_require_pushed_branch fixup "$remote" || exit 1
 cloud_resolve_model "$lib" || exit "$?"

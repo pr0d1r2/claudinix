@@ -31,6 +31,7 @@ setup() {
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "$*" >>"$STATE/git.log"' \
+        'case "$PWD" in "${CLAUDINIX_PROJECTS:-/nonexistent}"/*) exec "$STUBS/git-real" "$@" ;; esac' \
         'case "$*" in' \
         '-C\ *) exec "$STUBS/git-real" "$@" ;;' \
         'remote\ get-url\ *) [ -z "${NO_REMOTE:-}" ] || exit 2; echo https://github.com/o/p ; exit 0 ;;' \

@@ -88,9 +88,12 @@ fi
 pr= # set by cloud_parse_pr
 cloud_parse_pr "$arg" || usage
 # Only the read checks: the session pushes nothing, so any base, fork or head will do.
+cloud_enter_url_repo review "$remote" || exit 1 # another repo's URL: its checkout (T175)
 cloud_require_remote review "$remote" || exit 1
 head="" base="" url="" # set by cloud_read_pr
 cloud_read_pr review "$remote" "$arg" || exit 1
+# shellcheck disable=SC2154 # entered_checkout: set by cloud_enter_url_repo
+cloud_require_checkout_ready review "$entered_checkout" "$base" || exit 1
 
 cloud_resolve_model "$scripts_dir" || exit "$?"
 

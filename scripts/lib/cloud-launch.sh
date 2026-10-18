@@ -229,18 +229,21 @@ cloud_remote_repo() {
     git remote get-url "$1" | sed -E 's#^.*[:/]([^/]+/[^/]+)$#\1#; s#\.git$##'
 }
 
-# The checkout cloud_enter_url_repo changed into, else empty; read by
-# cloud_require_checkout_ready (cloud:T175).
+# The checkout cloud_enter_url_repo changed into, else empty; the caller hands
+# it to cloud_require_checkout_ready (cloud:T175).
 entered_checkout=
 
-# cloud_enter_url_repo LABEL REMOTE: a pull request URL (set $url_repo by
-# cloud_parse_pr) that names another repository than REMOTE points at is run
-# from $CLAUDINIX_PROJECTS/<repo>, when that checkout's origin is that repo
-# (case folded): this cds there and sets $entered_checkout. Returns 0 for a
-# bare number, this repo's URL or an entered checkout; 2 when there is no
-# usable checkout (no CLAUDINIX_PROJECTS, a repo that is not owner/repo, no
-# directory), saying nothing; 1 for a checkout of another repo, saying so.
-# Only a name compare and the origin come before any `gh` call (cloud:B63).
+# cloud_enter_url_repo LABEL REMOTE: opt-in, for the launchers that run another
+# repository's pull request from the owner's checkout (`all`, `review`,
+# `fixup`; cloud:T175, V60). A pull request URL ($url_repo, set by
+# cloud_parse_pr) that names another repository than REMOTE is run from
+# $CLAUDINIX_PROJECTS/<repo>, when that checkout's origin is that repo (case
+# folded): this cds there and sets $entered_checkout. Returns 0 and changes
+# nothing for a bare number, this repo's URL or when there is no usable
+# checkout (no CLAUDINIX_PROJECTS, a repo that is not owner/repo, no
+# directory) -- cloud_require_url_repo then refuses it; 1 for a checkout of
+# another repo, saying so. Only a name compare and the origin come before any
+# `gh` call (cloud:B63). Every later relative path is in the new directory.
 cloud_enter_url_repo() {
     local dir
     [ -n "$url_repo" ] || return 0
@@ -248,56 +251,56 @@ cloud_enter_url_repo() {
     if [ "$(printf %s "$url_repo" | tr '[:upper:]' '[:lower:]')" = "$(cloud_remote_repo "$2" | tr '[:upper:]' '[:lower:]')" ]; then
         return 0
     fi
-    [ -n "${CLAUDINIX_PROJECTS:-}" ] || return 2
-    cloud_valid_repo "$url_repo" || return 2
+    [ -n "${CLAUDINIX_PROJECTS:-}" ] || return 0
+    cloud_valid_repo "$url_repo" || return 0
     dir="$(cloud_repo_checkout "$url_repo")"
-    [ -d "$dir" ] || return 2
+    [ -d "$dir" ] || return 0
     if ! cloud_origin_is "$url_repo" "$dir"; then
         echo "$1: $dir is not a checkout of $url_repo (its origin is another repository) -- fix $CLAUDINIX_PROJECTS" >&2
         return 1
     fi
     cd "$dir" || return 1
+    # shellcheck disable=SC2034 # read by the launchers that source this file
     entered_checkout="$dir"
 }
 
-# cloud_require_url_repo LABEL REMOTE ARG: a pull request URL must name the
-# repository REMOTE points at, or one cloud_enter_url_repo enters (cloud:B21,
-# cloud:B25, cloud:T175); a bare number passes.
+# cloud_require_url_repo LABEL REMOTE ARG: a pull request URL (set $url_repo
+# by cloud_parse_pr) must name the repository REMOTE points at, case folded
+# (cloud:B21, cloud:B25); a bare number passes. A check only: it never
+# changes directory (cloud:B107).
 cloud_require_url_repo() {
-    local rc=0
-    cloud_enter_url_repo "$1" "$2" || rc=$?
-    case "$rc" in
-    0) ;;
-    2)
-        echo "$1: $3 is a pull request of $url_repo, but remote $2 is $(cloud_remote_repo "$2") -- run it from a checkout of $url_repo" >&2
+    local remote_repo
+    [ -n "$url_repo" ] || return 0
+    remote_repo="$(cloud_remote_repo "$2")"
+    # GitHub names ignore case; `tr`, as bash 3.2 has no ${var,,}.
+    if [ "$(printf %s "$url_repo" | tr '[:upper:]' '[:lower:]')" != "$(printf %s "$remote_repo" | tr '[:upper:]' '[:lower:]')" ]; then
+        echo "$1: $3 is a pull request of $url_repo, but remote $2 is $remote_repo -- run it from a checkout of $url_repo" >&2
         return 1
-        ;;
-    *) return "$rc" ;;
-    esac
+    fi
 }
 
-# cloud_require_checkout_ready LABEL: an entered checkout must be clean, on
-# the pull request's $base and at that branch's fetched tip, so the session
-# clones the base's tooling and gate, never a stray local state (cloud:V53,
-# cloud:T175). Nothing to check when no checkout was entered.
+# cloud_require_checkout_ready LABEL DIR BASE: an entered checkout DIR must be
+# clean, on the pull request's BASE and at that branch's fetched tip, so the
+# session clones the base's tooling and gate, never a stray local state
+# (cloud:V53, cloud:T175). Nothing to check when DIR is empty (none entered).
 cloud_require_checkout_ready() {
     local current
-    [ -n "$entered_checkout" ] || return 0
-    if [ -n "$(git -C "$entered_checkout" status --porcelain)" ]; then
-        echo "$1: $entered_checkout is not clean -- commit or stash its changes first" >&2
+    [ -n "$2" ] || return 0
+    if [ -n "$(git -C "$2" status --porcelain)" ]; then
+        echo "$1: $2 is not clean -- commit or stash its changes first" >&2
         return 1
     fi
-    current="$(git -C "$entered_checkout" symbolic-ref --quiet --short HEAD || true)"
-    if [ "$current" != "$base" ]; then
-        echo "$1: $entered_checkout is not on $base (the pull request's base) -- check it out first" >&2
+    current="$(git -C "$2" symbolic-ref --quiet --short HEAD || true)"
+    if [ "$current" != "$3" ]; then
+        echo "$1: $2 is not on $3 (the pull request's base) -- check it out first" >&2
         return 1
     fi
-    if ! git -C "$entered_checkout" fetch --quiet origin "$base"; then
-        echo "$1: could not fetch $base in $entered_checkout" >&2
+    if ! git -C "$2" fetch --quiet origin "$3"; then
+        echo "$1: could not fetch $3 in $2" >&2
         return 1
     fi
-    if [ "$(git -C "$entered_checkout" rev-parse HEAD)" != "$(git -C "$entered_checkout" rev-parse FETCH_HEAD)" ]; then
-        echo "$1: $entered_checkout is not at the fetched origin/$base -- pull it first" >&2
+    if [ "$(git -C "$2" rev-parse HEAD)" != "$(git -C "$2" rev-parse FETCH_HEAD)" ]; then
+        echo "$1: $2 is not at the fetched origin/$3 -- pull it first" >&2
         return 1
     fi
 }
@@ -338,7 +341,6 @@ cloud_read_pr() {
             return 1
         fi
     done
-    cloud_require_checkout_ready "$1"
 }
 
 # cloud_require_open_pr LABEL REMOTE ARG [EXTRA]: cloud_read_pr, and the pull
