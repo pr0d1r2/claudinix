@@ -24,7 +24,7 @@ cross_fixture() {
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'args=("$@")' \
-        'for i in "${!args[@]}"; do [ "${args[$i]}" != fetch ] || args[$((i + 1))]="$BARE"; done' \
+        'case " $* " in *" fetch "*) for i in "${!args[@]}"; do [ "${args[$i]}" != origin ] || args[$i]="$BARE"; done ;; esac' \
         'exec "$REAL_GIT" "${args[@]}"' >"$STUBS/git-real"
     chmod +x "$STUBS/git-real"
     cd "$HERE" || return
