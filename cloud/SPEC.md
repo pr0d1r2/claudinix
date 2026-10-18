@@ -79,21 +79,8 @@ T171|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B90
 
 ## §B BUGS
 
-B19-B22, B24-B43, B65-B69, B72-B74, B76: ARCHIVED to SPEC-ARCHIVE.md `## §B BUGS`
+B19-B22, B24-B43, B65-B70, B72-B74, B76-B80, B83-B90, B92-B94, B99-B101: ARCHIVED to SPEC-ARCHIVE.md `## §B BUGS`
 
 id|date|cause|fix
 B63|2026-10-15|`just review all <other repo URL>`: `gh pr view 36` ran before the B21 repo check ∴ read this repo's merged #36|repo check before any `gh` call (T156)
 B64|2026-10-15|`just merge` counted review \& `Fixup:` comments of any author (forged `Findings: 0`)|V51: only OWNER \| MEMBER comments count
-B70|2026-10-15|`just merge` took `Findings: 0` from any line of a security review|V51: only the last line counts
-B77|2026-10-15|`cloud-drain.sh` was not in `CLOUD_MERGE_KEPT` ∴ a PR could rewrite the chained-merge entry point unflagged (#42)|V51: kept also `scripts/cloud-drain.sh`
-B78|2026-10-15|`drain` counted `Fixup:` comments of any author for the default `--max` (same forgery as B64) ∴ anyone could raise the cap to 29 (#42)|V51: only OWNER \| MEMBER comments count, also for `--max`
-B79|2026-10-15|`drain` matched a literal `Fixup:` ∴ `## Fixup:` uncounted, `--max` fell to 1|`drain` reads `CLOUD_FIXUP_HEADING`
-B83|2026-10-17|`fixup` prompt honoured `Review: fleet` comments of any author with "never drop" ahead of the decline rule ∴ anyone could force a change on the PR branch in a repo outside this one (#48)|V53: only OWNER \| MEMBER \| COLLABORATOR comments steer a fixup; "never drop silently"
-B84|2026-10-17|`fixup` prompt ran the gate \& repo tooling of the PR head, with the session's credentials, in repos whose PR authors are third parties (#48)|V53: tooling from the base; a PR that changes it → read-only, report
-B90|2026-10-17|`all` matched the build's PR by branch only; the harness named it after the session title (#48, #50) ∴ 180 min wait, `drain` stopped|T171
-B92|2026-10-17|T171's `find_pr` used `${x,,}`; macOS bash 3.2 has no it ∴ `all` dies at its first poll (#52)|V54
-B93|2026-10-17|T171's body match could bind `all --merge` to another PR that cites the task id (#52)|V55
-B94|2026-10-17|T171's `open_prs` pulled the body of 200 PRs on each 10 s poll of a 180 min wait (#52)|V56
-B99|2026-10-17|`all` (T170) took the `Head:` line \& the `Fixup:` reply of any author: a non-member forged `Fixup:`/`Head: <their sha>` and V52 never stopped (#55)|V52: only OWNER \| MEMBER comments count in `all`, one jq filter in `lib/cloud-launch.sh` shared with `merge` (as V51, B64, B78)
-B100|2026-10-17|`held` (T168) recorded a PR as the oldest of its title before the author, checkout, environment \& fork checks ∴ an older fork \| foreign PR of that title hid the owner's PR and nothing ran (#56)|V52: only a PR that passes the checks claims its title
-B101|2026-10-17|`held` (T168) passed the title to `awk -v`, which unescapes `\\` ∴ a title with a backslash never matched, the duplicate ran (#56)|V52: byte-exact compare, ⊥ `awk -v`
