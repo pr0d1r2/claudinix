@@ -8,7 +8,7 @@
 # 0.1x, write 5m 1.25x, 1h 2x the input price). A model that is not in the
 # table keeps its tokens and prints `?` for $: no price is guessed.
 #
-# Usage: burn.sh [--self | --pr N [--post]] [FILE | DIR...]
+# Usage: burn.sh [--self | --pr N [--post] | --prices] [FILE | DIR...]
 #   (none)   the newest session in the projects dir and its subagents
 #   DIR      every transcript below it
 #   --self   1 line `Burn: in=.. cw=.. cr=.. out=.. $x.xx (models)`; when
@@ -16,6 +16,7 @@
 #            exit 0
 #   --pr N   table of the PR's `Burn:` lines from OWNER | MEMBER comments
 #   --post   with --pr: write the table as 1 `## Burn` comment
+#   --prices the price table as JSON, {model-prefix: [input, output]}; reads nothing else
 # Env:   CLAUDINIX_SCRIPTS  dir holding burn.jq (default: this script's dir)
 #        CLAUDE_CONFIG_DIR  holds `projects/` (default: ~/.claude)
 #
@@ -32,11 +33,12 @@ PRICES=(
 set -euo pipefail
 
 usage() {
-    echo "usage: burn.sh [--self | --pr N [--post]] [FILE | DIR...]" >&2
+    echo "usage: burn.sh [--self | --pr N [--post] | --prices] [FILE | DIR...]" >&2
     exit 2
 }
 
 self=0
+show_prices=0
 pr=
 post=0
 paths=()
@@ -44,6 +46,7 @@ while [ $# -gt 0 ]; do
     case "$1" in
     --self) self=1 ;;
     --post) post=1 ;;
+    --prices) show_prices=1 ;;
     --pr)
         [ $# -ge 2 ] || usage
         pr="$2"
@@ -63,6 +66,11 @@ projects="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects"
 prices_json() {
     printf '%s\n' "${PRICES[@]}" |
         jq -Rn '[inputs | split(" ") | {(.[0]): [(.[1] | tonumber), (.[2] | tonumber)]}] | add'
+}
+
+[ "$show_prices" = 0 ] || {
+    prices_json
+    exit 0
 }
 
 # Run burn.jq in $1 mode over stdin rows.
