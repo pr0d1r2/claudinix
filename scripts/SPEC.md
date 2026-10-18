@@ -73,7 +73,7 @@ T150|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C20`,B81
 T162|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:V51`,T150
 T163|.|`require_full_history` in `scripts/lib` for `tdd-order`, `context-limits` \& `spec-ids` (3rd copy of the preamble)|V29,B7
 T173|x|ARCHIVED to SPEC-ARCHIVE.md|B91
-T176|.|`burn`: bats w/ fixture transcripts (dup ids, 2 models, subagent, unknown model, `--self`, unmeasured) \& stubbed `gh` (`--pr`, non-member skipped); app `burn` in `nix/apps.nix`|I.cmd,V61,V26,`cloud:V51`
+T176|x|`burn`: bats w/ fixture transcripts (dup ids, 2 models, subagent, unknown model, `--self`, unmeasured) \& stubbed `gh` (`--pr`, non-member skipped); app `burn` in `nix/apps.nix`|I.cmd,V61,V26,`cloud:V51`
 
 ## §B BUGS
 
