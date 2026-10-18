@@ -290,7 +290,7 @@ cloud_require_url_repo() {
 # session clones the base's tooling and gate, never a stray local state
 # (cloud:V53, cloud:T175). Nothing to check when DIR is empty (none entered).
 cloud_require_checkout_ready() {
-    local current
+    local current tips
     [ -n "$2" ] || return 0
     if [ -n "$(git -C "$2" status --porcelain)" ]; then
         echo "$1: $2 is not clean -- commit or stash its changes first" >&2
@@ -305,7 +305,8 @@ cloud_require_checkout_ready() {
         echo "$1: could not fetch $3 in $2" >&2
         return 1
     fi
-    if [ "$(git -C "$2" rev-parse HEAD)" != "$(git -C "$2" rev-parse FETCH_HEAD)" ]; then
+    tips="$(git -C "$2" rev-parse HEAD FETCH_HEAD)" # one fork for both tips
+    if [ "${tips%%$'\n'*}" != "${tips##*$'\n'}" ]; then
         echo "$1: $2 is not at the fetched $CLOUD_CHECKOUT_REMOTE/$3 -- pull it first" >&2
         return 1
     fi
