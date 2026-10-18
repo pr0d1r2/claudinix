@@ -4,12 +4,15 @@ bats_require_minimum_version 1.5.0
 # scripts:V34, cloud:B19). claude, script, git and gh are stubs: no
 # session is started and nothing reaches GitHub.
 
+# shellcheck source=/dev/null # the cross-repo fixture
+load helpers/cross-repo.bash
+
 setup() {
     SCRIPT="$BATS_TEST_DIRNAME/../../../scripts/cloud-fixup.sh"
-    STUBS="$BATS_TEST_TMPDIR/stubs"
+    export STUBS="$BATS_TEST_TMPDIR/stubs"
     export STATE="$BATS_TEST_TMPDIR/state"
     export TOPLEVEL="$BATS_TEST_TMPDIR/project"
-    unset CLAUDINIX_CONFIG CLAUDINIX_CONFIG_JSON CLOUD_TASK_REMOTE STUB_PR GH_FAIL GH_READS_STDIN NO_UPSTREAM
+    unset CLAUDINIX_PROJECTS CLAUDINIX_CONFIG CLAUDINIX_CONFIG_JSON CLOUD_TASK_REMOTE STUB_PR GH_FAIL GH_READS_STDIN NO_UPSTREAM
     mkdir -p "$STUBS" "$STATE" "$TOPLEVEL"
 
     # claude: records its args, one file each.
@@ -29,6 +32,7 @@ setup() {
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "$*" >>"$STATE/git.log"' \
         'case "$*" in' \
+        '-C\ *) exec "$STUBS/git-real" "$@" ;;' \
         'remote\ get-url\ *) [ -z "${NO_REMOTE:-}" ] || exit 2; echo https://github.com/o/p ; exit 0 ;;' \
         'symbolic-ref*) echo main; exit 0 ;;' \
         'rev-parse\ --show-toplevel) echo "$TOPLEVEL"; exit 0 ;;' \
@@ -43,7 +47,7 @@ setup() {
     # gh: `pr view` answers number, state, head, base and URL as TSV.
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
-        'echo "$*" >>"$STATE/gh.log"' \
+        'echo "$*" >>"$STATE/gh.log"; pwd >>"$STATE/gh.pwd"' \
         '[ -z "${GH_READS_STDIN:-}" ] || cat >/dev/null' \
         '[ -z "${GH_FAIL:-}" ] || { echo "GraphQL: Could not resolve to a PullRequest" >&2; exit 1; }' \
         'printf "%b\n" "${STUB_PR:-8\tOPEN\tfeature/x\tmain\thttps://github.com/o/p/pull/8\tfalse}"' >"$STUBS/gh"
@@ -342,4 +346,37 @@ pr() {
 @test "just fixup runs the script, one plain command" {
     grep -qxF 'fixup *args:' "$BATS_TEST_DIRNAME/../../../justfile"
     grep -qxF '    scripts/cloud-fixup.sh {{ args }}' "$BATS_TEST_DIRNAME/../../../justfile"
+}
+
+# --- another repository's pull request, from its checkout (cloud:T175) ---
+
+@test "another repository's URL runs from its checkout in CLAUDINIX_PROJECTS when clean, on the base, fetched (T175)" {
+    cross_fixture
+    run bash "$SCRIPT" https://github.com/owner/alpha/pull/8 --yes
+    [ "$status" -eq 0 ]
+    [ -e "$STATE/claude.1" ]
+    [ "$(head -n 1 "$STATE/gh.pwd")" = "$PROJECTS/alpha" ]
+}
+
+@test "a checkout that is dirty, off the base or whose origin is another repo is refused, no session (T175)" {
+    cross_fixture
+    touch "$PROJECTS/alpha/stray"
+    run bash "$SCRIPT" https://github.com/owner/alpha/pull/8 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"not clean"* ]]
+    rm "$PROJECTS/alpha/stray"
+    git -C "$PROJECTS/alpha" remote set-url origin https://github.com/owner/zeta
+    run bash "$SCRIPT" https://github.com/owner/alpha/pull/8 --yes
+    [ "$status" -eq 1 ]
+    [ ! -e "$STATE/gh.log" ]
+    [ ! -e "$STATE/claude.1" ]
+}
+
+@test "no checkout of the URL's repository: refused as before, gh never asked (T175, B63)" {
+    cross_fixture
+    run bash "$SCRIPT" https://github.com/owner/beta/pull/8 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"run it from a checkout of owner/beta"* ]]
+    [ ! -e "$STATE/gh.log" ]
+    [ ! -e "$STATE/claude.1" ]
 }

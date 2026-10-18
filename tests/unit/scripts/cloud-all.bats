@@ -5,6 +5,9 @@ bats_require_minimum_version 1.5.0
 # sleep and open are stubs: no session starts, nothing reaches GitHub and
 # nothing waits.
 
+# shellcheck source=/dev/null # the cross-repo fixture
+load helpers/cross-repo.bash
+
 setup() {
     SCRIPT="$BATS_TEST_DIRNAME/../../../scripts/cloud-all.sh"
     STUBS="$BATS_TEST_TMPDIR/stubs"
@@ -12,7 +15,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     # Long polls keep the timed-out waits to a few polls each.
     export CLOUD_ALL_POLL=600
-    unset FORGED_FIXUP FIXUP_HEAD FIXUP_MOVES_HEAD TASK_REFUSE REBASE_SILENT FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS BODY_FAIL
+    unset CLAUDINIX_PROJECTS FORGED_FIXUP FIXUP_HEAD FIXUP_MOVES_HEAD TASK_REFUSE REBASE_SILENT FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS BODY_FAIL
     mkdir -p "$STUBS" "$STATE" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
@@ -38,7 +41,7 @@ setup() {
     # cloud-fixup.sh: --dry-run checks only; a launch posts its one reply.
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
-        'echo "fixup $*" >>"$STATE/children.log"' \
+        'echo "fixup $*" >>"$STATE/children.log"; pwd >>"$STATE/children.pwd"' \
         'if [[ " $* " == *" --dry-run "* ]]; then' \
         '  [ -z "${FIXUP_REFUSE:-}" ] || { echo "fixup: #$1 is MERGED, not OPEN -- nothing to fix up" >&2; exit 1; }' \
         '  exit 0' \
@@ -76,6 +79,7 @@ setup() {
         '  [ -z "${LIST_FAIL_FIRST:-}" ] || [ "$n" -ne 1 ] || exit 1' \
         '  gh_fails "${LIST_GH_FAILS:-}" "$n"' \
         '  [ "$n" -le "${PR_AFTER:-0}" ] || cut -f1-4 "$STATE/prs" 2>/dev/null; exit 0 ;;' \
+        '*headRefName*) printf "%b\n" "16\tOPEN\tfeature/x\tmain\thttps://github.com/owner/alpha/pull/16\tfalse"; exit 0 ;;' \
         '*mergeable*) tr " " "\t" <"$STATE/merge"; exit 0 ;;' \
         '*statusCheckRollup*)' \
         '  n=$(( $(cat "$STATE/ci.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/ci.n"' \
@@ -671,4 +675,23 @@ fixup 14 --yes --model sonnet" ]
     [[ "$output" == *"after 6 polls of 600s"* ]]
     [ -s "$STATE/open.log" ]
     run ! grep -q '^review' "$STATE/children.log"
+}
+
+@test "another repository's PR URL: the flow runs from its checkout, gh and children alike (T175)" {
+    cross_fixture
+    cp "$STUBS/git-real" "$STUBS/git"
+    run bash "$SCRIPT" https://github.com/owner/alpha/pull/16 --yes
+    [ "$status" -eq 0 ]
+    [ "$(sort -u "$STATE/children.pwd")" = "$PROJECTS/alpha" ]
+    grep -q '^fixup https://github.com/owner/alpha/pull/16 --yes' "$STATE/children.log"
+}
+
+@test "another repository's PR URL with a dirty checkout: refused, no session (T175)" {
+    cross_fixture
+    cp "$STUBS/git-real" "$STUBS/git"
+    touch "$PROJECTS/alpha/stray"
+    run bash "$SCRIPT" https://github.com/owner/alpha/pull/16 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"not clean"* ]]
+    run ! grep -q -- '--yes' "$STATE/children.log"
 }
