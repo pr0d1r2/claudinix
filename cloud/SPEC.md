@@ -46,7 +46,7 @@ V54: `scripts/cloud-all.sh` ⊥ bash ≥ 4 syntax (`${x,,}`, `${x^^}`, `declare 
 V55: a PR `all` found by its body, not its branch (T171), ⊥ `--merge`d: stop, open it, the owner merges (B93, V51).
 V56: `all`'s PR poll lists PRs without `body`; it reads a body (`gh pr view`) only of a new same-repo PR off the task's branch, only when no branch matched (B94).
 V59: `enroll` (T174) ⊥ runs anything from a repo it clones \| fetches (hook, direnv, nix); `owner/repo` ~ `^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9._][A-Za-z0-9._-]*$` (⊥ leading `-`, `.`, `..`; ∀ repo, found ones too) else refuse \| skip, cloned from github.com only; `--label` enrols only same-repo PRs of the authenticated user (as V52; others skipped, named); a checkout whose `origin` ≠ the repo → failed, ⊥ touched; two repos ⊥ one name (the checkout is `<repo>`) → refuse.
-V60: entering another repo's checkout (T175) is opt-in per launcher (`all` \| `review` \| `fixup` call `cloud_enter_url_repo`); `merge` \| `rebase` ⊥ enter, a foreign URL → refused (B21, B63); after entering, `gh pr view` is pinned `--repo <url repo>`, the remote (`CLOUD_TASK_REMOTE`) must exist there, the checkout's own remote is the one constant `CLOUD_CHECKOUT_REMOTE`.
+V60: entering another repo's checkout (T175) is opt-in per launcher (`all` \| `review` \| `fixup`); `merge` \| `rebase` ⊥ enter, a foreign URL → refused (B21, B63); after entering, `gh pr view` is pinned `--repo <url repo>`, the remote (`CLOUD_TASK_REMOTE`) must exist there, the checkout's own remote is the one constant `CLOUD_CHECKOUT_REMOTE`.
 
 ## §T TASKS
 
