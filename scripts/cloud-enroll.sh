@@ -72,7 +72,7 @@ done
 
 # repos_with_open_pr: owner/repo of the owner's own same-repo PRs under the label.
 repos_with_open_pr() {
-    local owner found rows name author url repo
+    local owner found rows name author url repo is_fork
     # </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
     owner="$(gh api user --jq .login </dev/null)" || return 1
     found="$(gh search prs --owner "$owner" --label "$label" --state open --limit 100 \
@@ -82,7 +82,9 @@ repos_with_open_pr() {
         [ -n "$name" ] || continue
         if [ "$author" != "$owner" ]; then
             echo "enroll: skip $name: its author is $author, not $owner" >&2
-        elif [ "$(gh pr view "$url" --json isCrossRepository --jq .isCrossRepository </dev/null)" = true ]; then
+        elif ! is_fork="$(gh pr view "$url" --json isCrossRepository --jq .isCrossRepository </dev/null)"; then
+            echo "enroll: skip $name: cannot tell whether it comes from a fork" >&2
+        elif [ "$is_fork" != false ]; then
             echo "enroll: skip $name: it comes from a fork" >&2
         else
             echo "$repo"
