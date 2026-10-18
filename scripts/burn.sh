@@ -120,7 +120,10 @@ if [ "${#transcripts[@]}" -eq 0 ]; then
     exit 1
 fi
 
-rows() { jq -R 'fromjson?' "${transcripts[@]}"; }
+# The assistant rows with usage: burn.jq keeps no other, so the second jq slurps less.
+rows() {
+    jq -cR 'fromjson? | select(.type? == "assistant" and .message.usage? != null)' "${transcripts[@]}"
+}
 
 if [ "$self" = 1 ]; then
     rows | burn_jq self
