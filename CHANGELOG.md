@@ -20,6 +20,8 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- `just all`, `review`, `fixup`, `merge` and `rebase` read a pull request URL's number from the
+  repository the URL names, not from whatever `gh` defaults to in the directory.
 - `just merge` and `just rebase` refuse another repository's pull request URL even when
   `$CLAUDINIX_PROJECTS` holds a checkout of it; only `all`, `review` and `fixup` run from one.
 - `just all`, `just review` and `just fixup` given another repository's pull

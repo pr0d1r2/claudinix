@@ -317,13 +317,16 @@ cloud_read_pr() {
     local info state ref
     cloud_require_url_repo "$1" "$2" "$3" || return 1
     # </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
+    # --repo: gh's own default for the directory may be another repo (cloud:B108).
+    local view=(gh pr view "$pr")
+    [ -z "$url_repo" ] || view+=(--repo "$url_repo")
     local tsv='[.number, .state, .headRefName, .baseRefName, .url, .isCrossRepository] | @tsv'
     local fields=number,state,headRefName,baseRefName,url,isCrossRepository
     if [ -n "${4:-}" ]; then
-        pr_json="$(gh pr view "$pr" --json "$fields,$4" </dev/null)" &&
+        pr_json="$("${view[@]}" --json "$fields,$4" </dev/null)" &&
             info="$(jq -r "$tsv" <<<"$pr_json")"
     else
-        info="$(gh pr view "$pr" --json "$fields" --jq "$tsv" </dev/null)"
+        info="$("${view[@]}" --json "$fields" --jq "$tsv" </dev/null)"
     fi || {
         echo "$1: gh could not read pull request #$pr -- check the number and that gh is signed in" >&2
         return 1
