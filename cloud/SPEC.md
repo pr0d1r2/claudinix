@@ -47,6 +47,8 @@ V55: a PR `all` found by its body, not its branch (T171), ⊥ `--merge`d: stop, 
 V56: `all`'s PR poll lists PRs without `body`; it reads a body (`gh pr view`) only of a new same-repo PR off the task's branch, only when no branch matched (B94).
 V59: `enroll` (T174) ⊥ runs anything from a repo it clones \| fetches (hook, direnv, nix); `owner/repo` ~ `^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9._][A-Za-z0-9._-]*$` (⊥ leading `-`, `.`, `..`; ∀ repo, found ones too) else refuse \| skip, cloned from github.com only; `--label` enrols only same-repo PRs of the authenticated user (as V52; others skipped, named); a checkout whose `origin` ≠ the repo → failed, ⊥ touched; two repos ⊥ one name (the checkout is `<repo>`) → refuse.
 V60: entering another repo's checkout (T175) is opt-in per launcher (`all` \| `review` \| `fixup`); `merge` \| `rebase` ⊥ enter, a foreign URL → refused (B21, B63); after entering, `gh pr view` is pinned `--repo <url repo>`, the remote (`CLOUD_TASK_REMOTE`) must exist there, the checkout's own remote is the one constant `CLOUD_CHECKOUT_REMOTE`.
+V63: session's burn command (T177) = 1 fixed string the launcher fills: main's sha read once at launch, ~ `^[0-9a-f]{40}$` else refuse; ⊥ `$(…)` in the prompt; command fails → `Burn: unmeasured (burn-failed)`; allowed by `nix/cloud-permissions.json` (B113).
+V64: `all` posts `## Burn` on ∀ exit once the PR is known (B114).
 
 ## §T TASKS
 
@@ -81,10 +83,12 @@ T170|x|ARCHIVED to SPEC-ARCHIVE.md|V52,T166
 T171|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B90
 T174|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52,V59,`.:C29`,`scripts:T119`,`scripts:I.cmd`
 T175|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T165,T174,V52,V53,V59
-T177|x|∀ launcher prompt that writes PR text (bats: each carries the 1 shared `CLOUD_*` snippet, none names a checkout path): PR text ends w/ the session `burn --self` line (`scripts:I.cmd`; ⊥ `just`), run last (a review comment: before its closing `Findings: N`, V51); `all` after last CI → `burn --pr <n> --post`|I.cmd,V51,`scripts:T176`
+T177|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V51,`scripts:T176`
 
 ## §B BUGS
 
 B19-B22, B24-B43, B63-B70, B72-B74, B76-B80, B83-B90, B92-B94, B99-B109: ARCHIVED to SPEC-ARCHIVE.md `## §B BUGS`
 
 id|date|cause|fix
+B113|2026-10-19|session ran `$(git ls-remote)` late, unchecked; no fallback, ⊥ permitted|V63
+B114|2026-10-19|`all` posted `## Burn` only after green CI|V64

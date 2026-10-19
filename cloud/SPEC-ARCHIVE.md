@@ -38,6 +38,7 @@ T170|x|`all` stops a PR whose head ≠ the last `fixup` push (V52)|V52,T166
 T171|x|`all` finds the build's PR when its branch ≠ `claude/<node>-<task>`: the 1 same-repo PR opened after the launch whose body names the task id; 2+ → stop, naming them|I.cmd,B90
 T174|x|`enroll`: missing checkout → `gh repo clone`, else `git fetch`; pin = own `jq` write of the `/remote-env` pick to `.claude/settings.local.json` (`guide` sources no lib; bats: its `env_id` reads it), file → `.git/info/exclude`; ⊥ pick \| another repo's → `needs-env`; ⊥ commit \| push|I.cmd,V52,V59,`scripts:T119`,`scripts:I.cmd`
 T175|x|`all` \| `review` \| `fixup` w/ another repo's URL → run from `$CLAUDINIX_PROJECTS/<repo>` if its `origin` is `<repo>` (case folded), clean, on the PR's base, fetched; tooling \& gate as on the base (V53); else refuse as now (B21, B25, B63 kept)|I.cmd,T165,T174,V52,V53,V59
+T177|x|∀ launcher prompt that writes PR text (bats: each carries the 1 shared `CLOUD_*` snippet, none names a checkout path): PR text ends w/ the session `burn --self` line (`scripts:I.cmd`; ⊥ `just`), run last (a review comment: before its closing `Findings: N`, V51); `all` after last CI → `burn --pr <n> --post`|I.cmd,V51,`scripts:T176`
 
 ## §B BUGS
 
