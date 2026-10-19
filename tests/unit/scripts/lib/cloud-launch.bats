@@ -479,3 +479,25 @@ lib_cross_fixture() {
     lib_cross_fixture
     cloud_require_checkout_ready review "" main
 }
+
+# --- the burn line the PR text ends with (cloud:T177) ---
+
+@test "CLOUD_BURN_SELF is the one burn --self command, pinned to a main sha, no just (cloud:T177)" {
+    [[ "$CLOUD_BURN_SELF" == *'git+https://github.com/pr0d1r2/claudinix?rev='* ]]
+    [[ "$CLOUD_BURN_SELF" == *'#burn'*'-- --self'* ]]
+    run ! grep -qw just <<<"$CLOUD_BURN_SELF"
+}
+
+@test "every prompt that writes PR text carries @BURN@ once, and names no checkout path (cloud:T177)" {
+    local f
+    for f in task spec fixup review; do
+        f="$REPO/scripts/cloud-$f-prompt.txt"
+        [ "$(grep -o '@BURN@' "$f" | wc -l)" -eq 1 ]
+        run ! grep -qE '/home/|/root/|/Users/' "$f"
+    done
+}
+
+@test "the review prompt runs burn before its closing Findings line (cloud:T177, cloud:V51)" {
+    local f="$REPO/scripts/cloud-review-prompt.txt"
+    [ "$(grep -n '@BURN@' "$f" | head -n 1 | cut -d: -f1)" -lt "$(grep -n 'Findings: N' "$f" | head -n 1 | cut -d: -f1)" ]
+}

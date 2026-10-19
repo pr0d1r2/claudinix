@@ -428,3 +428,11 @@ roles() {
     [[ "$output" == *"no remote upstream"* ]]
     [ ! -e "$STATE/gh.log" ]
 }
+
+@test "the prompt: the review comment carries the session's burn line, from the one shared snippet (cloud:T177)" {
+    run bash "$SCRIPT" correctness 12 --yes
+    [ "$status" -eq 0 ]
+    grep -qF 'git+https://github.com/pr0d1r2/claudinix?rev=' "$STATE/claude.task"
+    grep -qF -- '-- --self' "$STATE/claude.task"
+    run ! grep -qF '@BURN@' "$STATE/claude.task"
+}

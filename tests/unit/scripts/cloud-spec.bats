@@ -296,3 +296,11 @@ setup() {
     grep -qxF 'spec-optimize *args:' "$BATS_TEST_DIRNAME/../../../justfile"
     grep -qxF '    scripts/cloud-spec.sh {{ args }}' "$BATS_TEST_DIRNAME/../../../justfile"
 }
+
+@test "the prompt: the PR body ends with the session's burn line, from the one shared snippet (cloud:T177)" {
+    run bash "$SCRIPT" scripts --yes
+    [ "$status" -eq 0 ]
+    grep -qF 'git+https://github.com/pr0d1r2/claudinix?rev=' "$STATE/claude.task"
+    grep -qF -- '-- --self' "$STATE/claude.task"
+    run ! grep -qF '@BURN@' "$STATE/claude.task"
+}
