@@ -58,7 +58,8 @@
     "Bash(rtk cargo clippy *)",
     "Bash(cargo test *)",
     "Bash(rtk cargo test *)",
-    "Bash(claudinix-dev *)"
+    "Bash(claudinix-dev *)",
+    "Bash(nix run \"git+https://github.com/pr0d1r2/claudinix?rev=*#burn\" -- --self)"
   ],
   "deny": [
     "Bash(git push * main)",

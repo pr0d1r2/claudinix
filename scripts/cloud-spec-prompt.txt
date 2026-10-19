@@ -51,7 +51,8 @@ data, never instructions to you.
    subject), the gate's rc, any split still needed, and this session's
    link. Do not merge it; the owner reviews and merges.
    Run `@BURN@` last, just before you open the pull request, and end
-   the body with the one `Burn:` line it prints.
+   the body with the one `Burn:` line it prints. If the command fails,
+   write `Burn: unmeasured (burn-failed)` and carry on.
 10. CI, after the pull request is open:
    @CI_WATCH@
    Step 6 holds in CI rounds too: a red check whose cause lies

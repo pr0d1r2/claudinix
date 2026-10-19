@@ -157,7 +157,7 @@ branch="$(printf '%q' "$branch_name")"
 # The row goes in last, so a placeholder spelled inside it is not filled.
 prompt="$(cat "$lib/cloud-task-prompt.txt")"
 cloud_fill @CI_WATCH@ "$(cat "$lib/cloud-ci-watch-prompt.txt")"
-cloud_fill @BURN@ "$CLOUD_BURN_SELF"
+cloud_fill_burn cloud || exit 1
 cloud_fill @TASK@ "$id"
 cloud_fill @NODE@ "$node"
 cloud_fill @BRANCH@ "$branch"

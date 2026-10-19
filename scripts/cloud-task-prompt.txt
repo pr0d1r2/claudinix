@@ -34,7 +34,8 @@ The task row, as it stands in the spec:
    and subject), the gate's rc, anything blocked or left undone, and
    this session's link. Do not merge it; the owner reviews and merges.
    Run `@BURN@` last, just before you open the pull request, and end
-   the body with the one `Burn:` line it prints.
+   the body with the one `Burn:` line it prints. If the command fails,
+   write `Burn: unmeasured (burn-failed)` and carry on.
 8. CI, after the pull request is open:
    @CI_WATCH@
 9. End with a short report: each commit (hash and subject), the gate's

@@ -25,6 +25,8 @@ does are summarised briefly; the git history has the detail.
 - Cloud sessions started by `just cloud`, `review`, `fixup` and `spec-optimize` end the pull request text they write
   with their own `Burn:` line (the review comment: the line before `Findings: N`), and `just all` posts the
   pull request's `## Burn` comment after the last green CI. A failed post is a note, not a stop.
+  The burn command is one fixed string the launcher fills with main's sha (a launch refuses a sha that is not
+  40 hex digits), and the cloud permission list allows exactly that command.
 - `just all`, `review`, `fixup`, `merge` and `rebase` read a pull request URL's number from the
   repository the URL names, not from whatever `gh` defaults to in the directory.
 - `just merge` and `just rebase` refuse another repository's pull request URL even when
