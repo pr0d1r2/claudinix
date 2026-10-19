@@ -936,6 +936,10 @@ fixup when the reply has none. Any other head was pushed by someone else, and
 `all` stops before it waits for CI: "the head of #<n> is <sha>, not <sha> (...):
 someone else pushed, so it is not taken". It opens the pull request and exits 1.
 
+After the last green CI it posts the pull request's `## Burn` comment
+(`burn --pr <n> --post`, see [`burn`](#burn)), from the `Burn:` line each
+session ends its text with. A failed post is a note; the flow goes on.
+
 Then it opens the pull request: `open -a Safari` on macOS, `xdg-open`
 elsewhere. Without `--merge` it never merges. With `--merge` it runs
 [`merge`](#merge) `--yes` instead: a pull request the strict rule allows is
