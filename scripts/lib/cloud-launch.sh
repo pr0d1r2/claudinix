@@ -38,6 +38,13 @@ def head_of: [(.body // "") | gsub("\r"; "") | split("\n")[] | capture("^'"$CLOU
 # shellcheck disable=SC2034 # read by the scripts that source this file
 CLOUD_FINDINGS_HEADING='Findings:'
 
+# The command a session runs last to print its own `Burn:` line, which the
+# PR text it writes ends with (cloud:T177); `just burn --pr` and `all` read
+# the lines back. Pinned to the sha of main, never to the PR's code, and a
+# plain `nix run`, so a session without `just` runs it.
+# shellcheck disable=SC2034,SC2016 # read by the scripts that source this file; the session expands the $(…)
+CLOUD_BURN_SELF='nix run "git+https://github.com/pr0d1r2/claudinix?rev=$(git ls-remote https://github.com/pr0d1r2/claudinix refs/heads/main | cut -f1)#burn" -- --self'
+
 # The paths `just merge` never merges a change to (cloud:V51): the files that
 # decide what is allowed to merge. A name ending in `/` is a directory.
 # shellcheck disable=SC2034 # read by cloud-merge.sh

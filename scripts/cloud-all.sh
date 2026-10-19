@@ -385,6 +385,13 @@ ci_state() {
     fi
 }
 
+# post_burn: after the last CI, write the pull request's `## Burn` comment
+# (cloud:T177). Only a note when it fails: the flow's outcome is the CI and
+# the merge, not the cost report.
+post_burn() {
+    "$scripts_dir/burn.sh" --pr "$pr" --post || echo "all: could not post the burn comment on #$pr" >&2
+}
+
 # wait_ci [FIXING]: wait for green CI on #$pr. After a session (FIXING=1) a
 # red check waits like a pending one, up to the longer limit: the session
 # owns the fix (cloud:T140, T143), and the notices below say once per wait.
@@ -542,6 +549,7 @@ resolve_conflicts
 echo "all: the fixup replied on #$pr; waiting for CI"
 wait_ci 1 || wait_failed $? "CI is not green on #$pr after the fixup"
 
+post_burn
 if [ "$merge" = 1 ] && [ "$found_by_body" = 1 ]; then
     fail "#$pr was found by its body naming $id, not by its branch, so it is not merged: the owner merges it"
 fi
