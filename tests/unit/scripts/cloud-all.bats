@@ -15,7 +15,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     # Long polls keep the timed-out waits to a few polls each.
     export CLOUD_ALL_POLL=600
-    unset CLAUDINIX_PROJECTS FORGED_FIXUP FIXUP_HEAD FIXUP_MOVES_HEAD TASK_REFUSE REBASE_SILENT FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS BODY_FAIL
+    unset CLAUDINIX_PROJECTS FORGED_FIXUP FIXUP_HEAD FIXUP_MOVES_HEAD TASK_REFUSE REBASE_SILENT FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS BODY_FAIL BURN_RC
     mkdir -p "$STUBS" "$STATE" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
@@ -60,6 +60,11 @@ setup() {
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "merge $*" >>"$STATE/children.log"' \
         'exit "${MERGE_RC:-0}"' >"$CLAUDINIX_SCRIPTS/cloud-merge.sh"
+    # burn.sh: records its args; exits $BURN_RC.
+    # shellcheck disable=SC2016 # expands inside the stub, not here
+    printf '%s\n' '#!/usr/bin/env bash' \
+        'echo "$*" >>"$STATE/burn.log"' \
+        'exit "${BURN_RC:-0}"' >"$CLAUDINIX_SCRIPTS/burn.sh"
     printf '%s\n' '#!/usr/bin/env bash' 'echo sonnet' >"$CLAUDINIX_SCRIPTS/config.sh"
     chmod +x "$CLAUDINIX_SCRIPTS"/*.sh
 
@@ -126,6 +131,22 @@ fixup 14 --yes --model sonnet" ]
     [ "$(cat "$STATE/open.log")" = "-a Safari https://github.com/o/p/pull/14" ]
     [[ "$output" == *"#14"* ]]
     [[ "$output" == *"green"* ]]
+}
+
+@test "after the last CI, burn --pr <n> --post runs once, before the merge or Safari (cloud:T177)" {
+    run bash "$SCRIPT" docs:T47 --yes --merge
+    [ "$status" -eq 0 ]
+    [ "$(cat "$STATE/burn.log")" = "--pr 14 --post" ]
+    run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 0 ]
+    [ "$(wc -l <"$STATE/burn.log")" -eq 2 ]
+}
+
+@test "a failing burn --post warns and never stops the flow (cloud:T177)" {
+    BURN_RC=1 run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"burn"* ]]
+    [ "$(cat "$STATE/open.log")" = "-a Safari https://github.com/o/p/pull/14" ]
 }
 
 @test "--merge: after the last green CI, just merge --yes takes the PR instead of Safari (cloud:T160)" {
