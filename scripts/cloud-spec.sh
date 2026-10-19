@@ -173,7 +173,7 @@ done
 
 prompt="$(cat "$lib/cloud-spec-prompt.txt")"
 cloud_fill @CI_WATCH@ "$(cat "$lib/cloud-ci-watch-prompt.txt")"
-cloud_fill @BURN@ "$CLOUD_BURN_SELF"
+cloud_fill_burn spec-optimize || exit 1
 cloud_fill @NODES@ "${nodes[*]}"
 cloud_fill @SPECS@ "$specs"
 cloud_fill @BRANCH@ "$(printf '%q' "$branch_name")"

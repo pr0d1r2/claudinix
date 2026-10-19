@@ -101,7 +101,7 @@ cloud_resolve_model "$scripts_dir" || exit "$?"
 build() {
     prompt="$(cat "$scripts_dir/cloud-review-prompt.txt")"
     cloud_fill @ROLE_TEXT@ @ROLE_TEXT_SLOT@
-    cloud_fill @BURN@ "$CLOUD_BURN_SELF"
+    cloud_fill_burn review || exit 1
     cloud_fill @ROLE@ "$1"
     cloud_fill @PR@ "$pr"
     cloud_fill @BASE@ "$base"

@@ -7,6 +7,9 @@ bats_require_minimum_version 1.5.0
 # shellcheck source=/dev/null # the cross-repo fixture
 load helpers/cross-repo.bash
 
+# shellcheck source=/dev/null # the burn fixture, beside this directory
+load helpers/burn.bash
+
 setup() {
     SCRIPT="$BATS_TEST_DIRNAME/../../../scripts/cloud-fixup.sh"
     export STUBS="$BATS_TEST_TMPDIR/stubs"
@@ -43,6 +46,7 @@ setup() {
         'esac' \
         'case "$1" in' \
         'rev-parse) echo true ;;' \
+        "$BURN_LS_REMOTE_CASE" \
         '*) exit 9 ;;' \
         'esac' >"$STUBS/git"
     # gh: `pr view` answers number, state, head, base and URL as TSV.
@@ -373,10 +377,8 @@ pr() {
     [ ! -e "$STATE/claude.1" ]
 }
 
-@test "the prompt: the Fixup: reply ends with the session's burn line, from the one shared snippet (cloud:T177)" {
+@test "the prompt: the Fixup: reply ends with the session's burn line, pinned to main's sha (cloud:T177, cloud:V63)" {
     run bash "$SCRIPT" 8 --yes
     [ "$status" -eq 0 ]
-    grep -qF 'git+https://github.com/pr0d1r2/claudinix?rev=' "$STATE/claude.task"
-    grep -qF -- '-- --self' "$STATE/claude.task"
-    run ! grep -qF '@BURN@' "$STATE/claude.task"
+    assert_prompt_burns "$STATE/claude.task"
 }

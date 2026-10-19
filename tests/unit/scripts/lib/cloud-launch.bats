@@ -482,10 +482,41 @@ lib_cross_fixture() {
 
 # --- the burn line the PR text ends with (cloud:T177) ---
 
-@test "CLOUD_BURN_SELF is the one burn --self command, pinned to a main sha, no just (cloud:T177)" {
-    [[ "$CLOUD_BURN_SELF" == *'git+https://github.com/pr0d1r2/claudinix?rev='* ]]
-    [[ "$CLOUD_BURN_SELF" == *'#burn'*'-- --self'* ]]
-    run ! grep -qw just <<<"$CLOUD_BURN_SELF"
+# burn_remote SHA|-: a bare repository whose main is at a commit (the
+# remote cloud_burn_self reads); "-" leaves it empty.
+burn_remote() {
+    git init -q --bare "$BATS_TEST_TMPDIR/burn.git"
+    [ "$1" = - ] && return 0
+    git clone -q "$BATS_TEST_TMPDIR/burn.git" "$BATS_TEST_TMPDIR/burn-work" 2>/dev/null
+    git -C "$BATS_TEST_TMPDIR/burn-work" -c user.email=t@t -c user.name=t commit -q --allow-empty -m c
+    git -C "$BATS_TEST_TMPDIR/burn-work" push -q origin HEAD:refs/heads/main
+    git -C "$BATS_TEST_TMPDIR/burn-work" rev-parse HEAD
+}
+
+@test "cloud_burn_self: the one burn --self command, a fixed string pinned to main's sha, no just, no \$( (cloud:V63)" {
+    sha=$(burn_remote x)
+    CLOUD_BURN_REMOTE="$BATS_TEST_TMPDIR/burn.git" run cloud_burn_self
+    [ "$status" -eq 0 ]
+    [ "$output" = "nix run \"git+https://github.com/pr0d1r2/claudinix?rev=$sha#burn\" -- --self" ]
+    run ! grep -qw just <<<"$output"
+}
+
+@test "cloud_burn_self: a remote without main refuses (cloud:V63, B113)" {
+    burn_remote -
+    CLOUD_BURN_REMOTE="$BATS_TEST_TMPDIR/burn.git" run cloud_burn_self
+    [ "$status" -eq 1 ]
+}
+
+@test "cloud_fill_burn: fills @BURN@ with the command; a refused sha says so and returns 1 (cloud:V63)" {
+    sha=$(burn_remote x)
+    prompt='run @BURN@ now'
+    CLOUD_BURN_REMOTE="$BATS_TEST_TMPDIR/burn.git" cloud_fill_burn task
+    [ "$prompt" = "run nix run \"git+https://github.com/pr0d1r2/claudinix?rev=$sha#burn\" -- --self now" ]
+    rm -rf "$BATS_TEST_TMPDIR/burn.git"
+    prompt='run @BURN@ now'
+    CLOUD_BURN_REMOTE="$BATS_TEST_TMPDIR/burn.git" run cloud_fill_burn task
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"task: "*"main"* ]]
 }
 
 @test "every prompt that writes PR text carries @BURN@ once, and names no checkout path (cloud:T177)" {
@@ -500,4 +531,34 @@ lib_cross_fixture() {
 @test "the review prompt runs burn before its closing Findings line (cloud:T177, cloud:V51)" {
     local f="$REPO/scripts/cloud-review-prompt.txt"
     [ "$(grep -n '@BURN@' "$f" | head -n 1 | cut -d: -f1)" -lt "$(grep -n 'Findings: N' "$f" | head -n 1 | cut -d: -f1)" ]
+}
+
+@test "a cloud session may run the burn command: an allow rule of nix/cloud-permissions.json matches it (cloud:V63, B113)" {
+    sha=$(burn_remote x)
+    cmd=$(CLOUD_BURN_REMOTE="$BATS_TEST_TMPDIR/burn.git" cloud_burn_self)
+    local rule matched=0
+    while IFS= read -r rule; do
+        rule="${rule#Bash(}"
+        # shellcheck disable=SC2053 # the rule is a glob
+        [[ "$cmd" == ${rule%)} ]] && matched=1
+    done < <(jq -r '.allow[] | select(startswith("Bash(nix run "))' "$REPO/nix/cloud-permissions.json")
+    [ "$matched" -eq 1 ]
+    [[ "$cmd" == *"$sha"* ]]
+}
+
+@test "every prompt with @BURN@ says what to write when the command fails (cloud:V63, B113)" {
+    local f
+    for f in "$REPO"/scripts/cloud-*-prompt.txt; do
+        if grep -qF '@BURN@' "$f"; then grep -qF 'Burn: unmeasured (burn-failed)' "$f"; fi
+    done
+}
+
+@test "every prompt with @BURN@ belongs to a launcher that calls cloud_fill_burn (cloud:V63)" {
+    local f launcher
+    for f in "$REPO"/scripts/cloud-*-prompt.txt; do
+        if grep -qF '@BURN@' "$f"; then
+            launcher="${f%-prompt.txt}.sh"
+            grep -qF 'cloud_fill_burn' "$launcher"
+        fi
+    done
 }

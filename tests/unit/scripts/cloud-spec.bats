@@ -5,6 +5,9 @@ bats_require_minimum_version 1.5.0
 # script, git, itok and sherd are stubs: no session is started, nothing
 # reaches a remote and nothing is measured for real.
 
+# shellcheck source=/dev/null # the burn fixture, beside this directory
+load helpers/burn.bash
+
 setup() {
     SCRIPT="$BATS_TEST_DIRNAME/../../../scripts/cloud-spec.sh"
     STUBS="$BATS_TEST_TMPDIR/stubs"
@@ -42,6 +45,7 @@ setup() {
         'esac' \
         'case "$1" in' \
         'rev-parse) [ -z "${NOT_A_REPO:-}" ] || exit 128; echo true ;;' \
+        "$BURN_LS_REMOTE_CASE" \
         '*) exit 9 ;;' \
         'esac' >"$STUBS/git"
     # itok and sherd: print $STATE/<tool>.json (else nothing over) and
@@ -297,10 +301,8 @@ setup() {
     grep -qxF '    scripts/cloud-spec.sh {{ args }}' "$BATS_TEST_DIRNAME/../../../justfile"
 }
 
-@test "the prompt: the PR body ends with the session's burn line, from the one shared snippet (cloud:T177)" {
+@test "the prompt: the PR body ends with the session's burn line, pinned to main's sha (cloud:T177, cloud:V63)" {
     run bash "$SCRIPT" scripts --yes
     [ "$status" -eq 0 ]
-    grep -qF 'git+https://github.com/pr0d1r2/claudinix?rev=' "$STATE/claude.task"
-    grep -qF -- '-- --self' "$STATE/claude.task"
-    run ! grep -qF '@BURN@' "$STATE/claude.task"
+    assert_prompt_burns "$STATE/claude.task"
 }

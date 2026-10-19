@@ -7,6 +7,9 @@ bats_require_minimum_version 1.5.0
 # shellcheck source=/dev/null # the cross-repo fixture
 load helpers/cross-repo.bash
 
+# shellcheck source=/dev/null # the burn fixture, beside this directory
+load helpers/burn.bash
+
 setup() {
     REPO="$BATS_TEST_DIRNAME/../../.."
     SCRIPT="$REPO/scripts/cloud-review.sh"
@@ -42,6 +45,7 @@ setup() {
         'rev-parse\ --show-toplevel) echo "$TOPLEVEL"; exit 0 ;;' \
         '*--symbolic-full-name*) [ -z "${NO_UPSTREAM:-}" ] || exit 128; echo origin/main; exit 0 ;;' \
         'rev-parse\ HEAD | rev-parse\ @{u}) echo aaaa; exit 0 ;;' \
+        "$BURN_LS_REMOTE_CASE" \
         'esac' \
         '[ "$1" = rev-parse ] && { echo true; exit 0; }' \
         'exit 9' >"$STUBS/git"
@@ -429,10 +433,8 @@ roles() {
     [ ! -e "$STATE/gh.log" ]
 }
 
-@test "the prompt: the review comment carries the session's burn line, from the one shared snippet (cloud:T177)" {
+@test "the prompt: the review comment carries the session's burn line, pinned to main's sha (cloud:T177, cloud:V63)" {
     run bash "$SCRIPT" correctness 12 --yes
     [ "$status" -eq 0 ]
-    grep -qF 'git+https://github.com/pr0d1r2/claudinix?rev=' "$STATE/claude.task"
-    grep -qF -- '-- --self' "$STATE/claude.task"
-    run ! grep -qF '@BURN@' "$STATE/claude.task"
+    assert_prompt_burns "$STATE/claude.task"
 }
