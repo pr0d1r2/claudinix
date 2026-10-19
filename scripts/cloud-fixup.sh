@@ -87,6 +87,7 @@ cloud_resolve_model "$lib" || exit "$?"
 
 prompt="$(cat "$lib/cloud-fixup-prompt.txt")"
 cloud_fill @CI_WATCH@ "$(cat "$lib/cloud-ci-watch-prompt.txt")"
+cloud_fill @BURN@ "$CLOUD_BURN_SELF"
 cloud_fill @PR@ "$pr"
 cloud_fill @HEAD_LABEL@ "$CLOUD_FIXUP_HEAD_LABEL"
 cloud_fill @BASE@ "$base"

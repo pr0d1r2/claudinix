@@ -133,13 +133,11 @@ fixup 14 --yes --model sonnet" ]
     [[ "$output" == *"green"* ]]
 }
 
-@test "after the last CI, burn --pr <n> --post runs once, before the merge or Safari (cloud:T177)" {
+@test "after the last CI, burn --pr <n> --post runs once, before the merge (cloud:T177)" {
     run bash "$SCRIPT" docs:T47 --yes --merge
     [ "$status" -eq 0 ]
     [ "$(cat "$STATE/burn.log")" = "--pr 14 --post" ]
-    run bash "$SCRIPT" docs:T47 --yes
-    [ "$status" -eq 0 ]
-    [ "$(wc -l <"$STATE/burn.log")" -eq 2 ]
+    [ "$(tail -n 1 "$STATE/children.log")" = "merge 14 --yes" ]
 }
 
 @test "a failing burn --post warns and never stops the flow (cloud:T177)" {

@@ -33,7 +33,9 @@ approve, you do not.
    wrong and when, and a concrete fix. Rank them most severe first. When
    you find nothing, say so plainly; do not pad.
 5. Post the findings as one comment on the pull request, headed
-   "Review: @ROLE@". End the comment with one last line `Findings: N`,
+   "Review: @ROLE@". Run `@BURN@` last, just before you post, and put
+   the one `Burn:` line it prints on the line before the last one. End the
+   comment with one last line `Findings: N`,
    where N is the number of findings you reported (`Findings: 0` when
    there are none). If you cannot post it, put the
    findings in your report instead.
