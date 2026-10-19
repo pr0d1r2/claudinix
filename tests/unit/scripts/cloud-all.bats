@@ -140,6 +140,19 @@ fixup 14 --yes --model sonnet" ]
     [ "$(tail -n 1 "$STATE/children.log")" = "merge 14 --yes" ]
 }
 
+@test "a red flow still posts the burn comment, once, when the flow stops (cloud:V64, B114)" {
+    ci FAILURE
+    run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 1 ]
+    [ "$(cat "$STATE/burn.log")" = "--pr 14 --post" ]
+}
+
+@test "a flow that stops before any PR is known posts no burn comment (cloud:V64)" {
+    TASK_FAIL=1 run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 1 ]
+    [ ! -e "$STATE/burn.log" ]
+}
+
 @test "a failing burn --post warns and never stops the flow (cloud:T177)" {
     BURN_RC=1 run bash "$SCRIPT" docs:T47 --yes
     [ "$status" -eq 0 ]

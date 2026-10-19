@@ -211,7 +211,16 @@ fail() {
 # Only the checks use it; comment_count and the snapshot let gh's stderr
 # reach the terminal.
 gh_err="$(mktemp)"
-trap 'rm -f "$gh_err"' EXIT
+burn_posted=0
+# On every exit: the burn comment once the PR is known (cloud:V64), then the
+# temp file. The exit code is the flow's, whatever post_burn does.
+at_exit() {
+    local rc=$?
+    [ -z "$pr" ] || post_burn || true
+    rm -f "$gh_err"
+    exit "$rc"
+}
+trap at_exit EXIT
 
 # The failed gh calls in a row that stop a wait (cloud:B32). The header above and
 # docs/CLI.md say 3 too.
@@ -385,10 +394,13 @@ ci_state() {
     fi
 }
 
-# post_burn: after the last CI, write the pull request's `## Burn` comment
-# (cloud:T177). Only a note when it fails: the flow's outcome is the CI and
-# the merge, not the cost report.
+# post_burn: write the pull request's `## Burn` comment (cloud:T177), once:
+# before the merge on a green flow, else when the flow stops (cloud:V64).
+# Only a note when it fails: the flow's outcome is the CI and the merge, not
+# the cost report.
 post_burn() {
+    [ "$burn_posted" = 0 ] || return 0
+    burn_posted=1
     "$scripts_dir/burn.sh" --pr "$pr" --post || echo "all: could not post the burn comment on #$pr" >&2
 }
 

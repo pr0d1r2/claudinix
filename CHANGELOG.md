@@ -24,7 +24,7 @@ does are summarised briefly; the git history has the detail.
   transcripts; `--self` prints one line, `--pr N [--post]` sums the `Burn:` lines of a pull request. It skips `<synthetic>` rows and prices a row without a model as `?`, and counts a 1h cache write once. `burn --prices` prints the price table, and the longest matching model prefix sets the price. `burn --pr` keeps the known part of a `$x+?` line and marks a `Burn:` line it cannot parse as `+?`; `--pr` takes a pull request number only; with no argument it finds the newest session however many transcripts exist.
 - Cloud sessions started by `just cloud`, `review`, `fixup` and `spec-optimize` end the pull request text they write
   with their own `Burn:` line (the review comment: the line before `Findings: N`), and `just all` posts the
-  pull request's `## Burn` comment after the last green CI. A failed post is a note, not a stop.
+  pull request's `## Burn` comment before the merge, or when the flow stops once the pull request is known. A failed post is a note, not a stop.
   The burn command is one fixed string the launcher fills with main's sha (a launch refuses a sha that is not
   40 hex digits), and the cloud permission list allows exactly that command.
 - `just all`, `review`, `fixup`, `merge` and `rebase` read a pull request URL's number from the
