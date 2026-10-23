@@ -76,11 +76,25 @@ output tokens times the output price, per million tokens, at these rates.
 
 ## What a session costs
 
-One measured figure, and it is a rough one. Eight short sessions (seven probes
+The old figure is not a price for today. Eight short sessions (seven probes
 and one job, seven of them on Opus 5.5) cost about $7 in total, roughly $0.90
-per session, read from the usage page on 2026-10-03 (`FACTS.md`, "Cost"). The
-split between sessions is not measured, so do not read it as a price for any
-one kind of session.
+per session, read from the usage page on 2026-10-03 (`FACTS.md`, "Cost"). That
+was before rtk (2026-10-09), which trims what tool output costs a session, and
+the split between those sessions was never measured.
+
+To measure a session yourself, run `just burn` in a checkout, or
+`nix run github:pr0d1r2/claudinix#burn` anywhere; it reads the session's
+transcripts and prices them from the table above (`CLI.md`, [`burn`](CLI.md#burn)).
+Every session this repository launches ends its pull request text with a
+`Burn:` line, and `burn --pr <n>` collects them into the pull request's
+`## Burn` comment.
+
+The reading below is the `## Burn` of the pull request that built this section,
+run with `just all` (the build session, seven reviews and the fixup). The
+owner session adds its rows before the merge.
+
+| session | model | tokens | $ |
+|---|---|---|---|
 
 ## Not verified
 
