@@ -27,7 +27,7 @@ sib|cloud|cloud launchers \& their prompts, `enroll`
 - cmd: `claudinix-dev steps --write\|--check [--root DIR]` — splices `<!-- BEGIN steps -->` in `docs/INTEGRATION.md` (step, layer, files, check, fix) \& sets the step counts its prose states, from one `pkl eval -x`; replaces `counts`.
 - cmd: `claudinix-dev cli --check [--root DIR]` — `usage:` lines in `docs/CLI.md` code blocks = their script's usage text; exit 1 names doc line \& script.
 - cmd: `claudinix-dev config --write\|--check [--root DIR]` — splices `<!-- BEGIN config -->` in `docs/CONFIG.md` from `scripts/config.jq`'s one `schema` literal.
-- cmd: `claudinix-dev prices --write\|--check [--root DIR]` — splices `<!-- BEGIN prices -->` in `docs/MODEL.md` (model, input, output $ per million) from the one `PRICES` array in `scripts/burn.sh`; `--check` exit 1 on drift.
+- cmd: `claudinix-dev prices --write\|--check [--root DIR]` — MODEL.md prices.
 
 ## §V INVARIANTS
 
@@ -54,3 +54,5 @@ T179|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:V61`,`docs:T178`
 
 id|date|cause|fix
 B18|2026-10-04|T52 cloud commit staged `hk.pkl` only; pre-commit `fix` rewrote INTEGRATION counts in the worktree, unstaged ∴ commit passed stale (repro hk 1.58.1)|V39
+B115|2026-10-23|`prices` parse: tab → exit 2|V1
+B116|2026-10-23|`prices` name: date as version|V1
