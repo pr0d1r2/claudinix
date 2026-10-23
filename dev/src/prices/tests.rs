@@ -73,3 +73,14 @@ fn the_table_has_markers_and_two_decimals() {
          <!-- END prices -->\n"
     );
 }
+
+#[test]
+fn a_dated_id_reads_without_its_date() {
+    assert_eq!(display("claude-sonnet-4-5-20250929"), "Claude Sonnet 4.5");
+}
+
+#[test]
+fn a_row_may_use_any_whitespace_and_carry_a_note() {
+    let script = "PRICES=(\n\t# a note\n\n    \"claude-x  4\t20 extra\"  # trailing\n)\n";
+    assert_eq!(parse(script), Ok(vec![price("claude-x", 4.0, 20.0)]));
+}
