@@ -10,16 +10,19 @@ setup() {
     export HOME="$BATS_TEST_TMPDIR/home"
     export GH_LOG="$BATS_TEST_TMPDIR/gh.log"
     export GH_COMMENTS="$FIXTURES/pr-comments.json"
+    export GH_PULL="$FIXTURES/pull.json"
     SESSIONS="$HOME/.claude/projects/-p"
     mkdir -p "$STUBS" "$SESSIONS"
     unset CLAUDINIX_SCRIPTS CLAUDE_CONFIG_DIR
-    # gh: `pr view N --json comments` prints the fixture; `pr comment`
-    # logs its body (stdin).
+    # gh: `pr view N --json comments` prints the fixture, `api` the pull
+    # request (an OWNER's, body null by default); `pr comment` logs its
+    # body (stdin).
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "$*" >>"$GH_LOG"' \
         'case "$1 $2" in' \
         '"pr view") cat "$GH_COMMENTS" ;;' \
+        '"api repos/{owner}/{repo}/pulls/"*) cat "$GH_PULL" ;;' \
         '"pr comment") cat >>"$GH_LOG" ;;' \
         '*) exit 9 ;;' \
         'esac' >"$STUBS/gh"
@@ -112,6 +115,24 @@ row() {
     [ "${lines[3]}" = "| 2 | 10 | 20 | 30 | 40 | 0.25 |" ]
     [ "${lines[4]}" = "| total | 110 | 220 | 330 | 440 | 1.75 |" ]
     run ! grep -q '^pr comment' "$GH_LOG"
+}
+
+# The build session's Burn line is in the pull request body (B117).
+@test "--pr counts the body's Burn line of a member's pull request as row 1" {
+    GH_PULL="$FIXTURES/pull-burn.json"
+    run --separate-stderr "$SCRIPT" --pr 7
+    [ "$status" -eq 0 ]
+    [ "${lines[2]}" = "| 1 | 1 | 2 | 3 | 4 | 1.14 |" ]
+    [ "${lines[3]}" = "| 2 | 100 | 200 | 300 | 400 | 1.50 |" ]
+    [ "${lines[5]}" = "| total | 111 | 222 | 333 | 444 | 2.89 |" ]
+    grep -q '^api repos/{owner}/{repo}/pulls/7$' "$GH_LOG"
+}
+
+@test "--pr skips the body of a non-member's pull request" {
+    GH_PULL="$FIXTURES/pull-none.json"
+    run --separate-stderr "$SCRIPT" --pr 7
+    [ "$status" -eq 0 ]
+    [ "${lines[4]}" = "| total | 110 | 220 | 330 | 440 | 1.75 |" ]
 }
 
 @test "--pr --post writes 1 ## Burn comment" {
