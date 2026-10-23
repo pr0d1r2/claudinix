@@ -42,7 +42,7 @@ V33: a released SHA contains `cloud-home.storepath` for its own agent home, \& e
 V34: config precedence = flag > `.claudinix.toml` > built-in default; no file = today's behaviour; unknown table \| key \| wrong type \| `version` ≠ 1 → exit 2 naming the key \& the file (V26); 1 reader (`scripts/config.sh`), ⊥ ad-hoc parsing in each tool. absent `config.sh` (old install) = no file.
 V37: a claudinix commit given by the user (`setup-line.sh` REV, guide `--rev`): 40 hex = as is, ⊥ clone; 7-39 hex = short SHA → full SHA from GitHub (`gh api repos/pr0d1r2/claudinix/commits/<hex>`, read-only), ⊥ local git (the guide app runs in the target repo ∴ a local prefix may name a wrong commit); answer ⊥ 40 hex \| gh fails → exit 1 naming REV (V26), no line; other REV (`HEAD~1`, branch) → local `git rev-parse`.
 V57: `spec-ids` fails closed, naming the line: pointer to a missing/empty archive, unparsable `ARCHIVED to` line, reversed or >1000-id range (B95-B97).
-V61: `burn` $ = list price/model from 1 table in `burn.sh`; `docs/MODEL.md` price block from it (`dev:T179`), ⊥ 2nd copy; cache read 0.1×, write 5m 1.25×, 1h 2× input; unknown model → tokens, $ `?`, ⊥ guessed; `unmeasured (<why>)` ∈ `no-transcript` \| `no-usage`, ⊥ raw error \| path; network only `gh` (`--pr`); writes only `--post`; `--pr` trusts OWNER \| MEMBER.
+V61: `burn` $ = list price/model from 1 table in `burn.sh`; `docs/MODEL.md` price block from it (`dev:T179`), ⊥ 2nd copy; cache read 0.1×, write 5m 1.25×, 1h 2× input; unknown model → tokens, $ `?`, ⊥ guessed; `unmeasured (<why>)` ∈ `no-transcript` \| `no-usage`, ⊥ raw error \| path; network only `gh` (`--pr`); writes only `--post`; `--pr` reads the PR body (row 1) + comments, trusts each only from an OWNER \| MEMBER author (B117).
 V62: `burn` rows: usage \& `model` ≠ `<synthetic>`; ⊥ jq failure → code; 1h ⊥ twice; longest price prefix; 1 `Burn:` definition; `--pr` ∈ digits
 
 ## §T TASKS
@@ -81,3 +81,4 @@ B4, B7, B10, B13, B17, B62, B81, B82, B91, B95-B97, B110-B112: ARCHIVED to SPEC-
 
 id|date|cause|fix
 B14|2026-10-04|guide step 3 \& SETUP said "Create environment"; button reads "Add environment" ⇒ UI labels drift; ⊥ invariant checks the UI (`.:C2`), ∴ bats pins it|`.:C2`
+B117|2026-10-23|`--pr` read comments only; build's `Burn:` is in the PR body ⇒ `## Burn` total missed it (#65: $2.71, real $3.85)|V61
