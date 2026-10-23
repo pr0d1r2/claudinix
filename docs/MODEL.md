@@ -89,6 +89,25 @@ Every session this repository launches ends its pull request text with a
 `Burn:` line, and `burn --pr <n>` collects them into the pull request's
 `## Burn` comment.
 
+What one task cost, measured: this section's own `just all` run
+([#67](https://github.com/pr0d1r2/claudinix/pull/67), 2026-10-23, after
+rtk), from its `## Burn` comment. Tokens are input, cache write, cache read
+and output together; most of them are cache reads, billed at 0.1× the input
+price.
+
+| Session | Model | Tokens | $ |
+|---|---|---|---|
+| build | Sonnet 5.5 | 773,149 | 0.57 |
+| review: architecture | Sonnet 5.5 | 267,460 | 0.23 |
+| review: correctness | Sonnet 5.5 | 267,640 | 0.23 |
+| review: extensibility | Sonnet 5.5 | 266,579 | 0.22 |
+| review: fleet | Sonnet 5.5 | 176,321 | 0.19 |
+| review: security | Sonnet 5.5 | 265,798 | 0.22 |
+| review: performance | Sonnet 5.5 | 266,126 | 0.22 |
+| review: maintainability | Sonnet 5.5 | 266,097 | 0.22 |
+| fixup | Sonnet 5.5 | 693,868 | 0.39 |
+| **total, 9 sessions** | | **3,243,038** | **2.49** |
+
 ## Not verified
 
 - **How cloud sessions are billed.** Whether a session is charged at exactly
