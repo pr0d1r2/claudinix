@@ -14,7 +14,8 @@
 #   --self   1 line `Burn: in=.. cw=.. cr=.. out=.. $x.xx (models)`; when
 #            it cannot measure: `Burn: unmeasured (no-transcript|no-usage)`,
 #            exit 0
-#   --pr N   table of the PR's `Burn:` lines from OWNER | MEMBER comments
+#   --pr N   table of the PR's `Burn:` lines, body then comments, from an
+#            OWNER | MEMBER author
 #   --post   with --pr: write the table as 1 `## Burn` comment
 #   --prices the price table as JSON, {model-prefix: [input, output]}; reads nothing else
 # Env:   CLAUDINIX_SCRIPTS  dir holding burn.jq (default: this script's dir)
@@ -81,7 +82,11 @@ burn_jq() {
 }
 
 if [ -n "$pr" ]; then
-    table=$(gh pr view "$pr" --json comments | burn_jq pr)
+    # The build writes its Burn line in the body, the rest comment (B117).
+    table=$({
+        gh api "repos/{owner}/{repo}/pulls/$pr"
+        gh pr view "$pr" --json comments
+    } | burn_jq pr)
     echo "$table"
     [ "$post" = 0 ] || printf '## Burn\n\n%s\n' "$table" | gh pr comment "$pr" --body-file -
     exit 0
