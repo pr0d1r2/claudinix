@@ -1,7 +1,8 @@
 # burn.sh's arithmetic (SPEC scripts:T176, V61). Modes (--arg mode):
 #   table  slurped transcript rows -> markdown table, 1 row per model + total
 #   self   slurped transcript rows -> the 1 line `Burn: ...` ("no-usage" when none)
-#   pr     slurped `gh pr view --json comments` -> table of trusted Burn lines
+#   pr     slurped `gh api .../pulls/N` then `gh pr view --json comments` ->
+#          table of trusted Burn lines, the body's first (B117)
 # --argjson prices: {model-prefix: [input, output]} in $ per million tokens.
 
 def cents: (. * 100 | round) as $c
@@ -91,6 +92,8 @@ def pr:
 
 if $mode == "table" then table
 elif $mode == "self" then self
-elif $mode == "pr" then .[0] | pr
+elif $mode == "pr" then
+    {comments: [.[0] | {authorAssociation: .author_association, body: (.body // "")}]
+               + .[1].comments} | pr
 else error("burn.jq: unknown mode \($mode)")
 end

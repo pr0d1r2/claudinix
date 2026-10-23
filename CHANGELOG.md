@@ -21,7 +21,7 @@ does are summarised briefly; the git history has the detail.
 ## Unreleased
 
 - New `burn` command (`just burn`, `nix run …#burn`): what a Claude Code session cost, per model, from its
-  transcripts; `--self` prints one line, `--pr N [--post]` sums the `Burn:` lines of a pull request. It skips `<synthetic>` rows and prices a row without a model as `?`, and counts a 1h cache write once. `burn --prices` prints the price table, and the longest matching model prefix sets the price. `burn --pr` keeps the known part of a `$x+?` line and marks a `Burn:` line it cannot parse as `+?`; `--pr` takes a pull request number only; with no argument it finds the newest session however many transcripts exist.
+  transcripts; `--self` prints one line, `--pr N [--post]` sums the `Burn:` lines of a pull request. It skips `<synthetic>` rows and prices a row without a model as `?`, and counts a 1h cache write once. `burn --prices` prints the price table, and the longest matching model prefix sets the price. `burn --pr` keeps the known part of a `$x+?` line and marks a `Burn:` line it cannot parse as `+?`; `burn --pr` also counts the pull request body's `Burn:` line (the build session's) as row 1, when an owner or member opened it; `--pr` takes a pull request number only; with no argument it finds the newest session however many transcripts exist.
 - Cloud sessions started by `just cloud`, `review`, `fixup` and `spec-optimize` end the pull request text they write
   with their own `Burn:` line (the review comment: the line before `Findings: N`), and `just all` posts the
   pull request's `## Burn` comment before the merge, or when the flow stops once the pull request is known. A failed post is a note, not a stop.
