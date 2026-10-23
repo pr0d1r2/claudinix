@@ -66,11 +66,11 @@ licences are in the sections above and below it.
 | `home-manager` | `git+https://github.com/nix-community/home-manager` | `release-26.05` | `db7d5e2332710f5abb088f6b5de927d7f9511b35` | git |
 | `itok` | `git+https://github.com/pr0d1r2/itok` | `refs/tags/v0.3.1` | `f6b6b7222d1858c1003906c519fdb363b36df2d9` | git |
 | `microlith` | `git+https://github.com/pr0d1r2/microlith` | `refs/tags/v0.7.3` | `58a36c3bc90b76e1f561996b14cf3beaf9a40ed2` | git |
-| `nix-hk` | `git+https://github.com/pr0d1r2/nix-hk` | `main` | `9c806785a2aca089d8e843d05a187167ab820d40` | git |
+| `nix-hk` | `git+https://github.com/pr0d1r2/nix-hk` | `main` | `f4a98a5bc459827c68f27efa357688120ea0a633` | git |
 | `nix-home-manager-claude-code` | `git+https://github.com/pr0d1r2/nix-home-manager-claude-code` | `main` | `0ba21fb0077d82ef8d25981426d5f8441fe3ac94` | git |
 | `nix-rtk` | `git+https://github.com/pr0d1r2/nix-rtk` | `cached` | `2edc223599d8a8ca59acd4ee428b9e1c810f91b2` | git |
-| `nixpkgs` | `github:NixOS/nixpkgs` | `nixos-26.05` | `26f4107e47e3ad0ffd0db220469ba83b6f6d96e8` | github |
-| `nixpkgs-lock` | `git+https://github.com/pr0d1r2/nixpkgs-lock` | `main` | `1845ce3aad075a02338f61fdd7afeac3ccb1c308` | git |
+| `nixpkgs` | `github:NixOS/nixpkgs` | `nixos-26.05` | `da6dc0e7b26060f2f71ce3ef7088fb56ee44fa36` | github |
+| `nixpkgs-lock` | `git+https://github.com/pr0d1r2/nixpkgs-lock` | `main` | `e95fdd0f1e32b637b9f9dd2f3cf8dc4902492be3` | git |
 | `rtk-src` | `git+https://github.com/rtk-ai/rtk` | `refs/tags/v0.51.0` | `e001f773f80b22b7dc4c7a79521b30e35aaef026` | git |
 | `set-and-setting` | `git+https://github.com/pr0d1r2/set-and-setting` | `main` | `c54b884879d64492523421472069bf7709c912d3` | git |
 | `sherd` | `git+https://github.com/pr0d1r2/sherd` | `refs/tags/v0.5.4` | `479b14c0d042c9b7700bf684c21e0113d0cf706a` | git |
