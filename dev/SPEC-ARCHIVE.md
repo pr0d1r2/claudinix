@@ -16,3 +16,4 @@ T109|x|`notices --write\|--check`: `docs/THIRD-PARTY-NOTICES.md` inputs table (n
 T110|x|`facts --check`: numbers README \& `docs/LLM-DISCLAIMER.md` quote in prose (gate steps, tests, nodes, probe count, pinned Nix \& floor) = their owning files; probes = distinct `probe N` in FACTS rows (pklith `facts`)|V1
 T111|x|`changelog FILE` (commit-msg step): `feat`\|`fix` staging session code (`setup.sh`, `probe.sh`, `*.txt` app data, `nix/{cloud-home,apps}.nix`, `nix/cloud-permissions.json`, `scripts/**` ⊥ `{guard,hk,ci,dev,nix}/`) ! stage `CHANGELOG.md`; else refuse w/ rule \& paths (pklith `changelog`)|`.:V20`,`docs:T37`
 T123|x|enforce V39: `badges` \& `steps` `--check` on an index snapshot (`git checkout-index`) in pre-commit|V39,`.:V36`,B18
+T179|x|`claudinix-dev` fills the `docs/MODEL.md` price block (`<!-- BEGIN\|END -->`) from the `scripts/burn.sh` table; `--check` fails on drift (gate step: `hk.pkl` \& the block in 1 commit, `.:V36`)|`scripts:V61`,`docs:T178`
