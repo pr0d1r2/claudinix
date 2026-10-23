@@ -89,13 +89,6 @@ Every session this repository launches ends its pull request text with a
 `Burn:` line, and `burn --pr <n>` collects them into the pull request's
 `## Burn` comment.
 
-The reading below is the `## Burn` of the pull request that built this section,
-run with `just all` (the build session, seven reviews and the fixup). The
-owner session adds its rows before the merge.
-
-| session | model | tokens | $ |
-|---|---|---|---|
-
 ## Not verified
 
 - **How cloud sessions are billed.** Whether a session is charged at exactly
