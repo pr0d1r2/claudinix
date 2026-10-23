@@ -27,6 +27,7 @@ sib|cloud|cloud launchers \& their prompts, `enroll`
 - cmd: `claudinix-dev steps --write\|--check [--root DIR]` — splices `<!-- BEGIN steps -->` in `docs/INTEGRATION.md` (step, layer, files, check, fix) \& sets the step counts its prose states, from one `pkl eval -x`; replaces `counts`.
 - cmd: `claudinix-dev cli --check [--root DIR]` — `usage:` lines in `docs/CLI.md` code blocks = their script's usage text; exit 1 names doc line \& script.
 - cmd: `claudinix-dev config --write\|--check [--root DIR]` — splices `<!-- BEGIN config -->` in `docs/CONFIG.md` from `scripts/config.jq`'s one `schema` literal.
+- cmd: `claudinix-dev prices --write\|--check [--root DIR]` — splices `<!-- BEGIN prices -->` in `docs/MODEL.md` (model, input, output $ per million) from the one `PRICES` array in `scripts/burn.sh`; `--check` exit 1 on drift.
 
 ## §V INVARIANTS
 
