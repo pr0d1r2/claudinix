@@ -116,7 +116,7 @@
     # `rtk-pin` check fails when either rev leaves the one that build used
     # (rtk would then compile in every cloud setup).
     rtk-src = {
-      url = "git+https://github.com/rtk-ai/rtk?ref=refs/tags/v0.51.0&shallow=1";
+      url = "git+https://github.com/rtk-ai/rtk?ref=refs/tags/v1.0.1&shallow=1";
       flake = false;
     };
     nix-rtk = {
