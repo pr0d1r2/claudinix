@@ -214,7 +214,7 @@ nix run github:pr0d1r2/claudinix#burn -- --pr 12 --post
 | `FILE` | that transcript |
 | `DIR` | every transcript below it |
 | `--self` | one line, `Burn: in=<n> cw=<n> cr=<n> out=<n> $<x.xx> (<models>)`; `Burn: unmeasured (no-transcript)` or `(no-usage)` when it cannot measure, exit 0 |
-| `--pr N` | a table of the `Burn:` lines in the pull request's comments by its owner or members, and their total (needs `gh`); `N` is a pull request number, not a URL. A `Burn:` line it cannot parse counts as `+?` in the total |
+| `--pr N` | a table of the `Burn:` lines in the pull request's body (row 1, the build session's) and comments, each counted only when its author is an owner or member, and their total (needs `gh`); `N` is a pull request number, not a URL. A `Burn:` line it cannot parse counts as `+?` in the total |
 | `--post` | with `--pr`: write that table as one `## Burn` comment |
 | `--prices` | the price table as JSON, `{model-prefix: [input, output]}` in dollars per million tokens; reads no transcript |
 
