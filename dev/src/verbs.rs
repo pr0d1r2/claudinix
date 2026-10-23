@@ -7,7 +7,7 @@ use std::process::Command;
 
 use claudinix_dev::changelog::{self, Head};
 use claudinix_dev::prose::{self, Owners};
-use claudinix_dev::{facts, notices, region, splice};
+use claudinix_dev::{facts, notices, prices, region, splice};
 
 use super::{Failed, bats_tests, gate_steps, need, read};
 
@@ -53,6 +53,16 @@ pub fn notices(root: &Path, check: bool) -> Result<(), Failed> {
     let doc = read(root, DOC)?;
     let block = notices::table(&inputs);
     update(root, DOC, notices::NAME, &doc, &block, "notices", check)
+}
+
+/// Write the price table in docs/MODEL.md, or check it, from burn.sh's
+/// one `PRICES` array (dev:T179).
+pub fn prices(root: &Path, check: bool) -> Result<(), Failed> {
+    const DOC: &str = "docs/MODEL.md";
+    let listed = prices::parse(&read(root, "scripts/burn.sh")?).map_err(|message| (2, message))?;
+    let doc = read(root, DOC)?;
+    let block = prices::table(&listed);
+    update(root, DOC, prices::NAME, &doc, &block, "prices", check)
 }
 
 /// The docs whose prose numbers `facts --check` holds to their owners.
