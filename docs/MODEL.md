@@ -71,8 +71,8 @@ budget.
 | Claude Haiku 4.5 | $1.00 | $5.00 |
 <!-- END prices -->
 
-For scale only: a job that reads 2 million tokens and writes 200 thousand
-costs about $6 on Sonnet 5.5 and $12 on Opus 5.5, at these rates.
+For scale only: a job costs its input tokens times the input price plus its
+output tokens times the output price, per million tokens, at these rates.
 
 ## What a session costs
 
