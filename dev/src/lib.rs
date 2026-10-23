@@ -11,6 +11,7 @@
 //! claudinix-dev steps --write|--check [--root DIR]    docs/INTEGRATION.md step table and counts
 //! claudinix-dev cli --check [--root DIR]               docs/CLI.md usage lines
 //! claudinix-dev config --write|--check [--root DIR]   docs/CONFIG.md key table
+//! claudinix-dev prices --write|--check [--root DIR]   docs/MODEL.md price table
 //! ```
 //!
 //! Exit 0 clean, 1 drift, 2 usage or I/O.
@@ -23,6 +24,7 @@ pub mod counts;
 pub mod facts;
 pub mod json;
 pub mod notices;
+pub mod prices;
 pub mod prose;
 pub mod region;
 pub mod splice;
