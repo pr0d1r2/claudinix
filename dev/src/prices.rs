@@ -30,7 +30,8 @@ pub fn parse(script: &str) -> Result<Vec<Price>, String> {
         .lines()
         .skip_while(|line| line.trim_end() != "PRICES=(")
         .skip(1)
-        .take_while(|line| line.trim() != ")");
+        .take_while(|line| line.trim() != ")")
+        .filter(|line| !line.trim().is_empty() && !line.trim().starts_with('#'));
     let prices = rows.map(row).collect::<Result<Vec<_>, _>>()?;
     if prices.is_empty() {
         return Err("scripts/burn.sh has no `PRICES=(` rows; fix the source".to_owned());
@@ -38,11 +39,18 @@ pub fn parse(script: &str) -> Result<Vec<Price>, String> {
     Ok(prices)
 }
 
-/// One `"model input output"` row.
+/// One `"model input output"` row; a trailing `# note` and extra columns
+/// are ignored.
 fn row(line: &str) -> Result<Price, String> {
     let bad = || format!("scripts/burn.sh PRICES row {line:?} is not \"model input output\"");
-    let fields: Vec<&str> = line.trim().trim_matches('"').split(' ').collect();
-    let [model, input, output] = fields.as_slice() else {
+    let quoted = line.trim().trim_start_matches('"');
+    let fields: Vec<&str> = quoted
+        .split(['"', '#'])
+        .next()
+        .unwrap_or_default()
+        .split_whitespace()
+        .collect();
+    let [model, input, output, ..] = fields.as_slice() else {
         return Err(bad());
     };
     Ok(Price {
@@ -52,11 +60,17 @@ fn row(line: &str) -> Result<Price, String> {
     })
 }
 
+/// A dated id's `20250929` part: digits too long to be a version number.
+fn is_date(part: &str) -> bool {
+    part.len() > 2 && part.chars().all(|c| c.is_ascii_digit())
+}
+
 /// A model id as the doc names it: `claude-opus-5-5` is `Claude Opus 5.5`.
 #[must_use]
 pub fn display(model: &str) -> String {
     let (words, version): (Vec<&str>, Vec<&str>) = model
         .split('-')
+        .filter(|part| !is_date(part))
         .partition(|part| !part.chars().all(|c| c.is_ascii_digit()));
     let words: Vec<String> = words
         .iter()
