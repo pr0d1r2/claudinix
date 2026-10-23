@@ -52,6 +52,9 @@ owner-side steps are in [`FORKING.md`](FORKING.md) and
    routine or run more sessions in parallel, and once a week while you
    use cloud sessions.
 
+To see what a session cost, run `burn` ([`CLI.md`](CLI.md#burn)); what to expect
+is in [`MODEL.md`](MODEL.md#what-a-session-costs).
+
 ## 1. Prerequisites
 
 - **Nix with flakes on your own machine.** The guide and the other

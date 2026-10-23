@@ -98,7 +98,7 @@ read on 2026-10-04. They are not measured in a session yet.
 
 | fact | measured | source |
 |---|---|---|
-| 8 short sessions (7 probes and 1 job, 7 of them on Opus 5.5) cost about $7 in total, roughly $0.90 per session. The split between sessions is not measured yet. | 2026-10-03 | usage page |
+| 8 short sessions (7 probes and 1 job, 7 of them on Opus 5.5) cost about $7 in total, roughly $0.90 per session. The split between sessions is not measured. This was before rtk (2026-10-09); for a current figure see [`MODEL.md`](MODEL.md#what-a-session-costs) and measure with `burn` ([`CLI.md`](CLI.md#burn)). | 2026-10-03 | usage page |
 
 ## Still open
 

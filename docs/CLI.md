@@ -200,7 +200,8 @@ static.crates.io	p/Cargo.toml
 ## burn
 
 What a Claude Code session cost, from its `*.jsonl` transcripts. It reads
-files only, and writes only with `--post`.
+files only, and writes only with `--post`. What a session costs, measured
+with it: [`MODEL.md`](MODEL.md#what-a-session-costs).
 
 ```sh
 nix run github:pr0d1r2/claudinix#burn
