@@ -22,7 +22,7 @@
 #
 # List price in $ per million tokens: input, output. A model name matches
 # by prefix (the longest wins), so a dated id finds its row. The one source
-# of prices (`--prices`); docs/MODEL.md is filled from it once dev:T179 lands.
+# of prices (`--prices`); docs/MODEL.md price block is filled from it (`claudinix-dev prices`, dev:T179).
 PRICES=(
     "claude-opus-5-5 4 20"
     "claude-opus-4-6 5 25"
