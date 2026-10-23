@@ -150,6 +150,7 @@ edit is lost or fails the check.
 | steps | `docs/INTEGRATION.md` | `claudinix-dev steps --write` |
 | config | `docs/CONFIG.md` | `claudinix-dev config --write` |
 | inputs | `docs/THIRD-PARTY-NOTICES.md` | `claudinix-dev notices --write` |
+| prices | `docs/MODEL.md` | `claudinix-dev prices --write` |
 
 Two more checks only compare and never write: `claudinix-dev cli --check`
 (the `usage:` lines in [`CLI.md`](CLI.md) against the scripts) and
