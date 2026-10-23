@@ -10,6 +10,7 @@
 //! claudinix-dev steps --write|--check [--root DIR]
 //! claudinix-dev cli --check [--root DIR]
 //! claudinix-dev config --write|--check [--root DIR]
+//! claudinix-dev prices --write|--check [--root DIR]
 //! ```
 //!
 //! Exit 0 clean, 1 drift, 2 usage or I/O.
@@ -24,7 +25,7 @@ use claudinix_dev::{cli, config, counts, facts, region, splice, steps};
 mod verbs;
 
 const USAGE: &str =
-    "usage: claudinix-dev <badges|config|notices|steps> <--write|--check> [--root DIR]
+    "usage: claudinix-dev <badges|config|notices|prices|steps> <--write|--check> [--root DIR]
        claudinix-dev cli|facts --check [--root DIR]
        claudinix-dev changelog MESSAGE-FILE";
 
@@ -64,6 +65,7 @@ fn dispatch(args: &[String]) -> Result<(), Failed> {
     match verb {
         "badges" => badges(root, check),
         "notices" => verbs::notices(root, check),
+        "prices" => verbs::prices(root, check),
         "facts" => verbs::facts(root, check),
         "steps" => step_table(root, check),
         "cli" if check => cli_usages(root),
