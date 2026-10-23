@@ -17,7 +17,7 @@ The probe launcher (`nix run github:pr0d1r2/claudinix#probe`, built under
 `scripts:T28`) exists and passes `--model sonnet` by default; `--model M`
 picks another. A session started without `--model` ran on Opus 5.5 (probe 6,
 `FACTS.md`), and seven of the eight sessions in the cost reading ran on Opus
-5.5 (`FACTS.md`, "Cost"). So pass the flag yourself whenever you start a
+5.5 ([`FACTS.md`](FACTS.md), "Cost"). So pass the flag yourself whenever you start a
 session by hand.
 
 ## How to choose, and how to check
@@ -84,7 +84,7 @@ the split between those sessions was never measured.
 
 To measure a session yourself, run `just burn` in a checkout, or
 `nix run github:pr0d1r2/claudinix#burn` anywhere; it reads the session's
-transcripts and prices them from the table above (`CLI.md`, [`burn`](CLI.md#burn)).
+transcripts and prices them from the table above ([`CLI.md`](CLI.md#burn)).
 Every session this repository launches ends its pull request text with a
 `Burn:` line, and `burn --pr <n>` collects them into the pull request's
 `## Burn` comment.
