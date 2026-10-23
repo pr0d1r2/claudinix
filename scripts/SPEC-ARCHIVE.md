@@ -54,3 +54,6 @@ B91|2026-10-17|`mth archive` rewrites SPEC-ARCHIVE.md as §T only ∴ #48 fixup 
 B95|2026-10-17|`awk NR == FNR` + empty/missing archive ⇒ `spec-ids` swallowed every dangling pointer, exit 0|V57
 B96|2026-10-17|`spec-ids` expanded `B1-B999999999` unbounded ⇒ gate hang|V57
 B97|2026-10-17|`spec-ids` skipped an unknown `ARCHIVED to` shape ⇒ failed open|V57
+B110|2026-10-18|`<synthetic>` row = a model ⇒ every total `X+?`|V62
+B111|2026-10-18|row w/o `model` crashed jq, `--self` said `no-usage`|V62
+B112|2026-10-18|1h cache write counted twice|V62
