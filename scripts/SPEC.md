@@ -77,10 +77,7 @@ T176|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V61,V26,`cloud:V51`
 
 ## §B BUGS
 
-B4, B7, B10, B13, B17, B62, B81, B82, B91, B95-B97: ARCHIVED to SPEC-ARCHIVE.md `## §B BUGS`
+B4, B7, B10, B13, B17, B62, B81, B82, B91, B95-B97, B110-B112: ARCHIVED to SPEC-ARCHIVE.md `## §B BUGS`
 
 id|date|cause|fix
 B14|2026-10-04|guide step 3 \& SETUP said "Create environment"; button reads "Add environment" ⇒ UI labels drift; ⊥ invariant checks the UI (`.:C2`), ∴ bats pins it|`.:C2`
-B110|2026-10-18|`<synthetic>` row = a model ⇒ every total `X+?`|V62
-B111|2026-10-18|row w/o `model` crashed jq, `--self` said `no-usage`|V62
-B112|2026-10-18|1h cache write counted twice|V62
