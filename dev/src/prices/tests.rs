@@ -57,9 +57,14 @@ fn a_row_with_a_missing_field_is_refused() {
 
 #[test]
 fn a_model_id_reads_as_its_name() {
-    assert_eq!(display("claude-opus-5-5"), "Claude Opus 5.5");
-    assert_eq!(display("claude-haiku-4-5"), "Claude Haiku 4.5");
-    assert_eq!(display("claude-fable-5-1"), "Claude Fable 5.1");
+    for (id, name) in [
+        ("claude-opus-5-5", "Claude Opus 5.5"),
+        ("claude-haiku-4-5", "Claude Haiku 4.5"),
+        ("claude-fable-5-1", "Claude Fable 5.1"),
+        ("claude-sonnet-4-5-20250929", "Claude Sonnet 4.5"),
+    ] {
+        assert_eq!(display(id), name, "{id}");
+    }
 }
 
 #[test]
@@ -72,11 +77,6 @@ fn the_table_has_markers_and_two_decimals() {
          | Claude Opus 5.5 | $4.00 | $20.00 |\n\
          <!-- END prices -->\n"
     );
-}
-
-#[test]
-fn a_dated_id_reads_without_its_date() {
-    assert_eq!(display("claude-sonnet-4-5-20250929"), "Claude Sonnet 4.5");
 }
 
 #[test]
