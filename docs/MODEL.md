@@ -62,12 +62,14 @@ Anthropic's price list, not the list itself: check
 Anthropic's pricing page before you
 budget.
 
+<!-- BEGIN prices: generated from scripts/burn.sh by `claudinix-dev prices --write`; do not edit -->
 | model | input | output |
 |---|---|---|
 | Claude Opus 5.5 | $4.00 | $20.00 |
 | Claude Opus 4.6 | $5.00 | $25.00 |
 | Claude Sonnet 5.5 | $2.00 | $10.00 |
 | Claude Haiku 4.5 | $1.00 | $5.00 |
+<!-- END prices -->
 
 For scale only: a job that reads 2 million tokens and writes 200 thousand
 costs about $6 on Sonnet 5.5 and $12 on Opus 5.5, at these rates.
