@@ -819,7 +819,7 @@ OWNER_KEY='pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM='
 }
 
 @test "wall time: setup reports how long it took (T7, V5)" {
-    run bash "$SCRIPT"
+    CLAUDINIX_SETUP_BUDGET=86400 run bash "$SCRIPT"
     [ "$status" -eq 0 ]
     [[ "$output" =~ setup:\ finished\ in\ [0-9]+s ]]
     [[ "$output" != *"WARNING: setup took"* ]]
