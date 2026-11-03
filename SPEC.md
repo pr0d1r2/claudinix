@@ -128,3 +128,4 @@ B16|2026-10-04|cloud: probe test saw the session's `nix-dev`; setup test expecte
 B45|2026-10-09|rtk rewrites `git push origin main` to `rtk git push …`; prefix deny rules may miss it (#24 review)|`home:V44`
 B57|2026-10-12|`agent-home:C33` resolved as `home:C33` (#30)|V48
 B61|2026-10-13|`node-names` trusted the §F shape: header-only passed unchecked, any `\|` line after the header was a row (#34 review)|V48
+B118|2026-11-03|T7 no-warning wall-time test ran w/ caller's `CLAUDINIX_SETUP_BUDGET` \& real elapsed time ∴ host env or slow run → red (#71 review)|V21: test sets its own budget
