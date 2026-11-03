@@ -22,6 +22,7 @@ To re-measure, run [`probe.sh`](../probe.sh) inside a session.
 | 4 vCPUs (`nproc`), 15 GiB RAM with 10 GiB free at start, no swap; `df /` 252 GB with 26 GB available. The dev shell sets hk and bats jobs to 4 from this and leaves cargo at its default (one job per vCPU); the `jobs-match-vcpus` gate step keeps them equal. Store growth is in the `sherd` row below. | 2026-10-03, 2026-10-04 | probe 6, T52 session |
 | About 30 GB of free disk per session, on a 252 GB device. No cgroup v2 limits are visible. | 2026-10-03 | probe 6 |
 | The VM had been up for 3 minutes when the session started: a fresh boot, not a reused one. | 2026-10-03 | probe 6 |
+| The root disk image is dated 2026-10-27 and already holds Nix 2.34.6 (`/nix/receipt.json`, `/nix/store`), 7 days before this session. The agent home under `~/.claude` was written at 17:21-17:22, minutes after boot, so it is made at session start, not carried in the image. The VM was again up 3 minutes at the first command. One session cannot tell a reused snapshot from a rebuilt one; that needs two sessions back to back. | 2026-11-03 | T55 session |
 | The session sets `CLAUDE_CODE_REMOTE=true`, plus several `CCR_*` variables. A hook can use this to tell it is running in the cloud. | 2026-10-03 | probe 7 |
 
 ## Nix in the image
@@ -103,7 +104,10 @@ read on 2026-10-04. They are not measured in a session yet.
 ## Still open
 
 - Does a second session in the same environment reuse the snapshot and skip
-  the setup script, and how much faster does it start? (`SPEC.md` T55)
+  the setup script, and how much faster does it start? One session shows
+  only the image date and a fresh boot (see The machine); the comparison
+  needs two sessions started back to back, with `date` at the first command
+  of each. (`SPEC.md` T55)
 - Do skills placed in `~/.claude/skills` by the setup script survive until
   Claude starts? (T14, T56)
 - Which git version does the image ship? Not recorded yet (noted
