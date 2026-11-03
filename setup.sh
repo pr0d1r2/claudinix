@@ -20,7 +20,9 @@
 #        nix-dev: CLAUDINIX_LIB_DIR, CLAUDINIX_RAW_URL, CLAUDINIX_REV
 #        (default: the SHA argument, else main); CLAUDINIX_NIX_TIMEOUT
 #        (seconds each of the installer and the two agent home tiers may
-#        take, default 120: T88, V5).
+#        take, default 120: T88, V5); CLAUDINIX_SETUP_BUDGET (seconds of
+#        wall time before setup warns it is past the snapshot window,
+#        default 300: T7, V5, C1).
 
 set -euo pipefail
 
@@ -78,8 +80,24 @@ if ! [[ "$nix_timeout" =~ ^[1-9][0-9]*$ ]]; then
 fi
 nix_net=(--option connect-timeout 10 --option stalled-download-timeout 30)
 
+# The wall time is measured, never assumed (T7, V5): a clean run prints
+# it, and one at or past the budget warns that the snapshot may not be
+# cached, so setup needs trimming (C1).
+setup_budget="${CLAUDINIX_SETUP_BUDGET:-300}"
+if ! [[ "$setup_budget" =~ ^[0-9]+$ ]]; then
+    echo "setup: CLAUDINIX_SETUP_BUDGET must be a whole number of seconds, not '$setup_budget'" >&2
+    exit 2
+fi
+
+rc=0
 work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
+trap 'rc=$?; rm -rf "$work"
+if [ "$rc" -eq 0 ]; then
+    echo "setup: finished in ${SECONDS}s"
+    if [ "$SECONDS" -ge "$setup_budget" ]; then
+        echo "WARNING: setup took ${SECONDS}s, over the ${setup_budget}s snapshot budget: trim it (C1, V5)" >&2
+    fi
+fi' EXIT
 
 fetch() {
     curl -fsSL --connect-timeout 10 --max-time 60 "$1" -o "$2"
