@@ -108,8 +108,9 @@ read on 2026-10-04. They are not measured in a session yet.
 - Does a second session in the same environment reuse the snapshot and skip
   the setup script, and how much faster does it start? One session shows
   only the image date and a fresh boot (see The machine); the comparison
-  needs two sessions started back to back, with `date` at the first command
-  of each. (`SPEC.md` T55)
+  needs two sessions started back to back. Record each session's launch
+  time, run `date` as its first command to mark when it is ready, and
+  compare the two launch-to-ready times. (`SPEC.md` T55)
 - Do skills placed in `~/.claude/skills` by the setup script survive until
   Claude starts? (T14, T56)
 - Which git version does the image ship? Not recorded yet (noted
