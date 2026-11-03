@@ -817,3 +817,22 @@ OWNER_KEY='pr0d1r2.cachix.org-1:NfWjbhgAj41byXhCKiaE+av3Vnphm1fTezHXEGsiQIM='
     [ "$(cat "$CLAUDINIX_LIB_DIR/inputs.jq")" = old ]
     [ ! -e "$CLAUDINIX_LIB_DIR.new" ]
 }
+
+@test "wall time: setup reports how long it took (T7, V5)" {
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ setup:\ finished\ in\ [0-9]+s ]]
+    [[ "$output" != *"WARNING: setup took"* ]]
+}
+
+@test "wall time: at or past the budget warns to trim (T7, V5, C1)" {
+    CLAUDINIX_SETUP_BUDGET=0 run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"WARNING: setup took"*"over the 0s snapshot budget"* ]]
+}
+
+@test "wall time: a budget that is not a whole number is refused (T7)" {
+    CLAUDINIX_SETUP_BUDGET=soon run bash "$SCRIPT"
+    [ "$status" -eq 2 ]
+    [[ "$output" == *"CLAUDINIX_SETUP_BUDGET must be a whole number of seconds"* ]]
+}
