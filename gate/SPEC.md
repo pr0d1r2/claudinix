@@ -43,7 +43,7 @@ V36: a commit that changes `hk.pkl` stages it w/ every file its fix steps regene
 ## §T TASKS
 
 id|status|task|cites
-T180|.|`hk.pkl` globs of `context-limits` \& `spec-ids` name `scripts/lib/require-full-history.sh`, the helper both source|`.:V19`,V36,`scripts:T163`
+T180|x|`hk.pkl` globs of `context-limits` \& `spec-ids` name `scripts/lib/require-full-history.sh`, the helper both source|`.:V19`,V36,`scripts:T163`
 
 ## §B BUGS
 
