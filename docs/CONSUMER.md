@@ -8,7 +8,7 @@ Nothing here is applied for you, and everything below is a recommendation
 with the dated fact behind it.
 
 Why the work lives in your repository and not in the setup script: the setup
-script installs Nix and nothing that belongs to one project (`.:C3`,
+script installs Nix and nothing that belongs to one project (`setup:C3`,
 `.:V7`). Repository toolchains, linters, hooks and dependencies come from your
 flake's dev shell.
 

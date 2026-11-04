@@ -4,7 +4,7 @@ You may not want to trust the owner's binary cache, or you may want sessions
 to read a cache you control. This page lists what to change. It is honest
 about one thing up front: the owner-specific values of `setup.sh` sit in one
 config block at its top, so that for that file a fork edits only that block
-(`.:C11`). Some values live outside `setup.sh`, and this page lists them.
+(`setup:C11`). Some values live outside `setup.sh`, and this page lists them.
 
 Read [`SECURITY.md`](SECURITY.md) first. What you are changing is whose cache
 a root-run script trusts.

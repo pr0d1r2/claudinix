@@ -56,7 +56,7 @@ floor on purpose.
 ## Update the setup script in the environment
 
 **Human.** The environment holds one line, pinned to a commit SHA, so an
-update is a new SHA and nothing else (`.:T24`, `.:V20`). Its fetch of
+update is a new SHA and nothing else (`.:T24`, `setup:V20`). Its fetch of
 `setup.sh` from `raw.githubusercontent.com` has not yet been tried in a real
 cloud session (`.:T57`).
 
