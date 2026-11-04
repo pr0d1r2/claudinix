@@ -50,7 +50,12 @@ fi
 # absent at a side is empty there; one present but unreadable fails (.:V18).
 base_rows="" head_rows="" had_base=""
 for side in "$fork" HEAD; do
-    git cat-file -e "$side:.context-limits" 2>/dev/null || continue
+    # The tree entry tells absent from unreadable; cat-file -e cannot.
+    if ! entry="$(git ls-tree --full-tree "$side" -- .context-limits)"; then
+        echo "context-limits: cannot list the tree at $side -- gate could not run, which is a failure rather than a pass." >&2
+        exit 1
+    fi
+    [ -n "$entry" ] || continue
     [ "$side" = HEAD ] || had_base=1
     if ! rows="$(git show "$side:.context-limits")"; then
         echo "context-limits: cannot read .context-limits at $side -- gate could not run, which is a failure rather than a pass." >&2
@@ -58,8 +63,11 @@ for side in "$fork" HEAD; do
     fi
     if [ "$side" = HEAD ]; then head_rows="$rows"; else base_rows="$rows"; fi
 done
-reasons="$(context_limits_judge <(printf '%s\n' "$base_rows") <(printf '%s\n' "$head_rows"))"
-if [ -n "$had_base" ] && ! git cat-file -e HEAD:.context-limits 2>/dev/null; then
+if ! reasons="$(context_limits_judge <(printf '%s\n' "$base_rows") <(printf '%s\n' "$head_rows"))"; then
+    echo "context-limits: the per-chain judge failed -- gate could not run, which is a failure rather than a pass." >&2
+    exit 1
+fi
+if [ -n "$had_base" ] && [ -z "$(git ls-tree --full-tree HEAD -- .context-limits)" ]; then
     reasons+=$'\ndiff: deletes .context-limits'
 fi
 [ -n "${reasons//$'\n'/}" ] || exit 0
