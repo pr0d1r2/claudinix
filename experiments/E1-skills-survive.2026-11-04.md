@@ -18,8 +18,8 @@ before.
 
 Skills and `settings.json` placed by the setup script survive the session
 start: the harness re-stamps the directories but does not remove entries,
-and the session lists and reads them. They also survive a snapshot taken a
-day earlier. Account-synced skills arrive separately under `synced/` and
+and the session lists and reads them. The files were a day old; snapshot
+reuse is not proven by this experiment. Account-synced skills arrive separately under `synced/` and
 sit beside them.
 
 ## Decision
