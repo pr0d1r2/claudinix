@@ -137,7 +137,7 @@ with `PROBE_STOREPATH` set to one input's store path; its `cachix-input` line
 reports `ok` or `FAIL`. See [`RUNBOOK.md`](RUNBOOK.md), "A probe comes back
 red".
 
-## What this snippet has not been proven on
+## Not yet adopted
 
 Both scripts and the workflow are this repository's own, and its CI runs them.
 No target repository has adopted the page yet. Try it on a branch of the
