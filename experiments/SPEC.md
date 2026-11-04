@@ -24,7 +24,7 @@ sib|setup|`setup.sh`, `allowlist.txt`: install, network, owner values, opt-in ag
 - C8: session facts (probe 2026-10-03, sherd): uid 0, `HOME=/root`, PID 1 `process_api` (⊥ systemd), `unshare -Ur` ok, `PATH` starts `/nix/var/nix/profiles/default/bin`. image ships Nix 2.34.6 (nix-installer, root profile, ⊥ daemon) ∴ `setup.sh` only configures \& links. clone shallow ∴ `tdd-order` needs unshallow. git author `Claude <noreply@anthropic.com>`, ssh-signed, harness adds `Claude-Session:` trailer. pushed branch gets a random suffix (`claude/nix-probe-8yxk95`).
 - C8b: probe log 2-4 (sherd, 2026-10-03) → `docs/FACTS.md` (dated per probe); conclusions live in `setup:C6`, C8, `.:V8`, `scripts:V13`.
 - C8c: probe log 5-7 (sherd, 2026-10-03) → `docs/FACTS.md`; conclusions live in `setup:C6`, C8, `gate:V24`, `gate:C18` (4 vCPU), `docs:T43` timings.
-- C13: `~/.claude/skills` exists at launch w/ harness `session-start-hook` + account-synced skills (`synced/<id>/…`); ⊥ `~/.claude/settings.json`; dirs re-stamped at session start ∴ survival of skills pre-placed by `setup.sh` ? (`experiments:T14`).
+- C13: `~/.claude/skills` exists at launch w/ harness `session-start-hook` + account-synced skills (`synced/<id>/…`); ⊥ `~/.claude/settings.json`; dirs re-stamped at session start ∴ skills \& `settings.json` pre-placed by `setup.sh` survive (E1, 2026-11-04, `docs/FACTS.md`) ∴ agent-home design stays.
 
 ## §I INTERFACES
 
