@@ -1437,7 +1437,7 @@ once, and always exits 0.
 Rules and keys already in that file stay. The agent home now also writes the
 same list into `~/.claude/settings.json` before Claude starts (see the
 [README](../README.md#the-agent-home-is-opt-in)). Whether the fallback applies
-in the session that wrote it is not measured yet (experiment T104).
+in the session that wrote it is not measured yet (experiment T180).
 
 ## setup.sh
 
