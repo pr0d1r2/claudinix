@@ -15,7 +15,7 @@ flowchart TD
     D --> E{"snapshot<br/>exists?"}
     E -->|no| F["setup.sh runs as root<br/>Nix, nix-dev,<br/>agent home only if opted in"]
     F --> G["snapshot saved if setup<br/>took about 5 minutes or less"]
-    E -->|yes| H["setup skipped<br/>(not measured yet)"]
+    E -->|yes| H["setup skipped<br/>(measured, see FACTS)"]
     G --> I["your SessionStart hook"]
     H --> I
     I --> J["Claude starts<br/>as root, nix on PATH"]
