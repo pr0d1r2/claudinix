@@ -105,7 +105,7 @@ T86|x|ARCHIVED to SPEC-ARCHIVE.md|`gate:V32`,`gate:V17`,C27,V28
 T87|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:V33`,`setup:C25`,`nix:V15`
 T88|x|ARCHIVED to SPEC-ARCHIVE.md|V5,V1,`scripts:V13`
 T92|x|ARCHIVED to SPEC-ARCHIVE.md|C28,`scripts:V34`
-T93|.|central cache job (after 1st push): `cache-targets.txt` (flake refs of owner repos) + nightly \| dispatch workflow job → `push-sources.sh <cache> <ref>` ∀ target whose `.claudinix.toml` says `push_sources = true`, then `verify-cachix.sh --sources <ref>`; sources only, ⊥ build outputs of other repos (trust); reads cache name from `cache.name` (⊥ CLI arg only)|C28,`.:V30`,C19,V6
+T93|x|central cache job (after 1st push): `cache-targets.txt` (flake refs of owner repos) + nightly \| dispatch workflow job → `push-sources.sh <cache> <ref>` ∀ target whose `.claudinix.toml` says `push_sources = true`, then `verify-cachix.sh --sources <ref>`; sources only, ⊥ build outputs of other repos (trust); reads cache name from `cache.name` (⊥ CLI arg only)|C28,`.:V30`,C19,V6
 T99|x|ARCHIVED to SPEC-ARCHIVE.md|C29,V30,`setup:C6`
 T100|x|ARCHIVED to SPEC-ARCHIVE.md|C29,`scripts:V34`,`gate:V24`
 T101|x|ARCHIVED to SPEC-ARCHIVE.md|C29,`setup:C24`,C27,`docs:T47`,`experiments:T104`
