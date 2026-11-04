@@ -71,10 +71,14 @@ jobs:
       - run: nix build --no-link .#devShells.x86_64-linux.default
 
       # 3: every locked input, from the flake's own lock file.
-      - run: bash scripts/ci/push-inputs.sh
+      - run: bash scripts/ci/push-sources.sh pr0d1r2
 
       # 4: prove it. See below.
-      - run: bash scripts/ci/verify-cache.sh
+      - run: >-
+          bash scripts/ci/verify-cachix.sh --sources .
+          .#devShells.x86_64-linux.default
+        env:
+          CACHIX_URL: https://pr0d1r2.cachix.org
 ```
 
 Replace `pr0d1r2` with the name of the cache you push to. The `x86_64-linux`
@@ -83,32 +87,27 @@ system is the one cloud sessions run on ([`FACTS.md`](FACTS.md), 2026-10-03).
 ## The two scripts
 
 Keep the shell in script files rather than inline in the workflow. If your
-repository uses xenolith, it requires that anyway.
+repository uses xenolith, it requires that anyway. Copy both from this
+repository as they are:
 
-`scripts/ci/push-inputs.sh` pushes every input path that
-`nix flake archive --json` reports. That command prints a JSON tree: a `path`
-for the flake itself and, under `inputs`, the same for each input, nested.
-
-```sh
-#!/usr/bin/env bash
-set -euo pipefail
-
-paths="$(nix flake archive --json | jq -r '.. | .path? // empty')"
-# shellcheck disable=SC2086 # one store path per word
-cachix push "${CACHE_NAME:-pr0d1r2}" $paths
-```
-
-`scripts/ci/verify-cache.sh` can be this repository's
-[`verify-cachix.sh`](../scripts/ci/verify-cachix.sh) copied as it is. It takes
-flake attributes, evaluates each to a store path, asks the cache for that
-path's narinfo, and fails on anything but HTTP 200. Pass it the dev shell:
+- [`scripts/ci/push-sources.sh`](../scripts/ci/push-sources.sh) `CACHE
+  [FLAKE]` pushes every input path that `nix flake archive --json` reports.
+  That command prints a JSON tree: a `path` for the flake itself and, under
+  `inputs`, the same for each input, nested. It fails when the list is empty
+  or the push fails, so a push that did nothing is red.
+- [`scripts/ci/verify-cachix.sh`](../scripts/ci/verify-cachix.sh) takes flake
+  attributes, evaluates each to a store path, asks the cache for that path's
+  narinfo, and fails on anything but HTTP 200. With `--sources FLAKE` it does
+  the same for every input source of the flake. Pass it the dev shell:
 
 ```sh
-bash scripts/ci/verify-cachix.sh .#devShells.x86_64-linux.default
+bash scripts/ci/verify-cachix.sh --sources . .#devShells.x86_64-linux.default
 ```
 
-It reads the cache from `CACHIX_URL` and defaults to
-`https://pr0d1r2.cachix.org`, so set that for your own cache.
+Both need `jq`. Set `CACHIX_URL` (for example
+`https://pr0d1r2.cachix.org`) in the verify step: without it
+`verify-cachix.sh` looks for this repository's `scripts/config.sh` to find the
+cache name.
 
 ## Checking it worked
 
@@ -130,7 +129,6 @@ red".
 
 ## What this snippet has not been proven on
 
-The workflow and `verify-cachix.sh` are this repository's own, and its CI runs
-them. The `push-inputs.sh` script above is a sketch written for this page and
-has not been run in a target repository yet. Try it on a branch first and
-confirm the narinfo check passes before you rely on it.
+Both scripts and the workflow are this repository's own, and its CI runs them.
+No target repository has adopted the page yet. Try it on a branch of the
+first one and confirm the narinfo check passes before you rely on it.
