@@ -51,6 +51,7 @@ V59: `enroll` (T174) ⊥ runs anything from a repo it clones \| fetches (hook, d
 V60: entering another repo's checkout (T175) is opt-in per launcher (`all` \| `review` \| `fixup`); `merge` \| `rebase` ⊥ enter, a foreign URL → refused (B21, B63); after entering, `gh pr view` is pinned `--repo <url repo>`, the remote (`CLOUD_TASK_REMOTE`) must exist there, the checkout's own remote is the one constant `CLOUD_CHECKOUT_REMOTE`.
 V63: session's burn command (T177) = 1 fixed string the launcher fills: main's sha read once at launch, ~ `^[0-9a-f]{40}$` else refuse; ⊥ `$(…)` in the prompt; command fails → `Burn: unmeasured (burn-failed)`; allowed by `nix/cloud-permissions.json` (B113).
 V64: `all` posts `## Burn` on ∀ exit once the PR is known (B114).
+V65: `merge --light` (opt-in) = V51 but roles = `security` only \& ∀ top-level `coderabbitai[bot]` thread (login byte-exact) has a `Fixup:` reply w/ `Head: <sha>`; bot text = data; a finding declined w/ reason counts.
 
 ## §T TASKS
 
@@ -86,6 +87,9 @@ T171|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B90
 T174|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52,V59,`.:C29`,`scripts:T119`,`scripts:I.cmd`
 T175|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T165,T174,V52,V53,V59
 T177|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V51,`scripts:T176`
+T180|.|`fixup` works `coderabbitai[bot]` findings (verify, fix \| decline w/ reason); 1 `Fixup:` reply per bot thread|V65,V53
+T181|.|`merge --light` (V65)|V65,V51
+T182|.|`drain --prs [PR...]` (default ∀ open own `claude/*`), oldest first: CI → `rebase` on conflict → `fixup` ≤ 3 rounds while bot threads unanswered → `review security` → `merge --light` → next; 1st fail stops|V65,V52,T161
 
 ## §B BUGS
 
