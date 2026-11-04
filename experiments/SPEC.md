@@ -34,7 +34,7 @@ sib|setup|`setup.sh`, `allowlist.txt`: install, network, owner values, opt-in ag
 
 id|status|task|cites
 T7|~|measure setup wall time on fresh VM; record; > 5 min → trim|`.:V5`,C1 — setup.sh prints time, warns ≥ 300 s; 1st figure: next fresh VM
-T14|.|probe ext: `echo $HOME`, `id`, `ls -la ~/.claude`, `settings.json` owner \& content before/after launch; setup places 1 test skill in `~/.claude/skills` → visible to Claude (`/` list) ?|C13,`nix:V14`,I.file
+T14|x|probe ext: `echo $HOME`, `id`, `ls -la ~/.claude`, `settings.json` owner \& content before/after launch; setup places 1 test skill in `~/.claude/skills` → visible to Claude (`/` list) ? — answered by E1 (T56, 2026-11-04) with real agent-home skills|C13,`nix:V14`,I.file,T56
 T51|.|unattended runs: permission mode for routines \& long jobs; what a job does while a prompt waits (timeout, report, ⊥ hang); extends `docs:T47`|`docs:T47`,`.:C9`
 T52|x|record VM resources (`nproc`, `free`, `df /`, store growth) in FACTS; set bats `--jobs`, hk jobs, cargo jobs from them|C18,`docs:T34` — measured: 4 vCPU ∴ hk \& bats jobs = 4, cargo default
 T55|.|measure snapshot reuse: 2nd session in same env skips setup?; start time cold vs warm; record in FACTS|`.:V5`,C1,`docs:T34`
