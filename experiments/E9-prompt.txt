@@ -1,0 +1,8 @@
+Experiment E9 (claudinix experiments/SPEC.md T64): does `nix-dev` override
+the github inputs of a prototype project on its own, without changing the
+project's flake? Change no file of the projects.
+
+1. Clone pr0d1r2/itok and pr0d1r2/microlith (shallow) into new directories.
+2. In each, run `time nix-dev --command true`. Keep every `nix-dev:` line.
+3. In each, run `git status --short`; it must print nothing.
+4. Report per project: tier reached, wall time, any error line.
