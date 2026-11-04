@@ -300,8 +300,8 @@ the platform at any time.
 - **Allowlist edits reach new sessions only.** A running session keeps the
   network rules it started with.
 - **The snapshot is cached only if setup finishes in about five minutes.**
-  Whether a second session really skips the setup script is not measured yet
-  ([`docs/FACTS.md`](docs/FACTS.md), "Still open").
+  A second session skips the setup script; the cold start time is not
+  measured yet ([`docs/FACTS.md`](docs/FACTS.md), "Still open").
 - **Skills placed in `~/.claude/skills` by the setup script** may or may not
   survive the session start. Not measured yet (same list).
 - **Not yet run in a real cloud session:** see the alpha note at the top.
