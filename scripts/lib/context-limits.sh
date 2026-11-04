@@ -41,7 +41,7 @@ context_limits_judge() {
         /^[ \t]*#/ || NF != 2 || $2 !~ /^[0-9]+$/ { next }
         {
             file = $1 ~ /(^|\/)SPEC\.md$/
-            if (FNR == NR) {
+            if (FILENAME == ARGV[1]) {
                 if (file) bfile[$1] = $2
                 else { bchain[$1] = $2; if ($2 + 0 > max) max = $2 + 0 }
             } else if (file) hfile[$1] = $2

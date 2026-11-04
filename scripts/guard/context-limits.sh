@@ -46,9 +46,20 @@ if ! fork="$(git merge-base HEAD "$base")"; then
     exit 1
 fi
 
-# Judged per chain (gate:V67): both files whole, not the row diff.
-reasons="$(context_limits_judge <(git show "$fork:.context-limits" 2>/dev/null || true) <(git show HEAD:.context-limits 2>/dev/null || true))"
-if git cat-file -e "$fork:.context-limits" 2>/dev/null && ! git cat-file -e "HEAD:.context-limits" 2>/dev/null; then
+# Judged per chain (gate:V67): both files whole, not the row diff. A file
+# absent at a side is empty there; one present but unreadable fails (.:V18).
+base_rows="" head_rows="" had_base=""
+for side in "$fork" HEAD; do
+    git cat-file -e "$side:.context-limits" 2>/dev/null || continue
+    [ "$side" = HEAD ] || had_base=1
+    if ! rows="$(git show "$side:.context-limits")"; then
+        echo "context-limits: cannot read .context-limits at $side -- gate could not run, which is a failure rather than a pass." >&2
+        exit 1
+    fi
+    if [ "$side" = HEAD ]; then head_rows="$rows"; else base_rows="$rows"; fi
+done
+reasons="$(context_limits_judge <(printf '%s\n' "$base_rows") <(printf '%s\n' "$head_rows"))"
+if [ -n "$had_base" ] && ! git cat-file -e HEAD:.context-limits 2>/dev/null; then
     reasons+=$'\ndiff: deletes .context-limits'
 fi
 [ -n "${reasons//$'\n'/}" ] || exit 0
