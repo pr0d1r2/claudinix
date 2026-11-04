@@ -49,7 +49,7 @@ T65|.|EXP E10 unattended routine: API-triggered routine on env `nix`, trivial ta
 T66|.|EXP E11 cost per session: usage page before/after E1-E5; confirms credit charged at API rates ?|I.file,`docs:T42` — first reading 2026-10-03: $7 for 8 short sessions (7 probes + 1 job, 7 on Opus 5.5) ≈ $0.90/session; per-session split still unmeasured
 T102|.|EXP self-build 1: after 1st push + green CI, `just cloud` 1 small real task (e.g. `docs:T44`-sized); record in FACTS: setup ok, dev shell time, gate ok, hooks fired (old git?), prompts hit, branch pushed, cost|C29,T56,T57,T62
 T104|.|EXP permission location: in a session w/ the agent home, does `~/.claude/settings.json` written at setup survive to launch \& apply (no prompt for an allowed gate command)? does `.claude/settings.local.json` written by the SessionStart hook apply in the SAME session or only the next? record in FACTS; decides which of `.:T101`'s 2 routes stays|`.:T101`,`.:C27`,T56
-T184|.|EXP council vs CodeRabbit on ≥ 3 PRs: FACTS gets council-only findings \& $ each; council-only outside `cloud:V66` risk → widen it|`cloud:V66`,T66
+T184|.|EXP council vs CodeRabbit on ≥ 3 PRs: FACTS gets per PR the tier, findings council-only \| CodeRabbit-only \| both (same file \& same defect = both) per role, \& USD per review (session cost); council-only outside `cloud:V66` risk → widen it|`cloud:V66`,T66
 T190|.|EXP E2b setup-phase fetch: UI setup line (`curl raw.githubusercontent.com/…/<sha>/setup.sh`) runs before Claude starts; fetch + `nix build ?rev=<sha>` from that phase ok ? record in `experiments/e2-sha-pinned-fetch/result.md` \& FACTS; resolves `setup:V20` `?`|T57,`setup:V20`,`nix:V15`
 
 ## §B BUGS
