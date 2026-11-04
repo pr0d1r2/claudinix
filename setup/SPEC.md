@@ -46,3 +46,4 @@ id|status|task|cites
 ## §B BUGS
 
 id|date|cause|fix
+B118|2026-11-03|`experiments:T7` no-warning wall-time test ran w/ caller's `CLAUDINIX_SETUP_BUDGET` \& real elapsed time ∴ host env or slow run → red (#71 review)|`.:V21`: test sets its own budget
