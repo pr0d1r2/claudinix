@@ -54,7 +54,7 @@ matches.
 | `devshell.installable` | string, no whitespace, quote, backtick or control character | `"."` | `nix-dev` (the installable when you give none), `guide` (the first dev shell check), `probe` (the dev shell the probe task runs) |
 | `network.extra_domains` | list of bare hostnames | `[]` | `domains` (hosts added to the list, source `config`) |
 | `cache.name` | string matching `^[a-z0-9][a-z0-9-]*$` | `"pr0d1r2"` | `inputs` (the cache it asks), `ci/verify-cachix.sh` (the cache it verifies) |
-| `cache.push_sources` | `true` or `false` | `false` | nothing yet: reserved for the central cache job, which is not built |
+| `cache.push_sources` | `true` or `false` | `false` | the central cache job (scripts/ci/push-targets.sh) |
 | `probe.branch_prefix` | string, no whitespace, quote, backtick or control character | `"claude/nix-probe"` | `probe` (the branch the session pushes its report on) |
 <!-- END config -->
 
