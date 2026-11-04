@@ -45,7 +45,7 @@ uptime in the T55 session row; measure those by hand, as Still open describes.
 | "Include default list of common package managers" does **not** cover the nixos.org hosts. The proxy refused `cache.nixos.org` and `channels.nixos.org` until they were added by name. | 2026-10-03 | probes 1-3 |
 | Cargo needs `index.crates.io` and `static.crates.io` added by name. | 2026-10-03 | probe 4 |
 | `raw.githubusercontent.com` is not in the default list either. Without it the setup line's download of `setup.sh` failed with `curl: (22) The requested URL returned error: 403` and setup exited 22. With it allowed, setup finished and Claude Code started. | 2026-10-04 | sessions in env `claudinix` (`.:B15`) |
-| With `raw.githubusercontent.com` allowed, a session fetched `setup.sh` at a full SHA (HTTP 200, same sha256 as the commit) and built `git+https://github.com/pr0d1r2/claudinix?rev=<sha>&shallow=1#homeConfigurations.cloud.activationPackage` in 8.8 s from `cache.nixos.org` and `pr0d1r2.cachix.org`. The setup phase before Claude starts was not tested. | 2026-11-04 | E2 (`experiments/e2-sha-pinned-fetch/`) |
+| With `raw.githubusercontent.com` allowed, a session fetched `setup.sh` at a full SHA (HTTP 200, same sha256 as the commit) and built `git+https://github.com/pr0d1r2/claudinix?rev=<sha>&shallow=1#homeConfigurations.cloud.activationPackage` in 8.8 s from `cache.nixos.org` and `pr0d1r2.cachix.org`. The SHA, both hashes and the store path of a re-run are in the result file. The setup phase before Claude starts was not tested. | 2026-11-04 | E2 (`experiments/e2-sha-pinned-fetch/result.md`) |
 | Editing the allowed domains does not reach a session that is already running. Start a new session. | 2026-10-03 | probe 4 |
 
 ## GitHub
