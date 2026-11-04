@@ -36,7 +36,7 @@ sib|setup|`setup.sh`, `allowlist.txt`: install, network, owner values, opt-in ag
 
 id|status|task|cites
 T7|~|measure setup wall time on fresh VM; record; > 5 min → trim|`.:V5`,C1 — setup.sh prints time, warns ≥ 300 s; 1st figure: next fresh VM
-T14|x|ARCHIVED to SPEC-ARCHIVE.md|C13,`nix:V14`,I.file,T56
+T14|x|probe ext: `echo $HOME`, `id`, `ls -la ~/.claude`, `settings.json` owner \& content before/after launch; setup places 1 test skill in `~/.claude/skills` → visible to Claude (`/` list) ?|C13,`nix:V14`,I.file
 T51|~|unattended runs: permission mode for routines \& long jobs; what a job does while a prompt waits (timeout, report, ⊥ hang); extends `docs:T47`|`docs:T47`,`.:C9` — read only; prompt wait open: T62,T65
 T52|x|ARCHIVED to SPEC-ARCHIVE.md|C18,`docs:T34`
 T55|x|ARCHIVED to SPEC-ARCHIVE.md|`.:V5`,`.:C1`,`docs:T34` — cold start → T193
