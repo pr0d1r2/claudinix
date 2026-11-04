@@ -36,7 +36,7 @@ in
   claudinix-dev = claudinixDev;
 
   # nix-rtk follows our nixpkgs-lock and rtk-src, so its cachix build is
-  # only hit while both locks agree on their revs (nix:T151, B44, .:C14).
+  # only hit while both locks agree on their revs (nix:T151, B44, gate:C14).
   rtk-pin = pkgs.runCommand "rtk-pin-check" {
     nativeBuildInputs = [ pkgs.jq ];
   } "bash ${../scripts/nix/rtk-pin-check.sh} ${src}/flake.lock ${nix-rtk}/flake.lock $out";
@@ -51,7 +51,7 @@ in
       "bash ${../scripts/nix/cloud-home-check.sh} ${cloudHome.activationPackage} ${./cloud-permissions.json} $out ${toString skills.linked}";
 
   # The pinned rtk's own hook says which cloud permission rules it
-  # rewrites; each needs its `rtk ` twin (.:V44, B53). The fast guard
+  # rewrites; each needs its `rtk ` twin (home:V44, B53). The fast guard
   # knows git and cargo only; this catches a tool a new rtk rewrites.
   rtk-twins = pkgs.runCommand "rtk-twins-check" {
     nativeBuildInputs = [ pkgs.jq ];

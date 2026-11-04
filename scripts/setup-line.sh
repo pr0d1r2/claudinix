@@ -8,7 +8,7 @@
 # a line: CI is what pushes its agent home to cachix (C19). No run, a run
 # still going, a failed one, or a gh that cannot answer all refuse;
 # `--force` prints the line anyway and says why it should not have.
-# The agent home is opt-in (.:C24): `--agent-home` appends `--agent-home`
+# The agent home is opt-in (setup:C24): `--agent-home` appends `--agent-home`
 # to the line, which asks setup.sh for it; without it, Nix and nix-dev only.
 #
 # A short SHA (7-39 hex) is looked up on GitHub (scripts:V37).

@@ -379,7 +379,7 @@ local all = (fast) {
     check = "scripts/guard/tdd-order.sh"
   }
   // A ceiling raised or added, or the file deleted, against origin/main
-  // fails, with no override (scripts:T150, .:C20). It reads history, so push
+  // fails, with no override (scripts:T150, gate:C20). It reads history, so push
   // only; the parser it shares with `just merge` is in the glob (.:V19).
   ["context-limits"] {
     glob = List(".context-limits", "scripts/guard/context-limits.sh", "scripts/lib/context-limits.sh")

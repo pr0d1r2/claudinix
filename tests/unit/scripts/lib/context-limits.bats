@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 # Unit tests for scripts/lib/context-limits.sh, the `.context-limits` row
 # parser the context-limits guard and `just merge` share (SPEC
-# scripts:T162, .:C20, cloud:V51).
+# scripts:T162, gate:C20, cloud:V51).
 
 setup() {
     LIB="$BATS_TEST_DIRNAME/../../../../scripts/lib/context-limits.sh"

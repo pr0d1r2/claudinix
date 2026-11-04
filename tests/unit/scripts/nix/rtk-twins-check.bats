@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 bats_require_minimum_version 1.5.0
-# Unit tests for scripts/nix/rtk-twins-check.sh (SPEC .:V44, B53): the
+# Unit tests for scripts/nix/rtk-twins-check.sh (SPEC home:V44, B53): the
 # pinned rtk's own hook says which cloud permission rules it rewrites, and
 # each rewritten rule needs its `rtk ` twin in the same list. A stub rtk
 # rewrites git and cargo commands, like rtk 0.51 does, unless told not to.

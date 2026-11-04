@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # `checks.<system>.rtk-twins`: the pinned rtk's own hook decides which
 # cloud permission rules it rewrites, and each rewritten rule has its
-# `rtk ` twin in the same list (SPEC .:V44, B53). The fast
+# `rtk ` twin in the same list (SPEC home:V44, B53). The fast
 # `cloud-permissions` guard knows git and cargo only; this check catches
 # a tool a newer rtk starts rewriting (nix:T151). It checks the bare-to-rtk
 # direction only; the reverse (every `rtk ` rule has its bare one) is the

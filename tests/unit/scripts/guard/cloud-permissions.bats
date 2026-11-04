@@ -165,7 +165,7 @@ pr_verbs() {
     [[ "$output" == *'Bash(git push *:main)'* ]]
 }
 
-@test "a main-push deny without its rtk twin: refused and named (.:V44)" {
+@test "a main-push deny without its rtk twin: refused and named (home:V44)" {
     list '["Bash(bats *)"]'
     jq '.deny -= ["Bash(rtk git push *:main)"]' "$PERMISSIONS_FILE" >"$PERMISSIONS_FILE.new"
     mv "$PERMISSIONS_FILE.new" "$PERMISSIONS_FILE"
@@ -174,35 +174,35 @@ pr_verbs() {
     [[ "$output" == *'Bash(rtk git push *:main)'* ]]
 }
 
-@test "a git allow without its rtk twin: refused and named (.:V44)" {
+@test "a git allow without its rtk twin: refused and named (home:V44)" {
     list '["Bash(git push origin claude/*)"]'
     run bash "$SCRIPT"
     [ "$status" -eq 1 ]
     [[ "$output" == *'Bash(rtk git push origin claude/*)'* ]]
 }
 
-@test "a cargo allow without its rtk twin: refused and named (.:V44)" {
+@test "a cargo allow without its rtk twin: refused and named (home:V44)" {
     list '["Bash(cargo test *)"]'
     run bash "$SCRIPT"
     [ "$status" -eq 1 ]
     [[ "$output" == *'Bash(rtk cargo test *)'* ]]
 }
 
-@test "git and cargo allows with their rtk twins pass (.:V44)" {
+@test "git and cargo allows with their rtk twins pass (home:V44)" {
     list '["Bash(git push origin claude/*)", "Bash(rtk git push origin claude/*)", "Bash(cargo test *)", "Bash(rtk cargo test *)"]'
     run bash "$SCRIPT"
     [ "$status" -eq 0 ]
     [ -z "$output" ]
 }
 
-@test "a command rtk leaves alone needs no twin (.:V44)" {
+@test "a command rtk leaves alone needs no twin (home:V44)" {
     list '["Bash(nix-dev -c cargo test *)", "Bash(hk check *)", "Bash(claudinix-dev *)"]'
     run bash "$SCRIPT"
     [ "$status" -eq 0 ]
     [ -z "$output" ]
 }
 
-@test "a twin missing either way, in allow or deny: refused and named (.:V44, B53)" {
+@test "a twin missing either way, in allow or deny: refused and named (home:V44, B53)" {
     # KEY|RULE ADDED ALONE|RULE THE GUARD MUST NAME
     while IFS='|' read -r key rule missing; do
         list '["Bash(bats *)"]'
@@ -417,7 +417,7 @@ denied_by_repo_list() {
     done
 }
 
-@test "dropping the gh pr merge deny is refused; a gh rule needs its rtk twin (.:C29, .:V44)" {
+@test "dropping the gh pr merge deny is refused; a gh rule needs its rtk twin (.:C29, home:V44)" {
     list '["Bash(bats *)"]'
     jq '.deny -= ["Bash(gh pr merge *)", "Bash(rtk gh pr merge *)"]' "$PERMISSIONS_FILE" >"$PERMISSIONS_FILE.new"
     mv "$PERMISSIONS_FILE.new" "$PERMISSIONS_FILE"

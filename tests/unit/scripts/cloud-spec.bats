@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 bats_require_minimum_version 1.5.0
 # Unit tests for scripts/cloud-spec.sh, `just spec-optimize` (SPEC
-# cloud:T148, cloud:I.cmd, .:C20, .:C29, .:V18, scripts:V26). claude,
+# cloud:T148, cloud:I.cmd, gate:C20, .:C29, .:V18, scripts:V26). claude,
 # script, git, itok and sherd are stubs: no session is started, nothing
 # reaches a remote and nothing is measured for real.
 
@@ -106,7 +106,7 @@ setup() {
     [ "$status" -eq 2 ]
 }
 
-# --- default: the nodes over their .context-limits rows (.:C20) ---
+# --- default: the nodes over their .context-limits rows (gate:C20) ---
 
 @test "no node named: the nodes itok and sherd find over their ceilings, in §F order" {
     printf '%s\n' '{"ok":false,"breaches":[{"path":"docs/SPEC.md","tokens":9,"limit":1},{"path":"SPEC.md","tokens":9,"limit":1}]}' >"$STATE/itok.json"

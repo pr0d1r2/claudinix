@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # The one reader of `.context-limits` rows in a patch (SPEC scripts:T162,
-# .:C20). Source it; it defines functions only. The context-limits guard
+# gate:C20). Source it; it defines functions only. The context-limits guard
 # and cloud_diff_reasons (the parser `just merge` stops on, cloud:V51)
 # call it, so a new row format changes one place.
 
