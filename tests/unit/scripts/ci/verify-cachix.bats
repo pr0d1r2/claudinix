@@ -35,7 +35,7 @@ STUB
     # Out of this repo, whose own .claudinix.toml is not the test's.
     unset CACHIX_URL CLAUDINIX_CONFIG
     # A hook's GIT_WORK_TREE would point config.sh at that tree (B119).
-    while read -r var; do unset "$var"; done < <(env | sed -n 's/^\(GIT_[A-Z_]*\)=.*/\1/p')
+    while read -r var; do unset "$var"; done < <(env | sed -n 's/^\(GIT_[^=]*\)=.*/\1/p')
     export GIT_CEILING_DIRECTORIES="$BATS_TEST_TMPDIR"
     PROJECT="$BATS_TEST_TMPDIR/project"
     mkdir -p "$PROJECT"
