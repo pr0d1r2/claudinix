@@ -79,6 +79,8 @@ GitHub traffic goes through a GitHub proxy, separately from the allowlist.
 | The `ANTHROPIC_MODEL` environment variable does not choose the model. A session with it set to Sonnet 5.5 ran on Opus 5.5. | 2026-10-03 | probe 6 |
 | `claude --cloud "<task>" --model sonnet` runs the session on Sonnet 5.5: configured model, served model and commit trailer all agree. Putting `--model` before the task fails with `--cloud requires a description`. | 2026-10-03 | probe 7 |
 | A Bash command still running at 120 s is not killed. It moves to the background and finishes (limit 30 min); its real exit status arrives with the completion notice. | 2026-10-03 | probe 6 |
+| In a session with the agent home, `~/.claude/settings.json` exists at launch as a regular file (not a symlink) holding the permission rules, with the mtime of the setup (2026-11-03 17:22, the session launched 2026-11-04 20:12). It survived from setup to launch. | 2026-11-04 | T104 |
+| Whether those rules apply is not decided: this session's permission mode let an unlisted command run without a prompt (`mkdir` and `rmdir` under `/root`), so an allowed gate command running unprompted proves nothing. `.claude/settings.local.json` was absent, as `CLAUDINIX_SESSION_PERMISSIONS` was not set, so the same-session question for the SessionStart hook is not measured either. It needs a session in a mode that prompts. | 2026-11-04 | T104 |
 
 ## Choosing the environment
 
@@ -119,6 +121,10 @@ read on 2026-10-04. They are not measured in a session yet.
 - Can the setup line fetch `setup.sh` by SHA from the setup phase, before
   Claude starts? E2 proved the fetch and build only from inside a running
   session. (`experiments/SPEC.md` T190, `setup:V20`)
+- Do the rules in `~/.claude/settings.json` apply in a session that
+  prompts, and does a `.claude/settings.local.json` written by the
+  SessionStart hook apply in the same session? The 2026-11-04 session ran
+  in a mode that never prompted, so run the check in one that does. (T104)
 - Which git version does the image ship? Not recorded yet (noted
   2026-10-03). Ubuntu 24.04 packages 2.43, but nobody has run
   `git --version` in a session. It matters: a session commits with that
