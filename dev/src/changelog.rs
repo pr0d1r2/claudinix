@@ -1,4 +1,4 @@
-//! The changelog rule (dev:T111, docs:T37, .:V20): a `feat` or `fix`
+//! The changelog rule (dev:T111, docs:T37, setup:V20): a `feat` or `fix`
 //! commit that changes what a session VM or a target-project user gets
 //! stages `CHANGELOG.md` too. Pure functions over the commit message and
 //! the paths git says the commit stages.

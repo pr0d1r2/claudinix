@@ -69,7 +69,7 @@ in
 
   # claude, the opener and the clipboard come from the caller's PATH.
   # The setup line is the release's, read from a store copy of the README
-  # (.:C25), so the app needs neither gh nor a clone; `--rev SHA` asks
+  # (setup:C25), so the app needs neither gh nor a clone; `--rev SHA` asks
   # setup-line.sh instead, and that needs gh and git on the caller's PATH.
   guide = app {
     name = "guide";

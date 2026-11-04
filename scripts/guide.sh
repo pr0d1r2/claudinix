@@ -16,13 +16,13 @@
 # (step 4, on yes: the environment pin, T119).
 #
 # The setup line is the one the release published in the README block
-# (.:C25): no gh, no clone. Before the first release the guide says so
+# (setup:C25): no gh, no clone. Before the first release the guide says so
 # and stops, naming the newest green main commit when gh can tell (T114).
 # --rev SHA (else CLAUDINIX_SETUP_REV, the maintainer path; a short SHA
 # too, V37) prints a line for that SHA with setup-line.sh instead, which
 # refuses a SHA whose CI on main is not green unless --force is given
 # (T69).
-# --agent-home asks the setup line for the opt-in agent home (.:C24).
+# --agent-home asks the setup line for the opt-in agent home (setup:C24).
 #
 # The project's .claudinix.toml (scripts:T91, read by config.sh) sets
 # the defaults: session.model for step 5's answer, session.agent_home
@@ -183,7 +183,7 @@ trap 'rm -rf "$tmp"' EXIT
 # setup_line: the one-line UI setup script (V20). With --rev (or
 # CLAUDINIX_SETUP_REV) setup-line.sh prints it for that SHA, and the
 # guide stops when it refuses (T69). Otherwise it is the line the release
-# published in the README block (.:C25), + --agent-home as setup-line.sh
+# published in the README block (setup:C25), + --agent-home as setup-line.sh
 # appends it; the guide stops when there is no release yet or no block.
 setup_line() {
     local line

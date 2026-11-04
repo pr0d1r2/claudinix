@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# No token ceiling raised to get green (SPEC .:C20, scripts:T150).
+# No token ceiling raised to get green (SPEC gate:C20, scripts:T150).
 #
 # Compares `.context-limits` at HEAD with the same file at the merge base
 # of HEAD and BASE (default `origin/main`, seam CONTEXT_LIMITS_BASE). A

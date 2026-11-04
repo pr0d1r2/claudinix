@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # Unit tests for scripts/guard/context-limits.sh (SPEC scripts:T150,
-# .:C20): a .context-limits row raised or added, or the file deleted, on
+# gate:C20): a .context-limits row raised or added, or the file deleted, on
 # the branch, against its merge base with origin/main, fails the gate;
 # there is no override (B81).
 

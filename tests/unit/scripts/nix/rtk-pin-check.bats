@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 bats_require_minimum_version 1.5.0
 # Unit tests for scripts/nix/rtk-pin-check.sh (SPEC nix:T151, B44,
-# .:C14): nix-rtk follows our nixpkgs-lock and rtk-src, so rtk's store
+# gate:C14): nix-rtk follows our nixpkgs-lock and rtk-src, so rtk's store
 # path matches the one its CI pushed to cachix only while both inputs are
 # locked at the revs in nix-rtk's own flake.lock. Any other rev means a
 # cloud setup compiles rtk, so the check fails and names both revs.

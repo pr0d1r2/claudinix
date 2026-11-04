@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # `checks.<system>.rtk-pin`: the inputs nix-rtk follows from us
 # (nixpkgs-lock, rtk-src) are locked at the revs in nix-rtk's own
-# flake.lock (SPEC nix:T151, B44, .:C14). Only then is rtk's store path
+# flake.lock (SPEC nix:T151, B44, gate:C14). Only then is rtk's store path
 # the one its CI pushed to cachix; any other rev makes every cloud setup
 # compile rtk. Bump both inputs here together with nix-rtk's `cached`
 # branch. Each input is found through its lock's root node, so a renamed

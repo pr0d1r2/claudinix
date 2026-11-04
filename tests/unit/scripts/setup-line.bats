@@ -160,9 +160,9 @@ line_for() {
     [ "$status" -eq 2 ]
 }
 
-# .:C24: the agent home is opt-in; --agent-home asks setup.sh for it.
+# setup:C24: the agent home is opt-in; --agent-home asks setup.sh for it.
 
-@test "--agent-home appends --agent-home to the line (.:C24)" {
+@test "--agent-home appends --agent-home to the line (setup:C24)" {
     run bash "$SCRIPT" --agent-home
     [ "$status" -eq 0 ]
     [ "$output" = "$(line_for "$HEAD_SHA") --agent-home" ]
@@ -171,12 +171,12 @@ line_for() {
     [ "$output" = "$(line_for "$FIRST") --agent-home" ]
 }
 
-@test "without --agent-home the line asks for no agent home (.:C24)" {
+@test "without --agent-home the line asks for no agent home (setup:C24)" {
     run bash "$SCRIPT"
     [[ "$output" != *"--agent-home"* ]]
 }
 
-@test "--agent-home with --force still warns and prints the opt-in line (.:C24)" {
+@test "--agent-home with --force still warns and prints the opt-in line (setup:C24)" {
     GH_JSON='[]' run --separate-stderr bash "$SCRIPT" --force --agent-home
     [ "$status" -eq 0 ]
     [ "$output" = "$(line_for "$HEAD_SHA") --agent-home" ]

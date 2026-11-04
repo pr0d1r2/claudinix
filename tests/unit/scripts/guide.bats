@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 bats_require_minimum_version 1.5.0
 # Unit tests for scripts/guide.sh (SPEC scripts:T26, I.cmd `guide`,
-# C2, .:V10, .:C25). Answers come on stdin; open, the clipboard, claude and
+# C2, .:V10, setup:C25). Answers come on stdin; open, the clipboard, claude and
 # the inputs/domains/setup-line tools are stubs, so nothing leaves the test.
 # The setup line comes from a README release block written by the real
 # readme-setup-line.sh, so the guide reads the format the release writes.
@@ -55,7 +55,7 @@ setup() {
     cd "$P" || return 1
 }
 
-# no_release: the README block as it is before the first release (.:C25).
+# no_release: the README block as it is before the first release (setup:C25).
 no_release() {
     # shellcheck disable=SC2016 # literal Markdown backticks, not a command
     printf '%s\n' '<!-- BEGIN setup-line -->' \
@@ -113,7 +113,7 @@ titles() {
     grep -qx 'open https://claude.ai/code' "$LOG"
 }
 
-@test "step 3 copies the env name, the allowed domains and the README's release line (.:C25)" {
+@test "step 3 copies the env name, the allowed domains and the README's release line (setup:C25)" {
     run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
     [ "$status" -eq 0 ]
     grep -qx 'project' "$LOG"
@@ -298,7 +298,7 @@ model_doc() {
     [[ "$output" == *"see docs/MODEL.md"* ]]
 }
 
-@test "--agent-home appends --agent-home to the README's line, in setup and update flows (.:C24)" {
+@test "--agent-home appends --agent-home to the README's line, in setup and update flows (setup:C24)" {
     run bash "$SCRIPT" --agent-home --from 3 <<<$'y\ny\n'
     [ "$status" -eq 0 ]
     grep -qxF "$LINE --agent-home" "$LOG"
@@ -309,13 +309,13 @@ model_doc() {
     run ! grep -q 'setup-line' "$LOG"
 }
 
-@test "without --agent-home, the copied line does not ask for it (.:C24)" {
+@test "without --agent-home, the copied line does not ask for it (setup:C24)" {
     run bash "$SCRIPT" update <<<''
     [ "$status" -eq 0 ]
     run ! grep -q -- '--agent-home' "$LOG"
 }
 
-@test "no CLAUDINIX_README: the README beside the scripts dir (.:C25)" {
+@test "no CLAUDINIX_README: the README beside the scripts dir (setup:C25)" {
     unset CLAUDINIX_README
     cp "$BATS_TEST_TMPDIR/release/README.md" "$LIB/../README.md"
     run bash "$SCRIPT" update <<<''
@@ -323,7 +323,7 @@ model_doc() {
     grep -qxF "$LINE" "$LOG"
 }
 
-@test "no release yet: says so, says what to do, stops before step 4, asks nobody (.:C25)" {
+@test "no release yet: says so, says what to do, stops before step 4, asks nobody (setup:C25)" {
     no_release
     run bash "$SCRIPT" --from 3 <<<$'y\ny\n'
     [ "$status" -eq 1 ]
@@ -334,7 +334,7 @@ model_doc() {
     run ! grep -q 'SETUP-LINE' "$LOG"
 }
 
-@test "no release yet in the update flow: stops the same way (.:C25)" {
+@test "no release yet in the update flow: stops the same way (setup:C25)" {
     no_release
     run bash "$SCRIPT" update <<<''
     [ "$status" -eq 1 ]
@@ -342,7 +342,7 @@ model_doc() {
     run ! grep -q 'setup-line' "$LOG"
 }
 
-@test "a README with no setup-line block: names it and stops (.:C25)" {
+@test "a README with no setup-line block: names it and stops (setup:C25)" {
     printf '%s\n' '# claudinix' >"$CLAUDINIX_README"
     run bash "$SCRIPT" update <<<''
     [ "$status" -eq 1 ]
@@ -354,7 +354,7 @@ model_doc() {
     [[ "$output" == *"$CLAUDINIX_README"* ]]
 }
 
-@test "the repo's own README: a release line, or no release yet (.:C25)" {
+@test "the repo's own README: a release line, or no release yet (setup:C25)" {
     CLAUDINIX_README="$REPO/README.md" run bash "$SCRIPT" update <<<''
     if [ "$status" -eq 0 ]; then
         grep -qE '^d=\$\(mktemp -d\) && curl ' "$LOG"
@@ -364,7 +364,7 @@ model_doc() {
     fi
 }
 
-@test "no release yet and --rev SHA: setup-line.sh prints the line for that SHA (.:C25)" {
+@test "no release yet and --rev SHA: setup-line.sh prints the line for that SHA (setup:C25)" {
     no_release
     run bash "$SCRIPT" --rev "$SHA" --from 3 <<<$'y\ny\n'
     [ "$status" -eq 0 ]
@@ -372,14 +372,14 @@ model_doc() {
     grep -qx "SETUP-LINE $SHA" "$LOG"
 }
 
-@test "--rev wins over a release in the README (.:C25)" {
+@test "--rev wins over a release in the README (setup:C25)" {
     run bash "$SCRIPT" update --rev "$SHA" <<<''
     [ "$status" -eq 0 ]
     grep -qx "setup-line $SHA" "$LOG"
     run ! grep -qxF "$LINE" "$LOG"
 }
 
-@test "--rev needs a full SHA (.:C25)" {
+@test "--rev needs a full SHA (setup:C25)" {
     run bash "$SCRIPT" --rev abc123 </dev/null
     [ "$status" -eq 2 ]
     run bash "$SCRIPT" --rev </dev/null
@@ -402,7 +402,7 @@ model_doc() {
     run ! grep -q 'SETUP-LINE' "$LOG"
 }
 
-@test "--force and --agent-home reach setup-line with --rev, in setup and update flows (T69, .:C24)" {
+@test "--force and --agent-home reach setup-line with --rev, in setup and update flows (T69, setup:C24)" {
     no_release
     run bash "$SCRIPT" --force --rev "$SHA" --from 3 <<<$'y\ny\n'
     [ "$status" -eq 0 ]

@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 bats_require_minimum_version 1.5.0
 # Unit tests for scripts/cloud-task.sh (SPEC .:T100, .:C29,
-# scripts:V34, scripts:V26, .:V24). claude, script and git are stubs: no
+# scripts:V34, scripts:V26, gate:V24). claude, script and git are stubs: no
 # session is started and nothing reaches a remote.
 
 # shellcheck source=/dev/null # the burn fixture, beside this directory
