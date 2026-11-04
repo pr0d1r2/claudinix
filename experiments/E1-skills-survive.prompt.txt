@@ -1,0 +1,11 @@
+E1: do skills placed by setup.sh survive until Claude starts? (experiments:T56)
+Run as a Sonnet cloud job in an environment whose setup script ran the agent home.
+Do not change any file. Report, one `key: value` line each:
+1. `ls -la --time=birth ~/.claude ~/.claude/skills` and the owner and mtime of
+   `~/.claude/settings.json`.
+2. Which skills your own skill list shows, and which of them the agent home placed
+   (backprop, build, caveman, check, spec) versus the harness or the account
+   (session-start-hook, synced/*).
+3. `readlink -f ~/.claude/skills/build/SKILL.md`, then its first 5 lines.
+4. `cat ~/.claude/settings.json`: is the permissions block there?
+5. Verdict: survived, re-stamped but kept, or gone.

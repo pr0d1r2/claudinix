@@ -72,6 +72,7 @@ GitHub traffic goes through a GitHub proxy, separately from the allowlist.
 | fact | measured | source |
 |---|---|---|
 | `~/.claude/skills` exists at launch, holding the harness's `session-start-hook` and the skills synced from the account (`synced/<id>/...`). There is no `~/.claude/settings.json`. Whether skills placed there by `setup.sh` survive the session start is still open. | 2026-10-03 | probe 1 |
+| Skills and `settings.json` placed by `setup.sh` survive the session start. The harness re-stamps `~/.claude/skills`, keeps the entries, and the session lists and reads them (backprop, build, caveman, check, spec). They also survive a snapshot a day old. Account skills arrive beside them under `synced/`. Details: `experiments/E1-skills-survive.2026-11-04.md`. | 2026-11-04 | E1 session |
 | The `ANTHROPIC_MODEL` environment variable does not choose the model. A session with it set to Sonnet 5.5 ran on Opus 5.5. | 2026-10-03 | probe 6 |
 | `claude --cloud "<task>" --model sonnet` runs the session on Sonnet 5.5: configured model, served model and commit trailer all agree. Putting `--model` before the task fails with `--cloud requires a description`. | 2026-10-03 | probe 7 |
 | A Bash command still running at 120 s is not killed. It moves to the background and finishes (limit 30 min); its real exit status arrives with the completion notice. | 2026-10-03 | probe 6 |
@@ -112,8 +113,6 @@ read on 2026-10-04. They are not measured in a session yet.
   needs two sessions started back to back. Record each session's launch
   time, run `date` as its first command to mark when it is ready, and
   compare the two launch-to-ready times. (`SPEC.md` T55)
-- Do skills placed in `~/.claude/skills` by the setup script survive until
-  Claude starts? (T14, T56)
 - Which git version does the image ship? Not recorded yet (noted
   2026-10-03). Ubuntu 24.04 packages 2.43, but nobody has run
   `git --version` in a session. It matters: a session commits with that
