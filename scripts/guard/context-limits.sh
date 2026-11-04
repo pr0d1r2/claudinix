@@ -14,6 +14,9 @@
 
 set -euo pipefail
 
+# shellcheck source=/dev/null # the shallow-clone refusal, in scripts/lib
+source "$(dirname "${BASH_SOURCE[0]}")/../lib/require-full-history.sh"
+
 # shellcheck source=/dev/null # the row parser, in scripts/lib
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/context-limits.sh"
 
@@ -27,10 +30,7 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     exit 1
 fi
 
-if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
-    echo "context-limits: this clone is shallow -- the merge base with the base branch may be missing, so nothing was checked. run: git fetch --unshallow" >&2
-    exit 1
-fi
+require_full_history context-limits "the merge base with the base branch may be missing, so nothing was checked" || exit 1
 
 base="${1:-${CONTEXT_LIMITS_BASE:-origin/main}}"
 if ! git rev-parse --verify --quiet "$base^{commit}" >/dev/null; then

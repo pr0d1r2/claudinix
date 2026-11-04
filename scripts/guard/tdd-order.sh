@@ -19,6 +19,9 @@
 
 set -euo pipefail
 
+# shellcheck source=/dev/null # the shallow-clone refusal, in scripts/lib
+source "$(dirname "${BASH_SOURCE[0]}")/../lib/require-full-history.sh"
+
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     echo "tdd-order: not inside a git work tree -- nothing could be checked. This is a failure, not a pass." >&2
     exit 1
@@ -29,10 +32,7 @@ if [ "$#" -gt 1 ]; then
     exit 2
 fi
 
-if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
-    echo "tdd-order: this clone is shallow -- the commits before its oldest one are missing, so the RED commits cannot be seen and nothing was checked. run: git fetch --unshallow" >&2
-    exit 1
-fi
+require_full_history tdd-order "the commits before its oldest one are missing, so the RED commits cannot be seen and nothing was checked" || exit 1
 
 range="${1:-}"
 if [ -z "$range" ]; then
