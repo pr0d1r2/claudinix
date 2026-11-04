@@ -81,6 +81,11 @@ jobs:
           CACHIX_URL: https://pr0d1r2.cachix.org
 ```
 
+Step 3 pushes sources from the target's own CI. A central job that pushes
+them instead is planned (`SPEC.md` T93, for repos whose `.claudinix.toml` sets
+`push_sources = true`); once it exists, such a repo skips step 3 and keeps
+steps 1, 2 and 4, so only one writer pushes its sources.
+
 Replace `pr0d1r2` with the name of the cache you push to. The `x86_64-linux`
 system is the one cloud sessions run on ([`FACTS.md`](FACTS.md), 2026-10-03).
 
