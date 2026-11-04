@@ -25,3 +25,11 @@ setup() {
     [ "$status" -eq 0 ]
     [ -z "$output" ]
 }
+
+@test "context_limits_judge: an empty base still reads HEAD as HEAD (gate:V67)" {
+    : >"$BATS_TEST_TMPDIR/base"
+    printf 'a/SPEC.md 10\na 20\n' >"$BATS_TEST_TMPDIR/head"
+    run context_limits_judge "$BATS_TEST_TMPDIR/base" "$BATS_TEST_TMPDIR/head"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"adds the .context-limits row a 20, above the largest chain ceiling at base (0)"* ]]
+}

@@ -177,6 +177,20 @@ limits() {
     [[ "$output" == *"nothing was checked"* ]]
 }
 
+@test "a merge base without .context-limits fails: every row is added (gate:V67)" {
+    git switch -q --orphan bare
+    echo x >other
+    git add other
+    git commit -q -m "chore: no limits"
+    git update-ref refs/remotes/origin/main HEAD
+    printf 'a/SPEC.md 10\na 20\n' >.context-limits
+    git add .context-limits
+    git commit -q -m "chore: limits"
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"adds the .context-limits row a 20"* ]]
+}
+
 @test "a shallow clone fails with the fix (scripts:V29)" {
     limits scripts/SPEC.md 4100
     git clone -q --depth 1 "file://$REPO" "$BATS_TEST_TMPDIR/shallow"
