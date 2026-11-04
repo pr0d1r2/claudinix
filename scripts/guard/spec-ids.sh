@@ -16,6 +16,9 @@
 
 set -euo pipefail
 
+# shellcheck source=/dev/null # the shallow-clone refusal, in scripts/lib
+source "$(dirname "${BASH_SOURCE[0]}")/../lib/require-full-history.sh"
+
 ID_KINDS=TVBC
 ARCHIVE_NAME=SPEC-ARCHIVE.md
 
@@ -88,10 +91,7 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     exit 1
 fi
 
-if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
-    echo "spec-ids: this clone is shallow -- the merge base with the base branch may be missing, so nothing was checked. run: git fetch --unshallow" >&2
-    exit 1
-fi
+require_full_history spec-ids "the merge base with the base branch may be missing, so nothing was checked" || exit 1
 
 base="${1:-${SPEC_IDS_BASE:-origin/main}}"
 if ! git rev-parse --verify --quiet "$base^{commit}" >/dev/null; then
