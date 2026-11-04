@@ -115,7 +115,7 @@ read on 2026-10-04. They are not measured in a session yet.
   machine? Reuse is answered (The machine); the cold number needs a first
   session in a fresh or changed environment, with `env-manager.log`'s
   `spawn_to_ready_ms` and `hooks_init_ms` read from `/tmp/env-manager.log`
-  as its first command. (`SPEC.md` T55)
+  as its first command. ([`experiments/SPEC.md`](../experiments/SPEC.md) T180)
 - Can the setup line fetch `setup.sh` by SHA from the setup phase, before
   Claude starts? E2 proved the fetch and build only from inside a running
   session. (`experiments/SPEC.md` T190, `setup:V20`)
