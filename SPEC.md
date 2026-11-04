@@ -128,4 +128,3 @@ B16|2026-10-04|cloud: probe test saw the session's `nix-dev`; setup test expecte
 B45|2026-10-09|rtk rewrites `git push origin main` to `rtk git push …`; prefix deny rules may miss it (#24 review)|`home:V44`
 B57|2026-10-12|`agent-home:C33` resolved as `home:C33` (#30)|V48
 B61|2026-10-13|`node-names` trusted the §F shape: header-only passed unchecked, any `\|` line after the header was a row (#34 review)|V48
-B119|2026-11-03|`verify-cachix.bats` unset `CACHIX_URL` but ⊥ `GIT_*` ∴ push from a linked worktree (hook exports `GIT_WORK_TREE`) → `config.sh` read that tree, 3 `.claudinix.toml` tests red|V21: setup unsets ∀ `GIT_*`
