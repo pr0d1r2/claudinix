@@ -1,0 +1,17 @@
+Experiment E7 (claudinix experiments/SPEC.md T62): do cloud sessions stop on
+the "Allow Claude to use add repo (claude-code-remote)?" prompt once the exact
+rule is committed in the target repository, and does `--permission-mode` with
+`--cloud` change that?
+
+Part A, rule committed (needs a branch of pr0d1r2/sherd):
+1. On a sherd branch, commit `.claude/settings.json` holding only
+   {"permissions":{"allow":["mcp__claude-code-remote__add_repo"]}}.
+2. Start a cloud session on that branch; ask it to call `add_repo` on a
+   public and on a private repository. Record whether a prompt appeared.
+
+Part B, flag:
+3. Run `claude --cloud "<task>" --model sonnet --permission-mode dontAsk`
+   (then `acceptEdits`). Record whether the flag is accepted, whether the
+   session starts in that mode, and whether the add_repo prompt still appears.
+
+Report per step: the exact command, prompt yes/no, the error line if any.
