@@ -42,7 +42,7 @@ T52|x|ARCHIVED to SPEC-ARCHIVE.md|C18,`docs:T34`
 T55|x|ARCHIVED to SPEC-ARCHIVE.md|`.:V5`,`.:C1`,`docs:T34` — cold start → T193
 T56|x|ARCHIVED to SPEC-ARCHIVE.md|C13,`nix:V14`,T14
 T57|x|ARCHIVED to SPEC-ARCHIVE.md|`setup:V20`,`nix:V15`,`.:T24`
-T62|.|EXP E7 silence prompts: commit exact `add_repo` allow rule in sherd `.claude/settings.json`; try `--permission-mode` w/ `--cloud`|`docs:T47`,T51
+T62|~|EXP E7 silence prompts: commit exact `add_repo` allow rule in sherd `.claude/settings.json`; try `--permission-mode` w/ `--cloud`|`docs:T47`,T51 — prompt & offline facts in `E7-*`; sherd run + `--cloud` launch still open
 T63|.|EXP E8 cache fast path: after sherd CI pushes inputs + devShell (`.:T54`), fresh session times plain `nix develop` (target < 10 s), confirms narHash substitution ⊥ git fetch|`.:V8`,`.:T54`
 T64|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:T49`,`scripts:V13`
 T65|.|EXP E10 unattended routine: API-triggered routine on env `nix`, trivial task; watch prompts \& errors|T51
