@@ -87,7 +87,7 @@ T29|x|ARCHIVED to SPEC-ARCHIVE.md|`setup:C6`,V10 — answered: `github.com` allo
 T30|x|ARCHIVED to SPEC-ARCHIVE.md|`setup:C6`,I.cmd,`scripts:T27`
 T48|x|ARCHIVED to SPEC-ARCHIVE.md|`gate:V24`,I.file
 T50|x|ARCHIVED to SPEC-ARCHIVE.md|`setup:C6`,V10,I.ext.env
-T54|.|cache population owner: ∀ target repo CI pushes locked inputs + devShell closure to `pr0d1r2.cachix.org` on default branch (per `docs:T6` snippet); start w/ sherd via its spec; verify narinfo 200 (`gate:V22` pattern)|V8,`docs:T6`,`scripts:C16`
+T54|.|cache population owner: ∀ target repo CI pushes locked inputs + devShell closure to `pr0d1r2.cachix.org` on default branch (per `docs:T6` snippet); start w/ sherd via its spec; verify narinfo 200 (`gate:V22` pattern). this repo's half done: `docs/CACHE-CI.md` uses proven `push-sources.sh` + `verify-cachix.sh`. open: sherd adopts via its own spec (⊥ reachable from claudinix sessions: repo scope)|V8,`docs:T6`,`scripts:C16`
 T58|x|ARCHIVED to SPEC-ARCHIVE.md|I.file,`docs:T42` — answered 2026-10-03 (probe 6): env var ⊥ effective; launcher model wins. follow-up E3b: does `claude --cloud --model sonnet` set it? (T67)
 T59|x|ARCHIVED to SPEC-ARCHIVE.md|`gate:V24`,T48 — answered 2026-10-03 (probe 6): cold `hk check --all` 3m43s, backgrounded at 120 s, ⊥ killed
 T60|x|ARCHIVED to SPEC-ARCHIVE.md|`experiments:T52`,`experiments:T55` — resources answered 2026-10-03 (probe 6); snapshot reuse still open (`experiments:T55`)
