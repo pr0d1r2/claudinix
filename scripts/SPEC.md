@@ -76,7 +76,7 @@ T162|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:V51`,T150
 T163|x|`require_full_history` in `scripts/lib` for `tdd-order`, `context-limits` \& `spec-ids` (3rd copy of the preamble)|V29,B7
 T173|x|ARCHIVED to SPEC-ARCHIVE.md|B91
 T176|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V61,V26,`cloud:V51`
-T185|.|`context-limits` guard judges `gate:V67` (base vs head file, ⊥ row diff); `cloud_diff_reasons` keeps the strict row diff|`gate:V67`,B120,`gate:C20`
+T185|x|`context-limits` guard judges `gate:V67` (base vs head file, ⊥ row diff); `cloud_diff_reasons` keeps the strict row diff|`gate:V67`,B120,`gate:C20`
 T186|.|diagnose itok `inputs.sh: error:` (cache status unknown ⇒ failed tier 1 + ~60 s of 72 s); fix or cache it; then add the §V that B122 lacks|V13,T49,B122,`experiments:T64`
 
 ## §B BUGS
