@@ -2,11 +2,15 @@
 # No token ceiling raised to get green (SPEC gate:C20, scripts:T150).
 #
 # Compares `.context-limits` at HEAD with the same file at the merge base
-# of HEAD and BASE (default `origin/main`, seam CONTEXT_LIMITS_BASE). A
-# row raised or added, or the file deleted, fails, each one named. There
-# is no override: a raise is the owner's call, made on the merge side
-# where `just merge` stops on it too (cloud:V51, scripts:B81). The rows
-# are read by context_limits_raises, the parser `just merge` shares.
+# of HEAD and BASE (default `origin/main`, seam CONTEXT_LIMITS_BASE),
+# judged per chain (gate:V67, scripts:T185, B120): a chain row raised, a
+# file row raised while its node's chain row does not fall, a chain row
+# added above the largest base chain, a file row added without its node's
+# chain row, or the file deleted fails, each one named. A split that
+# shrinks every chain passes. There is no override: a raise is the owner's
+# call, made on the merge side, where `just merge` still stops on any
+# raised or added row (cloud:V51, scripts:B81). context_limits_judge in
+# scripts/lib reads both files.
 #
 # Usage: context-limits.sh [BASE]
 # A shallow clone hides the merge base, so it is refused with the fix
@@ -42,7 +46,8 @@ if ! fork="$(git merge-base HEAD "$base")"; then
     exit 1
 fi
 
-reasons="$(git diff --no-ext-diff "$fork" HEAD -- .context-limits | context_limits_raises)"
+# Judged per chain (gate:V67): both files whole, not the row diff.
+reasons="$(context_limits_judge <(git show "$fork:.context-limits" 2>/dev/null || true) <(git show HEAD:.context-limits 2>/dev/null || true))"
 if git cat-file -e "$fork:.context-limits" 2>/dev/null && ! git cat-file -e "HEAD:.context-limits" 2>/dev/null; then
     reasons+=$'\ndiff: deletes .context-limits'
 fi
