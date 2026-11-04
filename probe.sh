@@ -46,6 +46,25 @@ else
     report unshare refused
 fi
 
+# experiments:T14 (C13): what ~/.claude holds at launch. Reported only:
+# an absent settings.json or test skill is a finding, never a failure.
+claude_dir="$HOME/.claude"
+settings="$claude_dir/settings.json"
+report home "$HOME"
+report claude-dir "$(find "$claude_dir" -mindepth 1 -maxdepth 1 2>/dev/null | sed 's|.*/||' | sort | tr '\n' ' ')"
+if [ -f "$settings" ]; then
+    report settings-owner "$(stat -c '%U:%G %a' "$settings" 2>/dev/null || stat -f '%Su:%Sg %Lp' "$settings")"
+    report settings-content "$(tr -d '\n' <"$settings")"
+else
+    report settings-owner absent
+    report settings-content absent
+fi
+if [ -e "$claude_dir/skills/claudinix-probe/SKILL.md" ]; then
+    report test-skill present
+else
+    report test-skill absent
+fi
+
 # V32: the git a session commits with outside the dev shell. Only git
 # 2.54 or newer runs hk's config-based hooks; an older one runs only the
 # `.git/hooks` shims. Reported, never a failure.
