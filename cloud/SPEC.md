@@ -15,6 +15,8 @@ sib|docs|plain-English docs: setup, facts, runbook, security, release
 sib|experiments|cloud-session experiments \& results
 sib|dev|`claudinix-dev`: generated badges \& doc numbers
 sib|home|`~/.claude`: skills, rtk, caveman, permission rules
+sib|gate|the gate: `hk.pkl`, `xenolith.toml`, `.context-limits`, CI workflow, ceilings \& archive layout
+sib|setup|`setup.sh`, `allowlist.txt`: install, network, owner values, opt-in agent home, release line
 
 ## §C CONSTRAINTS
 
@@ -66,7 +68,7 @@ T142|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V42,B36
 T143|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B35
 T145|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C29`,B40,`nix:T144`
 T146|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T145
-T148|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`.:C20`,`.:C29`,`docs:T149`
+T148|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,`gate:C20`,`.:C29`,`docs:T149`
 T156|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,B21,B63,`docs:T157`
 T158|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T156
 T159|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T156,`docs:T157`

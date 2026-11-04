@@ -15,6 +15,8 @@ sib|experiments|cloud-session experiments \& results
 sib|dev|`claudinix-dev`: generated badges \& doc numbers
 sib|home|`~/.claude`: skills, rtk, caveman, permission rules
 sib|cloud|cloud launchers \& their prompts, `enroll`
+sib|gate|the gate: `hk.pkl`, `xenolith.toml`, `.context-limits`, CI workflow, ceilings \& archive layout
+sib|setup|`setup.sh`, `allowlist.txt`: install, network, owner values, opt-in agent home, release line
 
 ## §C CONSTRAINTS
 
@@ -38,7 +40,7 @@ T127|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`cloud:T126`
 T133|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`cloud:T132`
 T144|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,`cloud:T145`,B23
 T147|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,T144,B23
-T151|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:C14`,`.:C6`
+T151|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`gate:C14`,`setup:C6`
 T153|x|ARCHIVED to SPEC-ARCHIVE.md|C12,V16,`.:V30`
 T154|x|ARCHIVED to SPEC-ARCHIVE.md|C12,`home:V45`,`home:V46`,`home:V47`,`home:C33`
 
@@ -47,4 +49,4 @@ T154|x|ARCHIVED to SPEC-ARCHIVE.md|C12,`home:V45`,`home:V46`,`home:V47`,`home:C3
 id|date|cause|fix
 B23|2026-10-04|`HEAD:*` allow (T133) matched `HEAD:+main` \& tag pushes; no deny did|list denies `+` refspecs \& tag pushes
 B44|2026-10-09|nix-rtk locks `rtk-src` as `github:`; T151 made it the 2nd `github:` input, 403 unless cached (`.:V30`)|own `rtk-src` (`git+https`), nix-rtk follows; `rtk-pin` checks rev
-B53|2026-10-12|guard: twins 1 way, deny side only main-push, rewritten set `(git\|cargo)` hand-kept, rtk 0.51 behaviour unchecked by CI; rtk's matcher ⊥ accepts `claude/*` ∴ Claude Code judges the twin (#28 review)|`.:V44`
+B53|2026-10-12|guard: twins 1 way, deny side only main-push, rewritten set `(git\|cargo)` hand-kept, rtk 0.51 behaviour unchecked by CI; rtk's matcher ⊥ accepts `claude/*` ∴ Claude Code judges the twin (#28 review)|`home:V44`
