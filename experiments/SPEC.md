@@ -44,7 +44,7 @@ T56|x|EXP E1 skills survive: in a session whose environment ran the agent home, 
 T57|.|EXP E2 SHA-pinned fetch: in session `curl raw.githubusercontent.com/<o>/<r>/<sha>/setup.sh` + `nix build git+https://…?rev=<sha>#…`; after 1st push (or sherd stand-in)|`setup:V20`,`nix:V15`,`.:T24`
 T62|.|EXP E7 silence prompts: commit exact `add_repo` allow rule in sherd `.claude/settings.json`; try `--permission-mode` w/ `--cloud`|`docs:T47`,T51
 T63|.|EXP E8 cache fast path: after sherd CI pushes inputs + devShell (`.:T54`), fresh session times plain `nix develop` (target < 10 s), confirms narHash substitution ⊥ git fetch|`.:V8`,`.:T54`
-T64|.|EXP E9 `nix-dev` auto-overrides prototype on itok \| microlith w/o changing their flakes|`scripts:T49`,`scripts:V13`
+T64|x|EXP E9 `nix-dev` auto-overrides prototype on itok \| microlith w/o changing their flakes|`scripts:T49`,`scripts:V13`
 T65|.|EXP E10 unattended routine: API-triggered routine on env `nix`, trivial task; watch prompts \& errors|T51
 T66|.|EXP E11 cost per session: usage page before/after E1-E5; confirms credit charged at API rates ?|I.file,`docs:T42` — first reading 2026-10-03: $7 for 8 short sessions (7 probes + 1 job, 7 on Opus 5.5) ≈ $0.90/session; per-session split still unmeasured
 T102|.|EXP self-build 1: after 1st push + green CI, `just cloud` 1 small real task (e.g. `docs:T44`-sized); record in FACTS: setup ok, dev shell time, gate ok, hooks fired (old git?), prompts hit, branch pushed, cost|C29,T56,T57,T62
