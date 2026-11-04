@@ -41,7 +41,7 @@ T51|.|unattended runs: permission mode for routines \& long jobs; what a job doe
 T52|x|record VM resources (`nproc`, `free`, `df /`, store growth) in FACTS; set bats `--jobs`, hk jobs, cargo jobs from them|C18,`docs:T34` — measured: 4 vCPU ∴ hk \& bats jobs = 4, cargo default
 T55|.|measure snapshot reuse: 2nd session in same env skips setup?; start time cold vs warm; record in FACTS|`.:V5`,C1,`docs:T34`
 T56|x|EXP E1 skills survive: in a session whose environment ran the agent home, `~/.claude/settings.json` \& the agent-home skills are present, listed \& readable (real skills stand in for a test skill); decides agent-home design (`nix:T16`, `.:T17`) vs account-synced skills|C13,`nix:V14`,T14
-T57|.|EXP E2 SHA-pinned fetch: in session `curl raw.githubusercontent.com/<o>/<r>/<sha>/setup.sh` + `nix build git+https://…?rev=<sha>#…`; after 1st push (or sherd stand-in)|`setup:V20`,`nix:V15`,`.:T24`
+T57|x|EXP E2 SHA-pinned fetch: in session `curl raw.githubusercontent.com/<o>/<r>/<sha>/setup.sh` + `nix build git+https://…?rev=<sha>#…`; after 1st push (or sherd stand-in)|`setup:V20`,`nix:V15`,`.:T24`
 T62|.|EXP E7 silence prompts: commit exact `add_repo` allow rule in sherd `.claude/settings.json`; try `--permission-mode` w/ `--cloud`|`docs:T47`,T51
 T63|.|EXP E8 cache fast path: after sherd CI pushes inputs + devShell (`.:T54`), fresh session times plain `nix develop` (target < 10 s), confirms narHash substitution ⊥ git fetch|`.:V8`,`.:T54`
 T64|x|EXP E9 `nix-dev` auto-overrides prototype on itok \| microlith w/o changing their flakes|`scripts:T49`,`scripts:V13`
