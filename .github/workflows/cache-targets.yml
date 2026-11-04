@@ -1,0 +1,35 @@
+# The central cache job (SPEC T93): nightly and on demand, push the
+# eval-time input sources of the owner repos in cache-targets.txt that opt
+# in (`push_sources = true`) and prove they arrived. Sources only; no
+# other repo's build outputs are built or pushed (trust).
+
+name: cache-targets
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cache-targets
+  cancel-in-progress: false
+
+jobs:
+  push:
+    name: push sources
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31.11.0
+
+      # Cache name per target comes from its cache.name; the write token
+      # is only for `cachix push` in push-sources.sh.
+      - run: nix develop --command bash scripts/ci/push-targets.sh cache-targets.txt
+        env:
+          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}

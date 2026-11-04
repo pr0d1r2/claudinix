@@ -35,7 +35,7 @@ def schema: {
   },
   cache: {
     name: {type: "string", rule: "cachix", pattern: "^[a-z0-9][a-z0-9-]*$", default: "pr0d1r2", readers: "`inputs` (the cache it asks), `ci/verify-cachix.sh` (the cache it verifies)"},
-    push_sources: {type: "boolean", default: false, readers: "nothing yet: reserved for the central cache job, which is not built"}
+    push_sources: {type: "boolean", default: false, readers: "the central cache job (scripts/ci/push-targets.sh)"}
   },
   probe: {
     branch_prefix: {type: "string", rule: "shell", default: "claude/nix-probe", readers: "`probe` (the branch the session pushes its report on)"}

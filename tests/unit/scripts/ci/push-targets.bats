@@ -25,7 +25,7 @@ STUB
         cat >"$TREE/scripts/ci/$s.sh" <<STUB
 #!/usr/bin/env bash
 echo "$s \$CACHIX_URL | \$*" >>"\$CALLS"
-[ -z "\${FAIL_$s:-}" ] || exit 1
+[ -z "\${FAIL_${s//-/_}:-}" ] || exit 1
 STUB
     done
     # nix flake metadata --json REF -> {"path": <dir of that ref>}
