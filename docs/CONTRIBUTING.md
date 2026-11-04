@@ -72,7 +72,7 @@ hk fix             # the formatters
   their ids. Fixed bug rows move there by hand, into its `## §B BUGS`
   table (`mth archive` moves only tasks and rewrites the file as §T only, so
   never run it on `cloud`, `home` or `scripts`, and after a run elsewhere check
-  that `git diff` of its archive only adds rows; `.:C34`); the node's `§B`
+  that `git diff` of its archive only adds rows; `gate:C34`); the node's `§B`
   keeps a pointer.
 - **Test first.** Every shell script is a RED `test:` commit adding the
   failing bats file, then a GREEN `feat:` or `fix:` commit adding the script,

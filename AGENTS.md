@@ -21,7 +21,7 @@ defaults.
   fix(setup): refuse a bad installer hash
 
   Why: a mismatched hash would run an unverified installer.
-  Refs: §T.73, `scripts:T79`, `.:C15`
+  Refs: §T.73, `scripts:T79`, `gate:C15`
   ```
 
 - One topic per commit. A spec change is never in a code commit.
@@ -52,14 +52,24 @@ root `SPEC.md`. What the agent home puts in `~/.claude` and how it behaves
 (skills, rtk, caveman, the cloud permission rules) lives in
 `home/SPEC.md`; its Nix wiring stays in `nix/SPEC.md`.
 
-The `cloud` node is the one exception to owner-by-directory: it owns
-`scripts/cloud-*.sh`, `scripts/cloud-*-prompt.txt`, `scripts/review/` and
-`scripts/lib/cloud-launch.sh`, so their rows go in `cloud/SPEC.md`, not
-`scripts/SPEC.md`.
+Three nodes own files outside their directory:
+
+- `cloud` owns `scripts/cloud-*.sh`, `scripts/cloud-*-prompt.txt`,
+  `scripts/review/` and `scripts/lib/cloud-launch.sh`, so their rows go in
+  `cloud/SPEC.md`, not `scripts/SPEC.md`.
+- `gate` owns the gate's rules: `hk.pkl`, `xenolith.toml`,
+  `.context-limits` and the CI workflow. The guard and runner shell
+  (`scripts/guard/`, `scripts/hk/`) stays in `scripts`.
+- `setup` owns root `setup.sh` and `allowlist.txt`: what a session gets
+  installed, the network list, the owner values and the release line.
+
+Root keeps only what is repo-wide: §F, the commit and test rules, and
+the self-build rule. Every chain pays for root, so a rule that belongs to
+one node goes in that node.
 
 - Ids are unique across all nodes. The next id is the highest over every
   `SPEC*.md`, plus 1 (same for `V`, `B`, `C`).
-- Cite a parent as `` `.:C15` `` and a sibling as `` `docs:T13` ``.
+- Cite a parent as `` `gate:C15` `` and a sibling as `` `docs:T13` ``.
 
 ## The gate
 
@@ -97,7 +107,7 @@ and how to run it by hand: [`docs/INTEGRATION.md`](docs/INTEGRATION.md).
   generated; never edit them by hand. After a flake input bump run
   `claudinix-dev notices --write`.
 - An `hk.pkl` edit travels in one commit with the files its fix steps
-  regenerate (`.:V36`); never commit other work while `hk.pkl` has unstaged
+  regenerate (`gate:V36`); never commit other work while `hk.pkl` has unstaged
   edits.
 
 ## Docs
