@@ -92,10 +92,14 @@
 # Measured after the move: files gate 1774, setup 1756, scripts 4248,
 # experiments 1601, dev 1310, home 1340, docs 1756, cloud 4317; chains gate
 # 4326, setup 4308. New rows and file raises ~15% over measured.
+#
+# Lowered 2026-11-04 after the move: root file 5277, chains cloud 6062,
+# scripts 6028, experiments 4084, dev 3579, home 3378, nix 3201, docs 3079;
+# ~15% over measured. Root file only now gates the root chain (2767).
 
-SPEC.md          8700
+SPEC.md          6100
 scripts/SPEC.md  4900
-nix/SPEC.md      1400
+nix/SPEC.md      1300
 docs/SPEC.md     2050
 experiments/SPEC.md 1850
 dev/SPEC.md      1500
@@ -104,12 +108,12 @@ cloud/SPEC.md      5000
 gate/SPEC.md       2050
 setup/SPEC.md      2050
 
-scripts 10400
-nix      8950
-docs     9900
-experiments  8650
-dev          8000
-home         7450
-cloud        9400
+scripts  6950
+nix      3700
+docs     3550
+experiments  4700
+dev          4100
+home         3900
+cloud        7000
 gate         5000
 setup        4950
