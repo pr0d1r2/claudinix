@@ -28,6 +28,8 @@ sib|setup|`setup.sh`, `allowlist.txt`: install, network, owner values, opt-in ag
 
 ## §I INTERFACES
 
+- file: `experiments/E<n>-<slug>.prompt.txt` (a header naming its launcher; report as `key: value` lines) + `experiments/E<n>-<slug>.<YYYY-MM-DD>.md` (checks table, Verdict, Decision, Not shown); a rerun adds a new dated file, ⊥ edits the old one; ⊥ task ids in the dated file.
+
 ## §V INVARIANTS
 
 ## §T TASKS
