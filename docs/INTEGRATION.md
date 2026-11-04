@@ -165,11 +165,15 @@ A few notes on why the steps look the way they do:
 - **context-limits** (`scripts/guard/context-limits.sh`) holds that rule on
   push and in CI: it compares `.context-limits` with the branch's merge
   base with `origin/main` (`CONTEXT_LIMITS_BASE` picks another base) and
-  fails on every row raised or added, and on the file being deleted,
-  naming it. There is no override: a raise is the owner's call, made on the
-  merge side. The rows are read by `scripts/lib/context-limits.sh`, the
-  parser `just merge` shares, so a reviewed raise still waits for the owner
-  there.
+  judges the change per chain (`gate:V67`), naming each failure: a chain
+  row raised; a file row raised while its node's chain row does not fall
+  (root's file row is root's chain, so it never may); a chain row added
+  above the largest chain row at base; a file row added without its node's
+  chain row; the file deleted. A split that shrinks every chain passes.
+  There is no override: a raise is the owner's call, made on the merge
+  side. The rows are read by `scripts/lib/context-limits.sh`, which
+  `just merge` shares; it still stops on any raised or added row
+  (`cloud:V51`).
 - **spec-ids** (`scripts/guard/spec-ids.sh`) keeps the specs' ids: one
   defined in any `SPEC*.md` at the branch's merge base with `origin/main`
   (`SPEC_IDS_BASE` picks another base) must be defined in some `SPEC*.md`
