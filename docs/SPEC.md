@@ -21,7 +21,7 @@ sib|setup|`setup.sh`, `allowlist.txt`: install, network, owner values, opt-in ag
 ## §C CONSTRAINTS
 
 - C22: human docs = plain English (⊥ caveman), modeled on owner's public repos (sherd, itok, microlith, rekall, xenolith, pklith, nix-hk) \& nixos-poe2. waves: W1 w/ guardrails (T1): AGENTS, INTEGRATION, LLM-DISCLAIMER, linter-coverage; W2 w/ seed import + probe (T2, T3): FACTS, RUNBOOK, SECURITY, CHANGELOG; W3 before 1st push (`docs:T9`): README, LICENSE, CONTRIBUTING, CODE_OF_CONDUCT, THIRD-PARTY-NOTICES, CONSUMER, EXAMPLE, MODEL; W4 later: CLI, SESSION, FORKING. 1 doc = 1 task = 1 commit (C21). doc vs gate disagree ⇒ gate (`hk.pkl`) wins, doc fixed.
-- C26: README top line = alpha status until E2 (`experiments:T57`) \& E1 (`experiments:T56`) pass: what is proven vs not, dated; removed by the commit that records them passing.
+- C26: README top line = alpha status until E2 (`experiments:T57`) \& E1 (`experiments:T56`) pass (E1 passed 2026-11-04, E2 open): what is proven vs not, dated; removed by the commit that records them passing.
 
 ## §I INTERFACES
 
