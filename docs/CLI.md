@@ -558,8 +558,9 @@ cloud: started <node>:<Tn>; it pushes claude/<node>-<Tn> (the harness may add a 
 A build outlasts a launcher, so follow the session at
 [claude.ai/code](https://claude.ai/code).
 
-Unattended runs may still hit permission prompts; see
-[`FACTS.md`](FACTS.md) once measured.
+Unattended runs may still hit permission prompts, and nothing measured shows
+a timeout; see
+[what a job does while a prompt waits](SETUP.md#what-an-unattended-job-does-while-a-prompt-waits).
 
 | exit | meaning |
 |---|---|
