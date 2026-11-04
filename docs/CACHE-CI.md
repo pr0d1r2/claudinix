@@ -93,7 +93,8 @@ system is the one cloud sessions run on ([`FACTS.md`](FACTS.md), 2026-10-03).
 
 Keep the shell in script files rather than inline in the workflow. If your
 repository uses xenolith, it requires that anyway. Copy both from this
-repository as they are:
+repository at one claudinix commit, and note that commit in your copy so a
+stale copy is easy to spot:
 
 - [`scripts/ci/push-sources.sh`](../scripts/ci/push-sources.sh) `CACHE
   [FLAKE]` pushes every input path that `nix flake archive --json` reports.
@@ -102,17 +103,19 @@ repository as they are:
   or the push fails, so a push that did nothing is red.
 - [`scripts/ci/verify-cachix.sh`](../scripts/ci/verify-cachix.sh) takes flake
   attributes, evaluates each to a store path, asks the cache for that path's
-  narinfo, and fails on anything but HTTP 200. With `--sources FLAKE` it does
-  the same for every input source of the flake. Pass it the dev shell:
+  narinfo, and fails on anything but HTTP 200. With `--sources FLAKE` it
+  checks every input source of the flake too, but accepts a source found in
+  either your cache or `UPSTREAM_URL` (default `https://cache.nixos.org`), so
+  it does not prove each source is in your cache. Pass it the dev shell:
 
 ```sh
 bash scripts/ci/verify-cachix.sh --sources . .#devShells.x86_64-linux.default
 ```
 
-Both need `jq`. Set `CACHIX_URL` (for example
-`https://pr0d1r2.cachix.org`) in the verify step: without it
-`verify-cachix.sh` looks for this repository's `scripts/config.sh` to find the
-cache name.
+Both need `jq`. `verify-cachix.sh` works in a copy only with `CACHIX_URL` set
+(for example `https://pr0d1r2.cachix.org`) in the verify step. Without it,
+the script runs `../config.sh` next to itself to read the cache name from
+`.claudinix.toml`. A copy that lacks that file fails with an error.
 
 ## Checking it worked
 
