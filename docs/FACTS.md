@@ -97,6 +97,17 @@ read on 2026-10-04. They are not measured in a session yet.
 | `remote.defaultEnvironmentId` with an `env_...` id is read from any settings file; the usual precedence applies, so a project's `.claude/settings.local.json` wins over `.claude/settings.json`, which wins over the user settings. | 2026-10-04 | docs |
 | `claude --cloud --environment <id>` takes only self-hosted `ccpool_...` ids and rejects `env_...` ids; there is no flag or variable that picks an `env_...` environment for one launch. | 2026-10-04 | docs, `claude --help` |
 
+## Unattended runs
+
+Read from a cloud session on 2026-11-04; the behaviour of a waiting prompt
+was not triggered, so it is not measured. See
+[`SETUP.md`](SETUP.md#what-an-unattended-job-does-while-a-prompt-waits).
+
+| fact | read | source |
+|---|---|---|
+| The session environment sets `CLAUDE_CODE_HOLD_UNANSWERED_PARKED_PERMISSION=1` and `CLAUDE_CODE_SESSION_ATTENDED=1`. Neither is documented; what a parked prompt does after minutes is open. | 2026-11-04 | T51 session |
+| `claude --help` (2.1.318) lists `--permission-mode` with `acceptEdits`, `auto`, `bypassPermissions`, `manual`, `dontAsk`, `plan`, and `--permission-prompts host\|none` for `--print` only. Whether `--cloud` honours either is open. | 2026-11-04 | `claude --help` |
+
 ## Timings
 
 | what | time | measured | source |

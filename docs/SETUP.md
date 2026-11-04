@@ -341,6 +341,33 @@ c. **Answer in the browser** when the prompt appears. This unblocks that
 An unattended run (`just cloud`, a routine) cannot answer a prompt, so (a)
 is the expected route for it, until the measurements below say otherwise.
 
+### What an unattended job does while a prompt waits
+
+The rule for `just cloud`, routines and any long job:
+
+1. **Allow rules, not a mode.** Give the job the exact rules it needs
+   (the agent home's `nix/cloud-permissions.json`, or route (a) for the one
+   `add_repo` tool). Do not pick `bypassPermissions` for a job nobody
+   watches: it also skips the prompts that guard `main` and merging.
+2. **Do not count on a timeout.** Nothing measured shows the platform
+   answering or denying a prompt on its own. The session this was written
+   in set `CLAUDE_CODE_HOLD_UNANSWERED_PARKED_PERMISSION=1`, which by its
+   name holds an unanswered prompt (parks it) rather than denying it, and
+   `CLAUDE_CODE_SESSION_ATTENDED=1`. Read the names as hints; the behaviour
+   is not measured. Treat a parked prompt as a hang until someone answers.
+3. **Make the hang visible.** Every launcher prompt already tells the job not
+   to ask, and a job's pull request body carries what was blocked. A job
+   that stalls leaves no pull request, so `just cloud` users find it at
+   [claude.ai/code](https://claude.ai/code) (the launcher does not wait).
+   Open the session, answer the prompt, and add the rule so it cannot
+   repeat.
+4. **A rule that was missing is a bug in the rule list**, not in the job:
+   add it to the list and its test, never loosen to a wildcard.
+
+`claude --print` has `--permission-prompts none`, which denies anything that
+would prompt instead of waiting. It is not a `--cloud` flag; whether a cloud
+session can be started that way is not measured.
+
 Not measured yet (experiment T62 and T51; this list is the one place to
 update when they report):
 
@@ -350,7 +377,10 @@ update when they report):
   more than one repository, which `add_repo` creates: the session starts in
   one repository and adds another, so the added one's file probably does not
   govern. Treat (a) as a route for a session of one repository.
-- Whether `--permission-mode` is honoured together with `--cloud`.
+- Whether `--permission-mode` is honoured together with `--cloud`. The flag
+  exists (`acceptEdits`, `auto`, `bypassPermissions`, `manual`, `dontAsk`,
+  `plan`, read from `claude --help` 2.1.318, 2026-11-04); nobody has launched
+  a cloud session with it and read the mode back.
 - Which scope "Always allow" in (c) gives: this session, this repository, or
   your account.
 
