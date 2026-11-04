@@ -54,6 +54,8 @@ permissions:
 jobs:
   push-cache:
     runs-on: ubuntu-latest
+    env:
+      CACHE: pr0d1r2
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -64,21 +66,21 @@ jobs:
       # The action pushes what the later steps build. `name` is your cache.
       - uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866 # v17
         with:
-          name: pr0d1r2
+          name: ${{ env.CACHE }}
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       # 1 and 2: the dev shell, built so its closure is pushed.
       - run: nix build --no-link .#devShells.x86_64-linux.default
 
       # 3: every locked input, from the flake's own lock file.
-      - run: bash scripts/ci/push-sources.sh pr0d1r2
+      - run: bash scripts/ci/push-sources.sh "$CACHE"
 
       # 4: prove it. See below.
       - run: >-
           bash scripts/ci/verify-cachix.sh --sources .
           .#devShells.x86_64-linux.default
         env:
-          CACHIX_URL: https://pr0d1r2.cachix.org
+          CACHIX_URL: https://${{ env.CACHE }}.cachix.org
 ```
 
 Step 3 pushes sources from the target's own CI. A central job that pushes
@@ -86,7 +88,7 @@ them instead is planned (`SPEC.md` T93, for repos whose `.claudinix.toml` sets
 `push_sources = true`); once it exists, such a repo skips step 3 and keeps
 steps 1, 2 and 4, so only one writer pushes its sources.
 
-Replace `pr0d1r2` with the name of the cache you push to. The `x86_64-linux`
+Set `CACHE` to the name of the cache you push to; the three uses follow it. The `x86_64-linux`
 system is the one cloud sessions run on ([`FACTS.md`](FACTS.md), 2026-10-03).
 
 ## The two scripts
