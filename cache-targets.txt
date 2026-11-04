@@ -1,0 +1,4 @@
+# Flake refs of the owner repos the central cache job (T93) may push the
+# eval-time sources of. A repo is pushed only if its .claudinix.toml says
+# `push_sources = true`. One ref per line.
+git+https://github.com/pr0d1r2/claudinix
