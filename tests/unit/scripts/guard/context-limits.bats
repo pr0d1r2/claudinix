@@ -154,6 +154,16 @@ limits() {
     [[ "$output" == *"deletes .context-limits"* ]]
 }
 
+@test "a .context-limits blob that cannot be read fails as could not run, not as deleted (.:V18)" {
+    limits scripts/SPEC.md 4000
+    blob="$(git rev-parse HEAD:.context-limits)"
+    rm -f ".git/objects/${blob:0:2}/${blob:2}"
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"gate could not run"* ]]
+    [[ "$output" != *"deletes"* ]]
+}
+
 @test "the base is measured at the merge base, so main moving on is not a raise" {
     git switch -q main
     limits scripts/SPEC.md 5000
