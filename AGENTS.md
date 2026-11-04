@@ -69,7 +69,8 @@ one node goes in that node.
 
 - Ids are unique across all nodes. The next id is the highest over every
   `SPEC*.md`, plus 1 (same for `V`, `B`, `C`).
-- Cite a parent as `` `gate:C15` `` and a sibling as `` `docs:T13` ``.
+- Cite root as `` `.:C17` `` and another node as `` `gate:C15` `` or
+  `` `docs:T13` ``.
 
 ## The gate
 
