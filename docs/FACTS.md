@@ -125,6 +125,8 @@ read on 2026-10-04. They are not measured in a session yet.
   prompts, and does a `.claude/settings.local.json` written by the
   SessionStart hook apply in the same session? The 2026-11-04 session ran
   in a mode that never prompted, so run the check in one that does. (T104)
+- Do the permission rules apply, from `~/.claude/settings.json` and from
+  the hook-written `.claude/settings.local.json`? (T180)
 - Which git version does the image ship? Not recorded yet (noted
   2026-10-03). Ubuntu 24.04 packages 2.43, but nobody has run
   `git --version` in a session. It matters: a session commits with that

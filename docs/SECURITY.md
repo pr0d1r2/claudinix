@@ -90,7 +90,7 @@ access. That makes the following the classes worth reporting:
    list into the gitignored `.claude/settings.local.json`, only in a cloud
    session. Whether the agent home's file survives to launch, and whether
    the fallback applies in the same session, is not measured yet (experiment
-   T104).
+   T180).
    **A rule you commit into your own repository is a separate grant.**
    [`SETUP.md`](SETUP.md#permission-prompts) describes allowing the
    `add_repo` tool that way. The rule cannot limit the tool's arguments, so
