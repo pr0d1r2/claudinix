@@ -1,0 +1,9 @@
+EXP E2: SHA-pinned fetch (experiments:T57). In this session, with SHA = a full
+40-hex commit already pushed to pr0d1r2/claudinix:
+1. curl -sS --connect-timeout 10 --max-time 60 -o setup.sh \
+     https://raw.githubusercontent.com/pr0d1r2/claudinix/$SHA/setup.sh
+   Compare its sha256 with `git show $SHA:setup.sh`.
+2. time nix build --no-link --print-out-paths \
+     "git+https://github.com/pr0d1r2/claudinix?rev=$SHA&shallow=1#homeConfigurations.cloud.activationPackage"
+Report the HTTP status, both hashes, the store path, the wall time and which
+caches served the paths.
