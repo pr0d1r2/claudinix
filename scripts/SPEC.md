@@ -84,3 +84,4 @@ B4, B7, B10, B13, B17, B62, B81, B82, B91, B95-B97, B110-B112: ARCHIVED to SPEC-
 id|date|cause|fix
 B14|2026-10-04|guide step 3 \& SETUP said "Create environment"; button reads "Add environment" ⇒ UI labels drift; ⊥ invariant checks the UI (`.:C2`), ∴ bats pins it|`.:C2`
 B117|2026-10-23|`--pr` read comments only; build's `Burn:` is in the PR body ⇒ `## Burn` total missed it (#65: $2.71, real $3.85)|V61
+B119|2026-11-03|`verify-cachix.bats` unset `CACHIX_URL` but ⊥ `GIT_*` ∴ push from a linked worktree (hook exports `GIT_WORK_TREE`) → `config.sh` read that tree, 3 `.claudinix.toml` tests red|`.:V21`: setup unsets ∀ `GIT_*`
