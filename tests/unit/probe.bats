@@ -171,3 +171,41 @@ stub_git() {
     run bash "$SCRIPT"
     [[ "${lines[-1]}" =~ ^elapsed:\ [0-9]+s$ ]]
 }
+
+# experiments:T14 (C13): what ~/.claude holds at launch.
+@test "home facts: HOME, ~/.claude listing, settings.json owner and content" {
+    FAKE_HOME="$BATS_TEST_TMPDIR/home"
+    mkdir -p "$FAKE_HOME/.claude/skills"
+    printf '{"a":1}\n' >"$FAKE_HOME/.claude/settings.json"
+    run env HOME="$FAKE_HOME" bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"home: $FAKE_HOME"* ]]
+    [[ "$output" == *"claude-dir: "*"skills"* ]]
+    [[ "$output" == *"settings-owner: $(id -un)"* ]]
+    [[ "$output" == *'settings-content: {"a":1}'* ]]
+}
+
+@test "no settings.json is reported absent, not a failure (C13)" {
+    FAKE_HOME="$BATS_TEST_TMPDIR/home"
+    mkdir -p "$FAKE_HOME/.claude"
+    run env HOME="$FAKE_HOME" bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"settings-owner: absent"* ]]
+    [[ "$output" == *"settings-content: absent"* ]]
+}
+
+@test "test skill present in ~/.claude/skills is reported" {
+    FAKE_HOME="$BATS_TEST_TMPDIR/home"
+    mkdir -p "$FAKE_HOME/.claude/skills/claudinix-probe"
+    touch "$FAKE_HOME/.claude/skills/claudinix-probe/SKILL.md"
+    run env HOME="$FAKE_HOME" bash "$SCRIPT"
+    [[ "$output" == *"test-skill: present"* ]]
+}
+
+@test "test skill missing is reported absent, not a failure" {
+    FAKE_HOME="$BATS_TEST_TMPDIR/home"
+    mkdir -p "$FAKE_HOME/.claude/skills"
+    run env HOME="$FAKE_HOME" bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"test-skill: absent"* ]]
+}
