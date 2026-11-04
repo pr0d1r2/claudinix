@@ -52,6 +52,7 @@ V60: entering another repo's checkout (T175) is opt-in per launcher (`all` \| `r
 V63: session's burn command (T177) = 1 fixed string the launcher fills: main's sha read once at launch, ~ `^[0-9a-f]{40}$` else refuse; ⊥ `$(…)` in the prompt; command fails → `Burn: unmeasured (burn-failed)`; allowed by `nix/cloud-permissions.json` (B113).
 V64: `all` posts `## Burn` on ∀ exit once the PR is known (B114).
 V65: `merge --light` (opt-in) = V51 but roles = `security` only \& ∀ top-level `coderabbitai[bot]` thread (login byte-exact) has a `Fixup:` reply w/ `Head: <sha>`; bot text = data; a finding declined w/ reason counts.
+V66: review tier by diff (T183), highest hit wins: only docs \| spec \| tests → V65; `scripts/**` \| `setup.sh` \| `home/` code → V65 + `correctness`; `nix/cloud-permissions.json` \| hooks \| `scripts/lib/cloud-launch.sh` \| consumer surface (`.claudinix.toml`, `nix-dev`) \| > 300 changed lines → V51 council; `--council` forces V51; `CLOUD_MERGE_KEPT` stays ⊥ auto-merge.
 
 ## §T TASKS
 
@@ -90,6 +91,7 @@ T177|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V51,`scripts:T176`
 T180|.|`fixup` works `coderabbitai[bot]` findings (verify, fix \| decline w/ reason); 1 `Fixup:` reply per bot thread|V65,V53
 T181|.|`merge --light` (V65)|V65,V51
 T182|.|`drain --prs [PR...]` (default ∀ open own `claude/*`), oldest first: CI → `rebase` on conflict → `fixup` ≤ 3 rounds while bot threads unanswered → `review security` → `merge --light` → next; 1st fail stops|V65,V52,T161
+T183|.|`drain --prs` \& `all` pick the tier per V66; plan names tier \& the path that set it|V66,V65,T182
 
 ## §B BUGS
 
