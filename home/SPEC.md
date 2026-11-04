@@ -15,6 +15,8 @@ sib|docs|plain-English docs: setup, facts, runbook, security, release
 sib|experiments|cloud-session experiments \& results
 sib|dev|`claudinix-dev`: generated badges \& doc numbers
 sib|cloud|cloud launchers \& their prompts, `enroll`
+sib|gate|the gate: `hk.pkl`, `xenolith.toml`, `.context-limits`, CI workflow, ceilings \& archive layout
+sib|setup|`setup.sh`, `allowlist.txt`: install, network, owner values, opt-in agent home, release line
 
 ## §C CONSTRAINTS
 
@@ -31,6 +33,7 @@ V47: `~/.claude/skills` = exactly the enabled toggles of `nix/agent-home.toml` (
 V49: allowed push takes options before the remote only ∴ deny ∀ option after it (`Bash(git push * -*)` + rtk twin; no glob names every short-flag cluster, B58); older denies = 2nd layer.
 V50: allowed push writes 1 ref: 1 refspec, `claude/` src ⊥ `:dst` (B59); `heads/main` denied (B60).
 V58: ∀ cloud session (build ones too) ⊥ merges, closes \| edits a PR: guard requires `gh pr <verb>` ∀ `pr_verbs` + MCP `merge_pull_request`, `enable_pr_auto_merge`, `update_pull_request` (B98). Allowed: `issue_write`, `update_issue_comment` (fixup edits its reply); uncovered: `gh api -X PATCH`.
+V44: cloud permission list: ∀ `git`/`cargo` rule (allow \& deny) has its `rtk ` twin in the same list \& ∀ `rtk ` rule its bare one; the pinned rtk decides which commands it rewrites (`checks.rtk-twins`; the fast guard knows `git`/`cargo` only).
 
 ## §T TASKS
 

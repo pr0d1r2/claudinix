@@ -15,6 +15,8 @@ sib|experiments|cloud-session experiments \& results
 sib|dev|`claudinix-dev`: generated badges \& doc numbers
 sib|home|`~/.claude`: skills, rtk, caveman, permission rules
 sib|cloud|cloud launchers \& their prompts, `enroll`
+sib|gate|the gate: `hk.pkl`, `xenolith.toml`, `.context-limits`, CI workflow, ceilings \& archive layout
+sib|setup|`setup.sh`, `allowlist.txt`: install, network, owner values, opt-in agent home, release line
 
 ## §C CONSTRAINTS
 
@@ -36,10 +38,10 @@ T31|x|ARCHIVED to SPEC-ARCHIVE.md|C22,C17,C21
 T32|x|ARCHIVED to SPEC-ARCHIVE.md|C22,C14,C18
 T33|x|ARCHIVED to SPEC-ARCHIVE.md|C22,C10
 T34|x|ARCHIVED to SPEC-ARCHIVE.md|C22,C8,C13
-T35|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:V20`,`.:V11`,C19
+T35|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`setup:V20`,`.:V11`,C19
 T36|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:V6`,C5
-T37|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:V20`
-T38|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:C15`,`scripts:C16`
+T37|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`setup:V20`
+T38|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`gate:C15`,`scripts:C16`
 T39|x|ARCHIVED to SPEC-ARCHIVE.md|C22,C17,C21
 T40|x|ARCHIVED to SPEC-ARCHIVE.md|C22
 T41|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`nix:C12`
@@ -51,16 +53,16 @@ T46|x|ARCHIVED to SPEC-ARCHIVE.md|C22,C11
 T47|x|ARCHIVED to SPEC-ARCHIVE.md|C2,C9,I.cmd,`scripts:T137`,T8
 T70|x|ARCHIVED to SPEC-ARCHIVE.md|`.:T24`,`.:T30`,C22
 T72|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C10`,`.:T71`,C22
-T83|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:C24`,`.:C25`,C26
+T83|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`setup:C24`,`setup:C25`,C26
 T84|x|ARCHIVED to SPEC-ARCHIVE.md|C22
 T85|x|ARCHIVED to SPEC-ARCHIVE.md|C22,`.:C17`,`.:C21`
-T89|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C6`,`.:V18`,C22
+T89|x|ARCHIVED to SPEC-ARCHIVE.md|`setup:C6`,`.:V18`,C22
 T94|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C28`,`scripts:V34`,C22
 T103|x|ARCHIVED to SPEC-ARCHIVE.md|`.:C29`,C22
-T115|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:T114`,`scripts:V37`,`.:C29`,`.:C25`,C22
+T115|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:T114`,`scripts:V37`,`.:C29`,`setup:C25`,C22
 T117|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:T116`,`scripts:B14`,C22
 T120|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:T119`,C22
-T122|x|ARCHIVED to SPEC-ARCHIVE.md|`.:T121`,`.:B15`,`.:C6`,C22
+T122|x|ARCHIVED to SPEC-ARCHIVE.md|`.:T121`,`.:B15`,`setup:C6`,C22
 T125|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:T124`,`.:C29`,C22
 T128|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:T126`,C22
 T130|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:T129`,C22

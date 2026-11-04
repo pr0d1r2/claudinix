@@ -15,6 +15,8 @@ sib|docs|plain-English docs: setup, facts, runbook, security, release
 sib|experiments|cloud-session experiments \& results
 sib|home|`~/.claude`: skills, rtk, caveman, permission rules
 sib|cloud|cloud launchers \& their prompts, `enroll`
+sib|gate|the gate: `hk.pkl`, `xenolith.toml`, `.context-limits`, CI workflow, ceilings \& archive layout
+sib|setup|`setup.sh`, `allowlist.txt`: install, network, owner values, opt-in agent home, release line
 
 ## §C CONSTRAINTS
 
@@ -35,7 +37,7 @@ V1: every generated number comes from the file that OWNS it (`hk.pkl` steps, `@t
 V2: a badge's alt text \& URL come from ONE value ∴ they cannot disagree.
 V3: render is idempotent: splice(splice(x)) == splice(x) ∴ `--check` is equality.
 V4: the status badge follows the README's `> **Alpha|Beta|Preview, <date>.**` callout \& is absent w/o one; the CI slug comes from `setup.sh`'s fork block `repo=`, the cache from `.claudinix.toml` `cache.name`.
-V39: pre-commit checks each generated file AS STAGED: a commit staging a source (`hk.pkl`, `*.bats`, ...) w/ its output stale in the index fails (B18, `.:V36`).
+V39: pre-commit checks each generated file AS STAGED: a commit staging a source (`hk.pkl`, `*.bats`, ...) w/ its output stale in the index fails (B18, `gate:V36`).
 
 ## §T TASKS
 
@@ -45,9 +47,9 @@ T107|x|ARCHIVED to SPEC-ARCHIVE.md|V1,V3
 T108|x|ARCHIVED to SPEC-ARCHIVE.md|V1,V3,`scripts:V34`
 T109|x|ARCHIVED to SPEC-ARCHIVE.md|V1,V3
 T110|x|ARCHIVED to SPEC-ARCHIVE.md|V1
-T111|x|ARCHIVED to SPEC-ARCHIVE.md|`.:V20`,`docs:T37`
+T111|x|ARCHIVED to SPEC-ARCHIVE.md|`setup:V20`,`docs:T37`
 T112|.|? `select`: run only the generated outputs a changed file can affect (xenolith `select`) — when the gate gets slow|V3
-T123|x|ARCHIVED to SPEC-ARCHIVE.md|V39,`.:V36`,B18
+T123|x|ARCHIVED to SPEC-ARCHIVE.md|V39,`gate:V36`,B18
 T179|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:V61`,`docs:T178`
 
 ## §B BUGS
