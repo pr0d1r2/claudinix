@@ -83,15 +83,26 @@
 # Raised 2026-10-15 for cloud: just merge and its hardening (V51, B64-B76)
 # filled the file to 4099 of 4100 with every done task archived, and
 # just drain needs about 150 more. Owner chose a raise over a merge node.
+#
+# Set 2026-11-04 for thinning root: node-specific root rows move down to
+# two new nodes, `gate` (C14 C15 C18 C20 C32 C34, V17 V22 V24 V32 V36) and
+# `setup` (C3 C4 C6 C11 C24 C25, V3 V4 V20 V38), and to `experiments` (C8
+# C8b C8c C13) and `home` (V44). The root chain falls from 6104 to 2767, so
+# every chain falls by ~3.3k; each node file grows by 2 §N sibling rows.
+# Measured after the move: files gate 1774, setup 1756, scripts 4248,
+# experiments 1601, dev 1310, home 1340, docs 1756, cloud 4317; chains gate
+# 4326, setup 4308. New rows and file raises ~15% over measured.
 
 SPEC.md          8700
-scripts/SPEC.md  4200
+scripts/SPEC.md  4900
 nix/SPEC.md      1400
-docs/SPEC.md     1800
-experiments/SPEC.md 1200
-dev/SPEC.md      1250
-home/SPEC.md       1220
-cloud/SPEC.md      4500
+docs/SPEC.md     2050
+experiments/SPEC.md 1850
+dev/SPEC.md      1500
+home/SPEC.md       1550
+cloud/SPEC.md      5000
+gate/SPEC.md       2050
+setup/SPEC.md      2050
 
 scripts 10400
 nix      8950
@@ -100,3 +111,5 @@ experiments  8650
 dev          8000
 home         7450
 cloud        9400
+gate         5000
+setup        4950
