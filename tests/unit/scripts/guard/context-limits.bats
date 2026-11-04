@@ -1,8 +1,10 @@
 #!/usr/bin/env bats
 # Unit tests for scripts/guard/context-limits.sh (SPEC scripts:T150,
-# gate:C20): a .context-limits row raised or added, or the file deleted, on
-# the branch, against its merge base with origin/main, fails the gate;
-# there is no override (B81).
+# scripts:T185, gate:C20, gate:V67): a .context-limits change on the branch,
+# against its merge base with origin/main, is judged per chain: a chain
+# raised, a file raised while its chain does not fall, a new chain above the
+# largest base chain, or the file deleted fails the gate; there is no
+# override (B81).
 
 setup() {
     SCRIPT="$BATS_TEST_DIRNAME/../../../../scripts/guard/context-limits.sh"
@@ -88,6 +90,45 @@ limits() {
     [ "$status" -eq 1 ]
     [[ "$output" == *"scripts/SPEC.md from 4200 to 4600"* ]]
     [[ "$output" == *"scripts from 10400 to 11000"* ]]
+}
+
+@test "a split passes: a file row rises while its chain falls (gate:V67, B120)" {
+    limits scripts 9000
+    limits scripts/SPEC.md 4600
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
+
+@test "a new node with file and chain rows within the base's largest chain passes (gate:V67)" {
+    limits newnode/SPEC.md 900
+    limits newnode 5000
+    run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
+
+@test "a new node's chain above the base's largest chain fails, naming both (gate:V67)" {
+    limits newnode/SPEC.md 900
+    limits newnode 11000
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"adds the .context-limits row newnode 11000, above the largest chain ceiling at base (10400)"* ]]
+}
+
+@test "a file row raised while its chain does not fall fails, naming the chain (gate:V67)" {
+    limits scripts/SPEC.md 4600
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"raises the .context-limits row scripts/SPEC.md from 4200 to 4600 while its chain scripts does not fall"* ]]
+}
+
+@test "the root file row is root's chain: a raise fails even when other chains fall (gate:V67)" {
+    limits scripts 9000
+    limits SPEC.md 9000
+    run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"raises the .context-limits row SPEC.md from 8700 to 9000"* ]]
 }
 
 @test "a raise lowered again on the branch passes" {
