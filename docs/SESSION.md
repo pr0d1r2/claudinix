@@ -47,9 +47,10 @@ runs on every session. The steps in words:
 6. **A snapshot is saved** if the script finished within about five minutes.
    Later sessions in the same environment start from that snapshot and skip
    the script. A change to the script or the allowed domains, or about seven
-   days, rebuilds it (`SPEC.md` C1). **Not measured yet:** whether a second
-   session really skips the script, and how much faster it starts
-   (`SPEC.md` T55).
+   days, rebuilds it (`SPEC.md` C1). **Measured 2026-11-04:** a second session skips the script (log: `Skipping
+   initialization script`) and keeps the first session's disk; its start took
+   44 s, almost all of it the SessionStart hook ([`FACTS.md`](FACTS.md)). The cold time is
+   still not measured (`SPEC.md` T55).
 7. **Your SessionStart hook runs**, if your repository has one. This is where
    per-session work belongs: `git fetch --unshallow`, installing hooks
    ([`CONSUMER.md`](CONSUMER.md)). It cannot live in the setup script,

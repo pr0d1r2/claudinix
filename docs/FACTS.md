@@ -26,6 +26,8 @@ uptime in the T55 session row; measure those by hand, as Still open describes.
 | About 30 GB of free disk per session, on a 252 GB device. No cgroup v2 limits are visible. | 2026-10-03 | probe 6 |
 | The VM had been up for 3 minutes when the session started: a fresh boot, not a reused one. | 2026-10-03 | probe 6 |
 | The root disk image is dated 2026-10-27 and already holds Nix 2.34.6 (`/nix/receipt.json`, `/nix/store`), 7 days before this session. The agent home under `~/.claude` was written or re-stamped at 17:21-17:22, minutes after boot. Session start re-stamps those directories (`experiments/SPEC.md` C13), so this does not show whether the image already held them. The VM was again up 3 minutes at the first command. One session cannot tell a reused snapshot from a rebuilt one; that needs two sessions back to back. | 2026-11-03 | T55 session |
+| A second session in the same environment reuses the first one's disk and skips the setup script. Measured 2026-11-04, one day after the 2026-11-03 session: `env-manager.log` says `Fast resume: Environment already configured` and `Skipping initialization script for faster startup` (setup 244 ms), and `Fast resume: Using existing repository clones`. The earlier session's files are still there with their old stamps: `/usr/local/bin/nix-dev` and `/etc/nix/nix.conf` (2026-11-03 17:22:19-20), `~/.claude/settings.json` and `FORMAT.md` (17:22:53-54). Only `~/.claude` entries session start touches carry the new date. The VM itself was a fresh boot (`uptime` 0 min). | 2026-11-04 | T55 session |
+| Warm start: the log's `spawn_to_ready_ms` is 44037, of which `hooks_init_ms` is 42119: the repository's SessionStart hook (`git fetch --unshallow`, `nix develop -c true`) is almost all of it, not the platform. A cold start time is not recorded: no log of a cold session exists to compare. | 2026-11-04 | T55 session |
 | The session sets `CLAUDE_CODE_REMOTE=true`, plus several `CCR_*` variables. A hook can use this to tell it is running in the cloud. | 2026-10-03 | probe 7 |
 
 ## Nix in the image
@@ -109,12 +111,11 @@ read on 2026-10-04. They are not measured in a session yet.
 
 ## Still open
 
-- Does a second session in the same environment reuse the snapshot and skip
-  the setup script, and how much faster does it start? One session shows
-  only the image date and a fresh boot (see The machine); the comparison
-  needs two sessions started back to back. Record each session's launch
-  time, run `date` as its first command to mark when it is ready, and
-  compare the two launch-to-ready times. (`SPEC.md` T55)
+- How long does a cold start take, to set against the warm 44 s in The
+  machine? Reuse is answered (The machine); the cold number needs a first
+  session in a fresh or changed environment, with `env-manager.log`'s
+  `spawn_to_ready_ms` and `hooks_init_ms` read from `/tmp/env-manager.log`
+  as its first command. (`SPEC.md` T55)
 - Can the setup line fetch `setup.sh` by SHA from the setup phase, before
   Claude starts? E2 proved the fetch and build only from inside a running
   session. (`experiments/SPEC.md` T190, `setup:V20`)
