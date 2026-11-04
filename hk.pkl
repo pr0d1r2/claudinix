@@ -382,14 +382,14 @@ local all = (fast) {
   // fails, with no override (scripts:T150, gate:C20). It reads history, so push
   // only; the parser it shares with `just merge` is in the glob (.:V19).
   ["context-limits"] {
-    glob = List(".context-limits", "scripts/guard/context-limits.sh", "scripts/lib/context-limits.sh")
+    glob = List(".context-limits", "scripts/guard/context-limits.sh", "scripts/lib/context-limits.sh", "scripts/lib/require-full-history.sh")
     check = "scripts/guard/context-limits.sh"
   }
   // An id lost from the specs, or an ARCHIVED pointer with no archive row,
   // against the merge base with origin/main (scripts:T173, B91). Reads
   // history, so push only.
   ["spec-ids"] {
-    glob = List("**/SPEC*.md", "scripts/guard/spec-ids.sh")
+    glob = List("**/SPEC*.md", "scripts/guard/spec-ids.sh", "scripts/lib/require-full-history.sh")
     check = "scripts/guard/spec-ids.sh"
   }
 }

@@ -134,8 +134,8 @@ the `integration-steps` step fails when it no longer matches.
 | `dev-test` | all | `dev/**` | `cargo test --quiet --manifest-path dev/Cargo.toml` | - |
 | `bats-mirror` | all | `**/*` | `scripts/guard/bats-mirror.sh` | - |
 | `tdd-order` | all | `**/*` | `scripts/guard/tdd-order.sh` | - |
-| `context-limits` | all | `.context-limits` `scripts/guard/context-limits.sh` `scripts/lib/context-limits.sh` | `scripts/guard/context-limits.sh` | - |
-| `spec-ids` | all | `**/SPEC*.md` `scripts/guard/spec-ids.sh` | `scripts/guard/spec-ids.sh` | - |
+| `context-limits` | all | `.context-limits` `scripts/guard/context-limits.sh` `scripts/lib/context-limits.sh` `scripts/lib/require-full-history.sh` | `scripts/guard/context-limits.sh` | - |
+| `spec-ids` | all | `**/SPEC*.md` `scripts/guard/spec-ids.sh` `scripts/lib/require-full-history.sh` | `scripts/guard/spec-ids.sh` | - |
 | `commit-msg` | commit-msg | the message | `scripts/guard/commit-msg.sh` | - |
 | `changelog` | commit-msg | the message | `claudinix-dev changelog <message-file>` | - |
 <!-- END steps -->
