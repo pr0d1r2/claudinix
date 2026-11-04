@@ -4,6 +4,7 @@
 
 setup() {
     unset "${!GIT_@}"
+    export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
     LIB="$BATS_TEST_DIRNAME/../../../../scripts/lib/require-full-history.sh"
     # shellcheck source=/dev/null
     source "$LIB"
