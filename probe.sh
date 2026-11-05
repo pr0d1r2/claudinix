@@ -53,7 +53,7 @@ settings="$claude_dir/settings.json"
 report home "$HOME"
 report claude-dir "$(find "$claude_dir" -mindepth 1 -maxdepth 1 2>/dev/null | sed 's|.*/||' | sort | tr '\n' ' ')"
 if [ -f "$settings" ]; then
-    report settings-owner "$(stat -c '%U:%G %a' "$settings" 2>/dev/null || stat -f '%Su:%Sg %Lp' "$settings")"
+    report settings-owner "$(stat -L -c '%U:%G %a' "$settings" 2>/dev/null || stat -L -f '%Su:%Sg %Lp' "$settings")"
     report settings-content "$(tr -d '\n' <"$settings")"
 else
     report settings-owner absent
