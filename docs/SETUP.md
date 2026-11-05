@@ -368,7 +368,7 @@ The rule for `just cloud`, routines and any long job:
 would prompt instead of waiting. It is not a `--cloud` flag; whether a cloud
 session can be started that way is not measured.
 
-Not measured yet (experiment T62 and T51; this list is the one place to
+Not measured yet (experiments T62 and T65; this list is the one place to
 update when they report):
 
 - Whether the committed rule in (a) silences the prompt, and whether the
