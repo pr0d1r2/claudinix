@@ -36,7 +36,7 @@ sib|gate|the gate: `hk.pkl`, `xenolith.toml`, `.context-limits`, CI workflow, ce
 
 V3: `nix.conf` managed block between begin/end marker lines, replaced whole on rerun (⊥ append-only: a changed block w/ same marker never updated): flakes on, `accept-flake-config = true`, cachix substituter + key; lines outside the block (installer's) kept; rerun ⊥ duplicates, ⊥ reinstall.
 V4: Nix on PATH ≥ floor ⇒ ⊥ install. else `--daemon` iff systemd present; else `--no-daemon`. probe: image Nix found at `/nix/var/nix/profiles/default/bin` \& `~/.nix-profile` (root), no daemon, no systemd.
-V20: UI setup script = 1 line: fetch `setup.sh` at fixed GIT SHA from `raw.githubusercontent.com/pr0d1r2/claudinix/<sha>/` (reachable from session ✓ E2 2026-11-04; from setup phase ? `experiments:T180`) → run w/ same `<sha>`; `setup.sh` activates `git+https://github.com/pr0d1r2/claudinix?rev=<sha>&shallow=1#homeConfigurations.cloud.activationPackage` (substituted from cachix). same SHA ⇒ same VM result. activation derivation ⊥ depends on `cloud-home.storepath` (source filtered) ∴ CI commits store path after build w/o changing it.
+V20: UI setup script = 1 line: fetch `setup.sh` at fixed GIT SHA from `raw.githubusercontent.com/pr0d1r2/claudinix/<sha>/` (reachable from session ✓ E2 2026-11-04; from setup phase ? `experiments:T190`) → run w/ same `<sha>`; `setup.sh` activates `git+https://github.com/pr0d1r2/claudinix?rev=<sha>&shallow=1#homeConfigurations.cloud.activationPackage` (substituted from cachix). same SHA ⇒ same VM result. activation derivation ⊥ depends on `cloud-home.storepath` (source filtered) ∴ CI commits store path after build w/o changing it.
 V38: ∀ host the setup line or `setup.sh` fetches from (`https://<host>`) ∈ `allowlist.txt` (`.:B15`).
 
 ## §T TASKS
