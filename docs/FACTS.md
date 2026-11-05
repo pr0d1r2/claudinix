@@ -1,9 +1,9 @@
 # Cloud session facts
 
 What a Claude Code cloud session actually looks like, as measured. Every fact
-here comes from a probe run inside a real session, and every fact carries the
-date it was measured. Anthropic can change the platform at any time, so an
-old date is a warning: re-measure before you rely on it.
+here comes from a probe or an experiment run inside a real session, and every
+fact carries the date it was measured. Anthropic can change the platform at
+any time, so an old date is a warning: re-measure before you rely on it.
 
 All probes so far ran on 2026-10-03, in sessions on the owner's `sherd`
 repository, through the cloud environment named `nix`. The numbers in
@@ -98,7 +98,7 @@ read on 2026-10-04. They are not measured in a session yet.
 | `sherd` dev shell, cold, `git+https` inputs and no overrides | 33 s | 2026-10-03 | probe 7 |
 | `cargo test` on `sherd` | 12.5 s, and 31 s in a later session | 2026-10-03 | probes 5, 7 |
 | `hk check --all` on `sherd` | 2m45s; 3m43s cold (8m33s of CPU) | 2026-10-03 | probes 5, 6 |
-| `nix-dev --command true` on `itok` (tier 2, `git+https` at the locked rev; `inputs.sh` could not read cache status, so a tier 1 try failed first; cause open: `scripts/SPEC.md` B120, T180) and on `microlith` (tier 2, 9.5 s). `nix-dev` overrode the github inputs of both with no flake change. Details: [`experiments/E9-result-2026-11-04.md`](../experiments/E9-result-2026-11-04.md) | `itok` 72 s, `microlith` 9.5 s | 2026-11-04 | E9 |
+| `nix-dev --command true` on `itok` (tier 2, `git+https` at the locked rev; `inputs.sh` could not read cache status, so a tier 1 try failed first; cause open: `scripts/SPEC.md` B122, T186) and on `microlith` (tier 2, 9.5 s). `nix-dev` overrode the github inputs of both with no flake change. Details: [`experiments/E9-result-2026-11-04.md`](../experiments/E9-result-2026-11-04.md) | `itok` 72 s, `microlith` 9.5 s | 2026-11-04 | E9 |
 
 ## Cost
 
