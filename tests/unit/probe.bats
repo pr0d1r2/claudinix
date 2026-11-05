@@ -185,6 +185,17 @@ stub_git() {
     [[ "$output" == *'settings-content: {"a":1}'* ]]
 }
 
+@test "a symlinked settings.json reports the target's owner and mode, not the link's" {
+    FAKE_HOME="$BATS_TEST_TMPDIR/home"
+    mkdir -p "$FAKE_HOME/.claude"
+    printf '{"a":1}\n' >"$BATS_TEST_TMPDIR/target.json"
+    chmod 600 "$BATS_TEST_TMPDIR/target.json"
+    ln -s "$BATS_TEST_TMPDIR/target.json" "$FAKE_HOME/.claude/settings.json"
+    run env HOME="$FAKE_HOME" bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"settings-owner: $(id -un):"*" 600"* ]]
+}
+
 @test "no settings.json is reported absent, not a failure (C13)" {
     FAKE_HOME="$BATS_TEST_TMPDIR/home"
     mkdir -p "$FAKE_HOME/.claude"
