@@ -284,7 +284,7 @@ session. T104 measured that the agent home's file survives to launch.
 Whether its rules apply, by either route, and whether the fallback applies
 in the session that wrote it, is not measured yet (experiment T191).
 Anything outside the list can still prompt; see
-[`FACTS.md`](FACTS.md) once measured. Reference: [`CLI.md`](CLI.md#cloud).
+[what a job does while a prompt waits](SETUP.md#what-an-unattended-job-does-while-a-prompt-waits). Reference: [`CLI.md`](CLI.md#cloud).
 
 ## Bring a spec node under its ceiling
 
