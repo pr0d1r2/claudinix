@@ -76,7 +76,7 @@ T162|x|ARCHIVED to SPEC-ARCHIVE.md|`cloud:V51`,T150
 T163|x|`require_full_history` in `scripts/lib` for `tdd-order`, `context-limits` \& `spec-ids` (3rd copy of the preamble)|V29,B7
 T173|x|ARCHIVED to SPEC-ARCHIVE.md|B91
 T176|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V61,V26,`cloud:V51`
-T180|.|diagnose itok `inputs.sh: error:` (cache status unknown ⇒ failed tier 1 + ~60 s of 72 s); fix or cache it; then add the §V that B120 lacks|V13,T49,B120,`experiments:T64`
+T186|.|diagnose itok `inputs.sh: error:` (cache status unknown ⇒ failed tier 1 + ~60 s of 72 s); fix or cache it; then add the §V that B122 lacks|V13,T49,B122,`experiments:T64`
 
 ## §B BUGS
 
@@ -86,4 +86,4 @@ id|date|cause|fix
 B14|2026-10-04|guide step 3 \& SETUP said "Create environment"; button reads "Add environment" ⇒ UI labels drift; ⊥ invariant checks the UI (`.:C2`), ∴ bats pins it|`.:C2`
 B117|2026-10-23|`--pr` read comments only; build's `Burn:` is in the PR body ⇒ `## Burn` total missed it (#65: $2.71, real $3.85)|V61
 B119|2026-11-03|`verify-cachix.bats` unset `CACHIX_URL` but ⊥ `GIT_*` ∴ push from a linked worktree (hook exports `GIT_WORK_TREE`) → `config.sh` read that tree, 3 `.claudinix.toml` tests red|`.:V21`: setup unsets ∀ `GIT_*`
-B120|2026-11-04|E9 on itok: `inputs.sh` printed a bare `error:` ⇒ cache status unknown ⇒ tier 1 tried \& failed before tier 2 (72 s vs 9.5 s on microlith); cause undiagnosed, ⊥ `nix-dev:` log kept|T180: ⊥ §V yet, a candidate is `inputs.sh` ⊥ bare `error:` on a flake whose inputs it cannot archive
+B122|2026-11-04|E9 on itok: `inputs.sh` printed a bare `error:` ⇒ cache status unknown ⇒ tier 1 tried \& failed before tier 2 (72 s vs 9.5 s on microlith); cause undiagnosed, ⊥ `nix-dev:` log kept|T186: ⊥ §V yet, a candidate is `inputs.sh` ⊥ bare `error:` on a flake whose inputs it cannot archive
