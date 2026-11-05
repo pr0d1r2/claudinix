@@ -28,6 +28,14 @@ jobs:
 
       - uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31.11.0
 
+      # Installs the cachix CLI that push-sources.sh calls; the dev shell has
+      # none. skipPush: this job pushes sources only, never what it builds.
+      - uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866 # v17
+        with:
+          name: pr0d1r2
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          skipPush: true
+
       # Cache name per target comes from its cache.name; the write token
       # is only for `cachix push` in push-sources.sh.
       - run: nix develop --command bash scripts/ci/push-targets.sh cache-targets.txt
