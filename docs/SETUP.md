@@ -350,11 +350,9 @@ The rule for `just cloud`, routines and any long job:
    `add_repo` tool). Do not pick `bypassPermissions` for a job nobody
    watches: it also skips the prompts that guard `main` and merging.
 2. **Do not count on a timeout.** Nothing measured shows the platform
-   answering or denying a prompt on its own. The session this was written
-   in set `CLAUDE_CODE_HOLD_UNANSWERED_PARKED_PERMISSION=1`, which by its
-   name holds an unanswered prompt (parks it) rather than denying it, and
-   `CLAUDE_CODE_SESSION_ATTENDED=1`. Read the names as hints; the behaviour
-   is not measured. Treat a parked prompt as a hang until someone answers.
+   answering or denying a prompt on its own; treat a parked prompt as a hang
+   until someone answers. What was read is in
+   [`FACTS.md`](FACTS.md#unattended-runs).
 3. **Make the hang visible.** Every launcher prompt already tells the job not
    to ask, and a job's pull request body carries what was blocked. A job
    that stalls leaves no pull request, so `just cloud` users find it at
@@ -377,10 +375,8 @@ update when they report):
   more than one repository, which `add_repo` creates: the session starts in
   one repository and adds another, so the added one's file probably does not
   govern. Treat (a) as a route for a session of one repository.
-- Whether `--permission-mode` is honoured together with `--cloud`. The flag
-  exists (`acceptEdits`, `auto`, `bypassPermissions`, `manual`, `dontAsk`,
-  `plan`, read from `claude --help` 2.1.318, 2026-11-04); nobody has launched
-  a cloud session with it and read the mode back.
+- Whether `--permission-mode` is honoured together with `--cloud`; the flag
+  and its modes are in [`FACTS.md`](FACTS.md#unattended-runs).
 - Which scope "Always allow" in (c) gives: this session, this repository, or
   your account.
 
