@@ -8,7 +8,9 @@
 
 setup() {
     SCRIPT="$BATS_TEST_DIRNAME/../../../../scripts/guard/context-limits.sh"
-    unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_OBJECT_DIRECTORY GIT_PREFIX
+    # Every inherited GIT_*: an alternate object dir could still hold a
+    # blob a test removes (.:V21).
+    for var in "${!GIT_@}"; do unset "$var"; done
     unset CONTEXT_LIMITS_BASE
     REPO="$BATS_TEST_TMPDIR/repo"
     git init -q -b main "$REPO"
