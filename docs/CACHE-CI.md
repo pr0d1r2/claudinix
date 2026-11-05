@@ -88,6 +88,11 @@ them instead is planned (`SPEC.md` T93, for repos whose `.claudinix.toml` sets
 `push_sources = true`); once it exists, such a repo skips step 3 and keeps
 steps 1, 2 and 4, so only one writer pushes its sources.
 
+This job caches what T54 asks for: the locked inputs and the dev shell. If
+your sessions also activate a flake output, as this repository's
+`.#homeConfigurations.cloud.activationPackage` is, add that attribute to the
+build step and to the verify step, or it stays uncached.
+
 Set `CACHE` to the name of the cache you push to; the three uses follow it. The `x86_64-linux`
 system is the one cloud sessions run on ([`FACTS.md`](FACTS.md), 2026-10-03).
 
