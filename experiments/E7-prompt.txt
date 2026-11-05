@@ -9,7 +9,8 @@ Part A, rule committed (needs a branch of pr0d1r2/sherd):
 2. Start a cloud session on that branch; ask it to call `add_repo` on a
    public and on a private repository. Record whether a prompt appeared.
 
-Part B, flag:
+Part B, flag (the raw `claude --cloud` is deliberate here: it is the thing
+under test, so AGENTS.md's `just cloud` rule does not apply to E7):
 3. Run `claude --cloud "<task>" --model sonnet --permission-mode dontAsk`
    (then `acceptEdits`). Record whether the flag is accepted, whether the
    session starts in that mode, and whether the add_repo prompt still appears.
