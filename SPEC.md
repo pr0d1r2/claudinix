@@ -90,7 +90,7 @@ T50|x|ARCHIVED to SPEC-ARCHIVE.md|`setup:C6`,V10,I.ext.env
 T54|.|cache population owner: ∀ target repo CI pushes locked inputs + devShell closure to `pr0d1r2.cachix.org` on default branch (per `docs:T6` snippet); start w/ sherd via its spec; verify narinfo 200 (`gate:V22` pattern); `docs/CACHE-CI.md` is the snippet; sources: target CI pushes them; once T93 lands, a target w/ `push_sources = true` skips that \& T93 pushes them. open: sherd adopts via its own spec (⊥ reachable from claudinix sessions: repo scope)|V8,`docs:T6`,`scripts:C16`
 T58|x|ARCHIVED to SPEC-ARCHIVE.md|I.file,`docs:T42` — answered 2026-10-03 (probe 6): env var ⊥ effective; launcher model wins. follow-up E3b: does `claude --cloud --model sonnet` set it? (T67)
 T59|x|ARCHIVED to SPEC-ARCHIVE.md|`gate:V24`,T48 — answered 2026-10-03 (probe 6): cold `hk check --all` 3m43s, backgrounded at 120 s, ⊥ killed
-T60|x|ARCHIVED to SPEC-ARCHIVE.md|`experiments:T52`,`experiments:T55` — resources answered 2026-10-03 (probe 6); snapshot reuse answered 2026-11-04 (`experiments:T55`); cold start open (`experiments:T180`)
+T60|x|ARCHIVED to SPEC-ARCHIVE.md|`experiments:T52`,`experiments:T55` — resources answered 2026-10-03 (probe 6); snapshot reuse answered 2026-11-04 (`experiments:T55`); cold start open (`experiments:T190`)
 T61|x|ARCHIVED to SPEC-ARCHIVE.md|T29,`setup:C6` — answered: `github.com` allowed ⇒ 3rd-party git reads pass; `add_repo` read = no-op
 T67|x|ARCHIVED to SPEC-ARCHIVE.md|T58,`scripts:T28`,I.cmd — answered 2026-10-03 (probe 7): `claude --cloud "<task>" --model sonnet` ⇒ configured, served \& trailer = Sonnet 5.5; `--model` before the task fails (`--cloud requires a description`)
 T68|x|ARCHIVED to SPEC-ARCHIVE.md|`setup:C11`,`setup:V3`,I.file
