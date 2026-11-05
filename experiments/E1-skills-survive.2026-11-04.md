@@ -1,10 +1,9 @@
 # E1 skills survive (2026-11-04)
 
-Task `experiments:T56`. Fixture: the real agent-home skills stand in for a
-purpose-made test skill (T56 amended to match). Observed in the cloud
-session that built T56 (Sonnet 5.5, root, `HOME=/root`), whose environment
-had run the agent home. The setup script did not run in this session: its files are dated the day
-before.
+Fixture: the real agent-home skills stand in for a purpose-made test skill.
+Observed in the cloud session that ran this experiment (Sonnet 5.5, root,
+`HOME=/root`), whose environment had run the agent home. The setup script
+did not run in this session: its files are dated the day before.
 
 | check | result |
 |---|---|
