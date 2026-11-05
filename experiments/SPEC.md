@@ -52,6 +52,7 @@ T104|x|EXP permission location: in a session w/ the agent home, does `~/.claude/
 T180|.|EXP permission apply: rerun `T104`'s apply \& same-session checks in a permission mode that prompts (T104 ran in one that never did); record in FACTS; decides which of `.:T101`'s 2 routes stays|`.:T101`,`.:C27`,T56,T104
 T184|.|EXP council vs CodeRabbit on ≥ 3 PRs: FACTS gets per PR the tier, findings council-only \| CodeRabbit-only \| both (same file \& same defect = both) per role, \& USD per review (session cost); council-only outside `cloud:V66` risk → widen it|`cloud:V66`,T66
 T190|.|EXP E2b setup-phase fetch: UI setup line (`curl raw.githubusercontent.com/…/<sha>/setup.sh`) runs before Claude starts; fetch + `nix build ?rev=<sha>` from that phase ok ? record in `experiments/e2-sha-pinned-fetch/result.md` \& FACTS; resolves `setup:V20` `?`|T57,`setup:V20`,`nix:V15`
+T191|.|EXP permission apply: set `CLAUDINIX_SESSION_PERMISSIONS=1` in the env, then rerun `T104`'s apply \& same-session checks in a permission mode that prompts (T104 ran in one that never did); record in FACTS; decides which of `.:T101`'s 2 routes stays|`.:T101`,`.:C27`,T56,T104
 T193|.|measure cold start: 1st session in a fresh env, `spawn_to_ready_ms` \& `hooks_init_ms` from `/tmp/env-manager.log`; vs warm 44 s; FACTS|`.:V5`,`.:C1`,`docs:T34`,T55
 
 ## §B BUGS
