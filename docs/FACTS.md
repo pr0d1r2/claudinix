@@ -117,7 +117,7 @@ read on 2026-10-04. They are not measured in a session yet.
   compare the two launch-to-ready times. (`SPEC.md` T55)
 - Can the setup line fetch `setup.sh` by SHA from the setup phase, before
   Claude starts? E2 proved the fetch and build only from inside a running
-  session. (`SPEC.md` T180, `setup:V20`)
+  session. (`experiments/SPEC.md` T190, `setup:V20`)
 - Which git version does the image ship? Not recorded yet (noted
   2026-10-03). Ubuntu 24.04 packages 2.43, but nobody has run
   `git --version` in a session. It matters: a session commits with that
