@@ -48,7 +48,7 @@ fi
 
 # Judged per chain (gate:V67): both files whole, not the row diff. A file
 # absent at a side is empty there; one present but unreadable fails (.:V18).
-base_rows="" head_rows="" had_base=""
+base_rows="" head_rows="" had_base="" head_entry=""
 for side in "$fork" HEAD; do
     # The tree entry tells absent from unreadable; cat-file -e cannot.
     if ! entry="$(git ls-tree --full-tree "$side" -- .context-limits)"; then
@@ -56,7 +56,7 @@ for side in "$fork" HEAD; do
         exit 1
     fi
     [ -n "$entry" ] || continue
-    [ "$side" = HEAD ] || had_base=1
+    if [ "$side" = HEAD ]; then head_entry="$entry"; else had_base=1; fi
     if ! rows="$(git show "$side:.context-limits")"; then
         echo "context-limits: cannot read .context-limits at $side -- gate could not run, which is a failure rather than a pass." >&2
         exit 1
@@ -67,7 +67,8 @@ if ! reasons="$(context_limits_judge <(printf '%s\n' "$base_rows") <(printf '%s\
     echo "context-limits: the per-chain judge failed -- gate could not run, which is a failure rather than a pass." >&2
     exit 1
 fi
-if [ -n "$had_base" ] && [ -z "$(git ls-tree --full-tree HEAD -- .context-limits)" ]; then
+# The HEAD entry the loop listed, never a second lookup that could fail.
+if [ -n "$had_base" ] && [ -z "$head_entry" ]; then
     reasons+=$'\ndiff: deletes .context-limits'
 fi
 [ -n "${reasons//$'\n'/}" ] || exit 0
