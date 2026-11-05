@@ -50,7 +50,7 @@ runs on every session. The steps in words:
    days, rebuilds it (`SPEC.md` C1). A second session does skip the script and keeps the
    first session's disk; the figures are in [`FACTS.md`](FACTS.md). The cold
    start time is not measured yet
-   ([`experiments/SPEC.md`](../experiments/SPEC.md) T190).
+   ([`experiments/SPEC.md`](../experiments/SPEC.md) T193).
 7. **Your SessionStart hook runs**, if your repository has one. This is where
    per-session work belongs: `git fetch --unshallow`, installing hooks
    ([`CONSUMER.md`](CONSUMER.md)). It cannot live in the setup script,
