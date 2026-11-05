@@ -194,7 +194,7 @@ repository.
      foreground.
    - `CLAUDINIX_SESSION_PERMISSIONS=1` (optional) is the fallback route for
      the cloud permissions (see "Build a task in the cloud" below). Nobody
-     has measured yet whether it is needed (experiment T180).
+     has measured yet whether it is needed (experiment T191).
 6. **Choose and pin the environment.** Run `/remote-env` in Claude Code,
    pick `claudinix`, and let step 4 of the guide pin it: it writes the id
    into this checkout's gitignored `.claude/settings.local.json`. From then
@@ -280,8 +280,9 @@ before Claude starts, so local sessions never get it. As a fallback, add
 `CLAUDINIX_SESSION_PERMISSIONS=1` to the cloud environment: the SessionStart
 hook then merges the same list into the gitignored
 `.claude/settings.local.json`. It is off by default and acts only in a cloud
-session. Whether the first route survives to launch, and whether the fallback
-applies in the session that wrote it, is not measured yet (experiment T180).
+session. T104 measured that the agent home's file survives to launch.
+Whether its rules apply, by either route, and whether the fallback applies
+in the session that wrote it, is not measured yet (experiment T191).
 Anything outside the list can still prompt; see
 [`FACTS.md`](FACTS.md) once measured. Reference: [`CLI.md`](CLI.md#cloud).
 
