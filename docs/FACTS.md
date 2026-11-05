@@ -83,6 +83,7 @@ GitHub traffic goes through a GitHub proxy, separately from the allowlist.
 | A Bash command still running at 120 s is not killed. It moves to the background and finishes (limit 30 min); its real exit status arrives with the completion notice. | 2026-10-03 | probe 6 |
 | In a session with the agent home, `~/.claude/settings.json` exists at launch as a regular file (not a symlink) holding the permission rules, with the mtime of the setup (2026-11-03 17:22, the session launched 2026-11-04 20:12). It survived from setup to launch. | 2026-11-04 | T104 |
 | Whether those rules apply is not decided: this session's permission mode let an unlisted command run without a prompt (`mkdir` and `rmdir` under `/root`), so an allowed gate command running unprompted proves nothing. `.claude/settings.local.json` was absent, as `CLAUDINIX_SESSION_PERMISSIONS` was not set, so the same-session question for the SessionStart hook is not measured either. It needs a session in a mode that prompts. | 2026-11-04 | T104 |
+| `claude --help` lists `--permission-mode <mode>` with the choices `acceptEdits`, `auto`, `bypassPermissions`, `manual`, `dontAsk`, `plan`; the help does not say the flag works with `--cloud`. `--permission-prompts none` exists but is documented for `--print` only. The session's settings hold no `add_repo` rule. Whether a committed rule silences the prompt is still open (T62). | 2026-11-04 | E7 pre-check |
 
 ## Choosing the environment
 
