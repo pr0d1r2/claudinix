@@ -4,6 +4,11 @@ What a Claude Code cloud session actually looks like, as measured. Every fact
 here comes from a probe or an experiment run inside a real session, and every
 fact carries the date it was measured. Anthropic can change the platform at
 any time, so an old date is a warning: re-measure before you rely on it.
+here was measured: by a probe run or a task session inside a real session,
+or read from a documented source such as the usage page. Every fact carries
+the date it was measured and the run it came from. Anthropic can change the
+platform at any time, so an old date is a warning: re-measure before you
+rely on it.
 
 All probes so far ran on 2026-10-03, in sessions on the owner's `sherd`
 repository, through the cloud environment named `nix`. The numbers in
@@ -127,6 +132,7 @@ read on 2026-10-04. They are not measured in a session yet.
   in a mode that never prompted, so run the check in one that does. (T104)
 - Do the permission rules apply, from `~/.claude/settings.json` and from
   the hook-written `.claude/settings.local.json`? (T180)
+  the hook-written `.claude/settings.local.json`? (T191)
 - Which git version does the image ship? Not recorded yet (noted
   2026-10-03). Ubuntu 24.04 packages 2.43, but nobody has run
   `git --version` in a session. It matters: a session commits with that
