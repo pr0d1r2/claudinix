@@ -348,7 +348,9 @@ The rule for `just cloud`, routines and any long job:
 1. **Allow rules, not a mode.** Give the job the exact rules it needs
    (the agent home's `nix/cloud-permissions.json`, or route (a) for the one
    `add_repo` tool). Do not pick `bypassPermissions` for a job nobody
-   watches: it also skips the prompts that guard `main` and merging.
+   watches: where a session honours it, it also skips the prompts that
+   guard `main` and merging. Whether `--cloud` honours `--permission-mode`
+   at all is not measured yet ([`FACTS.md`](FACTS.md#unattended-runs)).
 2. **Do not count on a timeout.** Nothing measured shows the platform
    answering or denying a prompt on its own; treat a parked prompt as a hang
    until someone answers. What was read is in
