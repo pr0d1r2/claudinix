@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # The central cache job (SPEC T93, .:V30, .:C28, V6): for every flake ref
 # in the targets file whose `.claudinix.toml` says `push_sources = true`,
-# push its eval-time input sources to the cache its `cache.name` names,
-# then prove they arrived. Sources only: a target's build outputs are
-# never built or pushed here, so the cache holds nothing it did not
-# choose to share (trust). One bad target does not hide the next; the
-# run fails at the end.
+# push its flake source and eval-time input sources to the cache its
+# `cache.name` names, then prove they arrived. Sources only: a target's
+# build outputs are never built or pushed here, so the cache holds
+# nothing it did not choose to share (trust). One bad target does not
+# hide the next; the run fails at the end.
 #
 # Usage: push-targets.sh [TARGETS_FILE]   (default: cache-targets.txt)
 #        one flake ref per line; blank lines and `#` comments are ignored
