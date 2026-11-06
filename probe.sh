@@ -7,7 +7,7 @@
 # refused `github:` fetch is expected in the cloud (C6) and only reported.
 #
 # Usage: probe.sh
-# Seams: PROC_DIR, SYSTEMD_DIR, CACHIX_URL, CHANNELS_URL,
+# Seams: HOME, PROC_DIR, SYSTEMD_DIR, CACHIX_URL, CHANNELS_URL,
 #        PROBE_STOREPATH (a locked input's store path pushed to cachix).
 
 set -euo pipefail
@@ -48,10 +48,22 @@ fi
 
 # experiments:T14 (C13): what ~/.claude holds at launch. Reported only:
 # an absent settings.json or test skill is a finding, never a failure.
-claude_dir="$HOME/.claude"
+# An unset HOME fails this check only; the later checks still run.
+if [ -n "${HOME:-}" ]; then
+    claude_dir="$HOME/.claude"
+    report home "$HOME"
+else
+    claude_dir=/nonexistent/.claude
+    fail home "HOME is not set"
+fi
 settings="$claude_dir/settings.json"
-report home "$HOME"
-report claude-dir "$(find "$claude_dir" -mindepth 1 -maxdepth 1 2>/dev/null | sed 's|.*/||' | sort | tr '\n' ' ')"
+if [ ! -d "$claude_dir" ]; then
+    report claude-dir absent
+elif [ -z "$(find "$claude_dir" -mindepth 1 -maxdepth 1 2>/dev/null)" ]; then
+    report claude-dir empty
+else
+    report claude-dir "$(find "$claude_dir" -mindepth 1 -maxdepth 1 | sed 's|.*/||' | sort | paste -sd ' ' -)"
+fi
 if [ -f "$settings" ]; then
     report settings-owner "$(stat -L -c '%U:%G %a' "$settings" 2>/dev/null || stat -L -f '%Su:%Sg %Lp' "$settings")"
     report settings-content "$(tr -d '\n' <"$settings")"
