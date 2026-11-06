@@ -357,9 +357,10 @@ The rule for `just cloud`, routines and any long job:
    [`FACTS.md`](FACTS.md#unattended-runs).
 3. **Make the hang visible.** Every launcher prompt already tells the job not
    to ask, and the task, fixup and rebase prompts ask for what was blocked
-   in their report. A job
-   that stalls leaves no pull request, so `just cloud` users find it at
-   [claude.ai/code](https://claude.ai/code) (the launcher does not wait).
+   in their report. A `just cloud` build that stalls leaves no pull request;
+   a stalled `fixup` or `rebase` leaves its pull request as it was. Either
+   way the launcher does not wait: find the session at
+   [claude.ai/code](https://claude.ai/code).
    Open the session, answer the prompt, and add the rule so it cannot
    repeat.
 4. **A rule that was missing is a bug in the rule list**, not in the job:
