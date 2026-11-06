@@ -180,7 +180,7 @@ stub_git() {
     run env HOME="$FAKE_HOME" bash "$SCRIPT"
     [ "$status" -eq 0 ]
     [[ "$output" == *"home: $FAKE_HOME"* ]]
-    [[ "$output" == *"claude-dir: "*"skills"* ]]
+    grep -qx "claude-dir: settings.json skills" <<<"$output"
     [[ "$output" == *"settings-owner: $(id -un)"* ]]
     [[ "$output" == *'settings-content: {"a":1}'* ]]
 }
@@ -210,6 +210,7 @@ stub_git() {
     mkdir -p "$FAKE_HOME/.claude/skills/claudinix-probe"
     touch "$FAKE_HOME/.claude/skills/claudinix-probe/SKILL.md"
     run env HOME="$FAKE_HOME" bash "$SCRIPT"
+    [ "$status" -eq 0 ]
     [[ "$output" == *"test-skill: present"* ]]
 }
 
@@ -219,4 +220,22 @@ stub_git() {
     run env HOME="$FAKE_HOME" bash "$SCRIPT"
     [ "$status" -eq 0 ]
     [[ "$output" == *"test-skill: absent"* ]]
+}
+
+@test "no ~/.claude is reported absent, an empty one empty (experiments:T14)" {
+    FAKE_HOME="$BATS_TEST_TMPDIR/home"
+    mkdir -p "$FAKE_HOME"
+    run env HOME="$FAKE_HOME" bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    grep -qx "claude-dir: absent" <<<"$output"
+    mkdir "$FAKE_HOME/.claude"
+    run env HOME="$FAKE_HOME" bash "$SCRIPT"
+    grep -qx "claude-dir: empty" <<<"$output"
+}
+
+@test "HOME unset fails naming it, and the later checks still run" {
+    run env -u HOME bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"home: FAIL HOME is not set"* ]]
+    [[ "$output" == *"git-version: "* ]]
 }
