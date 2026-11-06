@@ -36,7 +36,7 @@ sib|setup|`setup.sh`, `allowlist.txt`: install, network, owner values, opt-in ag
 
 id|status|task|cites
 T7|~|measure setup wall time on fresh VM; record; > 5 min → trim|`.:V5`,C1 — setup.sh prints time, warns ≥ 300 s; 1st figure: next fresh VM
-T14|~|probe ext: `echo $HOME`, `id`, `ls -la ~/.claude`, `settings.json` owner \& content before/after launch; setup places 1 test skill in `~/.claude/skills` → visible to Claude (`/` list) ?|C13,`nix:V14`,I.file — probe prints the facts; live before/after run \& skill visibility open
+T14|~|probe ext: `$HOME`, `id`, `~/.claude` \& `settings.json` before/after launch; test skill visible?|C13,`nix:V14`,I.file — live run open
 T51|~|unattended runs: permission mode for routines \& long jobs; what a job does while a prompt waits (timeout, report, ⊥ hang); extends `docs:T47`|`docs:T47`,`.:C9` — read only; prompt wait open: T62,T65
 T52|x|ARCHIVED to SPEC-ARCHIVE.md|C18,`docs:T34`
 T55|x|ARCHIVED to SPEC-ARCHIVE.md|`.:V5`,`.:C1`,`docs:T34` — cold start → T193
@@ -47,10 +47,10 @@ T63|.|EXP E8 cache fast path: after sherd CI pushes inputs + devShell (`.:T54`),
 T64|x|ARCHIVED to SPEC-ARCHIVE.md|`scripts:T49`,`scripts:V13`
 T65|.|EXP E10 unattended routine: API-triggered routine on env `nix`, trivial task; watch prompts \& errors|T51
 T66|.|EXP E11 cost per session: usage page before/after E1-E5; confirms credit charged at API rates ?|I.file,`docs:T42` — first reading 2026-10-03: $7 for 8 short sessions (7 probes + 1 job, 7 on Opus 5.5) ≈ $0.90/session; per-session split still unmeasured
-T102|.|EXP self-build 1: after 1st push + green CI, `just cloud` 1 small real task (e.g. `docs:T44`-sized); record in FACTS: setup ok, dev shell time, gate ok, hooks fired (old git?), prompts hit, branch pushed, cost|C29,T56,T57,T62
+T102|.|EXP self-build 1: after 1st push + green CI, `just cloud` 1 small real task; record in FACTS: setup ok, dev shell time, gate ok, hooks fired (old git?), prompts hit, branch pushed, cost|C29,T56,T57,T62
 T104|x|ARCHIVED to SPEC-ARCHIVE.md|`.:T101`,`.:C27`,T56 — apply → T191
 T184|.|EXP council vs CodeRabbit on ≥ 3 PRs: FACTS gets per PR the tier, findings council-only \| CodeRabbit-only \| both (same file \& same defect = both) per role, \& USD per review (session cost); council-only outside `cloud:V66` risk → widen it|`cloud:V66`,T66
-T190|.|EXP E2b setup-phase fetch: UI setup line (`curl raw.githubusercontent.com/…/<sha>/setup.sh`) runs before Claude starts; fetch + `nix build ?rev=<sha>` from that phase ok ? record in `experiments/e2-sha-pinned-fetch/result.md` \& FACTS; resolves `setup:V20` `?`|T57,`setup:V20`,`nix:V15`
+T190|.|EXP E2b setup-phase fetch: UI setup line (`curl …/<sha>/setup.sh`) runs before Claude starts; fetch + `nix build ?rev=<sha>` from that phase ok ? record in the E2 result \& FACTS; resolves `setup:V20` `?`|T57,`setup:V20`,`nix:V15`
 T191|.|EXP permission apply: w/ `CLAUDINIX_SESSION_PERMISSIONS=1`, rerun T104 apply \& same-session checks in a prompting mode, 1 route at a time (distinct probe rule each); FACTS; picks `.:T101` route|`.:T101`,`.:C27`,T56,T104
 T193|.|measure cold start: 1st session in a fresh env, `spawn_to_ready_ms` \& `hooks_init_ms` from `/tmp/env-manager.log`; vs warm 44 s; FACTS|`.:V5`,`.:C1`,`docs:T34`,T55
 
