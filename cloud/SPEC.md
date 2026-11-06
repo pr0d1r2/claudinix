@@ -89,9 +89,10 @@ T174|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52,V59,`.:C29`,`scripts:T119`,`scripts
 T175|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T165,T174,V52,V53,V59
 T177|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V51,`scripts:T176`
 T181|.|`merge --light` (V65)|V65,V51
-T182|.|`drain --prs [PR...]` (default ∀ open own `claude/*`), oldest first: CI → `rebase` on conflict, then CI → review per tier (T183: V65 (+ `correctness`) roles \| V51 council) → `fixup` (always 1 `Fixup:` after the last review, ≤ 3 rounds while bot threads unanswered), CI after each → `rebase` on conflict (as `all`, T146), then CI → `merge --light` (V65) \| `merge` (V51) → next; 1st fail stops|V65,V52,T161
-T183|.|`drain --prs` \& `all` pick the tier per V66; plan names tier \& the path that set it|V66,V65,T182
+T182|.|`drain --prs [PR...]` (default ∀ open own `claude/*`), oldest first: CI → `rebase` on conflict, then CI → review per tier (T183: V65 (+ `correctness`) roles \| V51 council) → `fixup` (always 1 `Fixup:` after the last review, ≤ 3 rounds while bot threads unanswered), CI after each → `rebase` on conflict, then `fixup` again so `Fixup:` names the rebased head (B123), then CI → `merge --light` (V65) \| `merge` (V51) → next; 1st fail stops|V65,V52,T161
+T183|.|`drain --prs` \& `all` pick the tier per V66 once a PR diff exists; plan names tier \& the path that set it, task mode names it "after the build"|V66,V65,T182
 T192|.|`fixup` works `coderabbitai[bot]` findings (verify, fix \| decline w/ reason); 1 `Fixup:` reply per bot thread, `Head:` as `§I` fixup|V65,V53
+T194|.|`all --merge`: a `rebase` after the fixup → run `fixup` again so the last `Fixup:` names the new head (B123)|V51,T146
 
 ## §B BUGS
 
@@ -100,3 +101,4 @@ B19-B22, B24-B43, B63-B70, B72-B74, B76-B80, B83-B90, B92-B94, B99-B109: ARCHIVE
 id|date|cause|fix
 B113|2026-10-19|session ran `$(git ls-remote)` late, unchecked; no fallback, ⊥ permitted|V63
 B114|2026-10-19|`all` posted `## Burn` only after green CI|V64
+B123|2026-11-06|`all` rebases after the fixup (T146) ∴ a conflict pushes a new head, the `Fixup:` names the old one ⇒ `merge` stops: "the Fixup: reply does not name the head" (#73 review)|V51: `Fixup:` names the merged head
