@@ -185,15 +185,19 @@ line_for() {
 
 # scripts:T81 (review R3-21): tell why gh could not answer.
 
-# commit_with_sha_containing HEX: an empty commit whose full SHA holds HEX
-# (the message names the SHA, so a random one holding 404 is a real case).
+# commit_with_sha_containing HEX: check out an empty commit whose full SHA
+# holds HEX (the message names the SHA, so a random one holding 404 is a
+# real case). Parentless, with fixed names and dates, so the same few
+# commits are tried on every machine; 404 is found on the 4th (B124).
 commit_with_sha_containing() {
-    local n=0
-    until [[ "$(git rev-parse HEAD)" == *"$1"* ]]; do
+    local n=0 sha="" empty
+    empty="$(git hash-object -t tree /dev/null)"
+    until [[ "$sha" == *"$1"* ]]; do
         n=$((n + 1))
-        GIT_COMMITTER_DATE="@$((1700000000 + n)) +0000" git -c user.name=t -c user.email=t@example.com \
-            commit -q --amend --allow-empty --no-edit --date="@$((1700000000 + n)) +0000"
+        sha="$(GIT_AUTHOR_DATE="@$((1700000000 + n)) +0000" GIT_COMMITTER_DATE="@$((1700000000 + n)) +0000" \
+            git -c user.name=t -c user.email=t@example.com commit-tree "$empty" -m fixture </dev/null)"
     done
+    git reset -q --hard "$sha"
 }
 
 @test "gh not signed in: says so and how to sign in, not a 404 (scripts:B62)" {
