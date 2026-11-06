@@ -57,12 +57,15 @@ else
     fail home "HOME is not set"
 fi
 settings="$claude_dir/settings.json"
+# A listing that fails is a finding of its own, never `empty`.
 if [ ! -d "$claude_dir" ]; then
     report claude-dir absent
-elif [ -z "$(find "$claude_dir" -mindepth 1 -maxdepth 1 2>/dev/null)" ]; then
+elif ! listing="$(find "$claude_dir" -mindepth 1 -maxdepth 1 2>/dev/null)"; then
+    report claude-dir unreadable
+elif [ -z "$listing" ]; then
     report claude-dir empty
 else
-    report claude-dir "$(find "$claude_dir" -mindepth 1 -maxdepth 1 | sed 's|.*/||' | sort | paste -sd ' ' -)"
+    report claude-dir "$(awk -F/ '{ print $NF }' <<<"$listing" | sort | paste -sd ' ' -)"
 fi
 if [ -f "$settings" ]; then
     report settings-owner "$(stat -L -c '%U:%G %a' "$settings" 2>/dev/null || stat -L -f '%Su:%Sg %Lp' "$settings")"
