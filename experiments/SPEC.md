@@ -51,7 +51,7 @@ T102|.|EXP self-build 1: after 1st push + green CI, `just cloud` 1 small real ta
 T104|x|ARCHIVED to SPEC-ARCHIVE.md|`.:T101`,`.:C27`,T56 — apply → T191
 T184|.|EXP council vs CodeRabbit on ≥ 3 PRs: FACTS gets per PR the tier, findings council-only \| CodeRabbit-only \| both (same file \& same defect = both) per role, \& USD per review (session cost); council-only outside `cloud:V66` risk → widen it|`cloud:V66`,T66
 T190|.|EXP E2b setup-phase fetch: UI setup line (`curl raw.githubusercontent.com/…/<sha>/setup.sh`) runs before Claude starts; fetch + `nix build ?rev=<sha>` from that phase ok ? record in `experiments/e2-sha-pinned-fetch/result.md` \& FACTS; resolves `setup:V20` `?`|T57,`setup:V20`,`nix:V15`
-T191|.|EXP permission apply: w/ `CLAUDINIX_SESSION_PERMISSIONS=1`, rerun T104 apply \& same-session checks in a prompting mode; FACTS; picks `.:T101` route|`.:T101`,`.:C27`,T56,T104
+T191|.|EXP permission apply: w/ `CLAUDINIX_SESSION_PERMISSIONS=1`, rerun T104 apply \& same-session checks in a prompting mode, 1 route at a time (distinct probe rule each); FACTS; picks `.:T101` route|`.:T101`,`.:C27`,T56,T104
 T193|.|measure cold start: 1st session in a fresh env, `spawn_to_ready_ms` \& `hooks_init_ms` from `/tmp/env-manager.log`; vs warm 44 s; FACTS|`.:V5`,`.:C1`,`docs:T34`,T55
 
 ## §B BUGS
