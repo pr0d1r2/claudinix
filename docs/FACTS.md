@@ -1,14 +1,11 @@
 # Cloud session facts
 
 What a Claude Code cloud session actually looks like, as measured. Every fact
-here comes from a probe or an experiment run inside a real session, and every
-fact carries the date it was measured. Anthropic can change the platform at
-any time, so an old date is a warning: re-measure before you rely on it.
-here was measured: by a probe run or a task session inside a real session,
-or read from a documented source such as the usage page. Every fact carries
-the date it was measured and the run it came from. Anthropic can change the
-platform at any time, so an old date is a warning: re-measure before you
-rely on it.
+here was measured: by a probe run, an experiment run or a task session inside
+a real session, or read from a documented source such as the usage page.
+Every fact carries the date it was measured and the run it came from.
+Anthropic can change the platform at any time, so an old date is a warning:
+re-measure before you rely on it.
 
 All probes so far ran on 2026-10-03, in sessions on the owner's `sherd`
 repository, through the cloud environment named `nix`. The numbers in
