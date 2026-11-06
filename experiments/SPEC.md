@@ -39,7 +39,7 @@ T7|~|measure setup wall time on fresh VM; record; > 5 min → trim|`.:V5`,C1 —
 T14|x|ARCHIVED to SPEC-ARCHIVE.md|C13,`nix:V14`,I.file,T56
 T51|.|unattended runs: permission mode for routines \& long jobs; what a job does while a prompt waits (timeout, report, ⊥ hang); extends `docs:T47`|`docs:T47`,`.:C9`
 T52|x|ARCHIVED to SPEC-ARCHIVE.md|C18,`docs:T34` — measured: 4 vCPU ∴ hk \& bats jobs = 4, cargo default
-T55|x|ARCHIVED to SPEC-ARCHIVE.md|`.:V5`,C1,`docs:T34` — cold start → T193
+T55|x|ARCHIVED to SPEC-ARCHIVE.md|`.:V5`,`.:C1`,`docs:T34` — cold start → T193
 T56|x|ARCHIVED to SPEC-ARCHIVE.md|C13,`nix:V14`,T14
 T57|x|ARCHIVED to SPEC-ARCHIVE.md|`setup:V20`,`nix:V15`,`.:T24`
 T62|.|EXP E7 silence prompts: commit exact `add_repo` allow rule in sherd `.claude/settings.json`; try `--permission-mode` w/ `--cloud`|`docs:T47`,T51
@@ -51,7 +51,7 @@ T102|.|EXP self-build 1: after 1st push + green CI, `just cloud` 1 small real ta
 T104|.|EXP permission location: in a session w/ the agent home, does `~/.claude/settings.json` written at setup survive to launch \& apply (no prompt for an allowed gate command)? does `.claude/settings.local.json` written by the SessionStart hook apply in the SAME session or only the next? record in FACTS; decides which of `.:T101`'s 2 routes stays|`.:T101`,`.:C27`,T56
 T184|.|EXP council vs CodeRabbit on ≥ 3 PRs: FACTS gets per PR the tier, findings council-only \| CodeRabbit-only \| both (same file \& same defect = both) per role, \& USD per review (session cost); council-only outside `cloud:V66` risk → widen it|`cloud:V66`,T66
 T190|.|EXP E2b setup-phase fetch: UI setup line (`curl raw.githubusercontent.com/…/<sha>/setup.sh`) runs before Claude starts; fetch + `nix build ?rev=<sha>` from that phase ok ? record in `experiments/e2-sha-pinned-fetch/result.md` \& FACTS; resolves `setup:V20` `?`|T57,`setup:V20`,`nix:V15`
-T193|.|measure cold start: 1st session in a fresh env, `spawn_to_ready_ms` \& `hooks_init_ms` from `/tmp/env-manager.log`; vs warm 44 s; FACTS|`.:V5`,C1,`docs:T34`,T55
+T193|.|measure cold start: 1st session in a fresh env, `spawn_to_ready_ms` \& `hooks_init_ms` from `/tmp/env-manager.log`; vs warm 44 s; FACTS|`.:V5`,`.:C1`,`docs:T34`,T55
 
 ## §B BUGS
 
