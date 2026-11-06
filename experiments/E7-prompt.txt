@@ -12,11 +12,15 @@ Part A, rule committed (needs a branch of pr0d1r2/sherd):
    grant to sherd and those two.
 2. Start a Sonnet cloud session on that branch. Record the exact launch
    command with `--model sonnet`, or that the UI selected Sonnet. Ask it to
-   call `add_repo` on the public and on the private throwaway repository.
-   Record, per call, the access requested and whether a prompt appeared.
+   call `add_repo` twice, each with `access: "push"`: once on the public and
+   once on the private throwaway repository. Record, per call, the exact
+   arguments sent and whether a prompt appeared.
 
 Part B, flag (the raw `claude --cloud` is deliberate here: it is the thing
 under test, so AGENTS.md's `just cloud` rule does not apply to E7):
+   <task> is the step 2 request word for word, on the same sherd branch,
+   with the same committed `.claude/settings.json`, GitHub grant and
+   `add_repo` arguments; only the flag changes.
 3. Run `claude --cloud "<task>" --model sonnet --permission-mode dontAsk`.
 4. Run `claude --cloud "<task>" --model sonnet --permission-mode acceptEdits`.
    For each of steps 3 and 4 record separately: whether the flag is
