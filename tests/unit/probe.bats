@@ -239,3 +239,13 @@ stub_git() {
     [[ "$output" == *"home: FAIL HOME is not set"* ]]
     [[ "$output" == *"git-version: "* ]]
 }
+
+@test "an unreadable ~/.claude is reported unreadable, not empty (experiments:T14)" {
+    [ "$(id -u)" != 0 ] || skip "root reads any directory"
+    FAKE_HOME="$BATS_TEST_TMPDIR/home"
+    mkdir -p "$FAKE_HOME/.claude/skills"
+    chmod 000 "$FAKE_HOME/.claude"
+    run env HOME="$FAKE_HOME" bash "$SCRIPT"
+    chmod 755 "$FAKE_HOME/.claude"
+    grep -qx "claude-dir: unreadable" <<<"$output"
+}
