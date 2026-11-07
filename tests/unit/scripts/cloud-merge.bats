@@ -512,3 +512,17 @@ BOT='{"login": "coderabbitai", "type": "Bot", "assoc": "NONE", "body": "**Minor*
     [[ "$output" == *"would run: gh pr merge 8"* ]]
     not_merged
 }
+
+@test "--light: threads that are not a list, or no JSON at all, stop with a bot: reason (cloud:V65)" {
+    light_pr
+    echo '{"data":{"repository":{"pullRequest":{"reviewThreads":null}}}}' >"$STATE/threads.json"
+    run bash "$SCRIPT" 8 --light --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"bot: "*"#8"* ]]
+    not_merged
+    echo 'not json' >"$STATE/threads.json"
+    run bash "$SCRIPT" 8 --light --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"bot: could not parse the review threads of #8"* ]]
+    not_merged
+}
