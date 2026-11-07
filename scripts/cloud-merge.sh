@@ -135,11 +135,13 @@ if [ "$light" = 1 ]; then
         nodes { author { login __typename } authorAssociation body } } } } } } }'
     if ! threads="$(gh api graphql -F owner='{owner}' -F name='{repo}' -F number="$pr" -f query="$threads_query" </dev/null)"; then
         bot_reasons="bot: gh could not read the review threads of #$pr"
+    elif [ -z "$threads" ]; then
+        bot_reasons="bot: gh returned nothing for the review threads of #$pr; judge it by hand"
     else
         bot_reasons="$(jq -r --arg fixup_heading "$CLOUD_FIXUP_HEADING" "$CLOUD_COMMENT_JQ"'
             .data.repository.pullRequest.reviewThreads as $t
-            | if ($t.nodes | type) != "array"
-              then "bot: gh returned no review threads for #'"$pr"'; judge it by hand"
+            | if ($t.nodes | type) != "array" or any($t.nodes[]; type != "object")
+              then "bot: gh returned review threads for #'"$pr"' that are not a list of threads; judge it by hand"
               elif $t.pageInfo.hasNextPage or any($t.nodes[]; .comments.pageInfo.hasNextPage)
               then "bot: more review threads or replies than one page shows; judge #'"$pr"' by hand"
               else $t.nodes[]
