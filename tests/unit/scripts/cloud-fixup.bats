@@ -401,6 +401,7 @@ pr() {
     [ "$status" -eq 0 ]
     local p="$STATE/claude.task"
     grep -qF 'reply under each top-level `coderabbitai[bot]` thread you worked' "$p"
+    grep -qF 'each finding in that thread, with the commit that fixed it' "$p"
     grep -qF 'a last line `Head: <full sha>` of what you pushed' "$p"
     grep -qF 'Then post one reply on the pull request' "$p"
 }
