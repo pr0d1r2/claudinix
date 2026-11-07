@@ -15,7 +15,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     # Long polls keep the timed-out waits to a few polls each.
     export CLOUD_ALL_POLL=600
-    unset CLAUDINIX_PROJECTS FORGED_FIXUP FIXUP_HEAD FIXUP_HEAD2 FIXUP_CONFLICTS FIXUP_MOVES_HEAD TASK_REFUSE REBASE_SILENT FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS BODY_FAIL BURN_RC
+    unset CLAUDINIX_PROJECTS FILES_FAIL FORGED_FIXUP FIXUP_HEAD FIXUP_HEAD2 FIXUP_CONFLICTS FIXUP_MOVES_HEAD TASK_REFUSE REBASE_SILENT FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS BODY_FAIL BURN_RC
     mkdir -p "$STUBS" "$STATE" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
@@ -37,7 +37,9 @@ setup() {
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "review $*" >>"$STATE/children.log"' \
         '[ -z "${REVIEW_FAIL:-}" ] || exit 1' \
-        'for r in ${REVIEW_ONLY:-alpha beta}; do printf "## Review: %s%b\n" "$r" "${REVIEW_CRLF:+\\r}" >>"$STATE/comments"; done' >"$CLAUDINIX_SCRIPTS/cloud-review.sh"
+        'all_roles="$(for f in "$CLAUDINIX_SCRIPTS"/review/*.md; do f="${f##*/}"; printf "%s " "${f%.md}"; done)"' \
+        'roles="${REVIEW_ONLY:-$all_roles}"; [ "$1" = all ] || roles="$1"' \
+        'for r in $roles; do printf "## Review: %s%b\n" "$r" "${REVIEW_CRLF:+\\r}" >>"$STATE/comments"; done' >"$CLAUDINIX_SCRIPTS/cloud-review.sh"
     # cloud-fixup.sh: --dry-run checks only; a launch posts its one reply.
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
@@ -88,6 +90,7 @@ setup() {
         '  gh_fails "${LIST_GH_FAILS:-}" "$n"' \
         '  [ "$n" -le "${PR_AFTER:-0}" ] || cut -f1-4 "$STATE/prs" 2>/dev/null; exit 0 ;;' \
         '*headRefName*) printf "%b\n" "16\tOPEN\tfeature/x\tmain\thttps://github.com/owner/alpha/pull/16\tfalse"; exit 0 ;;' \
+        '*"--json files"*) [ -z "${FILES_FAIL:-}" ] || exit 1; if [ -f "$STATE/files" ]; then tr "|" "\t" <"$STATE/files"; else printf "1\t0\tother/x\n"; fi; exit 0 ;;' \
         '*mergeable*) tr " " "\t" <"$STATE/merge"; exit 0 ;;' \
         '*statusCheckRollup*)' \
         '  n=$(( $(cat "$STATE/ci.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/ci.n"' \
@@ -758,4 +761,94 @@ merge 14 --yes" ]
     [ "$status" -eq 1 ]
     [[ "$output" == *"not clean"* ]]
     run ! grep -q -- '--yes' "$STATE/children.log"
+}
+
+# --- the review tier (cloud:T183, cloud:V66) ---
+
+# tier_roles: the role files the light tiers name, beside alpha and beta.
+tier_roles() {
+    : >"$CLAUDINIX_SCRIPTS/review/security.md"
+    : >"$CLAUDINIX_SCRIPTS/review/correctness.md"
+}
+
+@test "tier: a docs-only PR runs the security review alone and merges with --light" {
+    tier_roles
+    echo '3|1|docs/CLI.md' >"$STATE/files"
+    run bash "$SCRIPT" 16 --yes --merge
+    [ "$status" -eq 0 ]
+    [ "$(cat "$STATE/children.log")" = "fixup 16 --dry-run --model sonnet
+review security 16 --yes --model sonnet
+fixup 16 --yes --model sonnet
+merge 16 --light --yes" ]
+    [[ "$output" == *"review tier: light (set by docs/CLI.md)"* ]]
+}
+
+@test "tier: a script change adds the correctness review, one session per role" {
+    tier_roles
+    printf '%s\n' '1|0|docs/CLI.md' '4|2|scripts/burn.sh' >"$STATE/files"
+    run bash "$SCRIPT" 16 --yes
+    [ "$status" -eq 0 ]
+    grep -qx 'review security 16 --yes --model sonnet' "$STATE/children.log"
+    grep -qx 'review correctness 16 --yes --model sonnet' "$STATE/children.log"
+    [[ "$output" == *"review tier: light+correctness (set by scripts/burn.sh)"* ]]
+    run ! grep -q '^review all' "$STATE/children.log"
+}
+
+@test "tier: the plan counts the tier's reviews and names the tier and its path" {
+    tier_roles
+    echo '3|1|docs/CLI.md' >"$STATE/files"
+    run bash "$SCRIPT" 16 --dry-run
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"2 billed"* ]]
+    [[ "$output" == *"1 reviews (security)"* ]]
+    [[ "$output" == *"review tier: light (set by docs/CLI.md)"* ]]
+}
+
+@test "tier: a council path runs every role and merges under the strict rule" {
+    tier_roles
+    echo '1|0|hk.pkl' >"$STATE/files"
+    run bash "$SCRIPT" 16 --yes --merge
+    [ "$status" -eq 0 ]
+    grep -qx 'review all 16 --yes --model sonnet' "$STATE/children.log"
+    grep -qx 'merge 16 --yes' "$STATE/children.log"
+    [[ "$output" == *"review tier: council (set by hk.pkl)"* ]]
+}
+
+@test "tier: --council forces every role and the strict merge on a docs-only PR" {
+    tier_roles
+    echo '3|1|docs/CLI.md' >"$STATE/files"
+    run bash "$SCRIPT" 16 --yes --merge --council
+    [ "$status" -eq 0 ]
+    grep -qx 'review all 16 --yes --model sonnet' "$STATE/children.log"
+    grep -qx 'merge 16 --yes' "$STATE/children.log"
+    [[ "$output" == *"review tier: council (set by --council)"* ]]
+}
+
+@test "tier: gh failing to list the files stops before any session, never light" {
+    tier_roles
+    FILES_FAIL=1 run bash "$SCRIPT" 16 --yes --merge
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"review tier"* ]]
+    [[ "$output" == *"#16"* ]]
+    [ "$(cat "$STATE/children.log")" = "fixup 16 --dry-run --model sonnet" ]
+}
+
+@test "tier: a light tier whose role file is missing stops naming it" {
+    echo '3|1|docs/CLI.md' >"$STATE/files"
+    run bash "$SCRIPT" 16 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"security"* ]]
+    run ! grep -q '^review' "$STATE/children.log"
+}
+
+@test "tier: a task's plan says the tier is picked after the build, then it is" {
+    tier_roles
+    echo '3|1|docs/CLI.md' >"$STATE/files"
+    run bash "$SCRIPT" docs:T47 --dry-run
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"review tier: picked after the build"* ]]
+    run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 0 ]
+    grep -qx 'review security 14 --yes --model sonnet' "$STATE/children.log"
+    [[ "$output" == *"review tier: light (set by docs/CLI.md)"* ]]
 }
