@@ -998,7 +998,7 @@ in it needs a second look. Only the owner runs it; cloud sessions are
 denied `gh pr merge`.
 
 ```text
-usage: cloud-merge.sh <PR# | URL> [--yes] [--dry-run]
+usage: cloud-merge.sh <PR# | URL> [--light] [--yes] [--dry-run]
 ```
 
 Run it as `scripts/cloud-merge.sh ...` or `just merge ...`, for example
