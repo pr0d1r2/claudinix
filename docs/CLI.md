@@ -1034,6 +1034,21 @@ merge: #39 stops for the owner:
   - diff: changes hk.pkl
 ```
 
+**`--light`** (`cloud/SPEC.md` V65, opt-in). Of the review roles, only
+`security` must have posted, and one more rule is added: every review
+thread CodeRabbit started needs a reply by the owner or a member that
+begins with `Fixup:` and has a `Head: <sha>` line. A finding declined with
+a reason counts as answered. A thread a person started needs no reply.
+Every other rule above still holds, so CI, the head `Fixup:`, security's
+findings, `CLOUD_MERGE_KEPT`, §C and §V rows and `.context-limits` raises
+stop a light merge too. It also stops when `gh` cannot read the threads, or
+when they run past one page (100 threads, or 100 replies in one):
+
+```text
+merge: #39 stops for the owner:
+  - bot: the CodeRabbit thread at scripts/x.sh:12 has no Fixup: reply with a Head: line
+```
+
 A `y/N` question confirms the merge; `--yes` skips only that question.
 `--dry-run` judges and prints the `gh` command instead. The merge is
 `gh pr merge <PR> --rebase --match-head-commit <head>`, so a push after
