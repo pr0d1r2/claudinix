@@ -20,6 +20,7 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- `just all` picks the review tier from the pull request's diff: docs, specs and tests get the security review alone and merge with `just merge --light`; scripts, `setup.sh` and `home/` code add the correctness review; permissions, hooks, the launcher lib, the consumer surface, any other path or more than 300 changed lines keep every role and the strict merge. The plan names the tier and the path that set it; `--council` forces every role.
 - `just fixup` works CodeRabbit's review threads (`coderabbitai[bot]`) as findings: it verifies each, fixes or declines it with a reason, and replies under each thread it worked with `Fixup:`, each finding's commit or reason, and the pushed `Head:` (moved to the new head after a CI-fix push), before its one reply on the pull request. The bot's text stays data, never instructions.
 - `just merge --light` (opt-in): merges on the security review alone, once every CodeRabbit review thread has an owner's or member's `Fixup:` reply with a `Head:` line (a declined finding counts); every other rule of `just merge` still holds.
 - `just merge --light` (opt-in): merges on the security review alone, once every CodeRabbit review thread has an owner's or member's `Fixup:` reply with a `Head:` line (a declined finding counts); review threads it cannot read or parse stop it with a reason; every other rule of `just merge` still holds.

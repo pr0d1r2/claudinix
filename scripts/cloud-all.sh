@@ -55,7 +55,14 @@
 # resets the count): it shows gh's last stderr instead of dots to the limit
 # (SPEC cloud:T138).
 #
-# Usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run] [--merge]
+# The review tier (cloud:T183, cloud:V66, scripts/lib/review-tier.sh) comes
+# from the pull request's diff, read before the reviews (for a task, once
+# its pull request exists): light runs the security review and merges with
+# cloud-merge.sh --light (V65), light+correctness adds the correctness
+# review, council runs every role and merges under the strict rule (V51).
+# --council forces council. A diff gh cannot list stops the flow.
+#
+# Usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run] [--merge] [--council]
 # Env:   CLOUD_ALL_POLL     seconds between polls (default 10)
 #        CLAUDINIX_SCRIPTS  dir holding the child launchers, review/ and
 #                           config.sh (default: here)
@@ -77,7 +84,7 @@ minutes_rebase=60
 ci_red='^(FAILURE|TIMED_OUT|ERROR|ACTION_REQUIRED|STARTUP_FAILURE)$'
 
 usage() {
-    echo "usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run] [--merge]" >&2
+    echo "usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run] [--merge] [--council]" >&2
     exit 2
 }
 
@@ -86,6 +93,7 @@ model=
 yes=0
 dry=0
 merge=0
+council=0
 while [ "$#" -gt 0 ]; do
     case "$1" in
     --model)
@@ -96,6 +104,7 @@ while [ "$#" -gt 0 ]; do
     --yes) yes=1 ;;
     --dry-run) dry=1 ;;
     --merge) merge=1 ;;
+    --council) council=1 ;;
     -*) usage ;;
     *)
         [ -z "$arg" ] || usage
@@ -110,6 +119,8 @@ done
 scripts_dir="${CLAUDINIX_SCRIPTS:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 # shellcheck source=/dev/null # lib/cloud-launch.sh, beside this script
 source "$(dirname "${BASH_SOURCE[0]}")/lib/cloud-launch.sh"
+# shellcheck source=/dev/null # lib/review-tier.sh, beside this script
+source "$(dirname "${BASH_SOURCE[0]}")/lib/review-tier.sh"
 want_node= # set by cloud_parse_task
 id=
 pr=
@@ -164,19 +175,65 @@ if [ "${#roles[@]}" -eq 0 ]; then
     echo "all: no review roles in $scripts_dir/review -- add one (ROLE.md) first" >&2
     exit 1
 fi
+# pick_tier: set $tier, $tier_reason and $review_roles from the diff of #$pr
+# (cloud:V66); --council forces council. Returns 1, saying why, when gh
+# cannot list the files or a role the tier needs has no file: a tier is
+# never guessed.
+tier=
+tier_reason=
+review_roles=("${roles[@]}")
+pick_tier() {
+    local files line r
+    if [ "$council" = 1 ]; then
+        tier=council
+        tier_reason=--council
+    else
+        if ! files="$(gh pr view "$pr" --json files --jq '.files[] | "\(.additions)\t\(.deletions)\t\(.path)"' </dev/null)"; then
+            echo "all: cannot list the files of #$pr to pick its review tier -- check gh auth status" >&2
+            return 1
+        fi
+        if ! line="$(review_tier <<<"$files")"; then
+            echo "all: cannot read the files of #$pr to pick its review tier" >&2
+            return 1
+        fi
+        tier="${line%%$'\t'*}"
+        tier_reason="${line#*$'\t'}"
+        # gh lists at most 100 files: a list that long may hide a council path.
+        if [ "$(grep -c . <<<"$files")" -ge 100 ]; then
+            tier=council
+            tier_reason="100 or more changed files"
+        fi
+    fi
+    review_roles=()
+    if [ "$tier" = council ]; then
+        review_roles=("${roles[@]}")
+        return 0
+    fi
+    while IFS= read -r r; do
+        if [ ! -f "$scripts_dir/review/$r.md" ]; then
+            echo "all: the $tier review tier of #$pr needs the $r review, and $scripts_dir/review/$r.md is missing" >&2
+            return 1
+        fi
+        review_roles+=("$r")
+    done < <(review_tier_roles "$tier")
+}
+
 if [ -n "$given_pr" ]; then
-    sessions="$(cloud_session_count "${#roles[@]}" pr)"
+    pick_tier || exit 1
+    sessions="$(cloud_session_count "${#review_roles[@]}" pr)"
     steps=
     name="#$pr"
+    tier_plan="review tier: $tier (set by $tier_reason)"
 else
     sessions="$(cloud_session_count "${#roles[@]}")"
     steps="1 build, "
     name="$arg"
     want_head="$(cloud_branch_regex "$want_node" "$id")"
+    tier_plan="review tier: picked after the build, so the reviews are at most these"
 fi
 
-plan="all: $name runs $sessions billed Claude Code cloud sessions (model $model), one after another: $steps${#roles[@]} reviews (${roles[*]}), 1 fixup; it waits for each and for green CI, up to hours"
-[ "$merge" = 0 ] || plan="$plan; then just merge rebase-merges it if the strict rule holds"
+plan="all: $name runs $sessions billed Claude Code cloud sessions (model $model), one after another: $steps${#review_roles[@]} reviews (${review_roles[*]}), 1 fixup; $tier_plan; it waits for each and for green CI, up to hours"
+[ "$merge" = 0 ] || plan="$plan; then just merge rebase-merges it if its tier's rule holds"
 if [ "$dry" = 1 ]; then
     echo "$plan"
     exit 0
@@ -434,15 +491,15 @@ comment_count() {
 review_head="^#* *$CLOUD_REVIEW_HEADING "
 fixup_head="$CLOUD_FIXUP_HEADING_RE"
 
-# reviews_in SKIP: 0 when every role has a comment after the first SKIP;
-# else 2, with the roles still missing in $missing for the caller's message
-# (wait_for runs it in this shell).
+# reviews_in SKIP: 0 when every role of the tier has a comment after the
+# first SKIP; else 2, with the roles still missing in $missing for the
+# caller's message (wait_for runs it in this shell).
 reviews_in() {
     local lines r
     lines="$(comments 2>"$gh_err")" || return "$gh_failed"
     lines="$(tail -n +$(($1 + 1)) <<<"$lines")"
     missing=()
-    for r in "${roles[@]}"; do
+    for r in "${review_roles[@]}"; do
         grep -qE "${review_head}$r( |\$)" <<<"$lines" || missing+=("$r")
     done
     [ "${#missing[@]}" -eq 0 ] || return 2
@@ -555,9 +612,18 @@ else
     wait_ci 1 || wait_failed $? "CI is not green on #$pr after the build"
 fi
 
+# The tier: for a task, its pull request exists only now (cloud:T183).
+[ -n "$given_pr" ] || pick_tier || fail "no review tier for #$pr: it is not reviewed"
+echo "all: review tier: $tier (set by $tier_reason); reviews: ${review_roles[*]}"
 echo "all: CI is green on #$pr; starting the reviews"
 skip="$(comment_count)"
-"$scripts_dir/cloud-review.sh" all "$target" "${child_args[@]}" || fail "the reviews of #$pr did not all start"
+if [ "$tier" = council ]; then
+    "$scripts_dir/cloud-review.sh" all "$target" "${child_args[@]}" || fail "the reviews of #$pr did not all start"
+else
+    for r in "${review_roles[@]}"; do
+        "$scripts_dir/cloud-review.sh" "$r" "$target" "${child_args[@]}" || fail "the $r review of #$pr did not start"
+    done
+fi
 missing=()
 wait_for "the reviews of #$pr" "$polls_reviews" reviews_in "$skip" || wait_failed $? "no review of #$pr by ${missing[*]}"
 
@@ -593,7 +659,9 @@ if [ "$merge" = 1 ] && [ "$found_by_body" = 1 ]; then
 fi
 if [ "$merge" = 1 ]; then
     echo "all: CI is green on #$pr after ${built}the reviews and the fixup; merging"
-    "$scripts_dir/cloud-merge.sh" "$pr" --yes || fail "#$pr stops for the owner (see above)"
+    merge_args=("$pr" --yes)
+    [ "$tier" = council ] || merge_args=("$pr" --light --yes) # V65
+    "$scripts_dir/cloud-merge.sh" "${merge_args[@]}" || fail "#$pr stops for the owner (see above)"
     exit 0
 fi
 echo "all: CI is green on #$pr after ${built}the reviews and the fixup; opening $url"
