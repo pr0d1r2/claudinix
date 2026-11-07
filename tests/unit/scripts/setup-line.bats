@@ -8,7 +8,10 @@ bats_require_minimum_version 1.5.0
 setup() {
     SCRIPT="$BATS_TEST_DIRNAME/../../../scripts/setup-line.sh"
     # A fixture repo of its own; the caller's git env must not leak in.
-    while read -r var; do unset "$var"; done < <(env | sed -n 's/^\(GIT_[A-Z_]*\)=.*/\1/p')
+    while read -r var; do unset "$var"; done < <(env | sed -n 's/^\(GIT_[A-Z0-9_]*\)=.*/\1/p')
+    # Nor the host's git config: it could change the object format or the
+    # commit IDs the 404 fixture walks (B124).
+    export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
     REPO="$BATS_TEST_TMPDIR/repo"
     git init -q "$REPO"
     git -C "$REPO" -c user.name=t -c user.email=t@example.com commit -q --allow-empty -m first
@@ -194,8 +197,13 @@ commit_with_sha_containing() {
     empty="$(git hash-object -t tree /dev/null)"
     until [[ "$sha" == *"$1"* ]]; do
         n=$((n + 1))
-        sha="$(GIT_AUTHOR_DATE="@$((1700000000 + n)) +0000" GIT_COMMITTER_DATE="@$((1700000000 + n)) +0000" \
-            git -c user.name=t -c user.email=t@example.com commit-tree "$empty" -m fixture </dev/null)"
+        [ "$n" -le 64 ] || {
+            echo "commit_with_sha_containing: no SHA holding $1 in 64 tries" >&2
+            return 1
+        }
+        sha="$(GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@example.com GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@example.com \
+            GIT_AUTHOR_DATE="@$((1700000000 + n)) +0000" GIT_COMMITTER_DATE="@$((1700000000 + n)) +0000" \
+            git commit-tree "$empty" -m fixture </dev/null)"
     done
     git reset -q --hard "$sha"
 }
