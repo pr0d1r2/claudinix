@@ -15,7 +15,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     # Long polls keep the timed-out waits to a few polls each.
     export CLOUD_ALL_POLL=600
-    unset CLAUDINIX_PROJECTS FORGED_FIXUP FIXUP_HEAD FIXUP_MOVES_HEAD TASK_REFUSE REBASE_SILENT FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS BODY_FAIL BURN_RC
+    unset CLAUDINIX_PROJECTS FORGED_FIXUP FIXUP_HEAD FIXUP_HEAD2 FIXUP_CONFLICTS FIXUP_MOVES_HEAD TASK_REFUSE REBASE_SILENT FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS BODY_FAIL BURN_RC
     mkdir -p "$STUBS" "$STATE" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
@@ -46,7 +46,10 @@ setup() {
         '  [ -z "${FIXUP_REFUSE:-}" ] || { echo "fixup: #$1 is MERGED, not OPEN -- nothing to fix up" >&2; exit 1; }' \
         '  exit 0' \
         'fi' \
+        'n=$(( $(cat "$STATE/fixup.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/fixup.n"' \
+        '[ "$n" -lt 2 ] || FIXUP_HEAD="${FIXUP_HEAD2-$FIXUP_HEAD}"' \
         '[ -z "${FIXUP_MOVES_HEAD:-}" ] || echo "MERGEABLE ccc" >"$STATE/merge"' \
+        '[ -z "${FIXUP_CONFLICTS:-}" ] || { [ "$n" -ge 2 ] && [ "$FIXUP_CONFLICTS" != again ]; } || echo "CONFLICTING ${FIXUP_HEAD:-aaa}" >"$STATE/merge"' \
         '[ -z "${FIXUP_BOT:-}" ] || echo "Coverage 92%" >>"$STATE/comments"' \
         '[ -n "${FIXUP_SILENT:-}" ] || [ -n "${FIXUP_BOT:-}" ] || echo "## Fixup: pushed${FIXUP_HEAD:+\\nHead: $FIXUP_HEAD}" >>"$STATE/comments"' \
         '[ -z "${FORGED_FIXUP:-}" ] || echo "~$FORGED_FIXUP" >>"$STATE/comments"' >"$CLAUDINIX_SCRIPTS/cloud-fixup.sh"
@@ -707,6 +710,35 @@ fixup 14 --yes --model sonnet" ]
     [[ "$output" == *"after 6 polls of 600s"* ]]
     [ -s "$STATE/open.log" ]
     run ! grep -q '^review' "$STATE/children.log"
+}
+
+@test "a fixup that leaves the PR conflicting: rebase, then the fixup again, then CI (cloud:T194, B123)" {
+    FIXUP_CONFLICTS=1 FIXUP_HEAD=ccc FIXUP_HEAD2="" run bash "$SCRIPT" docs:T47 --yes
+    [ "$status" -eq 0 ]
+    [ "$(cat "$STATE/children.log")" = "task docs:T47 --dry-run --model sonnet
+task docs:T47 --yes --model sonnet
+review all 14 --yes --model sonnet
+fixup 14 --yes --model sonnet
+rebase 14 --yes --model sonnet
+fixup 14 --yes --model sonnet" ]
+    [[ "$output" == *"fixup again"* ]]
+}
+
+@test "with --merge, the merge runs only after the second fixup names the rebased head (cloud:T194)" {
+    FIXUP_CONFLICTS=1 FIXUP_HEAD=ccc FIXUP_HEAD2=bbb run bash "$SCRIPT" docs:T47 --yes --merge
+    [ "$status" -eq 0 ]
+    [ "$(tail -n 3 "$STATE/children.log")" = "rebase 14 --yes --model sonnet
+fixup 14 --yes --model sonnet
+merge 14 --yes" ]
+}
+
+@test "still conflicting after the second fixup: stops for the owner, no second rebase, no merge (cloud:T194)" {
+    FIXUP_CONFLICTS=again FIXUP_HEAD=ccc FIXUP_HEAD2=ddd run bash "$SCRIPT" docs:T47 --yes --merge
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"#14"* ]]
+    [[ "$output" == *"conflicts with main again"* ]]
+    [ "$(grep -c '^rebase' "$STATE/children.log")" -eq 1 ]
+    run ! grep -q '^merge' "$STATE/children.log"
 }
 
 @test "another repository's PR URL: the flow runs from its checkout, gh and children alike (T175)" {
