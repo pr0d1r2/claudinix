@@ -540,3 +540,14 @@ BOT='{"login": "coderabbitai", "type": "Bot", "assoc": "NONE", "body": "**Minor*
     [[ "$output" == *"bot: "*"#8"* ]]
     not_merged
 }
+
+@test "--light: a thread whose comments are missing, empty or hold a null stops (cloud:V65)" {
+    light_pr
+    for c in '[null]' '[]' 'null'; do
+        echo '{"data":{"repository":{"pullRequest":{"reviewThreads":{"pageInfo":{"hasNextPage":false},"nodes":[{"path":"a","line":1,"comments":{"pageInfo":{"hasNextPage":false},"nodes":'"$c"'}}]}}}}}' >"$STATE/threads.json"
+        run bash "$SCRIPT" 8 --light --yes
+        [ "$status" -eq 1 ]
+        [[ "$output" == *"bot: "*"#8"* ]]
+        not_merged
+    done
+}
