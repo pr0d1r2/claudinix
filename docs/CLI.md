@@ -931,6 +931,11 @@ conflicting one gets no CI, so `all` starts [`rebase`](#rebase) and goes
 on once the rebase agent pushes a new head. If no new head comes, it
 stops: "the rebase of #<n> pushed no new head: a conflict needs the
 owner".
+A rebase after the fixup pushes a head that fixup's `Fixup:` does not
+name, and [`merge`](#merge) refuses that. So `all` runs the fixup once
+more on the rebased head. If the pull request still conflicts after that,
+it stops: "#<n> conflicts with main again after the second fixup: the
+owner settles it".
 
 **The head.** Once the fixup has replied, the pull request's head must be the
 sha on the last `Head:` line of that reply, or the sha it had before the
