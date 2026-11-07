@@ -12,7 +12,7 @@ setup() {
     export STUBS="$BATS_TEST_TMPDIR/stubs"
     export STATE="$BATS_TEST_TMPDIR/state"
     export TOPLEVEL="$BATS_TEST_TMPDIR/project"
-    unset CLAUDINIX_PROJECTS CLOUD_TASK_REMOTE STUB_PR STUB_BRANCH STUB_DIRTY GH_MERGE_RC
+    unset CLAUDINIX_PROJECTS CLOUD_TASK_REMOTE STUB_PR STUB_BRANCH STUB_DIRTY GH_MERGE_RC GH_THREADS_FAIL
     mkdir -p "$STUBS" "$STATE" "$TOPLEVEL"
 
     # git: a work tree at $TOPLEVEL on $STUB_BRANCH (default main), clean
@@ -44,6 +44,7 @@ case "$*" in
     ;;
 *isCrossRepository*) printf '%b\n' "$fields" ;;
 pr\ diff*) cat "$STATE/pr.diff" ;;
+api\ graphql*) [ -z "${GH_THREADS_FAIL:-}" ] || exit 1; cat "$STATE/threads.json" ;;
 pr\ merge*) exit "${GH_MERGE_RC:-0}" ;;
 *) exit 9 ;;
 esac
@@ -56,6 +57,7 @@ STUB
     GREEN='[{"status":"COMPLETED","conclusion":"SUCCESS"},{"status":"COMPLETED","conclusion":"SKIPPED"}]'
     pr_json "$GREEN" 'Findings: 0' end
     diff_of scripts/x.sh '-a' '+b'
+    threads_json '[]'
 }
 
 # pr_json ROLLUP SECURITY_TAIL FIXUP: the verdict read's answer: head
@@ -70,6 +72,16 @@ pr_json() {
            comments: (if $fix == "end" then $reviews + [{authorAssociation: "OWNER", body: "Fixup:\n\nNothing to fix.\n\nHead: abc123"}]
                       elif $fix == "start" then [{authorAssociation: "OWNER", body: "Fixup:\n\nearly"}] + $reviews
                       else $reviews end | map(.createdAt = "2026-10-15T12:00:00Z"))}' >"$STATE/pr.json"
+}
+
+# threads_json THREADS [MORE]: the review threads `gh api graphql` answers,
+# each {path, line, comments: [{login, type, assoc, body}]}; MORE true means
+# a second page exists.
+threads_json() {
+    jq -n --argjson t "$1" --argjson more "${2:-false}" '
+        {data: {repository: {pullRequest: {reviewThreads: {pageInfo: {hasNextPage: $more},
+            nodes: [$t[] | {path, line, comments: {pageInfo: {hasNextPage: false},
+                nodes: [.comments[] | {author: {login: .login, __typename: .type}, authorAssociation: .assoc, body}]}}]}}}}}' >"$STATE/threads.json"
 }
 
 # diff_of FILE LINE...: a one-hunk patch of FILE with LINEs (each `-old`
@@ -409,4 +421,94 @@ not_pulled() {
     [ "$status" -eq 1 ]
     [[ "$output" == *"run it from a checkout of owner/alpha"* ]]
     [ ! -e "$STATE/gh.log" ]
+}
+
+# --- merge --light (cloud:V65, cloud:T181) ---
+
+# light_pr: only security reviewed, then the Fixup: naming the head.
+light_pr() {
+    ROLES="" pr_json "$GREEN" 'Findings: 0' end
+}
+
+BOT='{"login": "coderabbitai", "type": "Bot", "assoc": "NONE", "body": "**Minor** fix this"}'
+
+@test "--light: security's review and the Fixup: are enough; without --light the other roles are missing" {
+    light_pr
+    run bash "$SCRIPT" 8 --light --yes
+    [ "$status" -eq 0 ]
+    merged
+    : >"$STATE/gh.log"
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *'no "Review: '* ]]
+    not_merged
+}
+
+@test "--light: a CodeRabbit thread without a Fixup: reply stops, naming where it is" {
+    light_pr
+    threads_json "[{\"path\": \"a.sh\", \"line\": 3, \"comments\": [$BOT]}]"
+    run bash "$SCRIPT" 8 --light --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"a.sh:3"* ]]
+    not_merged
+}
+
+@test "--light: an owner's Fixup: reply with a Head: line answers the thread, a declined finding too" {
+    light_pr
+    threads_json "[{\"path\": \"a.sh\", \"line\": 3, \"comments\": [$BOT, {\"login\": \"o\", \"type\": \"User\", \"assoc\": \"OWNER\", \"body\": \"Fixup: fixed in abc123.\\nHead: abc123\"}]},
+        {\"path\": \"b.md\", \"line\": 1, \"comments\": [$BOT, {\"login\": \"o\", \"type\": \"User\", \"assoc\": \"MEMBER\", \"body\": \"Fixup: declined: the row already says so.\\nHead: 999fff\"}]}]"
+    run bash "$SCRIPT" 8 --light --yes
+    [ "$status" -eq 0 ]
+    merged
+}
+
+@test "--light: a stranger's Fixup: reply, or one without Head:, does not answer the thread" {
+    light_pr
+    threads_json "[{\"path\": \"a.sh\", \"line\": 3, \"comments\": [$BOT, {\"login\": \"x\", \"type\": \"User\", \"assoc\": \"NONE\", \"body\": \"Fixup: done\\nHead: abc123\"}]}]"
+    run bash "$SCRIPT" 8 --light --yes
+    [ "$status" -eq 1 ]
+    not_merged
+    threads_json "[{\"path\": \"a.sh\", \"line\": 3, \"comments\": [$BOT, {\"login\": \"o\", \"type\": \"User\", \"assoc\": \"OWNER\", \"body\": \"Fixup: done\"}]}]"
+    run bash "$SCRIPT" 8 --light --yes
+    [ "$status" -eq 1 ]
+    not_merged
+}
+
+@test "--light: a thread a person started, or a user named like the bot, needs no Fixup: reply" {
+    light_pr
+    threads_json '[{"path": "a.sh", "line": 3, "comments": [{"login": "coderabbitai", "type": "User", "assoc": "NONE", "body": "x"}]},
+        {"path": "b.sh", "line": 4, "comments": [{"login": "o", "type": "User", "assoc": "OWNER", "body": "note"}]}]'
+    run bash "$SCRIPT" 8 --light --yes
+    [ "$status" -eq 0 ]
+    merged
+}
+
+@test "--light: threads gh cannot read, or more than one page of them, stop" {
+    light_pr
+    GH_THREADS_FAIL=1 run bash "$SCRIPT" 8 --light --yes
+    [ "$status" -eq 1 ]
+    not_merged
+    threads_json '[]' true
+    run bash "$SCRIPT" 8 --light --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"page"* ]]
+    not_merged
+}
+
+@test "--light keeps every other rule: security findings and a protected file still stop" {
+    ROLES="" pr_json "$GREEN" 'Findings: 2' end
+    diff_of hk.pkl '-a' '+b'
+    run bash "$SCRIPT" 8 --light --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"security: 2 finding(s)"* ]]
+    [[ "$output" == *"hk.pkl"* ]]
+    not_merged
+}
+
+@test "--light --dry-run judges only" {
+    light_pr
+    run bash "$SCRIPT" 8 --light --dry-run
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"would run: gh pr merge 8"* ]]
+    not_merged
 }
