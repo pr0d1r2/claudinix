@@ -509,17 +509,28 @@ head_moved() {
     return 2
 }
 
+# conflicts: 0 when the pull request merges cleanly into main, 4 when it
+# conflicts; GitHub never answering stops the flow.
+conflicts() {
+    local rc=0
+    wait_for "GitHub to say whether #$pr merges" "$polls_ci" merge_state || rc=$?
+    case "$rc" in
+    0 | 4) return "$rc" ;;
+    *) wait_failed "$rc" "GitHub never said whether #$pr merges" ;;
+    esac
+}
+
 # resolve_conflicts: a pull request that conflicts with main gets no CI, so
 # send the rebase agent (cloud-rebase.sh, cloud:T145) and wait for the
 # head it pushes; no new head means a conflict the owner must settle.
+# Sets $rebased to 1 when it rebased.
+rebased=0
 resolve_conflicts() {
     local rc=0 old
-    wait_for "GitHub to say whether #$pr merges" "$polls_ci" merge_state || rc=$?
-    case "$rc" in
-    0) return 0 ;;
-    4) ;;
-    *) wait_failed "$rc" "GitHub never said whether #$pr merges" ;;
-    esac
+    rebased=0
+    conflicts || rc=$?
+    [ "$rc" = 4 ] || return 0
+    rebased=1
     old="$head_sha"
     echo "all: #$pr conflicts with main; starting a rebase"
     "$scripts_dir/cloud-rebase.sh" "$target" "${child_args[@]}" || fail "the rebase of #$pr did not start"
@@ -558,6 +569,21 @@ reviewed_head="$head_sha"
 wait_for "the fixup of #$pr" "$polls_fixup" fixup_replied "$skip" || wait_failed $? "the fixup of #$pr never replied"
 require_fixup_head "$skip" "$reviewed_head"
 resolve_conflicts
+# A rebase after the fixup pushed a head its Fixup: does not name, which
+# merge refuses (cloud:V51, B123): fix up once more on that head. Still
+# conflicting then is the owner's to settle, not another rebase's.
+if [ "$rebased" = 1 ]; then
+    echo "all: #$pr was rebased after the fixup; running the fixup again so its reply names the new head (cloud:T194)"
+    skip="$(comment_count)"
+    read_head
+    reviewed_head="$head_sha"
+    "$scripts_dir/cloud-fixup.sh" "$target" "${child_args[@]}" || fail "the second fixup of #$pr did not start"
+    wait_for "the second fixup of #$pr" "$polls_fixup" fixup_replied "$skip" || wait_failed $? "the second fixup of #$pr never replied"
+    require_fixup_head "$skip" "$reviewed_head"
+    rc=0
+    conflicts || rc=$?
+    [ "$rc" = 0 ] || fail "#$pr conflicts with main again after the second fixup: the owner settles it"
+fi
 echo "all: the fixup replied on #$pr; waiting for CI"
 wait_ci 1 || wait_failed $? "CI is not green on #$pr after the fixup"
 

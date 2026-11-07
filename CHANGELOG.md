@@ -20,6 +20,7 @@ does are summarised briefly; the git history has the detail.
 
 ## Unreleased
 
+- `just all`: when the PR conflicts with main after the fixup, it rebases and then runs the fixup once more, so the last `Fixup:` names the rebased head and `--merge` can merge it; still conflicting after that, it stops for the owner.
 - `probe.sh` prints `home`, `claude-dir`, `settings-owner`, `settings-content` and `test-skill` (is `~/.claude/skills/claudinix-probe/SKILL.md` there?), so a session shows what `~/.claude` holds at launch. `settings-owner` follows a symlink to the file it reads. Absent files are findings, not failures; `claude-dir` says `absent`, `empty` or `unreadable` when there is nothing it can list, and an unset `HOME` fails only the `home` check.
 - New nightly workflow `cache-targets` (and `scripts/ci/push-targets.sh`): pushes the flake source and eval-time input sources of the repos in `cache-targets.txt` whose `.claudinix.toml` sets `[cache] push_sources = true` to their `cache.name` cache, then verifies them. Sources only, never other repos' build outputs.
 - `setup.sh` prints `setup: finished in Ns` and warns when it ran 300 s or more (`CLAUDINIX_SETUP_BUDGET` changes the limit), because a setup past about 5 min is not cached as a snapshot.
