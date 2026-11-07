@@ -878,7 +878,7 @@ At the end it opens the green pull request in Safari for you to review and
 merge. With `--merge` it ends with [`merge`](#merge) instead. **It starts several billed sessions**, so it asks once, first.
 
 ```text
-usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run] [--merge]
+usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run] [--merge] [--council]
 ```
 
 Run it as `scripts/cloud-all.sh ...` or `just all ...`, for example
