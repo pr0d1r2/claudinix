@@ -140,7 +140,9 @@ if [ "$light" = 1 ]; then
     else
         bot_reasons="$(jq -r --arg fixup_heading "$CLOUD_FIXUP_HEADING" "$CLOUD_COMMENT_JQ"'
             .data.repository.pullRequest.reviewThreads as $t
-            | if ($t.nodes | type) != "array" or any($t.nodes[]; type != "object")
+            | if ($t.nodes | type) != "array"
+              or any($t.nodes[]; type != "object" or (.comments.nodes | type) != "array"
+                or (.comments.nodes | length) == 0 or any(.comments.nodes[]; type != "object"))
               then "bot: gh returned review threads for #'"$pr"' that are not a list of threads; judge it by hand"
               elif $t.pageInfo.hasNextPage or any($t.nodes[]; .comments.pageInfo.hasNextPage)
               then "bot: more review threads or replies than one page shows; judge #'"$pr"' by hand"
