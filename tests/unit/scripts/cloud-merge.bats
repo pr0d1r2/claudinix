@@ -526,3 +526,17 @@ BOT='{"login": "coderabbitai", "type": "Bot", "assoc": "NONE", "body": "**Minor*
     [[ "$output" == *"bot: could not parse the review threads of #8"* ]]
     not_merged
 }
+
+@test "--light: a null thread entry or an empty gh reply stops, never merges (cloud:V65)" {
+    light_pr
+    echo '{"data":{"repository":{"pullRequest":{"reviewThreads":{"pageInfo":{"hasNextPage":false},"nodes":[null]}}}}}' >"$STATE/threads.json"
+    run bash "$SCRIPT" 8 --light --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"bot: "*"#8"* ]]
+    not_merged
+    : >"$STATE/threads.json"
+    run bash "$SCRIPT" 8 --light --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"bot: "*"#8"* ]]
+    not_merged
+}
