@@ -932,6 +932,20 @@ positive whole number; anything else exits 2. The table mirrors the
 | 5. (just waits) | CI again, as in step 2, with a red check pending since the `fixup` session fixes it | 120 |
 | `rebase <PR>`, on a conflict | a new head commit on the pull request | 60 |
 
+**The review tier** (`cloud:V66`). Before the reviews, `all` reads the pull
+request's changed files and picks a tier; the highest class any path hits
+wins, and the plan names the tier and the path that set it:
+
+| tier | when the diff touches | reviews | merge (`--merge`) |
+|---|---|---|---|
+| light | only `docs/**`, `tests/**` and `*.md` outside `scripts/` | security | `just merge --light` |
+| light+correctness | `scripts/**`, `setup.sh` or `home/` code | security, correctness | `just merge --light` |
+| council | `nix/cloud-permissions.json`, `.claude/**`, `hk.pkl`, the dev-shell hook scripts, `scripts/lib/cloud-launch.sh`, `.claudinix.toml`, `nix-dev`, any other path, more than 300 changed lines, or 100+ files | every role | `just merge` |
+
+For a task the tier is picked once its pull request exists, so the plan
+counts every role as the most it may run. `--council` forces every role. A
+diff `gh` cannot list stops the flow; it never falls back to light.
+
 **Conflicts.** Once the pull request is known, and again after the fixup,
 it asks GitHub whether the pull request still merges into `main`. A
 conflicting one gets no CI, so `all` starts [`rebase`](#rebase) and goes
