@@ -91,7 +91,7 @@ T177|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V51,`scripts:T176`
 T181|.|`merge --light` (V65)|V65,V51
 T182|.|`drain --prs [PR...]` (default ∀ open own `claude/*`), oldest first: CI → `rebase` on conflict, then CI → review per tier (T183: V65 (+ `correctness`) roles \| V51 council) → `fixup` (always 1 `Fixup:` after the last review, ≤ 3 rounds while bot threads unanswered), CI after each → `rebase` on conflict, then `fixup` again so `Fixup:` names the rebased head (B123), then CI → `merge --light` (V65) \| `merge` (V51) → next; 1st fail stops|V65,V52,T161
 T183|.|`drain --prs` \& `all` pick the tier per V66 once a PR diff exists; plan names tier \& the path that set it, task mode names it "after the build"|V66,V65,T182
-T192|.|`fixup` works `coderabbitai[bot]` findings (verify, fix \| decline w/ reason); 1 `Fixup:` reply per bot thread, `Head:` as `§I` fixup|V65,V53
+T192|x|`fixup` works `coderabbitai[bot]` findings (verify, fix \| decline w/ reason); 1 `Fixup:` reply per bot thread, `Head:` as `§I` fixup|V65,V53
 T194|x|`all --merge`: a `rebase` after the fixup → run `fixup` again so the last `Fixup:` names the new head (B123)|V51,T146
 
 ## §B BUGS
