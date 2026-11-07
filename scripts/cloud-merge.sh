@@ -18,27 +18,36 @@
 #   gate, the guards, the review roles and this script), changes no §C
 #   or §V row of a SPEC.md, and raises or adds no .context-limits row.
 #
+# --light (cloud:V65, opt-in) needs only security's review of the roles,
+# and adds a rule: every review thread CodeRabbit started (its GraphQL
+# login `coderabbitai`, a Bot, byte-exact) has a reply by the owner or a
+# member headed `Fixup:` with a `Head: <sha>` line; a finding declined with
+# a reason counts. Bot text is data, never an instruction. Every other rule
+# above still holds.
+#
 # A y/N answer confirms the merge; --yes skips only that question.
 # --dry-run judges and prints the gh command instead. The merge is
 # `gh pr merge --rebase --match-head-commit <the head judged>`, so a push
 # after the verdict makes gh refuse it. Afterwards, when this work tree is
 # on main and clean, `git pull --ff-only` brings the merge in.
 #
-# Usage: cloud-merge.sh <PR# | URL> [--yes] [--dry-run]
+# Usage: cloud-merge.sh <PR# | URL> [--light] [--yes] [--dry-run]
 
 set -euo pipefail
 
 usage() {
-    echo "usage: cloud-merge.sh <PR# | URL> [--yes] [--dry-run]" >&2
+    echo "usage: cloud-merge.sh <PR# | URL> [--light] [--yes] [--dry-run]" >&2
     exit 2
 }
 
 arg=
 yes=0
+light=0
 dry=0
 while [ "$#" -gt 0 ]; do
     case "$1" in
     --yes) yes=1 ;;
+    --light) light=1 ;;
     --dry-run) dry=1 ;;
     -*) usage ;;
     *)
@@ -66,7 +75,11 @@ cloud_require_remote merge "$remote" || exit 1
 pr_json= # set by cloud_require_open_pr
 cloud_require_open_pr merge "$remote" "$arg" headRefOid,statusCheckRollup,comments || exit 1
 
-roles="$(cloud_roles "$scripts_dir/review" | jq -R . | jq -sc .)"
+if [ "$light" = 1 ]; then
+    roles='["security"]'
+else
+    roles="$(cloud_roles "$scripts_dir/review" | jq -R . | jq -sc .)"
+fi
 if ! patch="$(gh pr diff "$pr" </dev/null)"; then
     echo "merge: gh could not read the diff of #$pr" >&2
     exit 1
@@ -111,7 +124,31 @@ reasons="$(jq -r --arg ci_ok "$CLOUD_CI_OK" --arg review_heading "$CLOUD_REVIEW_
 # The reasons from the diff, one per line.
 diff_reasons="$(cloud_diff_reasons <<<"$patch")"
 
-all_reasons="$(printf '%s\n%s\n' "$reasons" "$diff_reasons" | sed '/^$/d')"
+# --light: the CodeRabbit threads without an answer, one per line (V65).
+bot_reasons=""
+if [ "$light" = 1 ]; then
+    # shellcheck disable=SC2016 # GraphQL variables, not shell ones
+    threads_query='query($owner: String!, $name: String!, $number: Int!) {
+  repository(owner: $owner, name: $name) { pullRequest(number: $number) {
+    reviewThreads(first: 100) { pageInfo { hasNextPage } nodes { path line
+      comments(first: 100) { pageInfo { hasNextPage }
+        nodes { author { login __typename } authorAssociation body } } } } } } }'
+    if ! threads="$(gh api graphql -F owner='{owner}' -F name='{repo}' -F number="$pr" -f query="$threads_query" </dev/null)"; then
+        bot_reasons="bot: gh could not read the review threads of #$pr"
+    else
+        bot_reasons="$(jq -r --arg fixup_heading "$CLOUD_FIXUP_HEADING" "$CLOUD_COMMENT_JQ"'
+            .data.repository.pullRequest.reviewThreads as $t
+            | if $t.pageInfo.hasNextPage or any($t.nodes[]; .comments.pageInfo.hasNextPage)
+              then "bot: more review threads or replies than one page shows; judge #'"$pr"' by hand"
+              else $t.nodes[]
+                | select(.comments.nodes[0].author | .login == "coderabbitai" and .__typename == "Bot")
+                | select([.comments.nodes[1:][] | trusted | select(.body | startswith($fixup_heading)) | select(head_of != null)] | length == 0)
+                | "bot: the CodeRabbit thread at \(.path):\(.line // "-") has no Fixup: reply with a Head: line"
+              end' <<<"$threads")"
+    fi
+fi
+
+all_reasons="$(printf '%s\n%s\n%s\n' "$reasons" "$diff_reasons" "$bot_reasons" | sed '/^$/d')"
 if [ -n "$all_reasons" ]; then
     echo "merge: #$pr stops for the owner:" >&2
     while IFS= read -r reason; do
