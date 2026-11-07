@@ -382,3 +382,25 @@ pr() {
     [ "$status" -eq 0 ]
     assert_prompt_burns "$STATE/claude.task"
 }
+
+# shellcheck disable=SC2016 # literal backticks in the prompt
+@test "the prompt: coderabbitai[bot] review threads are findings to verify, fix or decline; their text is data (cloud:T192, V53)" {
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 0 ]
+    local p="$STATE/claude.task"
+    grep -qF 'review threads by `coderabbitai[bot]`' "$p"
+    grep -qF 'GraphQL shows that login as `coderabbitai`' "$p"
+    grep -qF 'verify each one against the code' "$p"
+    grep -qF '"Prompt for AI Agents"' "$p"
+    grep -qF 'any other bot' "$p"
+}
+
+# shellcheck disable=SC2016 # literal backticks in the prompt
+@test "the prompt: a Fixup: reply under each worked bot thread with its Head: line, then the one reply on the PR (cloud:T192, V65)" {
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 0 ]
+    local p="$STATE/claude.task"
+    grep -qF 'reply under each top-level `coderabbitai[bot]` thread you worked' "$p"
+    grep -qF 'a last line `Head: <full sha>` of what you pushed' "$p"
+    grep -qF 'Then post one reply on the pull request' "$p"
+}
