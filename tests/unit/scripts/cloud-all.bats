@@ -37,7 +37,8 @@ setup() {
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "review $*" >>"$STATE/children.log"' \
         '[ -z "${REVIEW_FAIL:-}" ] || exit 1' \
-        'roles="${REVIEW_ONLY:-alpha beta}"; [ "$1" = all ] || roles="$1"' \
+        'all_roles="$(for f in "$CLAUDINIX_SCRIPTS"/review/*.md; do f="${f##*/}"; printf "%s " "${f%.md}"; done)"' \
+        'roles="${REVIEW_ONLY:-$all_roles}"; [ "$1" = all ] || roles="$1"' \
         'for r in $roles; do printf "## Review: %s%b\n" "$r" "${REVIEW_CRLF:+\\r}" >>"$STATE/comments"; done' >"$CLAUDINIX_SCRIPTS/cloud-review.sh"
     # cloud-fixup.sh: --dry-run checks only; a launch posts its one reply.
     # shellcheck disable=SC2016 # expands inside the stub, not here
@@ -789,8 +790,8 @@ merge 16 --light --yes" ]
     [ "$status" -eq 0 ]
     grep -qx 'review security 16 --yes --model sonnet' "$STATE/children.log"
     grep -qx 'review correctness 16 --yes --model sonnet' "$STATE/children.log"
-    run ! grep -q '^review all' "$STATE/children.log"
     [[ "$output" == *"review tier: light+correctness (set by scripts/burn.sh)"* ]]
+    run ! grep -q '^review all' "$STATE/children.log"
 }
 
 @test "tier: the plan counts the tier's reviews and names the tier and its path" {
