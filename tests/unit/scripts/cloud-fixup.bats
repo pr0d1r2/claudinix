@@ -404,3 +404,9 @@ pr() {
     grep -qF 'a last line `Head: <full sha>` of what you pushed' "$p"
     grep -qF 'Then post one reply on the pull request' "$p"
 }
+
+@test "the prompt: a CI-fix push updates each bot thread reply's Head: line too (cloud:T192, V65)" {
+    run bash "$SCRIPT" 8 --yes
+    [ "$status" -eq 0 ]
+    grep -qF 'and in each bot thread reply' "$STATE/claude.task"
+}
