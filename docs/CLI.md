@@ -940,11 +940,15 @@ wins, and the plan names the tier and the path that set it:
 |---|---|---|---|
 | light | only `docs/**`, `tests/**` and `*.md` outside `scripts/` | security | `just merge --light` |
 | light+correctness | `scripts/**`, `setup.sh` or `home/` code | security, correctness | `just merge --light` |
-| council | `nix/cloud-permissions.json`, `.claude/**`, `hk.pkl`, the dev-shell hook scripts, `scripts/lib/cloud-launch.sh`, `.claudinix.toml`, `nix-dev`, any other path, more than 300 changed lines, or 100+ files | every role | `just merge` |
+| council | `nix/cloud-permissions.json`, `.claude/**`, `hk.pkl`, the dev-shell hook scripts, `scripts/lib/cloud-launch.sh`, `.claudinix.toml`, `nix-dev`, any `AGENTS.md` or `CLAUDE.md`, any other path, more than 300 changed lines, or 100+ files | every role | `just merge` |
 
 For a task the tier is picked once its pull request exists, so the plan
 counts every role as the most it may run. `--council` forces every role. A
-diff `gh` cannot list stops the flow; it never falls back to light.
+diff `gh` cannot list stops the flow; it never falls back to light. With
+`--merge`, `all` picks the tier again from the final diff just before
+merging: if a fixup or a rebase raised it, the flow stops and names the
+path, so the missing reviews run (`just all <PR> --council`) or the owner
+merges it.
 
 **Conflicts.** Once the pull request is known, and again after the fixup,
 it asks GitHub whether the pull request still merges into `main`. A
