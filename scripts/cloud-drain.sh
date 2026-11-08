@@ -94,11 +94,16 @@ pr_number() {
 here=
 if [ "$prs" = 1 ]; then
     origin_url="$(git remote get-url origin 2>/dev/null)" || origin_url=
-    github_re='^(https://github\.com/|ssh://git@github\.com/|git@github\.com:)([^/]+/[^/]+)$'
+    # Host github.com only; a port 22, a trailing / and .git are allowed.
+    gh_https='https://github\.com/'
+    gh_ssh='ssh://git@github\.com(:22)?/'
+    gh_scp='git@github\.com:'
+    github_re="^($gh_https|$gh_ssh|$gh_scp)([^/]+/[^/]+)/?\$"
     if [[ "$origin_url" =~ $github_re ]]; then
-        here="${BASH_REMATCH[2]%.git}"
+        here="${BASH_REMATCH[3]%.git}"
     else
-        echo "drain: --prs drains a github.com repo, and origin is ${origin_url:-not set} -- run it in a checkout of one" >&2
+        # Never the URL: it may hold a token.
+        echo "drain: --prs drains a github.com repo, and origin is not a github.com remote (or not set) -- run it in a checkout of one" >&2
         exit 1
     fi
     export GH_REPO="$here"
