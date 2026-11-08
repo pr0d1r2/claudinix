@@ -23,20 +23,30 @@
 # failed step, red CI, or a stop for the owner) stops the drain, naming
 # the task and how many finished.
 #
-# Usage: cloud-drain.sh [node:Tn...] [--max N] [--model M] [--yes] [--dry-run]
+# --prs drains open pull requests instead (cloud:T182): the ones given, in
+# that order, else every open pull request of yours whose head is
+# `claude/*`, oldest (lowest number) first. Each runs as
+# `cloud-all.sh <PR> --yes --merge`, which picks its review tier (V66), so
+# the plan counts the most sessions a council run bills. It needs neither
+# main nor a clean tree: no pull request builds on the local checkout, each
+# is rebased onto main in the cloud when it conflicts (V52).
+#
+# Usage: cloud-drain.sh [node:Tn... | --prs [PR#|URL...]] [--max N] [--model M] [--yes] [--dry-run]
 # Env:   CLAUDINIX_SCRIPTS  dir holding cloud-all.sh, review/ and config.sh
 
 set -euo pipefail
 
 usage() {
-    echo "usage: cloud-drain.sh [node:Tn...] [--max N] [--model M] [--yes] [--dry-run]" >&2
+    echo "usage: cloud-drain.sh [node:Tn... | --prs [PR#|URL...]] [--max N] [--model M] [--yes] [--dry-run]" >&2
     exit 2
 }
 
 # shellcheck source=/dev/null # lib/cloud-launch.sh, beside this script
 source "$(dirname "${BASH_SOURCE[0]}")/lib/cloud-launch.sh"
 
+args=()
 tasks=()
+prs=0
 max=
 model=
 yes=0
@@ -54,34 +64,56 @@ while [ "$#" -gt 0 ]; do
         model="$2"
         shift
         ;;
+    --prs) prs=1 ;;
     --yes) yes=1 ;;
     --dry-run) dry=1 ;;
     -*) usage ;;
-    *)
-        cloud_parse_task "$1" || usage
-        tasks+=("$1")
-        ;;
+    *) args+=("$1") ;;
     esac
     shift
 done
+for a in "${args[@]}"; do
+    if [ "$prs" = 1 ]; then
+        cloud_parse_pr "$a" || usage
+    else
+        cloud_parse_task "$a" || usage
+    fi
+    tasks+=("$a")
+done
 
 scripts_dir="${CLAUDINIX_SCRIPTS:-$(dirname "${BASH_SOURCE[0]}")}"
-top="$(git rev-parse --show-toplevel)"
 
-if [ "$(git symbolic-ref --quiet --short HEAD 2>/dev/null || true)" != main ]; then
-    echo "drain: check out main first -- every task starts from the merged state of the one before" >&2
-    exit 1
-fi
-if [ -n "$(git status --porcelain)" ]; then
-    echo "drain: the work tree is not clean -- commit or stash first, so the merges can be pulled in" >&2
-    exit 1
+if [ "$prs" = 0 ]; then
+    if [ "$(git symbolic-ref --quiet --short HEAD 2>/dev/null || true)" != main ]; then
+        echo "drain: check out main first -- every task starts from the merged state of the one before" >&2
+        exit 1
+    fi
+    if [ -n "$(git status --porcelain)" ]; then
+        echo "drain: the work tree is not clean -- commit or stash first, so the merges can be pulled in" >&2
+        exit 1
+    fi
+    top="$(git rev-parse --show-toplevel)"
 fi
 
 cloud_resolve_model "$scripts_dir" || exit "$?"
 roles="$(cloud_role_count drain "$scripts_dir")" || exit 1
 per_task="$(cloud_session_count "$roles")"
+[ "$prs" = 0 ] || per_task="$(cloud_session_count "$roles" pr)"
+what=tasks
 
-if [ "${#tasks[@]}" -eq 0 ]; then
+if [ "$prs" = 1 ]; then
+    what="pull requests"
+    if [ "${#tasks[@]}" -eq 0 ]; then
+        # </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
+        if ! open="$(gh pr list --state open --author @me --limit 100 --json number,headRefName </dev/null)"; then
+            echo "drain: gh could not list your open pull requests -- check gh auth status, or name them: --prs PR..." >&2
+            exit 1
+        fi
+        while IFS= read -r n; do
+            tasks+=("$n")
+        done < <(jq -r '[.[] | select(.headRefName | startswith("claude/")) | .number] | sort[]' <<<"$open")
+    fi
+elif [ "${#tasks[@]}" -eq 0 ]; then
     while IFS= read -r node; do
         [[ " ${CLOUD_DRAIN_SKIP[*]} " != *" $node "* ]] || continue
         label="$node"
@@ -92,6 +124,10 @@ if [ "${#tasks[@]}" -eq 0 ]; then
     done < <(cloud_nodes "$top/SPEC.md")
 fi
 total="${#tasks[@]}"
+if [ "$total" -eq 0 ] && [ "$prs" = 1 ]; then
+    echo "drain: nothing to do -- no open claude/* pull request of yours"
+    exit 0
+fi
 if [ "$total" -eq 0 ]; then
     echo "drain: nothing to do -- no open task outside ${CLOUD_DRAIN_SKIP[*]} that is not an open question"
     exit 0
@@ -110,7 +146,18 @@ if [ -z "$max" ]; then
 fi
 
 run=("${tasks[@]:0:max}")
-plan="drain: ${run[*]} (${#run[@]} of $total tasks): ${#run[@]} × just all --merge, $((${#run[@]} * per_task)) billed Claude Code cloud sessions (model $model), one after another; it stops at the first failure"
+names=("${run[@]}")
+sessions="$((${#run[@]} * per_task)) billed"
+if [ "$prs" = 1 ]; then
+    pr= # set by cloud_parse_pr
+    names=()
+    for a in "${run[@]}"; do
+        cloud_parse_pr "$a"
+        names+=("#$pr")
+    done
+    sessions="at most $sessions"
+fi
+plan="drain: ${names[*]} (${#run[@]} of $total $what): ${#run[@]} × just all --merge, $sessions Claude Code cloud sessions (model $model), one after another; it stops at the first failure"
 if [ "$dry" = 1 ]; then
     echo "$plan"
     exit 0
@@ -121,9 +168,9 @@ if [ "$yes" = 0 ]; then
 fi
 
 done_count=0
-for task in "${run[@]}"; do
-    if ! "$scripts_dir/cloud-all.sh" "$task" --yes --merge --model "$model"; then
-        echo "drain: stopped at $task; $done_count of ${#run[@]} done" >&2
+for i in "${!run[@]}"; do
+    if ! "$scripts_dir/cloud-all.sh" "${run[i]}" --yes --merge --model "$model"; then
+        echo "drain: stopped at ${names[i]}; $done_count of ${#run[@]} done" >&2
         exit 1
     fi
     done_count=$((done_count + 1))

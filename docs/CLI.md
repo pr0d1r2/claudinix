@@ -1087,7 +1087,7 @@ rule of [`merge`](#merge) allows are merged without you. **It starts many
 billed sessions**, so it asks once, first.
 
 ```text
-usage: cloud-drain.sh [node:Tn...] [--max N] [--model M] [--yes] [--dry-run]
+usage: cloud-drain.sh [node:Tn... | --prs [PR#|URL...]] [--max N] [--model M] [--yes] [--dry-run]
 ```
 
 Run it as `scripts/cloud-drain.sh ...` or `just drain ...`, for example
