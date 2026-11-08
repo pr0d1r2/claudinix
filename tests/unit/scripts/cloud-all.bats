@@ -15,7 +15,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     # Long polls keep the timed-out waits to a few polls each.
     export CLOUD_ALL_POLL=600
-    unset CLAUDINIX_PROJECTS FILES_FAIL THREADS_FAIL FILES_FAIL_LATER FORGED_FIXUP FIXUP_HEAD FIXUP_HEAD2 FIXUP_CONFLICTS FIXUP_MOVES_HEAD TASK_REFUSE REBASE_SILENT FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS BODY_FAIL BURN_RC
+    unset CLAUDINIX_PROJECTS FILES_FAIL THREADS_FAIL FILES_FAIL_LATER CODERABBIT_FAIL FIXUP2_CI FORGED_FIXUP FIXUP_HEAD FIXUP_HEAD2 FIXUP_CONFLICTS FIXUP_MOVES_HEAD TASK_REFUSE REBASE_SILENT FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS BODY_FAIL BURN_RC
     mkdir -p "$STUBS" "$STATE" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
@@ -41,6 +41,7 @@ setup() {
         'roles="${REVIEW_ONLY:-$all_roles}"; [ "$1" = all ] || roles="$1"' \
         'for r in $roles; do printf "## Review: %s%b\n" "$r" "${REVIEW_CRLF:+\\r}" >>"$STATE/comments"; done' >"$CLAUDINIX_SCRIPTS/cloud-review.sh"
     # cloud-fixup.sh: --dry-run checks only; a launch posts its one reply.
+    # From the 2nd launch on, $FIXUP2_CI becomes what CI shows.
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "fixup $*" >>"$STATE/children.log"; pwd >>"$STATE/children.pwd"' \
@@ -51,6 +52,7 @@ setup() {
         'n=$(( $(cat "$STATE/fixup.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/fixup.n"' \
         '[ "$n" -lt 2 ] || FIXUP_HEAD="${FIXUP_HEAD2-$FIXUP_HEAD}"' \
         '[ -z "${FIXUP_MOVES_HEAD:-}" ] || echo "MERGEABLE ccc" >"$STATE/merge"' \
+        '[ -z "${FIXUP2_CI:-}" ] || [ "$n" -lt 2 ] || echo "$FIXUP2_CI" >"$STATE/ci"' \
         '[ -z "${FIXUP_CONFLICTS:-}" ] || { [ "$n" -ge 2 ] && [ "$FIXUP_CONFLICTS" != again ]; } || echo "CONFLICTING ${FIXUP_HEAD:-aaa}" >"$STATE/merge"' \
         '[ -z "${FIXUP_BOT:-}" ] || echo "Coverage 92%" >>"$STATE/comments"' \
         '[ -n "${FIXUP_SILENT:-}" ] || [ -n "${FIXUP_BOT:-}" ] || echo "## Fixup: pushed${FIXUP_HEAD:+\\nHead: $FIXUP_HEAD}" >>"$STATE/comments"' \
@@ -82,6 +84,8 @@ setup() {
     # 2nd call when it exists; FILES_FAIL_LATER fails the 2nd call on.
     # reviewThreads (the CodeRabbit check): $STATE/threads.<call>, else
     # $STATE/threads, else no threads; THREADS_FAIL fails it.
+    # The CodeRabbit check on the head: $STATE/coderabbit.<call>, else
+    # $STATE/coderabbit, else none; CODERABBIT_FAIL fails it.
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "$*" >>"$STATE/gh.log"' \
@@ -95,6 +99,10 @@ setup() {
         '*headRefName*) printf "%b\n" "16\tOPEN\tfeature/x\tmain\thttps://github.com/owner/alpha/pull/16\tfalse"; exit 0 ;;' \
         '*"--json files"*) [ -z "${FILES_FAIL:-}" ] || exit 1; n=$(( $(cat "$STATE/files.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/files.n"; [ "$n" -eq 1 ] || [ -z "${FILES_FAIL_LATER:-}" ] || exit 1; f="$STATE/files"; [ "$n" -eq 1 ] || [ ! -f "$STATE/files.later" ] || f="$STATE/files.later"; if [ -f "$f" ]; then tr "|" "\t" <"$f"; else printf "1\t0\tother/x\n"; fi; exit 0 ;;' \
         '*mergeable*) tr " " "\t" <"$STATE/merge"; exit 0 ;;' \
+        '*CodeRabbit*)' \
+        '  n=$(( $(cat "$STATE/coderabbit.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/coderabbit.n"' \
+        '  [ -z "${CODERABBIT_FAIL:-}" ] || exit 1' \
+        '  f="$STATE/coderabbit.$n"; [ -f "$f" ] || f="$STATE/coderabbit"; [ ! -f "$f" ] || cat "$f"; exit 0 ;;' \
         '*statusCheckRollup*)' \
         '  n=$(( $(cat "$STATE/ci.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/ci.n"' \
         '  gh_fails "${CI_GH_FAILS:-}" "$n"' \
@@ -965,4 +973,61 @@ fixups() {
     run bash "$SCRIPT" 16 --dry-run
     [ "$status" -eq 0 ]
     [[ "$output" == *"up to 2 more fixups while CodeRabbit threads stay unanswered"* ]]
+}
+
+@test "bot: CI green after the first fixup but red after the extra one: no merge" {
+    bot_thread threads.1 open
+    bot_thread threads answered
+    FIXUP2_CI=FAILURE run bash "$SCRIPT" 16 --yes --merge
+    [ "$status" -eq 1 ]
+    [ "$(fixups)" = 2 ]
+    [[ "$output" == *"CI is not green on #16 after fixup 2"* ]]
+    run ! grep -q '^merge' "$STATE/children.log"
+}
+
+# --- waiting for CodeRabbit's review of the fixup head (cloud:T182) ---
+
+@test "coderabbit: on a PR it reviews, the thread check waits for its review of the fixup head" {
+    echo SUCCESS >"$STATE/coderabbit.1"
+    : >"$STATE/coderabbit.2"
+    echo PENDING >"$STATE/coderabbit.3"
+    echo SUCCESS >"$STATE/coderabbit"
+    bot_thread threads answered
+    run bash "$SCRIPT" 16 --yes --merge
+    [ "$status" -eq 0 ]
+    [ "$(cat "$STATE/coderabbit.n")" = 4 ]
+    [ "$(cat "$STATE/threads.n")" = 1 ]
+    grep -qx 'merge 16 --yes' "$STATE/children.log"
+}
+
+@test "coderabbit: a NEUTRAL check on the fixup head (its review limit) is no review: stop, no merge" {
+    echo SUCCESS >"$STATE/coderabbit.1"
+    echo NEUTRAL >"$STATE/coderabbit"
+    run bash "$SCRIPT" 16 --yes --merge
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"NEUTRAL"* ]]
+    [ ! -f "$STATE/threads.n" ]
+    run ! grep -q '^merge' "$STATE/children.log"
+}
+
+@test "coderabbit: never reviewing the fixup head within the polls stops, no merge" {
+    echo SUCCESS >"$STATE/coderabbit.1"
+    echo PENDING >"$STATE/coderabbit"
+    run bash "$SCRIPT" 16 --yes --merge
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"CodeRabbit never reviewed the head of #16"* ]]
+    run ! grep -q '^merge' "$STATE/children.log"
+}
+
+@test "coderabbit: gh failing to read its check stops before the reviews" {
+    CODERABBIT_FAIL=1 run bash "$SCRIPT" 16 --yes --merge
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"checks of #16"* ]]
+    run ! grep -q '^review' "$STATE/children.log"
+}
+
+@test "coderabbit: no CodeRabbit check before the reviews: no wait for one after the fixup" {
+    run bash "$SCRIPT" 16 --yes --merge
+    [ "$status" -eq 0 ]
+    [ "$(cat "$STATE/coderabbit.n")" = 1 ]
 }
