@@ -416,3 +416,28 @@ all 31 --yes --merge --model sonnet" ]
         }
     done
 }
+
+@test "--prs never prints origin's URL, which may hold a token" {
+    # A fake token, put together so no scanner takes it for a real one.
+    local user=user token=ghp_SECRET
+    STUB_ORIGIN="https://$user:$token@gitlab.com/o/p" run bash "$SCRIPT" --prs 31 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"not a github.com remote"* ]]
+    [[ "$output" != *"$token"* ]]
+    [[ "$output" != *"$user:"* ]]
+    [ -z "$(ran)" ]
+}
+
+@test "--prs takes origin's GitHub forms with a port 22, a trailing / or no .git" {
+    for origin in ssh://git@github.com:22/o/p ssh://git@github.com:22/o/p.git/ https://github.com/o/p/ \
+        https://github.com/o/p.git/ git@github.com:o/p/ git@github.com:o/p.git; do
+        STUB_ORIGIN="$origin" run bash "$SCRIPT" --prs https://github.com/o/p/pull/7 --yes
+        [ "$status" -eq 0 ] || {
+            echo "refused: $origin"
+            return 1
+        }
+    done
+    [ "$(sort -u "$STATE/all.gh_repo")" = o/p ]
+    STUB_ORIGIN=ssh://git@gitlab.com:22/o/p run bash "$SCRIPT" --prs 31 --yes
+    [ "$status" -eq 1 ]
+}
