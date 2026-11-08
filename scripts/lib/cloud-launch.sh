@@ -80,6 +80,11 @@ CLOUD_DRAIN_PACE_DAYS=7
 # shellcheck disable=SC2034 # read by cloud-drain.sh
 CLOUD_DRAIN_PACE_LIMIT=200
 
+# The most open pull requests `just drain --prs` asks gh for; a list that
+# long stops it, as more may be hidden (cloud:T182).
+# shellcheck disable=SC2034 # read by cloud-drain.sh
+CLOUD_DRAIN_PR_LIMIT="${CLOUD_DRAIN_PR_LIMIT:-1000}"
+
 # The check conclusions that count as green; `just all` waits for them and
 # `just merge` judges by them (cloud:B68). Any other one is red or pending.
 # shellcheck disable=SC2034 # read by the scripts that source this file
