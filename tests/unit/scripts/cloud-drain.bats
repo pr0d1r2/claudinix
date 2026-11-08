@@ -10,16 +10,18 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     export TOPLEVEL="$BATS_TEST_TMPDIR/project"
     export CLAUDINIX_SCRIPTS="$BATS_TEST_TMPDIR/lib"
-    unset STUB_BRANCH STUB_DIRTY STUB_ORIGIN GH_FAIL CLOUD_DRAIN_PR_LIMIT
+    unset STUB_BRANCH STUB_DIRTY STUB_ORIGIN GH_REPO GH_FAIL CLOUD_DRAIN_PR_LIMIT
     mkdir -p "$STUBS" "$STATE" "$TOPLEVEL/scripts" "$TOPLEVEL/experiments" "$TOPLEVEL/docs" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
     printf '%s\n' '#!/usr/bin/env bash' 'echo sonnet' >"$CLAUDINIX_SCRIPTS/config.sh"
 
-    # cloud-all.sh: records its args; exits the number in $STATE/rc.<task>.
+    # cloud-all.sh: records its args, and GH_REPO in all.gh_repo; exits the
+    # number in $STATE/rc.<task>.
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "all $*" >>"$STATE/all.log"' \
+        'echo "${GH_REPO:-}" >>"$STATE/all.gh_repo"' \
         'rc_file="$STATE/rc.${1//:/_}"' \
         'if [ -f "$rc_file" ]; then exit "$(cat "$rc_file")"; fi' >"$CLAUDINIX_SCRIPTS/cloud-all.sh"
     chmod +x "$CLAUDINIX_SCRIPTS"/*.sh
@@ -371,4 +373,46 @@ all 31 --yes --merge --model sonnet" ]
     STUB_ORIGIN=git@github.com:O/P.git run bash "$SCRIPT" --prs https://github.com/o/p/pull/7 --yes
     [ "$status" -eq 0 ]
     [ "$(ran)" = "all https://github.com/o/p/pull/7 --yes --merge --model sonnet" ]
+}
+
+@test "--prs: a number is read as text: zeros only, or more than 9 digits, is a usage error, never another PR" {
+    for args in "18446744073709551617" "1234567890" "0" "000"; do
+        run bash "$SCRIPT" --prs "$args" --yes
+        [ "$status" -eq 2 ] || {
+            echo "not usage: $args"
+            return 1
+        }
+    done
+    [ -z "$(ran)" ]
+    run bash "$SCRIPT" --prs 000000031 --yes
+    [ "$status" -eq 0 ]
+    [ "$(ran)" = "all 31 --yes --merge --model sonnet" ]
+}
+
+@test "--prs is bound to origin's repo: gh and every child get it, whatever GH_REPO was" {
+    open_prs 7:claude/a
+    GH_REPO=other/repo run bash "$SCRIPT" --prs --yes --max 9
+    [ "$status" -eq 0 ]
+    grep -q -- 'pr list --state open .*--repo o/p' "$STATE/gh.log"
+    [ "$(cat "$STATE/all.gh_repo")" = o/p ]
+    run bash "$SCRIPT" --prs --yes
+    grep -q -- 'pr list --state merged .*--repo o/p' "$STATE/gh.log"
+}
+
+@test "--prs needs a github.com origin, https or ssh; any other host is an error, no session" {
+    STUB_ORIGIN=git@gitlab.com:o/p.git run bash "$SCRIPT" --prs 31 --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"github.com"* ]]
+    [ -z "$(ran)" ]
+    STUB_ORIGIN=https://gitlab.com/o/p.git run bash "$SCRIPT" --prs 31 --yes
+    [ "$status" -eq 1 ]
+    [ -z "$(ran)" ]
+    for origin in https://github.com/o/p ssh://git@github.com/o/p.git git@github.com:o/p.git; do
+        : >"$STATE/all.log"
+        STUB_ORIGIN="$origin" run bash "$SCRIPT" --prs https://github.com/o/p/pull/7 --yes
+        [ "$status" -eq 0 ] || {
+            echo "refused: $origin"
+            return 1
+        }
+    done
 }
