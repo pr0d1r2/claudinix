@@ -64,6 +64,10 @@
 # Before --merge it picks the tier again from the final diff: a tier that
 # rose after the reviews stops the flow.
 #
+# After the fixup and its CI, a CodeRabbit review thread with no Fixup:
+# answer (cloud_bot_reasons, V65) gets another fixup, at most 3 in all;
+# still unanswered, or gh unable to say, stops for the owner (T182).
+#
 # Usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run] [--merge] [--council]
 # Env:   CLOUD_ALL_POLL     seconds between polls (default 10)
 #        CLAUDINIX_SCRIPTS  dir holding the child launchers, review/ and
@@ -181,6 +185,8 @@ fi
 # (cloud:V66); --council forces council. Returns 1, saying why, when gh
 # cannot list the files or a role the tier needs has no file: a tier is
 # never guessed.
+# The most fixups a run starts (cloud:T182).
+max_fixups=3
 tier=
 tier_reason=
 review_roles=("${roles[@]}")
@@ -253,7 +259,7 @@ else
     tier_plan="review tier: picked after the build, so the reviews are at most these"
 fi
 
-plan="all: $name runs $sessions billed Claude Code cloud sessions (model $model), one after another: $steps${#review_roles[@]} reviews (${review_roles[*]}), 1 fixup; $tier_plan; it waits for each and for green CI, up to hours"
+plan="all: $name runs $sessions billed Claude Code cloud sessions (model $model), one after another: $steps${#review_roles[@]} reviews (${review_roles[*]}), 1 fixup, up to $((max_fixups - 1)) more fixups while CodeRabbit threads stay unanswered; $tier_plan; it waits for each and for green CI, up to hours"
 [ "$merge" = 0 ] || plan="$plan; then just merge rebase-merges it if its tier's rule holds"
 if [ "$dry" = 1 ]; then
     echo "$plan"
@@ -673,6 +679,32 @@ if [ "$rebased" = 1 ]; then
 fi
 echo "all: the fixup replied on #$pr; waiting for CI"
 wait_ci 1 || wait_failed $? "CI is not green on #$pr after the fixup"
+
+# CodeRabbit re-reviews each push and its check is one of CI's, so its
+# threads are in once CI is green. A thread with no Fixup: answer gets
+# another fixup, CI after each, at most max_fixups in all, the second one
+# after a rebase included (cloud:T182, V65). gh failing to say stops.
+rounds=1
+[ "$rebased" = 0 ] || rounds=2
+while true; do
+    bot="$(cloud_bot_reasons "$pr")" || fail "$bot"
+    [ -n "$bot" ] || break
+    [ "$rounds" -lt "$max_fixups" ] || fail "CodeRabbit threads of #$pr still have no Fixup: answer after $rounds fixups: the owner settles them
+$bot"
+    rounds=$((rounds + 1))
+    echo "all: CodeRabbit threads of #$pr have no Fixup: answer; starting fixup $rounds of $max_fixups"
+    printf '%s\n' "$bot"
+    skip="$(comment_count)"
+    read_head
+    reviewed_head="$head_sha"
+    "$scripts_dir/cloud-fixup.sh" "$target" "${child_args[@]}" || fail "fixup $rounds of #$pr did not start"
+    wait_for "fixup $rounds of #$pr" "$polls_fixup" fixup_replied "$skip" || wait_failed $? "fixup $rounds of #$pr never replied"
+    require_fixup_head "$skip" "$reviewed_head"
+    rc=0
+    conflicts || rc=$?
+    [ "$rc" = 0 ] || fail "#$pr conflicts with main after fixup $rounds: the owner settles it"
+    wait_ci 1 || wait_failed $? "CI is not green on #$pr after fixup $rounds"
+done
 
 post_burn
 if [ "$merge" = 1 ] && [ "$found_by_body" = 1 ]; then
