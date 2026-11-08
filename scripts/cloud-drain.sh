@@ -27,7 +27,9 @@
 # that order, else every open pull request of yours whose head is
 # `claude/*`, oldest (lowest number) first. Each runs as
 # `cloud-all.sh <PR> --yes --merge`, which picks its review tier (V66), so
-# the plan counts the most sessions a council run bills. It needs neither
+# the plan counts the most sessions a council run bills: every review, up
+# to 3 fixups and 2 rebases. gh lists at most CLOUD_DRAIN_PR_LIMIT; a list
+# that long stops the drain. A pull request given twice is a usage error. It needs neither
 # main nor a clean tree: no pull request builds on the local checkout, each
 # is rebased onto main in the cloud when it conflicts (V52).
 #
@@ -72,9 +74,14 @@ while [ "$#" -gt 0 ]; do
     esac
     shift
 done
-for a in "${args[@]}"; do
+# ${args[@]+...}: Bash 3.2 (macOS /bin/bash) calls an empty array unbound.
+seen=" "
+for a in ${args[@]+"${args[@]}"}; do
     if [ "$prs" = 1 ]; then
         cloud_parse_pr "$a" || usage
+        # The same number twice would merge it, then fail on it.
+        [[ "$seen" != *" $pr "* ]] || usage
+        seen="$seen$pr "
     else
         cloud_parse_task "$a" || usage
     fi
@@ -98,15 +105,22 @@ fi
 cloud_resolve_model "$scripts_dir" || exit "$?"
 roles="$(cloud_role_count drain "$scripts_dir")" || exit 1
 per_task="$(cloud_session_count "$roles")"
-[ "$prs" = 0 ] || per_task="$(cloud_session_count "$roles" pr)"
+# A pull request: no build, but up to 2 rebases (before CI and after the
+# fixup) and 2 more fixups while CodeRabbit threads wait (cloud:T182).
+[ "$prs" = 0 ] || per_task="$(($(cloud_session_count "$roles" pr) + 4))"
 what=tasks
 
 if [ "$prs" = 1 ]; then
     what="pull requests"
     if [ "${#tasks[@]}" -eq 0 ]; then
         # </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
-        if ! open="$(gh pr list --state open --author @me --limit 100 --json number,headRefName </dev/null)"; then
+        if ! open="$(gh pr list --state open --author @me --limit "$CLOUD_DRAIN_PR_LIMIT" --json number,headRefName </dev/null)"; then
             echo "drain: gh could not list your open pull requests -- check gh auth status, or name them: --prs PR..." >&2
+            exit 1
+        fi
+        # A full page may hide more: never drain part of them unasked.
+        if [ "$(jq length <<<"$open")" -ge "$CLOUD_DRAIN_PR_LIMIT" ]; then
+            echo "drain: gh listed $CLOUD_DRAIN_PR_LIMIT or more open pull requests of yours, the most it asks for -- name them: --prs PR..." >&2
             exit 1
         fi
         while IFS= read -r n; do
