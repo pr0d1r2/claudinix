@@ -116,6 +116,11 @@ fi
 seen=" "
 for a in ${args[@]+"${args[@]}"}; do
     if [ "$prs" = 1 ]; then
+        # The host in any case, as origin's: cloud_parse_pr takes github.com.
+        url_host_re="^https://$gh_host/(.*)\$"
+        if [[ "$a" =~ $url_host_re ]]; then
+            a="https://github.com/${BASH_REMATCH[1]}"
+        fi
         cloud_parse_pr "$a" || usage
         pr="$(pr_number "$pr")" || usage # 031 is 31
         # drain drains the checkout's repo only, so a URL must name it and a
