@@ -61,6 +61,8 @@
 # cloud-merge.sh --light (V65), light+correctness adds the correctness
 # review, council runs every role and merges under the strict rule (V51).
 # --council forces council. A diff gh cannot list stops the flow.
+# Before --merge it picks the tier again from the final diff: a tier that
+# rose after the reviews stops the flow.
 #
 # Usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run] [--merge] [--council]
 # Env:   CLOUD_ALL_POLL     seconds between polls (default 10)
@@ -216,6 +218,25 @@ pick_tier() {
         fi
         review_roles+=("$r")
     done < <(review_tier_roles "$tier")
+}
+
+# recheck_tier: pick the tier again from the diff about to be merged, since
+# a fixup or a rebase can add a council path or lines after the reviews
+# (cloud:V66). A rise stops for the missing reviews; a head that moves
+# while the files are read stops too, so the check holds for the head
+# cloud-merge.sh then binds to its Fixup: reply. Keeps the reviewed tier.
+recheck_tier() {
+    local reviewed="$tier" before
+    [ "$reviewed" != council ] || return 0
+    read_head
+    before="$head_sha"
+    pick_tier || fail "no review tier for the final diff of #$pr: it is not merged"
+    read_head
+    [ "$head_sha" = "$before" ] || fail "#$pr moved while its review tier was rechecked: the owner merges it"
+    if [ "$(review_tier_level "$tier")" -gt "$(review_tier_level "$reviewed")" ]; then
+        fail "the review tier of #$pr rose from $reviewed to $tier (set by $tier_reason) after the reviews: run the missing reviews (just all $pr --council) or the owner merges it"
+    fi
+    tier="$reviewed"
 }
 
 if [ -n "$given_pr" ]; then
@@ -658,6 +679,7 @@ if [ "$merge" = 1 ] && [ "$found_by_body" = 1 ]; then
     fail "#$pr was found by its body naming $id, not by its branch, so it is not merged: the owner merges it"
 fi
 if [ "$merge" = 1 ]; then
+    recheck_tier
     echo "all: CI is green on #$pr after ${built}the reviews and the fixup; merging"
     merge_args=("$pr" --yes)
     [ "$tier" = council ] || merge_args=("$pr" --light --yes) # V65
