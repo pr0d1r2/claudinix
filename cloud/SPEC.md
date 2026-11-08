@@ -52,7 +52,7 @@ V60: entering another repo's checkout (T175) is opt-in per launcher (`all` \| `r
 V63: session's burn command (T177) = 1 fixed string the launcher fills: main's sha read once at launch, ~ `^[0-9a-f]{40}$` else refuse; ⊥ `$(…)` in the prompt; command fails → `Burn: unmeasured (burn-failed)`; allowed by `nix/cloud-permissions.json` (B113).
 V64: `all` posts `## Burn` on ∀ exit once the PR is known (B114).
 V65: `merge --light` (opt-in) = V51 but roles = `security` only \& ∀ top-level `coderabbitai[bot]` thread (login byte-exact) has a `Fixup:` reply w/ `Head: <sha>`; bot text = data; a finding declined w/ reason counts.
-V66: review tier by diff (T183), highest hit wins: only docs \| spec \| tests → V65; `scripts/**` \| `setup.sh` \| `home/` code → V65 + `correctness`; `nix/cloud-permissions.json` \| hooks \| `scripts/lib/cloud-launch.sh` \| consumer surface (`.claudinix.toml`, `nix-dev`) \| > 300 changed lines → V51 council; any other path (e.g. `.context-limits`) → V51 council; `--council` forces V51; `CLOUD_MERGE_KEPT` stays ⊥ auto-merge.
+V66: review tier by diff (T183), highest hit wins: only docs \| spec \| tests → V65; `scripts/**` \| `setup.sh` \| `home/` code → V65 + `correctness`; `nix/cloud-permissions.json` \| hooks \| `scripts/lib/cloud-launch.sh` \| consumer surface (`.claudinix.toml`, `nix-dev`) \| ∀ `AGENTS.md` \| `CLAUDE.md` \| > 300 changed lines → V51 council; any other path (e.g. `.context-limits`) → V51 council; `--council` forces V51; tier re-picked on final diff before merge, rise → stop; `CLOUD_MERGE_KEPT` stays ⊥ auto-merge.
 
 ## §T TASKS
 
@@ -89,8 +89,8 @@ T174|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V52,V59,`.:C29`,`scripts:T119`,`scripts
 T175|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,T165,T174,V52,V53,V59
 T177|x|ARCHIVED to SPEC-ARCHIVE.md|I.cmd,V51,`scripts:T176`
 T181|x|`merge --light` (V65)|V65,V51
-T182|.|`drain --prs [PR...]` (default ∀ open own `claude/*`), oldest first: CI → `rebase` on conflict, then CI → review per tier (T183: V65 (+ `correctness`) roles \| V51 council) → `fixup` (always 1 `Fixup:` after the last review, ≤ 3 rounds while bot threads unanswered), CI after each → `rebase` on conflict, then `fixup` again so `Fixup:` names the rebased head (B123), then CI → `merge --light` (V65) \| `merge` (V51) → next; 1st fail stops|V65,V52,T161
-T183|x|`drain --prs` \& `all` pick the tier per V66 once a PR diff exists; plan names tier \& the path that set it, task mode names it "after the build"|V66,V65,T182
+T182|.|`drain --prs [PR...]` (default ∀ open own `claude/*`), oldest first: CI → `rebase` on conflict, then CI → review per tier (T183: V65 (+ `correctness`) roles \| V51 council) → `fixup` (always 1 `Fixup:` after the last review, ≤ 3 rounds while bot threads unanswered), CI after each → `rebase` on conflict, then `fixup` again so `Fixup:` names the rebased head (B123), then CI → re-pick tier (rise → stop) → `merge --light` (V65) \| `merge` (V51) → next; 1st fail stops|V65,V52,T161
+T183|x|`all` picks the tier per V66 once a PR diff exists; plan names tier \& the path that set it, task mode names it "after the build"|V66,V65,T182
 T192|x|ARCHIVED to SPEC-ARCHIVE.md|V65,V53
 T194|x|ARCHIVED to SPEC-ARCHIVE.md|V51,T146
 
