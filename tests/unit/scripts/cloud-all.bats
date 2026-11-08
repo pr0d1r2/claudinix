@@ -78,7 +78,8 @@ setup() {
     # next line of $STATE/ci, one check state per word (the last line
     # stays). comments: a line of $STATE/comments is a comment by the owner
     # (\n is a newline), by a stranger when it starts with ~; the real jq
-    # filters them.
+    # filters them. files: $STATE/files, then $STATE/files.later from the
+    # 2nd call when it exists; FILES_FAIL_LATER fails the 2nd call on.
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "$*" >>"$STATE/gh.log"' \
@@ -90,7 +91,7 @@ setup() {
         '  gh_fails "${LIST_GH_FAILS:-}" "$n"' \
         '  [ "$n" -le "${PR_AFTER:-0}" ] || cut -f1-4 "$STATE/prs" 2>/dev/null; exit 0 ;;' \
         '*headRefName*) printf "%b\n" "16\tOPEN\tfeature/x\tmain\thttps://github.com/owner/alpha/pull/16\tfalse"; exit 0 ;;' \
-        '*"--json files"*) [ -z "${FILES_FAIL:-}" ] || exit 1; if [ -f "$STATE/files" ]; then tr "|" "\t" <"$STATE/files"; else printf "1\t0\tother/x\n"; fi; exit 0 ;;' \
+        '*"--json files"*) [ -z "${FILES_FAIL:-}" ] || exit 1; n=$(( $(cat "$STATE/files.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/files.n"; [ "$n" -eq 1 ] || [ -z "${FILES_FAIL_LATER:-}" ] || exit 1; f="$STATE/files"; [ "$n" -eq 1 ] || [ ! -f "$STATE/files.later" ] || f="$STATE/files.later"; if [ -f "$f" ]; then tr "|" "\t" <"$f"; else printf "1\t0\tother/x\n"; fi; exit 0 ;;' \
         '*mergeable*) tr " " "\t" <"$STATE/merge"; exit 0 ;;' \
         '*statusCheckRollup*)' \
         '  n=$(( $(cat "$STATE/ci.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/ci.n"' \
@@ -851,4 +852,44 @@ merge 16 --light --yes" ]
     [ "$status" -eq 0 ]
     grep -qx 'review security 14 --yes --model sonnet' "$STATE/children.log"
     [[ "$output" == *"review tier: light (set by docs/CLI.md)"* ]]
+}
+
+@test "tier: 100 listed files force council, since gh may hide a council path" {
+    tier_roles
+    local i
+    for i in $(seq 1 100); do echo "1|0|docs/f$i.md"; done >"$STATE/files"
+    run bash "$SCRIPT" 16 --yes --merge
+    [ "$status" -eq 0 ]
+    grep -qx 'review all 16 --yes --model sonnet' "$STATE/children.log"
+    grep -qx 'merge 16 --yes' "$STATE/children.log"
+    [[ "$output" == *"review tier: council (set by 100 or more changed files)"* ]]
+}
+
+@test "tier: a tier that rose after the reviews stops before the merge" {
+    tier_roles
+    echo '3|1|docs/CLI.md' >"$STATE/files"
+    echo '1|0|.claudinix.toml' >"$STATE/files.later"
+    run bash "$SCRIPT" 16 --yes --merge
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"rose from light to council (set by .claudinix.toml)"* ]]
+    run ! grep -q '^merge' "$STATE/children.log"
+}
+
+@test "tier: a tier that stayed or fell merges by the reviewed tier" {
+    tier_roles
+    echo '1|0|scripts/burn.sh' >"$STATE/files"
+    echo '1|0|docs/CLI.md' >"$STATE/files.later"
+    run bash "$SCRIPT" 16 --yes --merge
+    [ "$status" -eq 0 ]
+    grep -qx 'merge 16 --light --yes' "$STATE/children.log"
+    [ "$(cat "$STATE/files.n")" = 2 ]
+}
+
+@test "tier: gh failing to list the files at the recheck stops before the merge" {
+    tier_roles
+    echo '3|1|docs/CLI.md' >"$STATE/files"
+    FILES_FAIL_LATER=1 run bash "$SCRIPT" 16 --yes --merge
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"review tier"* ]]
+    run ! grep -q '^merge' "$STATE/children.log"
 }
