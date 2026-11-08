@@ -67,6 +67,9 @@
 # After the fixup and its CI, a CodeRabbit review thread with no Fixup:
 # answer (cloud_bot_reasons, V65) gets another fixup, at most 3 in all;
 # still unanswered, or gh unable to say, stops for the owner (T182).
+# On a pull request CodeRabbit reviews, it first waits for CodeRabbit's
+# check on the head to succeed; NEUTRAL (its review limit) or no review
+# within the CI polls stops.
 #
 # Usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run] [--merge] [--council]
 # Env:   CLOUD_ALL_POLL     seconds between polls (default 10)
@@ -556,6 +559,31 @@ merge_state() {
     esac
 }
 
+# coderabbit_state: the CodeRabbit check on the head of #$pr: its
+# conclusion once completed, PENDING before, empty while it has none.
+coderabbit_state() {
+    gh pr view "$pr" --json statusCheckRollup --jq '[.statusCheckRollup[] | select((.name // .context) == "CodeRabbit") |
+        if .__typename == "CheckRun" then (if .status == "COMPLETED" then .conclusion else "PENDING" end)
+        else .state end] | last // ""' </dev/null
+}
+
+# coderabbit_reviewed: 0 once CodeRabbit's check on the head succeeded, 2
+# while it is missing or pending, 5 when it ended any other way (NEUTRAL is
+# its review limit: no review), naming it in $coderabbit_end.
+coderabbit_end=
+coderabbit_reviewed() {
+    local s
+    s="$(coderabbit_state 2>"$gh_err")" || return "$gh_failed"
+    case "$s" in
+    SUCCESS) return 0 ;;
+    "" | PENDING | EXPECTED) return 2 ;;
+    *)
+        coderabbit_end="$s"
+        return 5
+        ;;
+    esac
+}
+
 # read_head: sets $head_sha to the pull request's head; a failed gh call
 # stops the flow (the head is the one thing V52 compares).
 read_head() {
@@ -642,6 +670,12 @@ fi
 # The tier: for a task, its pull request exists only now (cloud:T183).
 [ -n "$given_pr" ] || pick_tier || fail "no review tier for #$pr: it is not reviewed"
 echo "all: review tier: $tier (set by $tier_reason); reviews: ${review_roles[*]}"
+# Whether CodeRabbit reviews this pull request: its check is on the head
+# CI went green on. Only then the flow waits for its review of the fixup
+# head before it reads the threads (cloud:T182).
+coderabbit_on=0
+cr="$(coderabbit_state)" || fail "cannot read the checks of #$pr -- check gh auth status"
+[ -z "$cr" ] || coderabbit_on=1
 echo "all: CI is green on #$pr; starting the reviews"
 skip="$(comment_count)"
 if [ "$tier" = council ]; then
@@ -680,13 +714,21 @@ fi
 echo "all: the fixup replied on #$pr; waiting for CI"
 wait_ci 1 || wait_failed $? "CI is not green on #$pr after the fixup"
 
-# CodeRabbit re-reviews each push and its check is one of CI's, so its
-# threads are in once CI is green. A thread with no Fixup: answer gets
+# CodeRabbit re-reviews each push, but its check can appear after the
+# others are green: on a pull request it reviews, wait for its check on
+# the head to succeed (NEUTRAL, its review limit, stops), then read its
+# threads. A thread with no Fixup: answer gets
 # another fixup, CI after each, at most max_fixups in all, the second one
 # after a rebase included (cloud:T182, V65). gh failing to say stops.
 rounds=1
 [ "$rebased" = 0 ] || rounds=2
 while true; do
+    if [ "$coderabbit_on" = 1 ]; then
+        rc=0
+        wait_for "CodeRabbit's review of the head of #$pr" "$polls_ci" coderabbit_reviewed || rc=$?
+        [ "$rc" != 5 ] || fail "CodeRabbit's check on the head of #$pr ended $coderabbit_end, not in a review (its review limit?): the owner reads the threads"
+        [ "$rc" = 0 ] || wait_failed "$rc" "CodeRabbit never reviewed the head of #$pr"
+    fi
     bot="$(cloud_bot_reasons "$pr")" || fail "$bot"
     [ -n "$bot" ] || break
     [ "$rounds" -lt "$max_fixups" ] || fail "CodeRabbit threads of #$pr still have no Fixup: answer after $rounds fixups: the owner settles them
