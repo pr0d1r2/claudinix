@@ -10,7 +10,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     export TOPLEVEL="$BATS_TEST_TMPDIR/project"
     export CLAUDINIX_SCRIPTS="$BATS_TEST_TMPDIR/lib"
-    unset STUB_BRANCH STUB_DIRTY GH_FAIL
+    unset STUB_BRANCH STUB_DIRTY GH_FAIL CLOUD_DRAIN_PR_LIMIT
     mkdir -p "$STUBS" "$STATE" "$TOPLEVEL/scripts" "$TOPLEVEL/experiments" "$TOPLEVEL/docs" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
@@ -259,6 +259,7 @@ all https://github.com/o/p/pull/7 --yes --merge --model sonnet" ]
     [ "$(ran)" = "all 7 --yes --merge --model sonnet
 all 31 --yes --merge --model sonnet" ]
     grep -q -- '--author @me' "$STATE/gh.log"
+    grep -q -- '--limit 1000' "$STATE/gh.log"
 }
 
 @test "--prs: no open claude/* pull request of yours: nothing to do, exit 0, no session" {
@@ -298,7 +299,8 @@ all 31 --yes --merge --model sonnet" ]
     run bash "$SCRIPT" --prs --dry-run --max 9
     [ "$status" -eq 0 ]
     [[ "$output" == *"#7 #31 (2 of 2 pull requests)"* ]]
-    [[ "$output" == *"at most 6 billed"* ]]
+    # each: 2 reviews, up to 3 fixups and 2 rebases
+    [[ "$output" == *"at most 14 billed"* ]]
     [ -z "$(ran)" ]
     run bash "$SCRIPT" --prs --yes --max 1
     [ "$(ran)" = "all 7 --yes --merge --model sonnet" ]
@@ -314,4 +316,39 @@ all 31 --yes --merge --model sonnet" ]
         }
     done
     [ -z "$(ran)" ]
+}
+
+@test "--prs: a pull request given twice is a usage error, before anything runs" {
+    for args in "--prs 31 31" "--prs 31 https://github.com/o/p/pull/31"; do
+        # shellcheck disable=SC2086 # split on purpose: each word one arg
+        run bash "$SCRIPT" $args --yes
+        [ "$status" -eq 2 ] || {
+            echo "not usage: $args"
+            return 1
+        }
+    done
+    [ -z "$(ran)" ]
+    [ ! -f "$STATE/gh.log" ]
+}
+
+@test "--prs: as many open pull requests as the list limit: exit 1, no session, never a partial drain" {
+    open_prs 7:claude/a 31:claude/b
+    CLOUD_DRAIN_PR_LIMIT=2 run bash "$SCRIPT" --prs --yes --max 9
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"2 or more"* ]]
+    grep -q -- '--limit 2' "$STATE/gh.log"
+    [ -z "$(ran)" ]
+}
+
+@test "--prs and a task drain run under macOS's Bash 3.2 too: no unbound empty array" {
+    if ! { [ -x /bin/bash ] && /bin/bash --version | grep -q 'version 3\.'; }; then
+        skip "no Bash 3.2 at /bin/bash"
+    fi
+    open_prs 7:claude/a
+    run /bin/bash "$SCRIPT" --prs --dry-run --max 9
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"#7"* ]]
+    run /bin/bash "$SCRIPT" --dry-run --max 9
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"root:T1"* ]]
 }
