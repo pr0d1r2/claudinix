@@ -20,7 +20,7 @@ has a bug.
 | [`fixup`](#fixup) | fixes a pull request's review findings one by one, in separate commits, in a billed cloud session | your machine, in the project's git checkout |
 | [`all`](#all) | runs `cloud`, `review all` and `fixup` for one task, waits for CI after each, and opens the pull request (or merges it with `--merge`) | your machine, in the project's git checkout |
 | [`merge`](#merge) | rebase-merges a reviewed pull request, only when the strict rule holds; otherwise names every reason | your machine, in the project's git checkout |
-| [`drain`](#drain) | works through spec tasks one at a time with `all --merge`, stopping at the first failure | your machine, in the project's git checkout |
+| [`drain`](#drain) | works through spec tasks, or with `--prs` your open pull requests, one at a time with `all --merge`, stopping at the first failure | your machine, in the project's git checkout |
 | [`held`](#held) | takes your open pull requests labelled `h10n-human` through `all`, one at a time, never merging | your machine, with a checkout of each repo |
 | [`enroll`](#enroll) | clones or fetches your checkout of each repo and pins the `/remote-env` environment in it, so `held` can run there | your machine, with `gh` signed in |
 | [`spec-optimize`](#spec-optimize) | brings spec nodes back under their `.context-limits` ceilings in a billed cloud session, which opens a pull request | your machine, in the project's git checkout |
@@ -904,8 +904,8 @@ files in `scripts/review/`, it exits 1. Then one question covers every
 session:
 
 ```text
-all: docs:T47 runs <N+2> billed Claude Code cloud sessions (model sonnet), one after another: 1 build, <N> reviews (<the files in scripts/review/>), 1 fixup; it waits for each and for green CI, up to hours. Start? [y/N]
-all: #16 runs <N+1> billed Claude Code cloud sessions (model sonnet), one after another: <N> reviews (<the files in scripts/review/>), 1 fixup; it waits for each and for green CI, up to hours. Start? [y/N]
+all: docs:T47 runs <N+2> billed Claude Code cloud sessions (model sonnet), one after another: 1 build, <N> reviews (<the files in scripts/review/>), 1 fixup, up to 2 more fixups while CodeRabbit threads stay unanswered; it waits for each and for green CI, up to hours. Start? [y/N]
+all: #16 runs <N+1> billed Claude Code cloud sessions (model sonnet), one after another: <N> reviews (<the files in scripts/review/>), 1 fixup, up to 2 more fixups while CodeRabbit threads stay unanswered; it waits for each and for green CI, up to hours. Start? [y/N]
 ```
 
 The first line is a task, the second an existing pull request; `<N>` is the
@@ -949,6 +949,14 @@ diff `gh` cannot list stops the flow; it never falls back to light. With
 merging: if a fixup or a rebase raised it, the flow stops and names the
 path, so the missing reviews run (`just all <PR> --council`) or the owner
 merges it.
+
+**CodeRabbit threads.** Once CI is green after the fixup, `all` asks
+GitHub whether every review thread CodeRabbit started has a `Fixup:`
+reply by you or a member with a `Head:` line, the rule
+[`merge --light`](#merge) checks. If one has none, it prints the threads
+and runs another fixup, then waits for CI again, at most 3 fixups in all
+(the one after a rebase counts). Still unanswered after that, or `gh`
+unable to say, it stops for you.
 
 **Conflicts.** Once the pull request is known, and again after the fixup,
 it asks GitHub whether the pull request still merges into `main`. A
@@ -1092,12 +1100,20 @@ usage: cloud-drain.sh [node:Tn... | --prs [PR#|URL...]] [--max N] [--model M] [-
 
 Run it as `scripts/cloud-drain.sh ...` or `just drain ...`, for example
 `just drain docs:T149 scripts:T150`, or `just drain` alone.
+`just drain --prs 31 40` drains those pull requests, `just drain --prs`
+alone every open one of yours.
 
 **Which tasks.** The tasks you give, in that order (`root:Tn` for a root
 task). Without any, the open rows (status `.`) of every node except
 `experiments`, skipping open questions (a task that starts with `?`), in
 node order. Experiments need a person watching a real session, and open
 questions need a decision, so neither is drained.
+
+**Which pull requests** (`--prs`). The pull requests you give (numbers or
+URLs), in that order. Without any, every open pull request you authored
+whose branch starts with `claude/`, oldest (lowest number) first; if `gh`
+cannot list them, it exits 1. Each runs as `all <PR> --yes --merge`, so
+each picks its own review tier; `--prs` with a task is a usage error.
 
 **How many.** `--max N` caps the run. Its default follows your recent
 pace: the pull requests merged in the last 7 days that had a `Fixup:`
@@ -1108,14 +1124,19 @@ them, it exits 1 and asks for `--max`.
 **From where.** Only from `main` with a clean work tree, and with at least
 one review role: each task starts
 from the merged state of the one before, and [`merge`](#merge) pulls each
-merge in.
+merge in. `--prs` needs neither: no pull request builds on your
+checkout, and each one that conflicts is rebased onto `main` in the cloud.
 
 **Asking.** One question names the tasks and the sessions (one build, one
 review per role and one fixup per task):
 
 ```text
 drain: root:T1 scripts:T4 (2 of 3 tasks): 2 × just all --merge, 16 billed Claude Code cloud sessions (model sonnet), one after another; it stops at the first failure. Start? [y/N]
+drain: #31 #40 (2 of 2 pull requests): 2 × just all --merge, at most 6 billed Claude Code cloud sessions (model sonnet), one after another; it stops at the first failure. Start? [y/N]
 ```
+
+For pull requests the count is the most a council review bills, with no
+build; a lighter tier runs fewer.
 
 `--yes` skips only that question; `--dry-run` prints it and starts
 nothing.
@@ -1124,14 +1145,14 @@ nothing.
 the drain: a failed step, CI that stays red, or a pull request `merge`
 leaves to you. It names the task and how many finished:
 `drain: stopped at scripts:T4; 1 of 2 done` (of the tasks in the run, not
-all open ones). Fix or merge that one, then
+all open ones), or `drain: stopped at #40; 1 of 2 done`. Fix or merge that one, then
 run the drain again.
 
 | exit | meaning |
 |---|---|
-| 0 | every task in the run merged, nothing to do, or `--dry-run` printed the plan |
-| 1 | a refusal, the answer was not yes, `gh` could not count the merges, or a task stopped |
-| 2 | a usage error or a bad task argument |
+| 0 | every task or pull request in the run merged, nothing to do, or `--dry-run` printed the plan |
+| 1 | a refusal, the answer was not yes, `gh` could not count the merges or list your pull requests, or a task or pull request stopped |
+| 2 | a usage error, a bad task or pull request argument, or `--prs` with a task |
 
 ## held
 
