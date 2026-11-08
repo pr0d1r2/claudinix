@@ -1119,7 +1119,8 @@ URLs), in that order. Without any, every open pull request you authored
 whose branch starts with `claude/`, oldest (lowest number) first; if `gh`
 cannot list them, it exits 1. It asks `gh` for at most 1000; a list that long
 exits 1 too, since more may be hidden, so name them instead. A pull
-request given twice is a usage error. Each runs as `all <PR> --yes --merge`, so
+request given twice (`031` is `31`), or a URL of another repo, is a usage
+error: drain drains this repo only. Each runs as `all <PR> --yes --merge`, so
 each picks its own review tier; `--prs` with a task is a usage error.
 
 **How many.** `--max N` caps the run. Its default follows your recent
