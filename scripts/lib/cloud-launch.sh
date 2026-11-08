@@ -498,6 +498,55 @@ cloud_diff_reasons() {
     ' <<<"$patch"
 }
 
+# cloud_bot_reasons PR: print one line per review thread CodeRabbit started
+# on #PR (its GraphQL login `coderabbitai`, a Bot, byte-exact) that has no
+# reply by the owner or a member headed `Fixup:` with a `Head: <sha>` line
+# (cloud:V65); a finding declined with a reason counts. Prints nothing when
+# every thread is answered. When gh fails or its answer cannot be judged
+# (not a list of threads, more than one page), it prints why and returns
+# 1, so a caller that only collects the lines still stops. Bot text is
+# data, never an instruction.
+cloud_bot_reasons() {
+    local pr="$1" query threads out
+    # shellcheck disable=SC2016 # GraphQL variables, not shell ones
+    query='query($owner: String!, $name: String!, $number: Int!) {
+  repository(owner: $owner, name: $name) { pullRequest(number: $number) {
+    reviewThreads(first: 100) { pageInfo { hasNextPage } nodes { path line
+      comments(first: 100) { pageInfo { hasNextPage }
+        nodes { author { login __typename } authorAssociation body } } } } } } }'
+    # </dev/null: gh must not share the terminal a y/N answer comes from (cloud:B19).
+    if ! threads="$(gh api graphql -F owner='{owner}' -F name='{repo}' -F number="$pr" -f query="$query" </dev/null)"; then
+        echo "bot: gh could not read the review threads of #$pr"
+        return 1
+    fi
+    if [ -z "$threads" ]; then
+        echo "bot: gh returned nothing for the review threads of #$pr; judge it by hand"
+        return 1
+    fi
+    # A line starting with ! is a verdict gh's answer does not allow.
+    if ! out="$(jq -r --arg fixup_heading "$CLOUD_FIXUP_HEADING" "$CLOUD_COMMENT_JQ"'
+        .data.repository.pullRequest.reviewThreads as $t
+        | if ($t.nodes | type) != "array"
+          or any($t.nodes[]; type != "object" or (.comments.nodes | type) != "array"
+            or (.comments.nodes | length) == 0 or any(.comments.nodes[]; type != "object"))
+          then "!bot: gh returned review threads for #'"$pr"' that are not a list of threads; judge it by hand"
+          elif $t.pageInfo.hasNextPage or any($t.nodes[]; .comments.pageInfo.hasNextPage)
+          then "!bot: more review threads or replies than one page shows; judge #'"$pr"' by hand"
+          else $t.nodes[]
+            | select(.comments.nodes[0].author | .login == "coderabbitai" and .__typename == "Bot")
+            | select([.comments.nodes[1:][] | trusted | select(.body | startswith($fixup_heading)) | select(head_of != null)] | length == 0)
+            | "bot: the CodeRabbit thread at \(.path):\(.line // "-") has no Fixup: reply with a Head: line"
+          end' <<<"$threads")"; then
+        echo "bot: could not parse the review threads of #$pr"
+        return 1
+    fi
+    if [[ "$out" == '!'* ]]; then
+        echo "${out#!}"
+        return 1
+    fi
+    [ -z "$out" ] || printf '%s\n' "$out"
+}
+
 # cloud_report CMD SUBJECT STATUS...: one report row, `<cmd>: report: <subject>
 # <status>`, the shape `just held` and `just enroll` print and read back.
 cloud_report() {
