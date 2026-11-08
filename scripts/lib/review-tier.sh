@@ -8,8 +8,9 @@
 #   `setup.sh`, `home/` code (its `*.md` are docs);
 # - council (V51, every role): the permission list, the hooks
 #   (`.claude/**`, the dev-shell hook scripts, `hk.pkl`), the launcher
-#   lib, the consumer surface (`.claudinix.toml`, `nix-dev`), anything
-#   else, and more than 300 changed lines.
+#   lib, the consumer surface (`.claudinix.toml`, `nix-dev`), every
+#   `AGENTS.md` and `CLAUDE.md` (they steer each session), anything else,
+#   and more than 300 changed lines.
 
 set -euo pipefail
 
@@ -20,7 +21,8 @@ review_tier_rank() {
     case "$1" in
     nix/cloud-permissions.json | .claude/* | hk.pkl | \
         scripts/dev/shell-hook.sh | scripts/dev/legacy-hook.sh | scripts/dev/session-start.sh | \
-        scripts/lib/cloud-launch.sh | .claudinix.toml | scripts/nix-dev.sh | scripts/nix-dev.jq)
+        scripts/lib/cloud-launch.sh | .claudinix.toml | scripts/nix-dev.sh | scripts/nix-dev.jq | \
+        AGENTS.md | CLAUDE.md | */AGENTS.md | */CLAUDE.md)
         echo 3
         ;;
     scripts/* | setup.sh) echo 2 ;;
@@ -59,6 +61,17 @@ review_tier() {
     1) printf 'light\t%s\n' "$reason" ;;
     2) printf 'light+correctness\t%s\n' "$reason" ;;
     *) printf 'council\t%s\n' "$reason" ;;
+    esac
+}
+
+# review_tier_level TIER: 1 light, 2 light+correctness, 3 council, so a
+# rise shows; an unknown tier returns 1.
+review_tier_level() {
+    case "$1" in
+    light) echo 1 ;;
+    light+correctness) echo 2 ;;
+    council) echo 3 ;;
+    *) return 1 ;;
     esac
 }
 
