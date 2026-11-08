@@ -950,9 +950,14 @@ merging: if a fixup or a rebase raised it, the flow stops and names the
 path, so the missing reviews run (`just all <PR> --council`) or the owner
 merges it.
 
-**CodeRabbit threads.** Once CI is green after the fixup, `all` asks
-GitHub whether every review thread CodeRabbit started has a `Fixup:`
-reply by you or a member with a `Head:` line, the rule
+**CodeRabbit threads.** Once CI is green after the fixup, on a pull
+request CodeRabbit reviews (its check was on the head before the
+reviews), `all` also waits for CodeRabbit's check on that head to
+succeed, since it can appear after the other checks are green. A
+`NEUTRAL` check (its review limit) is no review and stops for you, as
+does no review within the CI wait. Then it asks GitHub whether every
+review thread CodeRabbit started has a `Fixup:` (or `## Fixup:`) reply by
+you or a member with a `Head:` line, the rule
 [`merge --light`](#merge) checks. If one has none, it prints the threads
 and runs another fixup, then waits for CI again, at most 3 fixups in all
 (the one after a rebase counts). Still unanswered after that, or `gh`
@@ -1112,7 +1117,9 @@ questions need a decision, so neither is drained.
 **Which pull requests** (`--prs`). The pull requests you give (numbers or
 URLs), in that order. Without any, every open pull request you authored
 whose branch starts with `claude/`, oldest (lowest number) first; if `gh`
-cannot list them, it exits 1. Each runs as `all <PR> --yes --merge`, so
+cannot list them, it exits 1. It asks `gh` for at most 1000; a list that long
+exits 1 too, since more may be hidden, so name them instead. A pull
+request given twice is a usage error. Each runs as `all <PR> --yes --merge`, so
 each picks its own review tier; `--prs` with a task is a usage error.
 
 **How many.** `--max N` caps the run. Its default follows your recent
@@ -1132,11 +1139,12 @@ review per role and one fixup per task):
 
 ```text
 drain: root:T1 scripts:T4 (2 of 3 tasks): 2 × just all --merge, 16 billed Claude Code cloud sessions (model sonnet), one after another; it stops at the first failure. Start? [y/N]
-drain: #31 #40 (2 of 2 pull requests): 2 × just all --merge, at most 6 billed Claude Code cloud sessions (model sonnet), one after another; it stops at the first failure. Start? [y/N]
+drain: #31 #40 (2 of 2 pull requests): 2 × just all --merge, at most 22 billed Claude Code cloud sessions (model sonnet), one after another; it stops at the first failure. Start? [y/N]
 ```
 
-For pull requests the count is the most a council review bills, with no
-build; a lighter tier runs fewer.
+For pull requests the count is the most each may bill: no build, but
+every review (a council tier), up to 3 fixups and 2 rebases, so 11 each
+with 6 roles; a lighter tier or a clean run bills fewer.
 
 `--yes` skips only that question; `--dry-run` prints it and starts
 nothing.
@@ -1151,8 +1159,8 @@ run the drain again.
 | exit | meaning |
 |---|---|
 | 0 | every task or pull request in the run merged, nothing to do, or `--dry-run` printed the plan |
-| 1 | a refusal, the answer was not yes, `gh` could not count the merges or list your pull requests, or a task or pull request stopped |
-| 2 | a usage error, a bad task or pull request argument, or `--prs` with a task |
+| 1 | a refusal, the answer was not yes, `gh` could not count the merges or list your pull requests (or listed 1000 or more), or a task or pull request stopped |
+| 2 | a usage error, a bad task or pull request argument, a pull request given twice, or `--prs` with a task |
 
 ## held
 
