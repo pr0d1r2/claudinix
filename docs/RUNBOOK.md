@@ -213,7 +213,8 @@ repository.
    wait for CI on that pull request, review it, and merge. `just merge <PR>`
    merges it for you when the strict rule holds, and names what to look
    at when it does not. `just drain` does this for a list of tasks, one
-   at a time, and stops at the first one that needs you.
+   at a time, and stops at the first one that needs you; `just drain --prs`
+   does it for your open `claude/*` pull requests.
 
 ### Add another project
 
