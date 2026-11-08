@@ -30,7 +30,10 @@
 # the plan counts the most sessions a council run bills: every review, up
 # to 3 fixups and 2 rebases. gh lists at most CLOUD_DRAIN_PR_LIMIT; a list
 # that long stops the drain. A pull request given twice (031 is 31) or a
-# URL of another repo is a usage error: drain drains this repo only. It needs neither
+# URL of another repo is a usage error: drain drains this repo only. That
+# repo is origin's, which must be on github.com: drain's gh calls name it
+# and every child gets it as GH_REPO. A number is read as text: zeros only
+# or more than 9 digits is a usage error. It needs neither
 # main nor a clean tree: no pull request builds on the local checkout, each
 # is rebased onto main in the cloud when it conflicts (V52).
 #
@@ -75,18 +78,43 @@ while [ "$#" -gt 0 ]; do
     esac
     shift
 done
+# pr_number DIGITS: DIGITS without its leading zeros, read as text so a
+# huge number never wraps to another pull request; returns 1 for zeros
+# only or more than 9 digits.
+pr_number() {
+    local n="${1#"${1%%[!0]*}"}"
+    if [ -z "$n" ] || [ "${#n}" -gt 9 ]; then
+        return 1
+    fi
+    echo "$n"
+}
+
+# --prs drains origin's GitHub repo only: drain's gh calls name it
+# (--repo) and every child gets it as GH_REPO, whatever GH_REPO was.
+here=
+if [ "$prs" = 1 ]; then
+    origin_url="$(git remote get-url origin 2>/dev/null)" || origin_url=
+    github_re='^(https://github\.com/|ssh://git@github\.com/|git@github\.com:)([^/]+/[^/]+)$'
+    if [[ "$origin_url" =~ $github_re ]]; then
+        here="${BASH_REMATCH[2]%.git}"
+    else
+        echo "drain: --prs drains a github.com repo, and origin is ${origin_url:-not set} -- run it in a checkout of one" >&2
+        exit 1
+    fi
+    export GH_REPO="$here"
+fi
+
 # ${args[@]+...}: Bash 3.2 (macOS /bin/bash) calls an empty array unbound.
 seen=" "
 for a in ${args[@]+"${args[@]}"}; do
     if [ "$prs" = 1 ]; then
         cloud_parse_pr "$a" || usage
-        pr=$((10#$pr)) # base 10: 031 is 31
+        pr="$(pr_number "$pr")" || usage # 031 is 31
         # drain drains the checkout's repo only, so a URL must name it and a
         # number means one pull request.
         if [ -n "$url_repo" ]; then
-            here="$(cloud_remote_repo origin 2>/dev/null)" || here=
-            if [ -z "$here" ] || ! cloud_same_repo "$url_repo" "$here"; then
-                echo "drain: $a is not a pull request of this repo (${here:-no origin}): drain drains this repo only" >&2
+            if ! cloud_same_repo "$url_repo" "$here"; then
+                echo "drain: $a is not a pull request of this repo ($here): drain drains this repo only" >&2
                 exit 2
             fi
         else
@@ -127,7 +155,7 @@ if [ "$prs" = 1 ]; then
     what="pull requests"
     if [ "${#tasks[@]}" -eq 0 ]; then
         # </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
-        if ! open="$(gh pr list --state open --author @me --limit "$CLOUD_DRAIN_PR_LIMIT" --json number,headRefName </dev/null)"; then
+        if ! open="$(gh pr list --state open --author @me --limit "$CLOUD_DRAIN_PR_LIMIT" --json number,headRefName --repo "$here" </dev/null)"; then
             echo "drain: gh could not list your open pull requests -- check gh auth status, or name them: --prs PR..." >&2
             exit 1
         fi
@@ -163,7 +191,7 @@ fi
 if [ -z "$max" ]; then
     since="$(date -u -d "$CLOUD_DRAIN_PACE_DAYS days ago" +%F 2>/dev/null || date -u -v-"$CLOUD_DRAIN_PACE_DAYS"d +%F)"
     # </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
-    if ! merged="$(gh pr list --state merged --search "merged:>=$since \"$CLOUD_FIXUP_HEADING\" in:comments" --limit "$CLOUD_DRAIN_PACE_LIMIT" --json number,comments </dev/null)"; then
+    if ! merged="$(gh pr list --state merged --search "merged:>=$since \"$CLOUD_FIXUP_HEADING\" in:comments" --limit "$CLOUD_DRAIN_PACE_LIMIT" --json number,comments ${here:+--repo "$here"} </dev/null)"; then
         echo "drain: gh could not count the pull requests merged since $since -- pass --max N" >&2
         exit 1
     fi
@@ -180,7 +208,7 @@ if [ "$prs" = 1 ]; then
     names=()
     for a in "${run[@]}"; do
         cloud_parse_pr "$a"
-        names+=("#$((10#$pr))")
+        names+=("#$(pr_number "$pr")")
     done
     sessions="at most $sessions"
 fi
