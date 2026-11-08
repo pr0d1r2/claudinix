@@ -15,7 +15,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     # Long polls keep the timed-out waits to a few polls each.
     export CLOUD_ALL_POLL=600
-    unset CLAUDINIX_PROJECTS FILES_FAIL FORGED_FIXUP FIXUP_HEAD FIXUP_HEAD2 FIXUP_CONFLICTS FIXUP_MOVES_HEAD TASK_REFUSE REBASE_SILENT FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS BODY_FAIL BURN_RC
+    unset CLAUDINIX_PROJECTS FILES_FAIL THREADS_FAIL FILES_FAIL_LATER FORGED_FIXUP FIXUP_HEAD FIXUP_HEAD2 FIXUP_CONFLICTS FIXUP_MOVES_HEAD TASK_REFUSE REBASE_SILENT FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS BODY_FAIL BURN_RC
     mkdir -p "$STUBS" "$STATE" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
@@ -80,6 +80,8 @@ setup() {
     # (\n is a newline), by a stranger when it starts with ~; the real jq
     # filters them. files: $STATE/files, then $STATE/files.later from the
     # 2nd call when it exists; FILES_FAIL_LATER fails the 2nd call on.
+    # reviewThreads (the CodeRabbit check): $STATE/threads.<call>, else
+    # $STATE/threads, else no threads; THREADS_FAIL fails it.
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "$*" >>"$STATE/gh.log"' \
@@ -102,6 +104,11 @@ setup() {
         '  exit 0 ;;' \
         '*"--json body"*) [ -z "${BODY_FAIL:-}" ] || exit 1; awk -F"\t" -v n="$3" "\$1==n{print \$5}" "$STATE/prs"; exit 0 ;;' \
         '*"--json url"*) [ -z "${URL_FAIL:-}" ] || exit 1; echo "https://github.com/o/p/pull/$3"; exit 0 ;;' \
+        '*reviewThreads*)' \
+        '  n=$(( $(cat "$STATE/threads.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/threads.n"' \
+        '  [ -z "${THREADS_FAIL:-}" ] || exit 1' \
+        '  f="$STATE/threads.$n"; [ -f "$f" ] || f="$STATE/threads"' \
+        '  if [ -f "$f" ]; then cat "$f"; else echo "{\"data\":{\"repository\":{\"pullRequest\":{\"reviewThreads\":{\"pageInfo\":{\"hasNextPage\":false},\"nodes\":[]}}}}}"; fi; exit 0 ;;' \
         '*comments*)' \
         '  n=$(( $(cat "$STATE/comments.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/comments.n"' \
         '  [ -z "${COMMENTS_FAIL_FIRST:-}" ] || [ "$n" -ne 1 ] || exit 1' \
@@ -892,4 +899,70 @@ merge 16 --light --yes" ]
     [ "$status" -eq 1 ]
     [[ "$output" == *"review tier"* ]]
     run ! grep -q '^merge' "$STATE/children.log"
+}
+
+# --- CodeRabbit threads after the fixup (cloud:T182, cloud:V65) ---
+
+# bot_thread FILE open|answered: one CodeRabbit review thread, without or
+# with the owner's Fixup: reply naming a head, as gh's GraphQL returns it.
+bot_thread() {
+    local replies='[]'
+    [ "$2" != answered ] || replies='[{"author":{"login":"pr0d1r2","__typename":"User"},"authorAssociation":"OWNER","body":"Fixup: declined, reason.\nHead: aaa"}]'
+    jq -n --argjson r "$replies" '{data: {repository: {pullRequest: {reviewThreads: {pageInfo: {hasNextPage: false}, nodes: [
+        {path: "scripts/x.sh", line: 3, comments: {pageInfo: {hasNextPage: false},
+          nodes: ([{author: {login: "coderabbitai", __typename: "Bot"}, authorAssociation: "NONE", body: "Major: fix it"}] + $r)}}]}}}}}' >"$STATE/$1"
+}
+
+fixups() {
+    grep -c '^fixup 16 --yes' "$STATE/children.log"
+}
+
+@test "bot: a CodeRabbit thread with no Fixup: answer after the fixup gets one more fixup, then CI" {
+    bot_thread threads.1 open
+    bot_thread threads answered
+    run bash "$SCRIPT" 16 --yes --merge
+    [ "$status" -eq 0 ]
+    [ "$(fixups)" = 2 ]
+    [[ "$output" == *"fixup 2 of 3"* ]]
+    [[ "$output" == *"scripts/x.sh:3"* ]]
+    grep -qx 'merge 16 --yes' "$STATE/children.log"
+}
+
+@test "bot: every thread answered after the fixup: no more fixups" {
+    bot_thread threads answered
+    run bash "$SCRIPT" 16 --yes --merge
+    [ "$status" -eq 0 ]
+    [ "$(fixups)" = 1 ]
+}
+
+@test "bot: still unanswered after 3 fixups: stops for the owner, no merge" {
+    bot_thread threads open
+    run bash "$SCRIPT" 16 --yes --merge
+    [ "$status" -eq 1 ]
+    [ "$(fixups)" = 3 ]
+    [[ "$output" == *"after 3 fixups"* ]]
+    [[ "$output" == *"scripts/x.sh:3"* ]]
+    run ! grep -q '^merge' "$STATE/children.log"
+}
+
+@test "bot: gh failing to read the threads stops, no more fixups, no merge" {
+    THREADS_FAIL=1 run bash "$SCRIPT" 16 --yes --merge
+    [ "$status" -eq 1 ]
+    [ "$(fixups)" = 1 ]
+    [[ "$output" == *"could not read the review threads of #16"* ]]
+    run ! grep -q '^merge' "$STATE/children.log"
+}
+
+@test "bot: the second fixup after a rebase counts as a round (cloud:T194)" {
+    bot_thread threads open
+    FIXUP_CONFLICTS=1 run bash "$SCRIPT" 16 --yes
+    [ "$status" -eq 1 ]
+    [ "$(fixups)" = 3 ]
+    [[ "$output" == *"after 3 fixups"* ]]
+}
+
+@test "bot: the plan says up to 2 more fixups while CodeRabbit threads stay unanswered" {
+    run bash "$SCRIPT" 16 --dry-run
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"up to 2 more fixups while CodeRabbit threads stay unanswered"* ]]
 }
