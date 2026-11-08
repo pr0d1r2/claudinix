@@ -1115,7 +1115,7 @@ node order. Experiments need a person watching a real session, and open
 questions need a decision, so neither is drained.
 
 **Which pull requests** (`--prs`). The pull requests you give (numbers or
-URLs), in that order. Without any, every open pull request you authored
+URLs, the host in any case), in that order. Without any, every open pull request you authored
 whose branch starts with `claude/`, oldest (lowest number) first; if `gh`
 cannot list them, it exits 1. It asks `gh` for at most 1000 open pull
 requests of yours, counted before the `claude/*` filter; a list that long
