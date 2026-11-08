@@ -456,3 +456,12 @@ all 31 --yes --merge --model sonnet" ]
     [ "$status" -eq 0 ]
     [ "$(tail -n 1 "$STATE/all.gh_repo")" = O/P ]
 }
+
+@test "--prs reads a PR URL's github.com host in any case, then still checks its repo" {
+    STUB_ORIGIN=git@GITHUB.COM:o/p run bash "$SCRIPT" --prs https://GITHUB.COM/o/p/pull/31 --yes
+    [ "$status" -eq 0 ]
+    [ "$(ran)" = "all https://github.com/o/p/pull/31 --yes --merge --model sonnet" ]
+    run bash "$SCRIPT" --prs https://GitHub.com/x/y/pull/31 --yes
+    [ "$status" -eq 2 ]
+    [[ "$output" == *"this repo"* ]]
+}
