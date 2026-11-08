@@ -29,7 +29,8 @@
 # `cloud-all.sh <PR> --yes --merge`, which picks its review tier (V66), so
 # the plan counts the most sessions a council run bills: every review, up
 # to 3 fixups and 2 rebases. gh lists at most CLOUD_DRAIN_PR_LIMIT; a list
-# that long stops the drain. A pull request given twice is a usage error. It needs neither
+# that long stops the drain. A pull request given twice (031 is 31) or a
+# URL of another repo is a usage error: drain drains this repo only. It needs neither
 # main nor a clean tree: no pull request builds on the local checkout, each
 # is rebased onto main in the cloud when it conflicts (V52).
 #
@@ -79,6 +80,18 @@ seen=" "
 for a in ${args[@]+"${args[@]}"}; do
     if [ "$prs" = 1 ]; then
         cloud_parse_pr "$a" || usage
+        pr=$((10#$pr)) # base 10: 031 is 31
+        # drain drains the checkout's repo only, so a URL must name it and a
+        # number means one pull request.
+        if [ -n "$url_repo" ]; then
+            here="$(cloud_remote_repo origin 2>/dev/null)" || here=
+            if [ -z "$here" ] || ! cloud_same_repo "$url_repo" "$here"; then
+                echo "drain: $a is not a pull request of this repo (${here:-no origin}): drain drains this repo only" >&2
+                exit 2
+            fi
+        else
+            a="$pr"
+        fi
         # The same number twice would merge it, then fail on it.
         [[ "$seen" != *" $pr "* ]] || usage
         seen="$seen$pr "
@@ -167,7 +180,7 @@ if [ "$prs" = 1 ]; then
     names=()
     for a in "${run[@]}"; do
         cloud_parse_pr "$a"
-        names+=("#$pr")
+        names+=("#$((10#$pr))")
     done
     sessions="at most $sessions"
 fi
