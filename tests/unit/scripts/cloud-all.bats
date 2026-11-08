@@ -15,7 +15,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     # Long polls keep the timed-out waits to a few polls each.
     export CLOUD_ALL_POLL=600
-    unset CLAUDINIX_PROJECTS FILES_FAIL THREADS_FAIL FILES_FAIL_LATER CODERABBIT_FAIL FIXUP2_CI FORGED_FIXUP FIXUP_HEAD FIXUP_HEAD2 FIXUP_CONFLICTS FIXUP_MOVES_HEAD TASK_REFUSE REBASE_SILENT FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS BODY_FAIL BURN_RC
+    unset CLAUDINIX_PROJECTS FILES_FAIL THREADS_FAIL FILES_FAIL_LATER CODERABBIT_FAIL FIXUP2_CI PARTICIPATES_FAIL FORGED_FIXUP FIXUP_HEAD FIXUP_HEAD2 FIXUP_CONFLICTS FIXUP_MOVES_HEAD TASK_REFUSE REBASE_SILENT FIXUP_REFUSE TASK_FAIL REVIEW_FAIL REVIEW_ONLY FIXUP_SILENT FIXUP_BOT REVIEW_CRLF PR_AFTER LIST_FAIL_FIRST COMMENTS_FAIL_FIRST URL_FAIL CI_GH_FAILS COMMENTS_GH_FAILS LIST_GH_FAILS BODY_FAIL BURN_RC
     mkdir -p "$STUBS" "$STATE" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
@@ -86,6 +86,9 @@ setup() {
     # $STATE/threads, else no threads; THREADS_FAIL fails it.
     # The CodeRabbit check on the head: $STATE/coderabbit.<call>, else
     # $STATE/coderabbit, else none; CODERABBIT_FAIL fails it.
+    # Whether CodeRabbit takes part (a check on any commit, a comment or a
+    # review): $STATE/participates.<call>, else $STATE/participates, else
+    # no; PARTICIPATES_FAIL fails it.
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "$*" >>"$STATE/gh.log"' \
@@ -99,6 +102,10 @@ setup() {
         '*headRefName*) printf "%b\n" "16\tOPEN\tfeature/x\tmain\thttps://github.com/owner/alpha/pull/16\tfalse"; exit 0 ;;' \
         '*"--json files"*) [ -z "${FILES_FAIL:-}" ] || exit 1; n=$(( $(cat "$STATE/files.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/files.n"; [ "$n" -eq 1 ] || [ -z "${FILES_FAIL_LATER:-}" ] || exit 1; f="$STATE/files"; [ "$n" -eq 1 ] || [ ! -f "$STATE/files.later" ] || f="$STATE/files.later"; if [ -f "$f" ]; then tr "|" "\t" <"$f"; else printf "1\t0\tother/x\n"; fi; exit 0 ;;' \
         '*mergeable*) tr " " "\t" <"$STATE/merge"; exit 0 ;;' \
+        '*coderabbitai*)' \
+        '  n=$(( $(cat "$STATE/participates.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/participates.n"' \
+        '  [ -z "${PARTICIPATES_FAIL:-}" ] || exit 1' \
+        '  f="$STATE/participates.$n"; [ -f "$f" ] || f="$STATE/participates"; if [ -f "$f" ]; then cat "$f"; else echo no; fi; exit 0 ;;' \
         '*CodeRabbit*)' \
         '  n=$(( $(cat "$STATE/coderabbit.n" 2>/dev/null || echo 0) + 1 )); echo "$n" >"$STATE/coderabbit.n"' \
         '  [ -z "${CODERABBIT_FAIL:-}" ] || exit 1' \
@@ -987,21 +994,34 @@ fixups() {
 
 # --- waiting for CodeRabbit's review of the fixup head (cloud:T182) ---
 
-@test "coderabbit: on a PR it reviews, the thread check waits for its review of the fixup head" {
-    echo SUCCESS >"$STATE/coderabbit.1"
-    : >"$STATE/coderabbit.2"
-    echo PENDING >"$STATE/coderabbit.3"
+@test "coderabbit: on a PR it takes part in, the thread check waits for its review of the head" {
+    echo yes >"$STATE/participates"
+    : >"$STATE/coderabbit.1"
+    echo PENDING >"$STATE/coderabbit.2"
     echo SUCCESS >"$STATE/coderabbit"
     bot_thread threads answered
     run bash "$SCRIPT" 16 --yes --merge
     [ "$status" -eq 0 ]
-    [ "$(cat "$STATE/coderabbit.n")" = 4 ]
+    [ "$(cat "$STATE/coderabbit.n")" = 3 ]
     [ "$(cat "$STATE/threads.n")" = 1 ]
     grep -qx 'merge 16 --yes' "$STATE/children.log"
 }
 
-@test "coderabbit: a NEUTRAL check on the fixup head (its review limit) is no review: stop, no merge" {
-    echo SUCCESS >"$STATE/coderabbit.1"
+@test "coderabbit: taking part decided at each thread check, so one that shows up late is waited for" {
+    echo no >"$STATE/participates.1"
+    echo yes >"$STATE/participates"
+    echo SUCCESS >"$STATE/coderabbit"
+    bot_thread threads.1 open
+    bot_thread threads answered
+    run bash "$SCRIPT" 16 --yes --merge
+    [ "$status" -eq 0 ]
+    [ "$(cat "$STATE/participates.n")" = 2 ]
+    [ "$(cat "$STATE/coderabbit.n")" = 1 ]
+    grep -qx 'merge 16 --yes' "$STATE/children.log"
+}
+
+@test "coderabbit: a NEUTRAL check on the head (its review limit) is no review: stop, no merge" {
+    echo yes >"$STATE/participates"
     echo NEUTRAL >"$STATE/coderabbit"
     run bash "$SCRIPT" 16 --yes --merge
     [ "$status" -eq 1 ]
@@ -1010,8 +1030,8 @@ fixups() {
     run ! grep -q '^merge' "$STATE/children.log"
 }
 
-@test "coderabbit: never reviewing the fixup head within the polls stops, no merge" {
-    echo SUCCESS >"$STATE/coderabbit.1"
+@test "coderabbit: never reviewing the head within the polls stops, no merge" {
+    echo yes >"$STATE/participates"
     echo PENDING >"$STATE/coderabbit"
     run bash "$SCRIPT" 16 --yes --merge
     [ "$status" -eq 1 ]
@@ -1019,15 +1039,24 @@ fixups() {
     run ! grep -q '^merge' "$STATE/children.log"
 }
 
-@test "coderabbit: gh failing to read its check stops before the reviews" {
-    CODERABBIT_FAIL=1 run bash "$SCRIPT" 16 --yes --merge
+@test "coderabbit: gh failing to tell whether CodeRabbit takes part stops, no merge" {
+    PARTICIPATES_FAIL=1 run bash "$SCRIPT" 16 --yes --merge
     [ "$status" -eq 1 ]
-    [[ "$output" == *"checks of #16"* ]]
-    run ! grep -q '^review' "$STATE/children.log"
+    [[ "$output" == *"whether CodeRabbit reviews #16"* ]]
+    [ ! -f "$STATE/threads.n" ]
+    run ! grep -q '^merge' "$STATE/children.log"
 }
 
-@test "coderabbit: no CodeRabbit check before the reviews: no wait for one after the fixup" {
+@test "coderabbit: gh failing to read its check stops, no merge" {
+    echo yes >"$STATE/participates"
+    CODERABBIT_FAIL=1 run bash "$SCRIPT" 16 --yes --merge
+    [ "$status" -eq 1 ]
+    run ! grep -q '^merge' "$STATE/children.log"
+}
+
+@test "coderabbit: not taking part (no check on any commit, no comment): no wait for its check" {
     run bash "$SCRIPT" 16 --yes --merge
     [ "$status" -eq 0 ]
-    [ "$(cat "$STATE/coderabbit.n")" = 1 ]
+    [ "$(cat "$STATE/participates.n")" = 1 ]
+    [ ! -f "$STATE/coderabbit.n" ]
 }
