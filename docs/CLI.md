@@ -1119,12 +1119,13 @@ URLs), in that order. Without any, every open pull request you authored
 whose branch starts with `claude/`, oldest (lowest number) first; if `gh`
 cannot list them, it exits 1. It asks `gh` for at most 1000 open pull
 requests of yours, counted before the `claude/*` filter; a list that long
-exits 1 too, since more may be hidden, so name them instead. A pull
+exits 1 too, since more may be hidden, so name them instead: that limit
+is for finding them only, and pull requests you name skip it. A pull
 request given twice (`031` is `31`), a number with more than 9 digits once
 its leading zeros are stripped, or a URL of another repo, is a usage
 error: drain drains this repo only. That is origin's repo, which must be
 on github.com (`https://github.com/`, `git@github.com:` or
-`ssh://git@github.com[:22]/`, with or without `.git` or a trailing `/`),
+`ssh://git@github.com[:22]/`, with or without `.git` or a trailing `/`, the host in any case),
 else it exits 1 without printing the URL, which may hold a token.
 `drain` names it to `gh` and runs every `all` with `GH_REPO` set to it,
 whatever `GH_REPO` you had. Each runs as `all <PR> --yes --merge`, so
@@ -1133,8 +1134,8 @@ each picks its own review tier; `--prs` with a task is a usage error.
 **How many.** `--max N` caps the run. Its default follows your recent
 pace: the pull requests merged in the last 7 days that had a `Fixup:`
 reply by you or a member (a stranger's comment does not count), per day,
-rounded up, at least 1. It caps tasks you name too. When `gh` cannot count
-them, it exits 1 and asks for `--max`.
+rounded up, at least 1. It caps tasks you name too, and a `--prs` run the
+same way. When `gh` cannot count them, it exits 1 and asks for `--max`.
 
 **From where.** Only from `main` with a clean work tree, and with at least
 one review role: each task starts
