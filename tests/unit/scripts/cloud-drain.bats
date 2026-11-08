@@ -453,5 +453,6 @@ all 31 --yes --merge --model sonnet" ]
         [ "$(cat "$STATE/all.gh_repo")" = o/p ]
     done
     STUB_ORIGIN=https://github.com/O/P run bash "$SCRIPT" --prs 31 --yes
+    [ "$status" -eq 0 ]
     [ "$(tail -n 1 "$STATE/all.gh_repo")" = O/P ]
 }
