@@ -562,3 +562,30 @@ burn_remote() {
         fi
     done
 }
+
+# gh_threads REPLY_BODY: a gh stub whose GraphQL answer is one CodeRabbit
+# review thread with the owner's reply REPLY_BODY.
+gh_threads() {
+    jq -n --arg b "$1" '{data: {repository: {pullRequest: {reviewThreads: {pageInfo: {hasNextPage: false}, nodes: [
+        {path: "x.sh", line: 3, comments: {pageInfo: {hasNextPage: false}, nodes: [
+          {author: {login: "coderabbitai", __typename: "Bot"}, authorAssociation: "NONE", body: "Major: fix it"},
+          {author: {login: "owner", __typename: "User"}, authorAssociation: "OWNER", body: $b}]}}]}}}}}' >"$STATE/threads.json"
+    # shellcheck disable=SC2016 # expands inside the stub, not here
+    printf '%s\n' '#!/usr/bin/env bash' 'cat "$STATE/threads.json"' >"$STUBS/gh"
+    chmod +x "$STUBS/gh"
+}
+
+@test "cloud_bot_reasons counts a ## Fixup: reply with a Head: line, as every other Fixup: reader does (cloud:V65)" {
+    gh_threads $'## Fixup: declined, reason.\nHead: abc123'
+    run cloud_bot_reasons 7
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+    gh_threads $'Fixup: fixed in abc123.\nHead: abc123'
+    run cloud_bot_reasons 7
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+    gh_threads $'Fixup: fixed, no head line'
+    run cloud_bot_reasons 7
+    [ "$status" -eq 0 ]
+    [ "$output" = "bot: the CodeRabbit thread at x.sh:3 has no Fixup: reply with a Head: line" ]
+}
