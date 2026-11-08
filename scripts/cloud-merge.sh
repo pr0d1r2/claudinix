@@ -127,32 +127,7 @@ diff_reasons="$(cloud_diff_reasons <<<"$patch")"
 # --light: the CodeRabbit threads without an answer, one per line (V65).
 bot_reasons=""
 if [ "$light" = 1 ]; then
-    # shellcheck disable=SC2016 # GraphQL variables, not shell ones
-    threads_query='query($owner: String!, $name: String!, $number: Int!) {
-  repository(owner: $owner, name: $name) { pullRequest(number: $number) {
-    reviewThreads(first: 100) { pageInfo { hasNextPage } nodes { path line
-      comments(first: 100) { pageInfo { hasNextPage }
-        nodes { author { login __typename } authorAssociation body } } } } } } }'
-    if ! threads="$(gh api graphql -F owner='{owner}' -F name='{repo}' -F number="$pr" -f query="$threads_query" </dev/null)"; then
-        bot_reasons="bot: gh could not read the review threads of #$pr"
-    elif [ -z "$threads" ]; then
-        bot_reasons="bot: gh returned nothing for the review threads of #$pr; judge it by hand"
-    else
-        bot_reasons="$(jq -r --arg fixup_heading "$CLOUD_FIXUP_HEADING" "$CLOUD_COMMENT_JQ"'
-            .data.repository.pullRequest.reviewThreads as $t
-            | if ($t.nodes | type) != "array"
-              or any($t.nodes[]; type != "object" or (.comments.nodes | type) != "array"
-                or (.comments.nodes | length) == 0 or any(.comments.nodes[]; type != "object"))
-              then "bot: gh returned review threads for #'"$pr"' that are not a list of threads; judge it by hand"
-              elif $t.pageInfo.hasNextPage or any($t.nodes[]; .comments.pageInfo.hasNextPage)
-              then "bot: more review threads or replies than one page shows; judge #'"$pr"' by hand"
-              else $t.nodes[]
-                | select(.comments.nodes[0].author | .login == "coderabbitai" and .__typename == "Bot")
-                | select([.comments.nodes[1:][] | trusted | select(.body | startswith($fixup_heading)) | select(head_of != null)] | length == 0)
-                | "bot: the CodeRabbit thread at \(.path):\(.line // "-") has no Fixup: reply with a Head: line"
-              end' <<<"$threads")" ||
-            bot_reasons="bot: could not parse the review threads of #$pr"
-    fi
+    bot_reasons="$(cloud_bot_reasons "$pr")" || true
 fi
 
 all_reasons="$(printf '%s\n%s\n%s\n' "$reasons" "$diff_reasons" "$bot_reasons" | sed '/^$/d')"
