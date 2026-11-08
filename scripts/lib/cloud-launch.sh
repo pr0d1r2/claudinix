@@ -529,7 +529,7 @@ cloud_bot_reasons() {
         return 1
     fi
     # A line starting with ! is a verdict gh's answer does not allow.
-    if ! out="$(jq -r --arg fixup_heading "$CLOUD_FIXUP_HEADING" "$CLOUD_COMMENT_JQ"'
+    if ! out="$(jq -r "$CLOUD_COMMENT_JQ"'
         .data.repository.pullRequest.reviewThreads as $t
         | if ($t.nodes | type) != "array"
           or any($t.nodes[]; type != "object" or (.comments.nodes | type) != "array"
@@ -539,7 +539,7 @@ cloud_bot_reasons() {
           then "!bot: more review threads or replies than one page shows; judge #'"$pr"' by hand"
           else $t.nodes[]
             | select(.comments.nodes[0].author | .login == "coderabbitai" and .__typename == "Bot")
-            | select([.comments.nodes[1:][] | trusted | select(.body | startswith($fixup_heading)) | select(head_of != null)] | length == 0)
+            | select([.comments.nodes[1:][] | trusted | fixup_reply | select(head_of != null)] | length == 0)
             | "bot: the CodeRabbit thread at \(.path):\(.line // "-") has no Fixup: reply with a Head: line"
           end' <<<"$threads")"; then
         echo "bot: could not parse the review threads of #$pr"
