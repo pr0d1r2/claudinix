@@ -950,9 +950,9 @@ merging: if a fixup or a rebase raised it, the flow stops and names the
 path, so the missing reviews run (`just all <PR> --council`) or the owner
 merges it.
 
-**CodeRabbit threads.** Once CI is green after the fixup, on a pull
-request CodeRabbit reviews (its check was on the head before the
-reviews), `all` also waits for CodeRabbit's check on that head to
+**CodeRabbit threads.** Once CI is green after the fixup, when CodeRabbit
+takes part (its check on any commit, or a comment or review by it, asked
+again at each check), `all` also waits for CodeRabbit's check on that head to
 succeed, since it can appear after the other checks are green. A
 `NEUTRAL` check (its review limit) is no review and stops for you, as
 does no review within the CI wait. Then it asks GitHub whether every
