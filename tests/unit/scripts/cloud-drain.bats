@@ -441,3 +441,17 @@ all 31 --yes --merge --model sonnet" ]
     STUB_ORIGIN=ssh://git@gitlab.com:22/o/p run bash "$SCRIPT" --prs 31 --yes
     [ "$status" -eq 1 ]
 }
+
+@test "--prs matches origin's github.com host in any case, and keeps the owner/repo as written" {
+    for origin in https://GitHub.com/o/p.git git@GITHUB.COM:o/p; do
+        : >"$STATE/all.gh_repo"
+        STUB_ORIGIN="$origin" run bash "$SCRIPT" --prs 31 --yes
+        [ "$status" -eq 0 ] || {
+            echo "refused: $origin"
+            return 1
+        }
+        [ "$(cat "$STATE/all.gh_repo")" = o/p ]
+    done
+    STUB_ORIGIN=https://github.com/O/P run bash "$SCRIPT" --prs 31 --yes
+    [ "$(tail -n 1 "$STATE/all.gh_repo")" = O/P ]
+}
