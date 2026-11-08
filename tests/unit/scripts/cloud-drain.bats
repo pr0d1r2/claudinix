@@ -461,7 +461,9 @@ all 31 --yes --merge --model sonnet" ]
     STUB_ORIGIN=git@GITHUB.COM:o/p run bash "$SCRIPT" --prs https://GITHUB.COM/o/p/pull/31 --yes
     [ "$status" -eq 0 ]
     [ "$(ran)" = "all https://github.com/o/p/pull/31 --yes --merge --model sonnet" ]
+    : >"$STATE/all.log"
     run bash "$SCRIPT" --prs https://GitHub.com/x/y/pull/31 --yes
     [ "$status" -eq 2 ]
     [[ "$output" == *"this repo"* ]]
+    [ -z "$(ran)" ]
 }
