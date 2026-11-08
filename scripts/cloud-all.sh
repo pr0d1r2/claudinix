@@ -67,8 +67,8 @@
 # After the fixup and its CI, a CodeRabbit review thread with no Fixup:
 # answer (cloud_bot_reasons, V65) gets another fixup, at most 3 in all;
 # still unanswered, or gh unable to say, stops for the owner (T182).
-# On a pull request CodeRabbit reviews, it first waits for CodeRabbit's
-# check on the head to succeed; NEUTRAL (its review limit) or no review
+# When CodeRabbit takes part (its check on any commit, or its comment),
+# it first waits for CodeRabbit's check on the head to succeed; NEUTRAL (its review limit) or no review
 # within the CI polls stops.
 #
 # Usage: cloud-all.sh <node:Tn | Tn | PR# | URL> [--model M] [--yes] [--dry-run] [--merge] [--council]
@@ -567,6 +567,23 @@ coderabbit_state() {
         else .state end] | last // ""' </dev/null
 }
 
+# coderabbit_participates: print yes when CodeRabbit takes part in #$pr: a
+# CodeRabbit check on any of its last 100 commits, or a comment or review
+# by `coderabbitai` (its walkthrough comes early); else no.
+coderabbit_participates() {
+    # shellcheck disable=SC2016 # GraphQL variables, not shell ones
+    gh api graphql -F owner='{owner}' -F name='{repo}' -F number="$pr" -f query='query($owner: String!, $name: String!, $number: Int!) {
+  repository(owner: $owner, name: $name) { pullRequest(number: $number) {
+    comments(first: 100) { nodes { author { login } } }
+    reviews(first: 100) { nodes { author { login } } }
+    commits(last: 100) { nodes { commit { statusCheckRollup { contexts(first: 100) {
+      nodes { ... on CheckRun { name } ... on StatusContext { context } } } } } } } } } }' \
+        --jq '.data.repository.pullRequest as $p
+          | if any(($p.comments.nodes + $p.reviews.nodes)[]; .author.login? == "coderabbitai")
+              or any($p.commits.nodes[].commit.statusCheckRollup.contexts.nodes[]?; (.name // .context) == "CodeRabbit")
+            then "yes" else "no" end' </dev/null
+}
+
 # coderabbit_reviewed: 0 once CodeRabbit's check on the head succeeded, 2
 # while it is missing or pending, 5 when it ended any other way (NEUTRAL is
 # its review limit: no review), naming it in $coderabbit_end.
@@ -670,12 +687,6 @@ fi
 # The tier: for a task, its pull request exists only now (cloud:T183).
 [ -n "$given_pr" ] || pick_tier || fail "no review tier for #$pr: it is not reviewed"
 echo "all: review tier: $tier (set by $tier_reason); reviews: ${review_roles[*]}"
-# Whether CodeRabbit reviews this pull request: its check is on the head
-# CI went green on. Only then the flow waits for its review of the fixup
-# head before it reads the threads (cloud:T182).
-coderabbit_on=0
-cr="$(coderabbit_state)" || fail "cannot read the checks of #$pr -- check gh auth status"
-[ -z "$cr" ] || coderabbit_on=1
 echo "all: CI is green on #$pr; starting the reviews"
 skip="$(comment_count)"
 if [ "$tier" = council ]; then
@@ -715,15 +726,21 @@ echo "all: the fixup replied on #$pr; waiting for CI"
 wait_ci 1 || wait_failed $? "CI is not green on #$pr after the fixup"
 
 # CodeRabbit re-reviews each push, but its check can appear after the
-# others are green: on a pull request it reviews, wait for its check on
-# the head to succeed (NEUTRAL, its review limit, stops), then read its
-# threads. A thread with no Fixup: answer gets
+# others are green: when it takes part (asked at each check), wait for its
+# check on the head to succeed (NEUTRAL, its review limit, stops), then
+# read its threads. A thread with no Fixup: answer gets
 # another fixup, CI after each, at most max_fixups in all, the second one
 # after a rebase included (cloud:T182, V65). gh failing to say stops.
 rounds=1
 [ "$rebased" = 0 ] || rounds=2
 while true; do
-    if [ "$coderabbit_on" = 1 ]; then
+    # Asked at each check: CodeRabbit may show up only after the reviews.
+    cr_on="$(coderabbit_participates)" || cr_on=
+    case "$cr_on" in
+    yes | no) ;;
+    *) fail "cannot tell whether CodeRabbit reviews #$pr -- check gh auth status" ;;
+    esac
+    if [ "$cr_on" = yes ]; then
         rc=0
         wait_for "CodeRabbit's review of the head of #$pr" "$polls_ci" coderabbit_reviewed || rc=$?
         [ "$rc" != 5 ] || fail "CodeRabbit's check on the head of #$pr ended $coderabbit_end, not in a review (its review limit?): the owner reads the threads"
