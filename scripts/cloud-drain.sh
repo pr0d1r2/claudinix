@@ -94,10 +94,13 @@ pr_number() {
 here=
 if [ "$prs" = 1 ]; then
     origin_url="$(git remote get-url origin 2>/dev/null)" || origin_url=
-    # Host github.com only; a port 22, a trailing / and .git are allowed.
-    gh_https='https://github\.com/'
-    gh_ssh='ssh://git@github\.com(:22)?/'
-    gh_scp='git@github\.com:'
+    # Host github.com only, in any case (a class per letter: Bash 3.2 has no
+    # ${x,,}); the owner/repo stays as written. A port 22, a trailing / and
+    # .git are allowed.
+    gh_host='[Gg][Ii][Tt][Hh][Uu][Bb]\.[Cc][Oo][Mm]'
+    gh_https="https://$gh_host/"
+    gh_ssh="ssh://git@$gh_host(:22)?/"
+    gh_scp="git@$gh_host:"
     github_re="^($gh_https|$gh_ssh|$gh_scp)([^/]+/[^/]+)/?\$"
     if [[ "$origin_url" =~ $github_re ]]; then
         here="${BASH_REMATCH[3]%.git}"
