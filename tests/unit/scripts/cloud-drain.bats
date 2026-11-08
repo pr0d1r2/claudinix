@@ -10,7 +10,7 @@ setup() {
     export STATE="$BATS_TEST_TMPDIR/state"
     export TOPLEVEL="$BATS_TEST_TMPDIR/project"
     export CLAUDINIX_SCRIPTS="$BATS_TEST_TMPDIR/lib"
-    unset STUB_BRANCH STUB_DIRTY GH_FAIL CLOUD_DRAIN_PR_LIMIT
+    unset STUB_BRANCH STUB_DIRTY STUB_ORIGIN GH_FAIL CLOUD_DRAIN_PR_LIMIT
     mkdir -p "$STUBS" "$STATE" "$TOPLEVEL/scripts" "$TOPLEVEL/experiments" "$TOPLEVEL/docs" "$CLAUDINIX_SCRIPTS/review"
     : >"$CLAUDINIX_SCRIPTS/review/alpha.md"
     : >"$CLAUDINIX_SCRIPTS/review/beta.md"
@@ -25,13 +25,14 @@ setup() {
     chmod +x "$CLAUDINIX_SCRIPTS"/*.sh
 
     # git: a work tree at $TOPLEVEL on $STUB_BRANCH (default main), clean
-    # unless $STUB_DIRTY.
+    # unless $STUB_DIRTY, its origin $STUB_ORIGIN (default o/p).
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "$*" >>"$STATE/git.log"' \
         'case "$*" in' \
         'rev-parse\ --show-toplevel) echo "$TOPLEVEL" ;;' \
         'symbolic-ref*) echo "${STUB_BRANCH:-main}" ;;' \
+        'remote\ get-url\ origin) echo "${STUB_ORIGIN:-https://github.com/o/p.git}" ;;' \
         'status\ --porcelain*) printf "%s" "${STUB_DIRTY:-}" ;;' \
         '*) exit 9 ;;' \
         'esac' >"$STUBS/git"
@@ -351,4 +352,23 @@ all 31 --yes --merge --model sonnet" ]
     run /bin/bash "$SCRIPT" --dry-run --max 9
     [ "$status" -eq 0 ]
     [[ "$output" == *"root:T1"* ]]
+}
+
+@test "--prs: a number is read in base 10, so 031 is 31: given twice it is a usage error" {
+    run bash "$SCRIPT" --prs 31 031 --yes
+    [ "$status" -eq 2 ]
+    [ -z "$(ran)" ]
+    run bash "$SCRIPT" --prs 031 --yes
+    [ "$status" -eq 0 ]
+    [ "$(ran)" = "all 31 --yes --merge --model sonnet" ]
+}
+
+@test "--prs: a URL of another repo is a usage error, since drain drains this repo only" {
+    run bash "$SCRIPT" --prs https://github.com/x/y/pull/31 --yes
+    [ "$status" -eq 2 ]
+    [[ "$output" == *"this repo"* ]]
+    [ -z "$(ran)" ]
+    STUB_ORIGIN=git@github.com:O/P.git run bash "$SCRIPT" --prs https://github.com/o/p/pull/7 --yes
+    [ "$status" -eq 0 ]
+    [ "$(ran)" = "all https://github.com/o/p/pull/7 --yes --merge --model sonnet" ]
 }
