@@ -35,12 +35,14 @@ setup() {
         'status\ --porcelain*) printf "%s" "${STUB_DIRTY:-}" ;;' \
         '*) exit 9 ;;' \
         'esac' >"$STUBS/git"
-    # gh: `pr list` answers $STATE/merged.json, or fails with $GH_FAIL.
+    # gh: `pr list --state open` answers $STATE/open.json, another `pr list`
+    # $STATE/merged.json; every call fails with $GH_FAIL.
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' \
         'echo "$*" >>"$STATE/gh.log"' \
         '[ -z "${GH_FAIL:-}" ] || { echo "HTTP 502: bad gateway" >&2; exit 1; }' \
         'case "$*" in' \
+        'pr\ list\ --state\ open*) cat "$STATE/open.json" ;;' \
         'pr\ list*) cat "$STATE/merged.json" ;;' \
         '*) exit 9 ;;' \
         'esac' >"$STUBS/gh"
@@ -225,6 +227,85 @@ all scripts:T4 --yes --merge --model sonnet" ]
 
 @test "a bad task, a bad --max or an unknown flag: usage, exit 2" {
     for args in "docs:47" "--max 0" "--max x" "--max" "--bogus"; do
+        # shellcheck disable=SC2086 # split on purpose: each word one arg
+        run bash "$SCRIPT" $args --yes
+        [ "$status" -eq 2 ] || {
+            echo "not usage: $args"
+            return 1
+        }
+    done
+    [ -z "$(ran)" ]
+}
+
+# --- --prs: open pull requests instead of tasks (cloud:T182) ---
+
+# open_prs N:HEAD...: your open pull requests, as gh lists them.
+open_prs() {
+    printf '%s\n' "$@" | jq -R 'split(":") | {number: (.[0] | tonumber), headRefName: (.[1:] | join(":"))}' | jq -s . >"$STATE/open.json"
+}
+
+@test "--prs PR...: the pull requests given run one at a time through just all --merge, in order" {
+    run bash "$SCRIPT" --prs 31 https://github.com/o/p/pull/7 --yes
+    [ "$status" -eq 0 ]
+    [ "$(ran)" = "all 31 --yes --merge --model sonnet
+all https://github.com/o/p/pull/7 --yes --merge --model sonnet" ]
+    [[ "$output" == *"drain: done, 2 of 2"* ]]
+}
+
+@test "--prs alone: your open claude/* pull requests, oldest first" {
+    open_prs 31:claude/docs-t6-ab12 12:feature/x 7:claude/scripts-t4-cd34
+    run bash "$SCRIPT" --prs --yes --max 9
+    [ "$status" -eq 0 ]
+    [ "$(ran)" = "all 7 --yes --merge --model sonnet
+all 31 --yes --merge --model sonnet" ]
+    grep -q -- '--author @me' "$STATE/gh.log"
+}
+
+@test "--prs: no open claude/* pull request of yours: nothing to do, exit 0, no session" {
+    open_prs 12:feature/x
+    run bash "$SCRIPT" --prs --yes --max 9
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"nothing to do"* ]]
+    [ -z "$(ran)" ]
+}
+
+@test "--prs: gh cannot list the open pull requests: exit 1, no session" {
+    GH_FAIL=1 run bash "$SCRIPT" --prs --yes --max 9
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"open pull requests"* ]]
+    [ -z "$(ran)" ]
+}
+
+@test "--prs needs neither main nor a clean tree: each pull request is rebased in the cloud" {
+    STUB_BRANCH=feature/x STUB_DIRTY=' M x' run bash "$SCRIPT" --prs 31 --yes
+    [ "$status" -eq 0 ]
+    [ "$(ran)" = "all 31 --yes --merge --model sonnet" ]
+}
+
+@test "--prs: the first failure stops the drain, naming the pull request and how far it got" {
+    open_prs 7:claude/a 31:claude/b 40:claude/c
+    echo 1 >"$STATE/rc.31"
+    run bash "$SCRIPT" --prs --yes --max 9
+    [ "$status" -eq 1 ]
+    [ "$(ran)" = "all 7 --yes --merge --model sonnet
+all 31 --yes --merge --model sonnet" ]
+    [[ "$output" == *"#31"* ]]
+    [[ "$output" == *"1 of 3"* ]]
+}
+
+@test "--prs --dry-run: the plan names the pull requests and the most sessions they may bill; --max caps it" {
+    open_prs 7:claude/a 31:claude/b
+    run bash "$SCRIPT" --prs --dry-run --max 9
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"#7 #31 (2 of 2 pull requests)"* ]]
+    [[ "$output" == *"at most 6 billed"* ]]
+    [ -z "$(ran)" ]
+    run bash "$SCRIPT" --prs --yes --max 1
+    [ "$(ran)" = "all 7 --yes --merge --model sonnet" ]
+}
+
+@test "--prs with a task, a task run given a PR, or a bad PR: usage, exit 2" {
+    for args in "--prs docs:T6" "31" "--prs x" "--prs 31/x"; do
         # shellcheck disable=SC2086 # split on purpose: each word one arg
         run bash "$SCRIPT" $args --yes
         [ "$status" -eq 2 ] || {
