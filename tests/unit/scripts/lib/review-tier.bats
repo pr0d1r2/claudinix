@@ -47,6 +47,22 @@ files() {
     done
 }
 
+@test "AGENTS.md and CLAUDE.md steer every session: council at any depth" {
+    local p
+    for p in AGENTS.md CLAUDE.md home/AGENTS.md docs/CLAUDE.md; do
+        run review_tier <<<"$(files '1|0|docs/CLI.md' "1|0|$p")"
+        [ "$output" = "$(printf 'council\t%s' "$p")" ]
+    done
+}
+
+@test "review_tier_level orders the tiers; an unknown one fails" {
+    [ "$(review_tier_level light)" = 1 ]
+    [ "$(review_tier_level light+correctness)" = 2 ]
+    [ "$(review_tier_level council)" = 3 ]
+    run review_tier_level bogus
+    [ "$status" -eq 1 ]
+}
+
 @test "any other path is council: safe default (V66)" {
     run review_tier <<<"$(files '1|0|docs/CLI.md' '1|0|.context-limits')"
     [ "$output" = "$(printf 'council\t.context-limits')" ]
