@@ -18,7 +18,8 @@ setup() {
     # each succeed only when the test says so; a leading installable is
     # set aside first. A failure prints NIX_ERR_FILE, when set, on stderr.
     # develop: echoes its args. eval (config.sh parsing a
-    # .claudinix.toml, scripts:T91) is the real nix.
+    # .claudinix.toml, scripts:T91) is the real nix. flake (archive) fails,
+    # printing NIX_ARCHIVE_ERR_FILE, when set, on stderr.
     REAL_NIX="$(command -v nix)"
     export REAL_NIX
     # shellcheck disable=SC2016 # expands inside the stub, not here
@@ -29,6 +30,7 @@ setup() {
         'case "$cmd" in' \
         'develop) echo "develop $*"; exit 0 ;;' \
         'print-dev-env) ;;' \
+        'flake) [ -z "${NIX_ARCHIVE_ERR_FILE:-}" ] || cat "$NIX_ARCHIVE_ERR_FILE" >&2; exit 9 ;;' \
         '*) exit 9 ;;' \
         'esac' \
         'case "${1:-}" in -* | "") ;; *) shift ;; esac' \
@@ -227,7 +229,8 @@ N=6666666666666666666666666666666666666666
 @test "nix's trace form, a bare error: then the cause indented, logs the cause, never a bare error: (scripts:V68, B122)" {
     printf '%s\n' 'error:' "       … while updating the lock file of flake 'path:/p'" '' \
         "       … while fetching the input 'github:o/x'" '' \
-        "       error: unable to download 'https://api.github.com/repos/o/x/commits/HEAD': HTTP error 403" >"$BATS_TEST_TMPDIR/err"
+        "       error: unable to download 'https://api.github.com/repos/o/x/commits/HEAD': HTTP error 403" \
+        '' '       error: a later, outer cause' '' 'error: the very last cause' >"$BATS_TEST_TMPDIR/err"
     NIX_ERR_FILE="$BATS_TEST_TMPDIR/err" run bash "$SCRIPT"
     [ "$status" -eq 1 ]
     [[ "$output" == *"tier 2 failed (github inputs as git+https at the locked rev): error: unable to download 'https://api.github.com/repos/o/x/commits/HEAD': HTTP error 403"* ]]
@@ -239,6 +242,14 @@ N=6666666666666666666666666666666666666666
     # shellcheck disable=SC2016 # expands inside the stub, not here
     printf '%s\n' '#!/usr/bin/env bash' 'printf "%s\n" "error:" "       … while fetching the input" "" "       error: unable to download x: HTTP error 403" >&2' 'exit 1' >"$CLAUDINIX_SCRIPTS/inputs.sh"
     NIX_OK_GIT=1 run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"cache status unknown (inputs.sh: error: unable to download x: HTTP error 403)"* ]]
+}
+
+@test "the real inputs.sh passes nix's trace cause up: cache status unknown names it (scripts:V68, B122)" {
+    printf '%s\n' 'error:' "       … while fetching the input 'github:o/x'" '' \
+        '       error: unable to download x: HTTP error 403' >"$BATS_TEST_TMPDIR/archive.err"
+    NIX_ARCHIVE_ERR_FILE="$BATS_TEST_TMPDIR/archive.err" NIX_OK_GIT=1 run bash "$SCRIPT"
     [ "$status" -eq 0 ]
     [[ "$output" == *"cache status unknown (inputs.sh: error: unable to download x: HTTP error 403)"* ]]
 }
