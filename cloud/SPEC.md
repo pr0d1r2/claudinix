@@ -93,7 +93,7 @@ T182|x|ARCHIVED to SPEC-ARCHIVE.md|V65,V52,T161
 T183|x|ARCHIVED to SPEC-ARCHIVE.md|V66,V65,T182
 T192|x|ARCHIVED to SPEC-ARCHIVE.md|V65,V53
 T194|x|ARCHIVED to SPEC-ARCHIVE.md|V51,T146
-T195|.|`drain` pace (`--max` default, T161): cutoff = UTC timestamp 7×24 h back, ⊥ date-only; result count = `CLOUD_DRAIN_PACE_LIMIT` → stop, ask `--max`; doc the limit|T161
+T195|x|`drain` pace (`--max` default, T161): cutoff = UTC timestamp 7×24 h back, ⊥ date-only; result count = `CLOUD_DRAIN_PACE_LIMIT` → stop, ask `--max`; doc the limit|T161
 
 ## §B BUGS
 
