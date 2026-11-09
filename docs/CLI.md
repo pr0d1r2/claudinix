@@ -125,11 +125,12 @@ Or push the input to your cache from CI ([`CACHE-CI.md`](CACHE-CI.md)).
 
 The refusals name what they were given, so a typo is easy to spot, for
 example `inputs: no directory /nonexistent -- nothing was checked`. When
-`nix flake archive` fails, the message adds a likely cause: with
-`--dry-run` it fetches nothing a current lock names, so if the
-`flake.lock` is behind `flake.nix`, nix fetched the new inputs (which a
-cloud session's proxy refuses). Then run `nix flake lock <dir>` where
-GitHub is reachable, not in a cloud session, and commit the lock.
+`nix flake archive` fails, the message names the directory as you gave it
+and adds a likely cause: with `--dry-run` nix fetches little, but a
+`flake.lock` behind `flake.nix` (or a nested `follows` it must resolve)
+makes it try, and a cloud session's proxy refuses that. If the lock is
+behind, run `nix flake lock` in your local checkout of the flake, where
+GitHub is reachable, and commit the lock.
 
 ## domains
 
