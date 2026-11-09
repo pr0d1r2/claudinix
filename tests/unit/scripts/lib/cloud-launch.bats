@@ -589,3 +589,12 @@ gh_threads() {
     [ "$status" -eq 0 ]
     [ "$output" = "bot: the CodeRabbit thread at x.sh:3 has no Fixup: reply with a Head: line" ]
 }
+
+@test "cloud_bot_reasons stops when a thread's first comment has no author: it may be CodeRabbit's (cloud:V65)" {
+    gh_threads $'Fixup: fixed in abc123.\nHead: abc123'
+    jq '.data.repository.pullRequest.reviewThreads.nodes[0].comments.nodes[0].author = null' \
+        "$STATE/threads.json" >"$STATE/t.json" && mv "$STATE/t.json" "$STATE/threads.json"
+    run cloud_bot_reasons 7
+    [ "$status" -eq 1 ]
+    [ "$output" = "bot: a review thread of #7 has no author on its first comment; judge it by hand" ]
+}
