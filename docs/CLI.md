@@ -124,7 +124,11 @@ Or push the input to your cache from CI ([`CACHE-CI.md`](CACHE-CI.md)).
 | 2 | a usage error |
 
 The refusals name what they were given, so a typo is easy to spot, for
-example `inputs: no directory /nonexistent -- nothing was checked`.
+example `inputs: no directory /nonexistent -- nothing was checked`. When
+`nix flake archive` fails, the message adds the likely cause: with
+`--dry-run` it fetches nothing a current lock names, so a `flake.lock`
+behind `flake.nix` is what makes it fetch (and a cloud session's proxy
+refuse). Run `nix flake lock` and commit the lock.
 
 ## domains
 
@@ -1429,7 +1433,10 @@ Without `jq`, or with an older install that has no `config.sh`,
 no file is read.
 
 Overrides are never written to `flake.lock`. A tier whose command an earlier
-tier already ran is skipped, and a failed tier logs nix's first `error:` line.
+tier already ran is skipped, and a failed tier logs nix's first `error:` line
+that names a cause: in nix's trace form, a bare `error:` with the cause on an
+indented line below, it logs that line, never the bare `error:`. So does
+`cache status unknown (inputs.sh: ...)`.
 Without a `flake.lock`, or with an installable that is not a local flake
 directory, it runs plain `nix develop` and logs `tier 1`. Without `jq` there
 is no failover at all, and it says so:
