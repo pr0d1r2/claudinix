@@ -144,9 +144,10 @@ jq -r -f "$lib/nix-dev.jq" "$flake/flake.lock" >"$tmp/github"
 why() {
     local line
     line="$(grep -m 1 -E '^[[:space:]]*error:[[:space:]]*[^[:space:]]' "$1" || true)"
-    [ -n "$line" ] || line="$(grep -v '^[[:space:]]*$' "$1" | tail -n 1 || true)"
+    [ -n "$line" ] || line="$(grep -vE '^[[:space:]]*(error:[[:space:]]*)?$' "$1" | tail -n 1 || true)"
     line="${line#"${line%%[![:space:]]*}"}"
-    printf '%s' "${line:-no output}"
+    [ -n "$line" ] || line="no cause in nix's output"
+    printf '%s' "$line"
 }
 
 # `owner/repo rev cached|uncached` per github input (scripts:T25).
