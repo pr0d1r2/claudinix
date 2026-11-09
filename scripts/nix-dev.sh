@@ -137,10 +137,13 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 jq -r -f "$lib/nix-dev.jq" "$flake/flake.lock" >"$tmp/github"
 
-# why FILE: nix's first `error:` line in FILE, else its last non-empty one.
+# why FILE: nix's first `error: <text>` line in FILE, else its last non-empty
+# one. nix's trace form opens with a bare `error:` and indents the cause
+# below it; a bare `error:` says nothing, so it is never the answer
+# (scripts:V68, B122).
 why() {
     local line
-    line="$(grep -m 1 -E '^[[:space:]]*error:' "$1" || true)"
+    line="$(grep -m 1 -E '^[[:space:]]*error:[[:space:]]*[^[:space:]]' "$1" || true)"
     [ -n "$line" ] || line="$(grep -v '^[[:space:]]*$' "$1" | tail -n 1 || true)"
     line="${line#"${line%%[![:space:]]*}"}"
     printf '%s' "${line:-no output}"
