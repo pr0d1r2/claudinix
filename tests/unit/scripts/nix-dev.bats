@@ -243,6 +243,17 @@ N=6666666666666666666666666666666666666666
     [[ "$output" == *"cache status unknown (inputs.sh: error: unable to download x: HTTP error 403)"* ]]
 }
 
+@test "with no error: line that has text, the fallback skips a bare error: too (scripts:V68)" {
+    printf '%s\n' 'the real last words' 'error:' '' >"$BATS_TEST_TMPDIR/err"
+    NIX_ERR_FILE="$BATS_TEST_TMPDIR/err" run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"tier 2 failed (github inputs as git+https at the locked rev): the real last words"* ]]
+    printf '%s\n' 'error:' '   error:   ' '' >"$BATS_TEST_TMPDIR/err"
+    NIX_ERR_FILE="$BATS_TEST_TMPDIR/err" run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"tier 2 failed (github inputs as git+https at the locked rev): no cause in nix's output"* ]]
+}
+
 @test "a failing tier without an error: line logs its last non-empty line" {
     printf '%s\n' 'something odd' 'the real last words' '' '' >"$BATS_TEST_TMPDIR/err"
     NIX_ERR_FILE="$BATS_TEST_TMPDIR/err" run bash "$SCRIPT"
