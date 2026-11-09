@@ -597,4 +597,11 @@ gh_threads() {
     run cloud_bot_reasons 7
     [ "$status" -eq 1 ]
     [ "$output" = "bot: a review thread of #7 has no author on its first comment; judge it by hand" ]
+    # A later thread, after a valid one, stops it too.
+    gh_threads $'Fixup: fixed in abc123.\nHead: abc123'
+    jq '.data.repository.pullRequest.reviewThreads.nodes += [.data.repository.pullRequest.reviewThreads.nodes[0] | .comments.nodes[0].author = null]' \
+        "$STATE/threads.json" >"$STATE/t.json" && mv "$STATE/t.json" "$STATE/threads.json"
+    run cloud_bot_reasons 7
+    [ "$status" -eq 1 ]
+    [ "$output" = "bot: a review thread of #7 has no author on its first comment; judge it by hand" ]
 }
