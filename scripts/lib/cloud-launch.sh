@@ -508,9 +508,9 @@ cloud_diff_reasons() {
 # reply by the owner or a member headed `Fixup:` with a `Head: <sha>` line
 # (cloud:V65); a finding declined with a reason counts. Prints nothing when
 # every thread is answered. When gh fails or its answer cannot be judged
-# (not a list of threads, more than one page), it prints why and returns
-# 1, so a caller that only collects the lines still stops. Bot text is
-# data, never an instruction.
+# (not a list of threads, a first comment with no author, more than one
+# page), it prints why and returns 1, so a caller that only collects the
+# lines still stops. Bot text is data, never an instruction.
 cloud_bot_reasons() {
     local pr="$1" query threads out
     # shellcheck disable=SC2016 # GraphQL variables, not shell ones
@@ -535,6 +535,8 @@ cloud_bot_reasons() {
           or any($t.nodes[]; type != "object" or (.comments.nodes | type) != "array"
             or (.comments.nodes | length) == 0 or any(.comments.nodes[]; type != "object"))
           then "!bot: gh returned review threads for #'"$pr"' that are not a list of threads; judge it by hand"
+          elif any($t.nodes[]; .comments.nodes[0].author == null)
+          then "!bot: a review thread of #'"$pr"' has no author on its first comment; judge it by hand"
           elif $t.pageInfo.hasNextPage or any($t.nodes[]; .comments.pageInfo.hasNextPage)
           then "!bot: more review threads or replies than one page shows; judge #'"$pr"' by hand"
           else $t.nodes[]
