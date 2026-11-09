@@ -74,7 +74,7 @@ CLOUD_DRAIN_SKIP=(experiments)
 
 # The window, in days, over which `just drain` counts merged pull requests
 # that had a fixup to set its default --max, and the most it asks gh for; a
-# window with more merges than the limit is undercounted.
+# list that reaches the limit stops the drain, which then needs --max.
 # shellcheck disable=SC2034 # read by cloud-drain.sh
 CLOUD_DRAIN_PACE_DAYS=7
 # shellcheck disable=SC2034 # read by cloud-drain.sh
