@@ -158,6 +158,24 @@ all docs:T6 --yes --merge --model sonnet" ]
     [ "$(ran | wc -l | tr -d ' ')" -eq 2 ]
 }
 
+@test "the pace window starts at a UTC time 7×24 h back, not at a date's midnight (cloud:T195)" {
+    run bash "$SCRIPT" --yes
+    [ "$status" -eq 0 ]
+    grep -Eq 'merged:>=[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z ' "$STATE/gh.log"
+}
+
+@test "gh listing as many merges as the limit: exit 1 naming --max, no session (cloud:T195)" {
+    jq -n '[range(200) | {number: ., comments: [{authorAssociation: "OWNER", body: "Fixup:\n\nDone."}]}]' >"$STATE/merged.json"
+    run bash "$SCRIPT" --yes
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"200"* ]]
+    [[ "$output" == *"--max"* ]]
+    [ -z "$(ran)" ]
+    jq -n '[range(199) | {number: ., comments: [{authorAssociation: "OWNER", body: "Fixup:\n\nDone."}]}]' >"$STATE/merged.json"
+    run bash "$SCRIPT" --yes
+    [ "$status" -eq 0 ]
+}
+
 @test "gh cannot count the merges: exit 1 naming --max, no session; with --max, gh is not asked" {
     export GH_FAIL=1
     run bash "$SCRIPT" --yes
