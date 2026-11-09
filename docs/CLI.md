@@ -1132,10 +1132,12 @@ whatever `GH_REPO` you had. Each runs as `all <PR> --yes --merge`, so
 each picks its own review tier; `--prs` with a task is a usage error.
 
 **How many.** `--max N` caps the run. Its default follows your recent
-pace: the pull requests merged in the last 7 days that had a `Fixup:`
-reply by you or a member (a stranger's comment does not count), per day,
-rounded up, at least 1. It caps tasks you name too, and a `--prs` run the
-same way. When `gh` cannot count them, it exits 1 and asks for `--max`.
+pace: the pull requests merged in the last 7×24 hours (from a UTC time,
+not a date) that had a `Fixup:` reply by you or a member (a stranger's
+comment does not count), per day, rounded up, at least 1. It caps tasks
+you name too, and a `--prs` run the same way. When `gh` cannot count
+them, or lists 200 of them (its limit, so some may be cut), it exits 1 and
+asks for `--max`.
 
 **From where.** Only from `main` with a clean work tree, and with at least
 one review role: each task starts
