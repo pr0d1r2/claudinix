@@ -103,3 +103,4 @@ id|date|cause|fix
 B113|2026-10-19|session ran `$(git ls-remote)` late, unchecked; no fallback, ⊥ permitted|V63
 B114|2026-10-19|`all` posted `## Burn` only after green CI|V64
 B123|2026-11-06|`all` rebases after the fixup (T146) ∴ a conflict pushes a new head, the `Fixup:` names the old one ⇒ `merge` stops: "the Fixup: reply does not name the head" (#73 review)|V51: `Fixup:` names the merged head
+B125|2026-11-09|`cloud_bot_reasons` matched CodeRabbit by author ∴ a null first author (deleted account) skipped the thread ⇒ `merge --light` passed it unanswered|V65
