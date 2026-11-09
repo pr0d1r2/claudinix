@@ -130,7 +130,7 @@ cached() {
     [ "$status" -eq 1 ]
     [[ "$output" == *"nix may have tried to fetch an input"* ]]
     [[ "$output" == *"a flake.lock behind flake.nix"* ]]
-    [[ "$output" == *"run nix flake lock in your local checkout of this flake, where GitHub is reachable"* ]]
+    [[ "$output" == *"if so, run nix flake lock in your local checkout of this flake, where GitHub is reachable"* ]]
     [[ "$output" == *"commit the lock"* ]]
 }
 
