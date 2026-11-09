@@ -76,7 +76,10 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
 if ! nix flake archive --dry-run --json "$dir" >"$tmp/archive.json"; then
-    echo "inputs: nix flake archive could not run on $dir -- nothing was checked" >&2
+    # --dry-run fetches nothing a current lock names; a flake.lock behind
+    # flake.nix makes nix fetch the new inputs, which a cloud session's
+    # proxy refuses (scripts:T186, B122).
+    echo "inputs: nix flake archive could not run on $dir -- nothing was checked (a flake.lock behind flake.nix makes nix fetch: run nix flake lock and commit it)" >&2
     exit 1
 fi
 
