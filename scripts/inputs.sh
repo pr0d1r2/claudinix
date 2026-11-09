@@ -16,7 +16,8 @@
 # `git+https://github.com/<owner>/<repo>` (scripts:T80).
 #
 # Store paths come from `nix flake archive --dry-run --json`, which fetches
-# nothing. Run it from the project you will send to the cloud.
+# nothing a current lock names (a stale lock or a nested follows can make it
+# fetch). Run it from the project you will send to the cloud.
 #
 # Usage: inputs.sh [--check] [FLAKE_DIR]   (default: the current directory)
 #   --check  exit 1 when any input is uncached

@@ -98,8 +98,9 @@ without `config.sh` beside `inputs.sh` (an older `nix-dev` install) reads no
 file and uses `pr0d1r2`.
 
 It reads every `github` node of `flake.lock`, nested and deduplicated, asks
-`nix flake archive --dry-run --json` for the store paths (this fetches
-nothing), and asks each cache whether it has the path's narinfo. One line per
+`nix flake archive --dry-run --json` for the store paths (it fetches
+nothing a current lock names; a stale lock or a nested `follows` can make it
+fetch, see below), and asks each cache whether it has the path's narinfo. One line per
 input, `owner/repo rev status`:
 
 ```text
