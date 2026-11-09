@@ -46,6 +46,7 @@ V37: a claudinix commit given by the user (`setup-line.sh` REV, guide `--rev`): 
 V57: `spec-ids` fails closed, naming the line: pointer to a missing/empty archive, unparsable `ARCHIVED to` line, reversed or >1000-id range (B95-B97).
 V61: `burn` $ = list price/model from 1 table in `burn.sh`; `docs/MODEL.md` price block from it (`dev:T179`), ⊥ 2nd copy; cache read 0.1×, write 5m 1.25×, 1h 2× input; unknown model → tokens, $ `?`, ⊥ guessed; `unmeasured (<why>)` ∈ `no-transcript` \| `no-usage`, ⊥ raw error \| path; network only `gh` (`--pr`); writes only `--post`; `--pr` reads the PR body (row 1) + comments, trusts each only from an OWNER \| MEMBER author (B117).
 V62: `burn` rows: usage \& `model` ≠ `<synthetic>`; ⊥ jq failure → code; 1h ⊥ twice; longest price prefix; 1 `Burn:` definition; `--pr` ∈ digits
+V68: a `nix-dev:` log line names a cause: nix's first `error: <text>`, ⊥ a bare `error:` (trace form); `inputs` archive failure names a `flake.lock` behind `flake.nix` (B122)
 
 ## §T TASKS
 
@@ -89,5 +90,5 @@ B117|2026-10-23|`--pr` read comments only; build's `Burn:` is in the PR body ⇒
 B119|2026-11-03|`verify-cachix.bats` unset `CACHIX_URL` but ⊥ `GIT_*` ∴ push from a linked worktree (hook exports `GIT_WORK_TREE`) → `config.sh` read that tree, 3 `.claudinix.toml` tests red|`.:V21`: setup unsets ∀ `GIT_*`
 B120|2026-11-04|`context-limits` refused #74, which cut every chain (max 9399 → 6062): it saw 4 added \& 6 raised rows, ⊥ chains|`gate:V67`
 B121|2026-11-04|`context-limits` passed an added `.context-limits` vs a base w/o one: awk `FNR == NR` read HEAD as base; `\|\| true` hid a bad read|`gate:V67`, `.:V18`
-B122|2026-11-04|E9 on itok: `inputs.sh` printed a bare `error:` ⇒ cache status unknown ⇒ tier 1 tried \& failed before tier 2 (72 s vs 9.5 s on microlith); cause undiagnosed, ⊥ `nix-dev:` log kept|T186: ⊥ §V yet, a candidate is `inputs.sh` ⊥ bare `error:` on a flake whose inputs it cannot archive
+B122|2026-11-04|E9 on itok: `inputs.sh` printed a bare `error:` ⇒ cache status unknown ⇒ tier 1 tried \& failed before tier 2 (72 s vs 9.5 s on microlith); cause undiagnosed, ⊥ `nix-dev:` log kept|V68
 B124|2026-11-06|`setup-line.bats` amended HEAD until its SHA held `404`; the parent is dated now ∴ 2..250+ amends, unbounded; CI broke mid-loop twice (#72, #78: `could not parse HEAD`, `unable to create temporary file`)|`.:V21`: a fixture is deterministic \& bounded (fixed dates \& names, host git config off, parentless `commit-tree`, ≤ 64 tries)
