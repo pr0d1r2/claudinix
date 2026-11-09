@@ -224,6 +224,25 @@ N=6666666666666666666666666666666666666666
     run ! grep -q 'failed.*--show-trace' <<<"$output"
 }
 
+@test "nix's trace form, a bare error: then the cause indented, logs the cause, never a bare error: (scripts:V68, B122)" {
+    printf '%s\n' 'error:' "       … while updating the lock file of flake 'path:/p'" '' \
+        "       … while fetching the input 'github:o/x'" '' \
+        "       error: unable to download 'https://api.github.com/repos/o/x/commits/HEAD': HTTP error 403" >"$BATS_TEST_TMPDIR/err"
+    NIX_ERR_FILE="$BATS_TEST_TMPDIR/err" run bash "$SCRIPT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"tier 2 failed (github inputs as git+https at the locked rev): error: unable to download 'https://api.github.com/repos/o/x/commits/HEAD': HTTP error 403"* ]]
+    run ! grep -qE 'failed \([^)]*\): error:$' <<<"$output"
+}
+
+@test "cache status unknown names inputs.sh's cause from nix's trace, not a bare error: (scripts:V68, B122)" {
+    inputs_stub
+    # shellcheck disable=SC2016 # expands inside the stub, not here
+    printf '%s\n' '#!/usr/bin/env bash' 'printf "%s\n" "error:" "       … while fetching the input" "" "       error: unable to download x: HTTP error 403" >&2' 'exit 1' >"$CLAUDINIX_SCRIPTS/inputs.sh"
+    NIX_OK_GIT=1 run bash "$SCRIPT"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"cache status unknown (inputs.sh: error: unable to download x: HTTP error 403)"* ]]
+}
+
 @test "a failing tier without an error: line logs its last non-empty line" {
     printf '%s\n' 'something odd' 'the real last words' '' '' >"$BATS_TEST_TMPDIR/err"
     NIX_ERR_FILE="$BATS_TEST_TMPDIR/err" run bash "$SCRIPT"

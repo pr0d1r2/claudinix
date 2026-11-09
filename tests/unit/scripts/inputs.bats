@@ -125,6 +125,13 @@ cached() {
     [[ "$output" == *"could not run"* ]]
 }
 
+@test "archive failing names the likely cause: a flake.lock behind flake.nix makes nix fetch (scripts:T186, B122)" {
+    STUB_ARCHIVE_RC=1 run bash "$SCRIPT" "$PROJECT"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"flake.lock"*"flake.nix"* ]]
+    [[ "$output" == *"nix flake lock"* ]]
+}
+
 @test "a lock with no github inputs prints nothing and passes --check" {
     printf '%s\n' '{"nodes":{"root":{"inputs":{}}},"root":"root","version":7}' >"$PROJECT/flake.lock"
     run bash "$SCRIPT" --check "$PROJECT"
