@@ -13,8 +13,9 @@
 # the pull requests merged in the last CLOUD_DRAIN_PACE_DAYS (7) days that
 # had a `Fixup:` reply by the owner or a member (cloud:B78), per day,
 # rounded up, at least 1. gh lists only the pull requests with such a
-# comment, at most CLOUD_DRAIN_PACE_LIMIT of them. When gh cannot count
-# them, it exits 1 and asks for --max.
+# comment, at most CLOUD_DRAIN_PACE_LIMIT (200) of them; the window starts
+# at a UTC time exactly that many days back. When gh cannot count them, or
+# lists the limit (so some may be cut), it exits 1 and asks for --max.
 #
 # One y/N answer names the tasks and the billed sessions (each task is
 # one build, one review per role and one fixup); --yes skips only that
@@ -202,10 +203,17 @@ if [ "$total" -eq 0 ]; then
 fi
 
 if [ -z "$max" ]; then
-    since="$(date -u -d "$CLOUD_DRAIN_PACE_DAYS days ago" +%F 2>/dev/null || date -u -v-"$CLOUD_DRAIN_PACE_DAYS"d +%F)"
+    # A UTC time, not a date: a date-only cutoff opens the window at midnight,
+    # 7 to 8 days back, and the count is still divided by 7 (cloud:T195).
+    since="$(date -u -d "$CLOUD_DRAIN_PACE_DAYS days ago" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-"$CLOUD_DRAIN_PACE_DAYS"d +%Y-%m-%dT%H:%M:%SZ)"
     # </dev/null: gh must not share the terminal the y/N answer comes from (cloud:B19).
     if ! merged="$(gh pr list --state merged --search "merged:>=$since \"$CLOUD_FIXUP_HEADING\" in:comments" --limit "$CLOUD_DRAIN_PACE_LIMIT" --json number,comments ${here:+--repo "$here"} </dev/null)"; then
         echo "drain: gh could not count the pull requests merged since $since -- pass --max N" >&2
+        exit 1
+    fi
+    # A list as long as the limit may be cut short: an undercount, never a pace.
+    if [ "$(jq length <<<"$merged")" -ge "$CLOUD_DRAIN_PACE_LIMIT" ]; then
+        echo "drain: gh listed $CLOUD_DRAIN_PACE_LIMIT pull requests merged since $since, its limit, so the pace is unknown -- pass --max N" >&2
         exit 1
     fi
     fixed="$(jq --arg h "$CLOUD_FIXUP_HEADING_RE" '[.[] | select(any(.comments[]?; (.authorAssociation == "OWNER" or .authorAssociation == "MEMBER") and (.body | test($h))))] | length' <<<"$merged")"
