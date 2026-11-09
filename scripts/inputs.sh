@@ -79,7 +79,7 @@ if ! nix flake archive --dry-run --json "$dir" >"$tmp/archive.json"; then
     # --dry-run fetches nothing a current lock names; a flake.lock behind
     # flake.nix makes nix fetch the new inputs, which a cloud session's
     # proxy refuses (scripts:T186, B122).
-    echo "inputs: nix flake archive could not run on $dir -- nothing was checked (a flake.lock behind flake.nix makes nix fetch: run nix flake lock and commit it)" >&2
+    echo "inputs: nix flake archive could not run on $dir -- nothing was checked; if its flake.lock is behind flake.nix, nix fetched the new inputs: run nix flake lock $dir where GitHub is reachable (not in a cloud session), then commit the lock" >&2
     exit 1
 fi
 
